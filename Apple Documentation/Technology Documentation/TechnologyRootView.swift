@@ -60,6 +60,10 @@ struct TechnologyRootView: View {
                                                 .foregroundStyle(Color.accentColor)
                                         }
                                     }
+                                } else if reference.role == .collection {
+                                    let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: identifier))
+                                    
+                                    NavigationLink(title, value: section)
                                 } else {
                                     NavigationLink(title, value: reference)
                                 }

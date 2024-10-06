@@ -18,9 +18,26 @@ struct ContentStruct: Decodable, Hashable {
     let type: String
 }
 
+struct TokenStruct: Decodable {
+    let type: String
+    let kind: String
+}
+
 struct ContentSection: Decodable {
     let kind: String
-    let content: [Content]
+    let content: [Content]?
+    let declarations: [Declaration]?
+    
+    struct Declaration: Decodable {
+        let tokens: [Token]
+        let languages: [String]
+        let platforms: [Platform]
+        
+        struct Token: Decodable {
+            let text: String
+            let kind: String
+        }
+    }
     
     struct Content: Decodable {
         let type: ContentType?
@@ -61,51 +78,51 @@ struct ContentSection: Decodable {
             
             // Lists
             if type == .termList {
-                self.termListItems = try container.decodeIfPresent([ContentSection.TermListItem].self, forKey: ContentSection.Content.CodingKeys.termListItems)
+                self.termListItems = try container.decodeIfPresent([TermListItem].self, forKey: ContentSection.Content.CodingKeys.termListItems)
             } else {
                 self.termListItems = nil
             }
             
             if type == .unorderedList {
-                self.unorderedListItems = try container.decodeIfPresent([ContentSection.UnorderedListItem].self, forKey: ContentSection.Content.CodingKeys.unorderedListItems)
+                self.unorderedListItems = try container.decodeIfPresent([UnorderedListItem].self, forKey: ContentSection.Content.CodingKeys.unorderedListItems)
             } else {
                 self.unorderedListItems = nil
             }
             
             // Tabs
-            self.tabs = try container.decodeIfPresent([ContentSection.Tab].self, forKey: ContentSection.Content.CodingKeys.tabs)
-        }
-    }
-    
-    struct Tab: Decodable {
-        let content: [Content]
-        let title: String
-        
-        struct Content: Decodable {
-            let items: [Item]?
-            let inlineContent: [ContentStruct]?
+            self.tabs = try container.decodeIfPresent([Tab].self, forKey: ContentSection.Content.CodingKeys.tabs)
         }
         
-        struct Item: Decodable {
-            let content: [ContentSection.Content]
+        struct Tab: Decodable {
+            let content: [Content]
+            let title: String
+            
+            struct Content: Decodable {
+                let items: [Item]?
+                let inlineContent: [ContentStruct]?
+            }
+            
+            struct Item: Decodable {
+                let content: [ContentSection.Content]
+            }
         }
-    }
-    
-    struct TermListItem: Decodable {
-        let term: Term
-        let definition: Definition
         
-        struct Definition: Decodable {
-            let content: [ContentSection.Content]
+        struct TermListItem: Decodable {
+            let term: Term
+            let definition: Definition
+            
+            struct Definition: Decodable {
+                let content: [ContentSection.Content]
+            }
+            
+            struct Term: Decodable {
+                let inlineContent: [ContentStruct]
+            }
         }
         
-        struct Term: Decodable {
-            let inlineContent: [ContentStruct]
+        struct UnorderedListItem: Decodable {
+            let content: [ContentSection.Content]?
         }
-    }
-    
-    struct UnorderedListItem: Decodable {
-        let content: [ContentSection.Content]?
     }
 }
 
@@ -120,4 +137,15 @@ enum ContentType: String, Decodable {
     case reference
     case table
     case emphasis
+    case codeListing
+}
+
+enum Platform: String, Decodable {
+    case iOS
+    case iPadOS
+    case MacCatalyst = "Mac Catalyst"
+    case macOS
+    case tvOS
+    case visionOS
+    case watchOS
 }

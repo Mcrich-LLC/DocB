@@ -96,6 +96,7 @@ struct Framework: Decodable {
         
         enum Role: String, Decodable {
             case collectionGroup
+            case collection
             case article
             case overview
         }

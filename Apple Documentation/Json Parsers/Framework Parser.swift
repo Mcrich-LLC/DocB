@@ -43,8 +43,8 @@ struct Framework: Decodable {
     struct Metadata: Decodable {
         let title: String
         let role: String
-        let images: [ImageStruct]
-        let platforms: [Platforms]
+        let images: [ImageStruct]?
+        let platforms: [Platforms]?
         
         struct ImageStruct: Decodable {
             let identifier: String
@@ -65,7 +65,45 @@ struct Framework: Decodable {
         let kind: String?
         let type: String
         let url: String?
-        let role: String?
+        let role: Role?
+        
+        enum CodingKeys: CodingKey {
+            case title
+            case abstract
+            case identifier
+            case kind
+            case type
+            case url
+            case role
+        }
+        
+        init(from decoder: any Decoder) throws {
+            let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
+            self.title = try container.decodeIfPresent(String.self, forKey: .title)
+            self.abstract = try container.decodeIfPresent([Framework.Reference.Abstract].self, forKey: .abstract)
+            self.identifier = try container.decode(String.self, forKey: .identifier)
+            self.kind = try container.decodeIfPresent(String.self, forKey: .kind)
+            self.type = try container.decode(String.self, forKey: .type)
+            self.url = try container.decodeIfPresent(String.self, forKey: .url)
+            let roleString = try container.decodeIfPresent(String.self, forKey: .role)
+            self.role = Role(rawValue: roleString ?? "")
+        }
+        
+        init(title: String?, abstract: [Abstract]?, identifier: String, kind: String?, type: String, url: String?, role: Role?) {
+            self.title = title
+            self.abstract = abstract
+            self.identifier = identifier
+            self.kind = kind
+            self.type = type
+            self.url = url
+            self.role = role
+        }
+        
+        enum Role: String, Decodable {
+            case collectionGroup
+            case article
+            case overview
+        }
         
         struct Abstract: Decodable {
             let text: String

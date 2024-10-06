@@ -38,7 +38,13 @@ struct TechnologyRootView: View {
                     Section(header: Text(section.title)) {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
-                                Text(title)
+                                if reference.role == .collectionGroup {
+                                    
+                                    let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: identifier))
+                                    NavigationLink(title, value: section)
+                                } else {
+                                    Text(title)
+                                }
                             }
                         }
                     }

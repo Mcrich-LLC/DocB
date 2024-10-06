@@ -19,7 +19,9 @@ class DocumentationViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(from: technologiesUrl)
             
             let technologies = try JSONDecoder().decode(Technologies.self, from: data)
-            self.technologies = technologies
+            await MainActor.run {
+                self.technologies = technologies
+            }
         } catch {
             print(error)
         }
@@ -48,7 +50,10 @@ class DocumentationViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(from: url)
             
             let framework = try JSONDecoder().decode(Framework.self, from: data)
-            self.frameworks[identifier] = framework
+            
+            await MainActor.run {
+                self.frameworks[identifier] = framework
+            }
         } catch {
             print(error)
         }

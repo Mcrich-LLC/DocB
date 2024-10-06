@@ -23,6 +23,8 @@ struct TechnologyRootView: View {
                 Text("Loading...")
             }
         }
+        .navigationTitle(frameworkSection.title)
+        .navigationBarTitleDisplayMode(.large)
         .task {
             await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
         }

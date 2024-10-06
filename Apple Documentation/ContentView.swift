@@ -12,8 +12,10 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            if let technologies = documentationViewModel.technologies {
+            if let technologies = documentationViewModel.technologies, let headerText = technologies.header?.title {
                 techView(technologies)
+                    .navigationTitle(headerText)
+                    .navigationBarTitleDisplayMode(.large)
             } else {
                 Text("Loading...")
             }
@@ -27,13 +29,6 @@ struct ContentView: View {
     @ViewBuilder
     func techView(_ technology: Technologies) -> some View {
         List {
-            Section {
-                if let header = technology.header {
-                    Text(header.title)
-                        .font(.largeTitle)
-                }
-            }
-            
             if let groups = technology.groups {
                 ForEach(groups) { group in
                     Section(group.name) {

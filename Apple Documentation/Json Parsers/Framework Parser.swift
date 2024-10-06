@@ -61,44 +61,15 @@ struct Framework: Decodable {
         let type: String
         let url: String?
         let role: Role?
-        
-        enum CodingKeys: CodingKey {
-            case title
-            case abstract
-            case identifier
-            case kind
-            case type
-            case url
-            case role
-        }
-        
-        init(from decoder: any Decoder) throws {
-            let container: KeyedDecodingContainer = try decoder.container(keyedBy: CodingKeys.self)
-            self.title = try container.decodeIfPresent(String.self, forKey: .title)
-            self.abstract = try container.decodeIfPresent([ContentStruct].self, forKey: .abstract)
-            self.identifier = try container.decode(String.self, forKey: .identifier)
-            self.kind = try container.decodeIfPresent(String.self, forKey: .kind)
-            self.type = try container.decode(String.self, forKey: .type)
-            self.url = try container.decodeIfPresent(String.self, forKey: .url)
-            let roleString = try container.decodeIfPresent(String.self, forKey: .role)
-            self.role = Role(rawValue: roleString ?? "")
-        }
-        
-        init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?) {
-            self.title = title
-            self.abstract = abstract
-            self.identifier = identifier
-            self.kind = kind
-            self.type = type
-            self.url = url
-            self.role = role
-        }
+        let fragments: [Fragment]?
         
         enum Role: String, Decodable {
             case collectionGroup
             case collection
             case article
             case overview
+            case sampleCode
+            case symbol
         }
     }
 }

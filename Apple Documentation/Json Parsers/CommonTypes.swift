@@ -18,9 +18,18 @@ struct ContentStruct: Decodable, Hashable {
     let type: String
 }
 
-struct TokenStruct: Decodable {
-    let type: String
-    let kind: String
+struct Fragment: Decodable, Hashable {
+    let text: String
+    let kind: Kind
+    
+    enum Kind: String, Decodable {
+        case text
+        case keyword
+        case attribute
+        case label
+        case identifier
+        case typeIdentifier
+    }
 }
 
 struct ContentSection: Decodable {
@@ -35,7 +44,13 @@ struct ContentSection: Decodable {
         
         struct Token: Decodable {
             let text: String
-            let kind: String
+            let kind: Kind
+            
+            enum Kind: String, Decodable {
+                case text
+                case keyword
+                case attribute
+            }
         }
     }
     

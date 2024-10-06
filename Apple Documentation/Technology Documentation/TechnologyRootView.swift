@@ -56,8 +56,24 @@ private struct FrameworkListItem: View {
     let reference: Framework.Reference
     let title: String
     
+    var hasSubParts: Bool {
+        if let fragments = reference.fragments,
+           fragments.contains(where: {
+               $0.text.lowercased() == "struct" ||
+               $0.text.lowercased() == "class" ||
+               $0.text.lowercased() == "protocol" ||
+               $0.text.lowercased() == "actor" ||
+               $0.text.lowercased() == "enum"
+           })
+        {
+            return true
+        }
+        
+        return reference.role == .collectionGroup
+    }
+    
     var body: some View {
-        if reference.role == .collectionGroup {
+        if hasSubParts {
             FrameworkDisclosureGroup(identifier: reference.identifier, title: title)
         } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
             Link(destination: url) {

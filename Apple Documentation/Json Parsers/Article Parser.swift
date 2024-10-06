@@ -8,5 +8,17 @@
 import Foundation
 
 struct Article: Decodable {
+    let metadata: Metadata
+    let abstract: [ContentStruct]
+    let primaryContentSections: [ContentSection]
     
+    struct Metadata: Decodable {
+        // Role
+        let role: String
+        let roleHeading: String
+        
+        // Other Data
+        let images: [ImageStruct]?
+        let title: String
+    }
 }

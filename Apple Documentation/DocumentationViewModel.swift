@@ -9,6 +9,19 @@ import Foundation
 
 class DocumentationViewModel: ObservableObject {
     
+    // MARK: URL Functions
+    private func jsonUrl(for identifier: String) -> URL? {
+        guard let identifier = URL(string: identifier) else {
+            return nil
+        }
+        
+        let path = identifier.path + ".json"
+        
+        let url = Constants.basePath.appending(path: path)
+        
+        return url
+    }
+    
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
@@ -31,21 +44,9 @@ class DocumentationViewModel: ObservableObject {
     
     @Published var frameworks: [String : Framework] = [:]
     
-    private func frameworkUrl(for identifier: String) -> URL? {
-        guard let identifier = URL(string: identifier) else {
-            return nil
-        }
-        
-        let path = identifier.path + ".json"
-        
-        let url = Constants.basePath.appending(path: path)
-        
-        return url
-    }
-    
     func fetchFramework(for identifier: String) async {
         do {
-            guard let url = frameworkUrl(for: identifier) else { return }
+            guard let url = jsonUrl(for: identifier) else { return }
             
             let (data, response) = try await URLSession.shared.data(from: url)
             
@@ -57,5 +58,21 @@ class DocumentationViewModel: ObservableObject {
         } catch {
             print(error)
         }
+    }
+    
+    // MARK: Articles
+    
+    func fetchArticle(for identifier: String) async throws -> Article {
+//        do {
+        guard let url = jsonUrl(for: identifier) else { throw URLError(.badURL) }
+            
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            let article = try JSONDecoder().decode(Article.self, from: data)
+            
+            return article
+//        } catch {
+//            print(error)
+//        }
     }
 }

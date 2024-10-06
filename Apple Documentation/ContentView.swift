@@ -42,8 +42,15 @@ struct ContentView: View {
                 }
             }
         }
+        
+        // Framework Navigator
         .navigationDestination(for: Technologies.FrameworkSection.self) { framework in
             TechnologyRootView(frameworkSection: framework)
+        }
+        
+        // Article View
+        .navigationDestination(for: Framework.Reference.self) { reference in
+            ArticleView(reference: reference)
         }
     }
 }

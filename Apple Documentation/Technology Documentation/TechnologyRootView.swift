@@ -44,8 +44,24 @@ struct TechnologyRootView: View {
                             if let reference = framework.references[identifier], let title = reference.title {
                                 if reference.role == .collectionGroup {
                                     FrameworkDisclosureGroup(identifier: identifier, title: title)
+                                } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
+                                    Link(destination: url) {
+                                        HStack {
+                                            Text(title)
+                                                .foregroundStyle(Color.primary)
+                                                
+                                            Spacer()
+                                            
+                                            Image(systemName: "link")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(height: 15)
+                                                .bold()
+                                                .foregroundStyle(Color.accentColor)
+                                        }
+                                    }
                                 } else {
-                                    Text(title)
+                                    NavigationLink(title, value: reference)
                                 }
                             }
                         }

@@ -31,7 +31,7 @@ struct ContentSection: Decodable {
     struct Declaration: Decodable {
         let tokens: [Token]
         let languages: [String]
-        let platforms: [Platform]
+        let platforms: [PlatformName]
         
         struct Token: Decodable {
             let text: String
@@ -131,6 +131,7 @@ enum ContentType: String, Decodable {
     case paragraph
     case text
     case image
+    case video
     case termList
     case unorderedList
     case tabNavigator

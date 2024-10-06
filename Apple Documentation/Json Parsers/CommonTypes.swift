@@ -140,7 +140,7 @@ enum ContentType: String, Decodable {
     case codeListing
 }
 
-enum Platform: String, Decodable {
+enum PlatformName: String, Decodable {
     case iOS
     case iPadOS
     case MacCatalyst = "Mac Catalyst"
@@ -148,4 +148,12 @@ enum Platform: String, Decodable {
     case tvOS
     case visionOS
     case watchOS
+}
+
+struct Platform: Decodable {
+    let introducedAt: String
+    let unavailable: Bool
+    let beta: Bool
+    let name: PlatformName
+    let deprecated: Bool
 }

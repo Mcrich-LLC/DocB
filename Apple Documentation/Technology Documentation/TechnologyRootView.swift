@@ -42,36 +42,45 @@ struct TechnologyRootView: View {
                     Section(header: Text(section.title)) {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
-                                if reference.role == .collectionGroup {
-                                    FrameworkDisclosureGroup(identifier: identifier, title: title)
-                                } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
-                                    Link(destination: url) {
-                                        HStack {
-                                            Text(title)
-                                                .foregroundStyle(Color.primary)
-                                                
-                                            Spacer()
-                                            
-                                            Image(systemName: "link")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .frame(height: 15)
-                                                .bold()
-                                                .foregroundStyle(Color.accentColor)
-                                        }
-                                    }
-                                } else if reference.role == .collection {
-                                    let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: identifier))
-                                    
-                                    NavigationLink(title, value: section)
-                                } else {
-                                    NavigationLink(title, value: reference)
-                                }
+                                FrameworkListItem(reference: reference, title: title)
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+private struct FrameworkListItem: View {
+    let reference: Framework.Reference
+    let title: String
+    
+    var body: some View {
+        if reference.role == .collectionGroup {
+            FrameworkDisclosureGroup(identifier: reference.identifier, title: title)
+        } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
+            Link(destination: url) {
+                HStack {
+                    Text(title)
+                        .foregroundStyle(Color.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "link")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 15)
+                        .bold()
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+        } else if reference.role == .collection {
+            let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: reference.identifier))
+            
+            NavigationLink(title, value: section)
+        } else {
+            NavigationLink(title, value: reference)
         }
     }
 }
@@ -89,11 +98,7 @@ private struct FrameworkDisclosureGroup: View {
                 ForEach(framework.topicSections) { section in
                     ForEach(section.identifiers, id: \.self) { subidentifier in
                         if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
-                            if subreference.role == .collectionGroup {
-                                FrameworkDisclosureGroup(identifier: subidentifier, title: subtitle)
-                            } else {
-                                Text(subtitle)
-                            }
+                            FrameworkListItem(reference: subreference, title: subtitle)
                         }
                     }
                 }

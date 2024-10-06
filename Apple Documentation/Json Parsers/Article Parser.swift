@@ -20,5 +20,8 @@ struct Article: Decodable {
         // Other Data
         let images: [ImageStruct]?
         let title: String
+        
+        // Platforms
+        let platforms: [Platform]?
     }
 }

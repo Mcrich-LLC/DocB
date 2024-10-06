@@ -61,9 +61,10 @@ private struct FrameworkDisclosureGroup: View {
     let identifier: String
     let title: String
     
+    var framework: Framework? { documentationViewModel.frameworks[identifier] }
+    
     var body: some View {
         DisclosureGroup(title) {
-            let framework = documentationViewModel.frameworks[identifier]
             if let framework {
                 ForEach(framework.topicSections) { section in
                     ForEach(section.identifiers, id: \.self) { subidentifier in
@@ -79,7 +80,9 @@ private struct FrameworkDisclosureGroup: View {
             }
         }
         .task {
-            await documentationViewModel.fetchFramework(for: identifier)
+            if framework == nil {
+                await documentationViewModel.fetchFramework(for: identifier)
+            }
         }
     }
 }

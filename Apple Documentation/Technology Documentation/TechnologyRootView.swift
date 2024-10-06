@@ -26,7 +26,9 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .task {
-            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
+            if framework == nil {
+                await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
+            }
         }
     }
     
@@ -41,9 +43,7 @@ struct TechnologyRootView: View {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
                                 if reference.role == .collectionGroup {
-                                    
-                                    let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: identifier))
-                                    NavigationLink(title, value: section)
+                                    FrameworkDisclosureGroup(identifier: identifier, title: title)
                                 } else {
                                     Text(title)
                                 }
@@ -52,6 +52,34 @@ struct TechnologyRootView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+private struct FrameworkDisclosureGroup: View {
+    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    let identifier: String
+    let title: String
+    
+    var body: some View {
+        DisclosureGroup(title) {
+            let framework = documentationViewModel.frameworks[identifier]
+            if let framework {
+                ForEach(framework.topicSections) { section in
+                    ForEach(section.identifiers, id: \.self) { subidentifier in
+                        if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
+                            if subreference.role == .collectionGroup {
+                                FrameworkDisclosureGroup(identifier: subidentifier, title: subtitle)
+                            } else {
+                                Text(subtitle)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .task {
+            await documentationViewModel.fetchFramework(for: identifier)
         }
     }
 }

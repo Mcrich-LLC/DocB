@@ -9,7 +9,7 @@ import Foundation
 
 struct Article: Decodable {
     let metadata: Metadata
-    let abstract: [ContentStruct]
+    let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]
     
     struct Metadata: Decodable {

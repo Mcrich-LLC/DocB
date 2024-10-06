@@ -42,6 +42,9 @@ struct ContentSection: Decodable {
     struct Content: Decodable {
         let type: ContentType?
         
+        // Media
+        let identifier: String?
+        
         // Heading
         let anchor: String?
         let text: String?
@@ -57,8 +60,13 @@ struct ContentSection: Decodable {
         // Tab
         let tabs: [Tab]?
         
+        // Row
+        let numberOfColumns: Int?
+        let columns: [Column]?
+        
         enum CodingKeys: CodingKey {
             case type
+            case identifier
             case anchor
             case text
             case level
@@ -66,11 +74,14 @@ struct ContentSection: Decodable {
             case termListItems
             case unorderedListItems
             case tabs
+            case numberOfColumns
+            case columns
         }
         
         init(from decoder: any Decoder) throws {
             let container: KeyedDecodingContainer<ContentSection.Content.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.CodingKeys.self)
             self.type = try container.decodeIfPresent(ContentType.self, forKey: ContentSection.Content.CodingKeys.type)
+            self.identifier = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.identifier)
             self.anchor = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.anchor)
             self.text = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.text)
             self.level = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.level)
@@ -91,6 +102,15 @@ struct ContentSection: Decodable {
             
             // Tabs
             self.tabs = try container.decodeIfPresent([Tab].self, forKey: ContentSection.Content.CodingKeys.tabs)
+            
+            // Row
+            self.numberOfColumns = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.numberOfColumns)
+            self.columns = try container.decodeIfPresent([Column].self, forKey: ContentSection.Content.CodingKeys.columns)
+        }
+        
+        struct Column: Decodable {
+            let size: Int
+            let content: [Content]
         }
         
         struct Tab: Decodable {
@@ -139,6 +159,7 @@ enum ContentType: String, Decodable {
     case table
     case emphasis
     case codeListing
+    case row
 }
 
 enum PlatformName: String, Decodable {

@@ -20,18 +20,7 @@ struct ContentStruct: Decodable, Hashable {
 
 struct Fragment: Decodable, Hashable {
     let text: String
-    let kind: Kind
-    
-    enum Kind: String, Decodable {
-        case text
-        case keyword
-        case attribute
-        case label
-        case identifier
-        case typeIdentifier
-        case genericParameter
-        case externalParam
-    }
+    let kind: String
 }
 
 struct ContentSection: Decodable {

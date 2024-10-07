@@ -29,6 +29,8 @@ struct Fragment: Decodable, Hashable {
         case label
         case identifier
         case typeIdentifier
+        case genericParameter
+        case externalParam
     }
 }
 

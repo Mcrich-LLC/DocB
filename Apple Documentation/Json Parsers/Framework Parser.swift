@@ -30,7 +30,9 @@ struct Framework: Decodable {
             let container: KeyedDecodingContainer<Framework.TopicSection.CodingKeys> = try decoder.container(keyedBy: Framework.TopicSection.CodingKeys.self)
             self.title = try container.decode(String.self, forKey: Framework.TopicSection.CodingKeys.title)
             self.anchor = try container.decode(String.self, forKey: Framework.TopicSection.CodingKeys.anchor)
-            self.identifiers = try container.decode([String].self, forKey: Framework.TopicSection.CodingKeys.identifiers)
+            let identifiers = try container.decode([String].self, forKey: Framework.TopicSection.CodingKeys.identifiers)
+            
+            self.identifiers = identifiers.filter({ !$0.contains("#") })
         }
         
         init(title: String, anchor: String, identifiers: [String]) {

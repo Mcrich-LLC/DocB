@@ -33,9 +33,11 @@ struct ContentView: View {
                 ForEach(groups) { group in
                     Section(group.name) {
                         ForEach(group.technologies) { technology in
-                            NavigationLink(value: technology) {
-                                Text(technology.title)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            if technology.destination.isActive {
+                                NavigationLink(value: technology) {
+                                    Text(technology.title)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
                             }
                         }
                     }

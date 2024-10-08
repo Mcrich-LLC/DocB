@@ -66,6 +66,12 @@ private struct _ArticleView: View {
                     TopicsView(article: article)
                 }
                 
+                if article.relationshipsSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    RelationshipsView(article: article)
+                }
+                
                 if article.seeAlsoSections != nil {
                     Divider()
                         .padding(.vertical)

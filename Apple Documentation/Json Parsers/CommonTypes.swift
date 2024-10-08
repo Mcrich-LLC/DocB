@@ -26,12 +26,20 @@ struct Fragment: Decodable, Hashable {
     let kind: String
 }
 
-struct ContentSection: Decodable {
-    let kind: String
+struct ContentSection: Decodable, Identifiable {
+    let id = UUID()
+    
+    let kind: Kind
     let content: [Content]?
     let declarations: [Declaration]?
     
-    struct Declaration: Decodable {
+    enum Kind: String, Decodable {
+        case content
+        case declarations
+    }
+    
+    struct Declaration: Decodable, Identifiable {
+        let id = UUID()
         let tokens: [Token]
         let languages: [String]
         let platforms: [PlatformName]
@@ -51,7 +59,8 @@ struct ContentSection: Decodable {
         }
     }
     
-    struct Content: Decodable {
+    struct Content: Decodable, Identifiable {
+        let id = UUID()
         let type: ContentType?
         
         // Media
@@ -155,6 +164,33 @@ struct ContentSection: Decodable {
         struct UnorderedListItem: Decodable {
             let content: [ContentSection.Content]?
         }
+    }
+}
+
+struct Reference: Decodable, Hashable {
+    let title: String?
+    let abstract: [ContentStruct]?
+    let identifier: String
+    let kind: String?
+    let type: String
+    let url: String?
+    let role: Role?
+    let fragments: [Fragment]?
+    let deprecated: Bool?
+    let variants: [Variant]?
+    
+    struct Variant: Decodable, Hashable {
+        let url: String
+        let traits: [String]
+    }
+    
+    enum Role: String, Decodable {
+        case collectionGroup
+        case collection
+        case article
+        case overview
+        case sampleCode
+        case symbol
     }
 }
 

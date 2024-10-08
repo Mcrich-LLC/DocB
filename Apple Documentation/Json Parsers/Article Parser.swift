@@ -11,6 +11,7 @@ struct Article: Decodable {
     let metadata: Metadata
     let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]
+    let references: [String : Reference]
     
     struct Metadata: Decodable {
         // Role

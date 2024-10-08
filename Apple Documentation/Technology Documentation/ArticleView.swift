@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ArticleView: View {
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    let reference: Framework.Reference
+    let reference: Reference
     
     @State var article: Article?
     
@@ -40,6 +40,20 @@ private struct _ArticleView: View {
         ScrollView {
             VStack {
                 heading
+                // Main Content
+                ForEach(article.primaryContentSections) { section in
+                    switch section.kind {
+                    case .content:
+                        VStack(spacing: 15) {
+                            ForEach(section.content ?? []) { content in
+                                ArticleContentView(content: content, article: article)
+                            }
+                        }
+                    case .declarations:
+                        // TODO: Add declarations support
+                        EmptyView()
+                    }
+                }
                 Spacer()
             }
             .padding()

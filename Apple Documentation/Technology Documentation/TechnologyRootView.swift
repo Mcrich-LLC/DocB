@@ -53,7 +53,7 @@ struct TechnologyRootView: View {
 }
 
 private struct FrameworkListItem: View {
-    let reference: Framework.Reference
+    let reference: Reference
     let title: String
     
     var hasSubParts: Bool {
@@ -83,7 +83,7 @@ private struct FrameworkListItem: View {
                     
                     Spacer()
                     
-                    Image(systemName: "link")
+                    Image(systemSymbol: .link)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(height: 15)

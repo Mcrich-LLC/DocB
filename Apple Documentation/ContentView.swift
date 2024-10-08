@@ -51,7 +51,7 @@ struct ContentView: View {
         }
         
         // Article View
-        .navigationDestination(for: Framework.Reference.self) { reference in
+        .navigationDestination(for: Reference.self) { reference in
             ArticleView(reference: reference)
         }
     }

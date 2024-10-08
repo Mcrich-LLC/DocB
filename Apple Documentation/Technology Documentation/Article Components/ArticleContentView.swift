@@ -236,14 +236,13 @@ struct ArticleContentView: View {
                 }
             }
         case .codeListing:
-            VStack {
+            GroupBox {
                 if let code = content.code {
                     CodeText(code.joined(separator: "\n"))
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         case .row:
 #warning("Row is not supported yet")
             EmptyView()

@@ -15,6 +15,15 @@ struct ArticleContentView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
+        if let inlineContent = content.inlineContent {
+            self.inlineContent(for: inlineContent)
+        } else {
+            typeBody
+        }
+    }
+    
+    @ViewBuilder
+    var typeBody: some View {
         switch content.type {
         case .heading:
             if let text = content.text {
@@ -24,8 +33,9 @@ struct ArticleContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .paragraph:
-            if let inlineContent = content.inlineContent {
-                self.inlineContent(for: inlineContent)
+            if let text = content.text {
+                Text(text)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .text:
             if let text = content.text {

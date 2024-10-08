@@ -239,7 +239,6 @@ struct ArticleContentView: View {
             GroupBox {
                 if let code = content.code {
                     CodeText(code.joined(separator: "\n"))
-                        .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

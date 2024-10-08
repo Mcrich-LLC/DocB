@@ -17,11 +17,9 @@ struct DeclarationContentView: View {
     }
     
     var body: some View {
-        VStack {
+        GroupBox {
             CodeText(code)
-            .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         }
     }
 }

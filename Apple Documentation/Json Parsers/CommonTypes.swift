@@ -41,6 +41,8 @@ struct ContentSection: Decodable {
                 case text
                 case keyword
                 case attribute
+                case identifier
+                case typeIdentifier
             }
         }
     }

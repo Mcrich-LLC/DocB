@@ -37,9 +37,12 @@ struct ArticleView: View {
         ScrollView {
             VStack {
                 VStack(spacing: 20) {
-                    Text(article.metadata.roleHeading)
+                    HStack(spacing: 15) {
+                        Text(article.metadata.roleHeading)
+                            .foregroundStyle(.secondary)
+                        headingBadge(article.metadata)
+                    }
                         .font(.headline)
-                        .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(article.metadata.title)
                         .font(.title)
@@ -60,6 +63,18 @@ struct ArticleView: View {
                 Spacer()
             }
             .padding()
+        }
+    }
+    
+    @ViewBuilder
+    func headingBadge(_ metadata: Article.Metadata) -> some View {
+        if let platforms = metadata.platforms {
+            if platforms.filter({ $0.beta == true }).count == platforms.count {
+                ArticleBadge(badge: .beta)
+            }
+            if platforms.filter({ $0.deprecated == true || $0.deprecatedAt != nil }).count == platforms.count {
+                ArticleBadge(badge: .deprecated)
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ struct PlatformCapsule: View {
     }
     
     var hasBadge: Bool {
-        platform.beta == true || platform.deprecated == true
+        platform.beta == true || platform.deprecated == true || platform.deprecatedAt != nil
     }
     
     var body: some View {
@@ -35,7 +35,7 @@ struct PlatformCapsule: View {
                     .padding(.vertical, 4)
             }
             
-            if platform.deprecated == true {
+            if platform.deprecated == true || platform.deprecatedAt != nil {
                 ArticleBadge(badge: .deprecated)
                     .padding(.vertical, 4)
             }

@@ -12,6 +12,7 @@ struct Article: Decodable {
     let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]
     let references: [String : Reference]
+    let legalNotices: LegalNotices
     
     struct Metadata: Decodable {
         // Role

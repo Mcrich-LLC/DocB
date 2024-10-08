@@ -12,6 +12,12 @@ struct ImageStruct: Decodable {
     let type: String
 }
 
+struct LegalNotices: Decodable {
+    let copyright: String
+    let termsOfUse: String
+    let privacyPolicy: String
+}
+
 struct ContentStruct: Decodable, Hashable, Identifiable, Equatable {
     let id = UUID()
     

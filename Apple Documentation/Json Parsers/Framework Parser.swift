@@ -11,6 +11,7 @@ struct Framework: Decodable {
     let topicSections: [TopicSection]
     let metadata: Metadata
     let references: [String : Reference]
+    let legalNotices: LegalNotices
     
     struct TopicSection: Decodable, Identifiable {
         let id = UUID()

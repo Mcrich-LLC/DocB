@@ -16,7 +16,7 @@ struct ArticleView: View {
     var body: some View {
         VStack {
             if let article {
-                articleView(article)
+                _ArticleView(article: article)
             } else {
                 Text("Loading...")
             }
@@ -31,38 +31,46 @@ struct ArticleView: View {
                 }
             }
     }
+}
+
+private struct _ArticleView: View {
+    let article: Article
     
-    @ViewBuilder
-    func articleView(_ article: Article) -> some View {
+    var body: some View {
         ScrollView {
             VStack {
-                VStack(spacing: 20) {
-                    HStack(spacing: 15) {
-                        Text(article.metadata.roleHeading)
-                            .foregroundStyle(.secondary)
-                        headingBadge(article.metadata)
-                    }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(article.metadata.title)
-                        .font(.title)
-                        .bold()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    if let abstract = article.abstract?.first, let text = abstract.text {
-                        Text(text)
-                            .font(.title3)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    
-                    WrappingHStack(alignment: .leading, horizontalSpacing: 15) {
-                        ForEach(article.metadata.platforms ?? []) { platform in
-                            PlatformCapsule(platform: platform)
-                        }
-                    }
-                }
+                heading
                 Spacer()
             }
             .padding()
+        }
+    }
+    
+    @ViewBuilder
+    var heading: some View {
+        VStack(spacing: 20) {
+            HStack(spacing: 15) {
+                Text(article.metadata.roleHeading)
+                    .foregroundStyle(.secondary)
+                headingBadge(article.metadata)
+            }
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(article.metadata.title)
+                .font(.title)
+                .bold()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let abstract = article.abstract?.first, let text = abstract.text {
+                Text(text)
+                    .font(.title3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            WrappingHStack(alignment: .leading, horizontalSpacing: 15) {
+                ForEach(article.metadata.platforms ?? []) { platform in
+                    PlatformCapsule(platform: platform)
+                }
+            }
         }
     }
     

@@ -71,8 +71,13 @@ struct ContentView: View {
                                     }
                                     
                                 } label: {
-                                    Text(technology.title)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    HStack {
+                                        Text(technology.title)
+                                        
+                                        Spacer()
+                                        
+                                        chevron
+                                    }
                                 }
                                 .background {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -88,6 +93,14 @@ struct ContentView: View {
             }
             
         }
+    }
+    
+    
+    var chevron: some View {
+        Image(systemSymbol: .chevronRight)
+            .resizable()
+            .frame(width: 8, height: 12)
+            .foregroundStyle(Color(uiColor: .systemGray3))
     }
 }
 

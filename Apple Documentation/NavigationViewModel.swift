@@ -9,6 +9,8 @@ import Foundation
 
 class NavigationViewModel: ObservableObject, Equatable {
      
+    // TODO: Implement url handling for doc://com.apple.documentation
+    
     @Published var technology: Technologies.FrameworkSection?
     @Published var reference: Reference?
     

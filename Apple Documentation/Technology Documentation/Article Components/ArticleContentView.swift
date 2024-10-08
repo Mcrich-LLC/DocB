@@ -174,6 +174,25 @@ struct ArticleContentView: View {
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
                 text = text + Text(inline.code ?? "").italic()
+            case .reference:
+                if let identifier = inline.identifier, let reference = article.references[identifier], let title = reference.title {
+                    
+                    let attributes: [NSAttributedString.Key: Any]
+                        
+                    if let url = URL(string: reference.identifier) {
+                        attributes = [
+                            .foregroundColor: UIColor.blue,
+                            .underlineStyle : NSUnderlineStyle.single,
+                            .link: url
+                        ]
+                    } else {
+                        attributes = [:]
+                    }
+                    
+                    let attributedString = NSAttributedString(string: title, attributes: attributes)
+                    
+                    text = text + Text(AttributedString(attributedString))
+                }
             case .image:
                 appendText()
                 

@@ -52,7 +52,9 @@ private struct _ArticleView: View {
                         }
                     case .declarations:
                         // TODO: Add declarations support
-                        EmptyView()
+                        ForEach(section.declarations ?? []) { declaration in
+                            DeclarationContentView(content: declaration, article: article)
+                        }
                     }
                 }
                 Spacer()

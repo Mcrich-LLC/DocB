@@ -225,6 +225,7 @@ struct ArticleContentView: View {
                 referenceText
             }
         case .table:
+            #warning("Table is not supported yet")
             EmptyView()
         case .emphasis:
             if let inlineContent = content.inlineContent {
@@ -244,11 +245,15 @@ struct ArticleContentView: View {
             .frame(maxWidth: .infinity)
             .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         case .row:
+#warning("Row is not supported yet")
             EmptyView()
         case .aside:
+            #warning("Aside is not supported yet")
             EmptyView()
         case .code:
-            EmptyView()
+            let attributedString = getCodeString(content.code ?? [])
+            
+            Text(attributedString)
         case .codeVoice:
             let attributedString = getCodeString(content.code ?? [])
             

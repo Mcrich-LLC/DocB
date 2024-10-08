@@ -58,6 +58,7 @@ struct Framework: Decodable {
         let type: String
         let url: String?
         let role: Role?
+        let symbolKind: String?
         let fragments: [Fragment]?
         
         enum Role: String, Decodable {
@@ -67,6 +68,22 @@ struct Framework: Decodable {
             case overview
             case sampleCode
             case symbol
+            case link
+            
+            func symbol(symbolKind: String? = nil) -> String {
+                switch self {
+                case .collectionGroup:
+                    "list.bullet"
+                case .collection:
+                    "list.bullet"
+                case .sampleCode:
+                    "curlybraces"
+                case .symbol:
+                    "curlybraces"
+                default:
+                    "text.document"
+                }
+            }
         }
     }
 }

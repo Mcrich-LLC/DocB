@@ -105,6 +105,26 @@ struct ArticleContentView: View {
         return string
     }
     
+    func getCodeString(_ content: ContentStruct) -> AttributedString {
+        return getCodeString([content.code ?? ""])
+    }
+    
+    func getCodeString(_ content: [String]) -> AttributedString {
+        var strings = ""
+        
+        for subcontent in content {
+            strings.append(subcontent)
+        }
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .backgroundColor: UIColor.secondarySystemBackground
+        ]
+        
+        let attributedString = NSAttributedString(string: strings, attributes: attributes)
+        
+        return AttributedString(attributedString)
+    }
+    
     @ViewBuilder
     var typeBody: some View {
         switch content.type {
@@ -198,25 +218,9 @@ struct ArticleContentView: View {
         case .code:
             EmptyView()
         case .codeVoice:
-            let attributes: [NSAttributedString.Key: Any] = [
-                .backgroundColor: UIColor.secondarySystemBackground
-            ]
+            let attributedString = getCodeString(content.code ?? [])
             
-            var codeString: String {
-                var codeCompiled: String = ""
-                
-                if let code = content.code {
-                    for c in code {
-                        codeCompiled.append(c)
-                    }
-                }
-                
-                return codeCompiled
-            }
-            
-            let attributedString = NSAttributedString(string: codeString, attributes: attributes)
-            
-            Text(AttributedString(attributedString))
+            Text(attributedString)
         case .none:
             EmptyView()
         }
@@ -248,13 +252,9 @@ struct ArticleContentView: View {
                 case .text:
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
-                let attributes: [NSAttributedString.Key: Any] = [
-                    .backgroundColor: UIColor.secondarySystemBackground
-                ]
+                let attributedString = self.getCodeString(inline)
                 
-                let attributedString = NSAttributedString(string: inline.code ?? "", attributes: attributes)
-                
-                text = text + Text(AttributedString(attributedString))
+                text = text + Text(attributedString)
             case .emphasis:
                 let string = getEmphasisString(inline)
                 

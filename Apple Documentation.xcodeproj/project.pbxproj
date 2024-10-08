@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22C450B02CB4D61B00376AA5 /* SFSafeSymbols */; };
+		22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 22E7F4E12CB5048400FD6B2C /* HighlightSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */,
 				22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */,
 				227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */,
 			);
@@ -82,6 +84,7 @@
 			packageProductDependencies = (
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
+				22E7F4E12CB5048400FD6B2C /* HighlightSwift */,
 			);
 			productName = "Apple Documentation";
 			productReference = 22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */;
@@ -114,6 +117,7 @@
 			packageReferences = (
 				2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				22BE0E1F2CB4D5EB00075074 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
+				22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
@@ -363,6 +367,14 @@
 				minimumVersion = 5.3.0;
 			};
 		};
+		22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/appstefan/HighlightSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.9;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -375,6 +387,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 22BE0E1F2CB4D5EB00075074 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
 			productName = SFSafeSymbols;
+		};
+		22E7F4E12CB5048400FD6B2C /* HighlightSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */;
+			productName = HighlightSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

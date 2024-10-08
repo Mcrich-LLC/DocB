@@ -42,18 +42,44 @@ private struct _ArticleView: View {
             VStack {
                 heading
                 // Main Content
-                ForEach(article.primaryContentSections) { section in
+                ForEach(article.primaryContentSections ?? []) { section in
                     switch section.kind {
                     case .content:
-                        VStack(spacing: 15) {
+                        VStack {
                             ForEach(section.content ?? []) { content in
                                 ArticleContentView(content: content, article: article)
+                                    .padding(.top, content.type == .heading ? nil : 0)
                             }
                         }
                     case .declarations:
-                        // TODO: Add declarations support
-                        EmptyView()
+                        ForEach(section.declarations ?? []) { declaration in
+                            DeclarationContentView(content: declaration, article: article)
+                        }
+                    case .mentions:
+                        MentionsView(mentions: section.mentions ?? [], article: article)
+                    case .details:
+                        if let details = section.details {
+                            DetailsView(details: details)
+                        }
                     }
+                }
+                
+                if article.topicSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    TopicsView(article: article)
+                }
+                
+                if article.relationshipsSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    RelationshipsView(article: article)
+                }
+                
+                if article.seeAlsoSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    SeeAlsoView(article: article)
                 }
                 Spacer()
             }
@@ -65,8 +91,10 @@ private struct _ArticleView: View {
     var heading: some View {
         VStack(spacing: 20) {
             HStack(spacing: 15) {
-                Text(article.metadata.roleHeading)
-                    .foregroundStyle(.secondary)
+                if let roleHeading = article.metadata.roleHeading {
+                    Text(roleHeading)
+                        .foregroundStyle(.secondary)
+                }
                 headingBadge(article.metadata)
             }
                 .font(.headline)

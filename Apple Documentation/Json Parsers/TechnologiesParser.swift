@@ -10,14 +10,16 @@ import Foundation
 struct Technologies: Decodable {
     let header: Header?
     let groups: [Technology]?
+    let legalNotices: LegalNotices
     
     enum CodingKeys: CodingKey {
-        case sections
+        case sections, legalNotices
     }
     
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
+        self.legalNotices = try container.decode(LegalNotices.self, forKey: .legalNotices)
         let sectionsArray = try container.decode([CommonTechnologiesSection].self, forKey: .sections)
         
         if let header = sectionsArray.first(where: { $0.kind == "hero" }), let backgroundImage = header.backgroundImage, let image = header.image, let title = header.title {

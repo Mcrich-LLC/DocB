@@ -81,7 +81,7 @@ private struct FrameworkListItem: View {
     
     var body: some View {
         if hasSubParts {
-            FrameworkDisclosureGroup(identifier: reference.identifier, title: title)
+            FrameworkDisclosureGroup(identifier: reference.identifier, title: title, reference: reference)
         } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
             Link(destination: url) {
                 HStack {
@@ -130,20 +130,25 @@ private struct FrameworkDisclosureGroup: View {
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let identifier: String
     let title: String
+    let reference: Reference
     
     var framework: Framework? { documentationViewModel.frameworks[identifier] }
     
     var body: some View {
-        DisclosureGroup(title) {
+        DisclosureGroup {
             if let framework {
                 ForEach(framework.topicSections) { section in
-                    ForEach(section.identifiers, id: \.self) { subidentifier in
-                        if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
-                            FrameworkListItem(reference: subreference, title: subtitle)
+                    Section(section.title) {
+                        ForEach(section.identifiers, id: \.self) { subidentifier in
+                            if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
+                                FrameworkListItem(reference: subreference, title: subtitle)
+                            }
                         }
                     }
                 }
             }
+        } label: {
+            NavigationLink(title, value: reference)
         }
         .task {
             if framework == nil {

@@ -24,7 +24,7 @@ struct PlatformCapsule: View {
     }
     
     var hasTags: Bool {
-        platform.beta == true || platform.deprecated == true || platform.name == .iOS
+        platform.beta == true || platform.deprecated == true
     }
     
     var body: some View {

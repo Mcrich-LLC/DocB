@@ -21,7 +21,7 @@ struct SeeAlsoView: View {
                 ForEach(seeAlsoSections) { section in
                     Section(header: Text(section.title)) {
                         ForEach(section.identifiers, id: \.self) { identifier in
-                            if let reference = article.references[identifier], let title = reference.title {
+                            if let reference = article.references[identifier], reference.title != nil {
                                 NavigationLink(value: reference) {
                                     GroupBox {
                                         VStack {
@@ -48,7 +48,7 @@ struct SeeAlsoView: View {
     
     func getFullTitle(_ reference: Reference) -> AttributedString {
         
-        var nsAttributedString: NSMutableAttributedString = .init()
+        let nsAttributedString: NSMutableAttributedString = .init()
         
         let fragments: String = (reference.fragments ?? []).dropLast().map({ $0.text }).joined()
         let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.secondaryLabel]

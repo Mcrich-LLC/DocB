@@ -14,7 +14,7 @@ struct RelationshipsView: View {
         if let relationshipsSections = article.relationshipsSections {
             VStack {
                 Text("Relationships")
-                    .font(.title3)
+                    .font(.title2)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 

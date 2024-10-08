@@ -14,7 +14,7 @@ struct TopicsView: View {
         if let topicSections = article.topicSections {
             VStack {
                 Text("Topics")
-                    .font(.title3)
+                    .font(.title2)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 

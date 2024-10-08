@@ -14,7 +14,7 @@ struct SeeAlsoView: View {
         if let seeAlsoSections = article.seeAlsoSections {
             VStack {
                 Text("See Also")
-                    .font(.title3)
+                    .font(.title2)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 

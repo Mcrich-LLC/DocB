@@ -16,7 +16,7 @@ struct ArticleView: View {
     var body: some View {
         VStack {
             if let article {
-                Text("\(article)")
+                articleView(article)
             } else {
                 Text("Loading...")
             }
@@ -30,6 +30,37 @@ struct ArticleView: View {
                     print(error)
                 }
             }
+    }
+    
+    @ViewBuilder
+    func articleView(_ article: Article) -> some View {
+        ScrollView {
+            VStack {
+                VStack(spacing: 20) {
+                    Text(article.metadata.roleHeading)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(article.metadata.title)
+                        .font(.title)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let abstract = article.abstract?.first, let text = abstract.text {
+                        Text(text)
+                            .font(.title3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    WrappingHStack(alignment: .leading, horizontalSpacing: 15) {
+                        ForEach(article.metadata.platforms ?? []) { platform in
+                            PlatformCapsule(platform: platform)
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .padding()
+        }
     }
 }
 

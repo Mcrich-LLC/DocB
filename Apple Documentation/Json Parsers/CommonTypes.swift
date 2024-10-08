@@ -181,10 +181,13 @@ enum PlatformName: String, Decodable {
     case Xcode
 }
 
-struct Platform: Decodable {
+struct Platform: Decodable, Identifiable {
+    let id = UUID()
+    
     let introducedAt: String
     let unavailable: Bool?
-    let beta: Bool
+    let beta: Bool?
     let name: PlatformName
     let deprecated: Bool?
+    let deprecatedAt: String?
 }

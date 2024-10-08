@@ -23,7 +23,7 @@ struct PlatformCapsule: View {
         return "\(platform.name.rawValue) \(version)"
     }
     
-    var hasTags: Bool {
+    var hasBadge: Bool {
         platform.beta == true || platform.deprecated == true
     }
     
@@ -51,7 +51,7 @@ struct PlatformCapsule: View {
         }
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: false)
-        .padding(.vertical, hasTags ? 2: 6)
+        .padding(.vertical, hasBadge ? 2: 6)
         .padding(.horizontal)
         .background(Capsule().fill(Color(UIColor.secondarySystemBackground)))
     }

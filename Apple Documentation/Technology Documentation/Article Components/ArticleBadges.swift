@@ -24,6 +24,7 @@ struct ArticleBadge: View {
     
     var body: some View {
         Text(badge.rawValue.capitalized)
+            .font(.subheadline)
             .foregroundStyle(colorScheme == .light ? Color.white : Color.black)
             .padding(.vertical, 2)
             .padding(.horizontal, 4)

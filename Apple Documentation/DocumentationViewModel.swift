@@ -10,7 +10,7 @@ import Foundation
 class DocumentationViewModel: ObservableObject {
     
     // MARK: URL Functions
-    private func jsonUrl(for identifier: String) -> URL? {
+    func jsonUrl(for identifier: String) -> URL? {
         guard let identifier = URL(string: identifier) else {
             return nil
         }
@@ -29,7 +29,7 @@ class DocumentationViewModel: ObservableObject {
     
     func fetchTechnologies() async {
         do {
-            let (data, response) = try await URLSession.shared.data(from: technologiesUrl)
+            let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
             
             let technologies = try JSONDecoder().decode(Technologies.self, from: data)
             await MainActor.run {
@@ -48,7 +48,7 @@ class DocumentationViewModel: ObservableObject {
         do {
             guard let url = jsonUrl(for: identifier) else { return }
             
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, _) = try await URLSession.shared.data(from: url)
             
             let framework = try JSONDecoder().decode(Framework.self, from: data)
             

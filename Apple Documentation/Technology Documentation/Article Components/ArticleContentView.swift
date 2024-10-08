@@ -288,17 +288,18 @@ struct ArticleContentView: View {
                             let imageUrl = fetchPhotoVideoURL(for: imageId)
                             
                             Link(destination: openUrl) {
-                                GroupBox {
+                                VStack(alignment: .leading) {
                                     KFImage(imageUrl)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-//                                        .frame(maxWidth: 100)
                                         .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    
+                                    
                                     Text(title)
                                         .foregroundStyle(Color.primary)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
                                         .multilineTextAlignment(.leading)
                                 }
+                                .frame(maxWidth: 300)
                             }
                         }
                     }

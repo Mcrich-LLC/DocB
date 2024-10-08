@@ -50,6 +50,10 @@ struct TechnologyRootView: View {
             Text("No documentation available for \(framework.metadata.title)")
         } else {
             List {
+                Spacer()
+                    .frame(height: 20)
+                    .listRowSeparator(.hidden)
+                
                 Section {
                     FrameworkListItem(reference: frameworkReference, title: frameworkSection.title)
                         .listRowBackground(Color.clear)

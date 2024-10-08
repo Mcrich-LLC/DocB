@@ -20,6 +20,24 @@ struct ContentStruct: Decodable, Hashable, Identifiable, Equatable {
     let identifier: String?
     let inlineContent: [ContentStruct]?
     let type: ContentType
+    
+    enum CodingKeys: CodingKey {
+        case id
+        case text
+        case code
+        case identifier
+        case inlineContent
+        case type
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.text = try container.decodeIfPresent(String.self, forKey: .text)
+        self.code = try container.decodeIfPresent(String.self, forKey: .code)
+        self.identifier = try container.decodeIfPresent(String.self, forKey: .identifier)
+        self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: .inlineContent)
+        self.type = try container.decode(ContentType.self, forKey: .type)
+    }
 }
 
 struct Fragment: Decodable, Hashable {
@@ -34,6 +52,20 @@ struct ContentSection: Decodable, Identifiable {
     let content: [Content]?
     let declarations: [Declaration]?
     
+    enum CodingKeys: CodingKey {
+        case id
+        case kind
+        case content
+        case declarations
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.kind = try container.decode(ContentSection.Kind.self, forKey: .kind)
+        self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: .content)
+        self.declarations = try container.decodeIfPresent([ContentSection.Declaration].self, forKey: .declarations)
+    }
+    
     enum Kind: String, Decodable {
         case content
         case declarations
@@ -44,6 +76,20 @@ struct ContentSection: Decodable, Identifiable {
         let tokens: [Token]
         let languages: [String]
         let platforms: [PlatformName]
+        
+        enum CodingKeys: CodingKey {
+            case id
+            case tokens
+            case languages
+            case platforms
+        }
+        
+        init(from decoder: any Decoder) throws {
+            let container: KeyedDecodingContainer<ContentSection.Declaration.CodingKeys> = try decoder.container(keyedBy: ContentSection.Declaration.CodingKeys.self)
+            self.tokens = try container.decode([ContentSection.Declaration.Token].self, forKey: ContentSection.Declaration.CodingKeys.tokens)
+            self.languages = try container.decode([String].self, forKey: ContentSection.Declaration.CodingKeys.languages)
+            self.platforms = try container.decode([PlatformName].self, forKey: ContentSection.Declaration.CodingKeys.platforms)
+        }
         
         struct Token: Decodable {
             let text: String
@@ -154,18 +200,54 @@ struct ContentSection: Decodable, Identifiable {
             let content: [Content]
             let title: String
             
+            enum CodingKeys: CodingKey {
+                case id
+                case content
+                case title
+            }
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<ContentSection.Content.Tab.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.Tab.CodingKeys.self)
+                self.content = try container.decode([ContentSection.Content.Tab.Content].self, forKey: ContentSection.Content.Tab.CodingKeys.content)
+                self.title = try container.decode(String.self, forKey: ContentSection.Content.Tab.CodingKeys.title)
+            }
+            
             struct Content: Decodable, Equatable, Identifiable {
                 let id = UUID()
                 
                 let items: [Item]?
                 let inlineContent: [ContentStruct]?
                 let type: ContentType?
+                
+                enum CodingKeys: CodingKey {
+                    case id
+                    case items
+                    case inlineContent
+                    case type
+                }
+                
+                init(from decoder: any Decoder) throws {
+                    let container: KeyedDecodingContainer<ContentSection.Content.Tab.Content.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.Tab.Content.CodingKeys.self)
+                    self.items = try container.decodeIfPresent([ContentSection.Content.Tab.Item].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.items)
+                    self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.inlineContent)
+                    self.type = try container.decodeIfPresent(ContentType.self, forKey: ContentSection.Content.Tab.Content.CodingKeys.type)
+                }
             }
             
             struct Item: Decodable, Equatable, Identifiable {
                 let id = UUID()
                 
                 let content: [ContentSection.Content]
+                
+                enum CodingKeys: CodingKey {
+                    case id
+                    case content
+                }
+                
+                init(from decoder: any Decoder) throws {
+                    let container: KeyedDecodingContainer<ContentSection.Content.Tab.Item.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.Tab.Item.CodingKeys.self)
+                    self.content = try container.decode([ContentSection.Content].self, forKey: ContentSection.Content.Tab.Item.CodingKeys.content)
+                }
             }
         }
         
@@ -173,6 +255,18 @@ struct ContentSection: Decodable, Identifiable {
             let id = UUID()
             let term: Term
             let definition: Definition
+            
+            enum CodingKeys: CodingKey {
+                case id
+                case term
+                case definition
+            }
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<ContentSection.Content.TermListItem.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.TermListItem.CodingKeys.self)
+                self.term = try container.decode(ContentSection.Content.TermListItem.Term.self, forKey: ContentSection.Content.TermListItem.CodingKeys.term)
+                self.definition = try container.decode(ContentSection.Content.TermListItem.Definition.self, forKey: ContentSection.Content.TermListItem.CodingKeys.definition)
+            }
             
             struct Definition: Decodable, Equatable {
                 let content: [ContentSection.Content]
@@ -187,6 +281,16 @@ struct ContentSection: Decodable, Identifiable {
             let id = UUID()
             
             let content: [ContentSection.Content]?
+            
+            enum CodingKeys: CodingKey {
+                case id
+                case content
+            }
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<ContentSection.Content.UnorderedListItem.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.UnorderedListItem.CodingKeys.self)
+                self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: ContentSection.Content.UnorderedListItem.CodingKeys.content)
+            }
         }
     }
 }
@@ -261,4 +365,24 @@ struct Platform: Decodable, Identifiable {
     let name: PlatformName
     let deprecated: Bool?
     let deprecatedAt: String?
+    
+    enum CodingKeys: CodingKey {
+        case id
+        case introducedAt
+        case unavailable
+        case beta
+        case name
+        case deprecated
+        case deprecatedAt
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.introducedAt = try container.decode(String.self, forKey: .introducedAt)
+        self.unavailable = try container.decodeIfPresent(Bool.self, forKey: .unavailable)
+        self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta)
+        self.name = try container.decode(PlatformName.self, forKey: .name)
+        self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
+        self.deprecatedAt = try container.decodeIfPresent(String.self, forKey: .deprecatedAt)
+    }
 }

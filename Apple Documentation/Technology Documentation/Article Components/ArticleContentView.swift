@@ -13,11 +13,13 @@ struct ArticleContentView: View {
     let content: ContentSection.Content
     let article: Article
     let type: ContentType?
+    @State var orderedListIndex: Int
     
-    init(content: ContentSection.Content, article: Article, from type: ContentType? = nil) {
+    init(content: ContentSection.Content, article: Article, from type: ContentType? = nil, orderedListIndex: Int = 1) {
         self.content = content
         self.article = article
         self.type = type
+        self.orderedListIndex = orderedListIndex
     }
     
     @State var player: AVPlayer?
@@ -106,7 +108,15 @@ struct ArticleContentView: View {
                 }
             }
         case .orderedList:
-            EmptyView()
+            if let orderedListItems = content.orderedListItems {
+                ForEach(orderedListItems) { item in
+                    if let content = item.content {
+                        ForEach(content) { subcontent in
+                            ArticleContentView(content: subcontent, article: self.article, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0)+1)
+                        }
+                    }
+                }
+            }
         case .tabNavigator:
             EmptyView()
         case .reference:
@@ -134,6 +144,8 @@ struct ArticleContentView: View {
         switch type {
         case .unorderedList:
             return "• \(string)"
+        case .orderedList:
+            return "\(orderedListIndex) \(string)"
         default:
             return string
         }

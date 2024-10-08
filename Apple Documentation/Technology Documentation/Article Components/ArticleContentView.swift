@@ -7,19 +7,42 @@
 
 import SwiftUI
 import Kingfisher
+import AVKit
 
 struct ArticleContentView: View {
     let content: ContentSection.Content
     let article: Article
+    @State var player: AVPlayer?
     
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        if let inlineContent = content.inlineContent {
-            self.inlineContent(for: inlineContent)
-        } else {
-            typeBody
+        VStack {
+            if let inlineContent = content.inlineContent {
+                self.inlineContent(for: inlineContent)
+            } else {
+                typeBody
+            }
         }
+        .onAppear {
+            if content.type == .video, let identifier = content.identifier, let url = fetchPhotoVideoURL(for: identifier) {
+                self.player = AVPlayer(url: url)
+            }
+        }
+    }
+    
+    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    func fetchPhotoVideoURL(for identifier: String) -> URL? {
+        guard let reference = article.references[identifier], let variants = reference.variants else {
+            return nil
+        }
+        if let darkVariant = variants.first(where: { $0.traits.contains("dark") }), colorScheme == .dark, let url = URL(string: darkVariant.url) {
+            return url
+        } else if let lightVariant = variants.first(where: { $0.traits.contains("light") }), let url = URL(string: lightVariant.url) {
+            return url
+        }
+        
+        return nil
     }
     
     @ViewBuilder
@@ -42,21 +65,15 @@ struct ArticleContentView: View {
                 Text(text)
             }
         case .image:
-            if let identifier = content.identifier, let reference = article.references[identifier], let variants = reference.variants {
-                if let darkVariant = variants.first(where: { $0.traits.contains("dark") }), colorScheme == .dark {
-                    KFImage(URL(string: darkVariant.url))
-                        .resizable()
-                        .scaledToFit()
-                        .padding()
-                } else if let lightVariant = variants.first(where: { $0.traits.contains("light") }) {
-                    KFImage(URL(string: lightVariant.url))
-                        .resizable()
-                        .scaledToFit()
-                        .padding()
-                }
+            if let identifier = content.identifier {
+                KFImage(fetchPhotoVideoURL(for: identifier))
+                    .resizable()
+                    .scaledToFit()
+                    .padding()
             }
         case .video:
-            EmptyView()
+            VideoPlayer(player: player)
+                .scaledToFit()
         case .termList:
             EmptyView()
         case .unorderedList:
@@ -100,22 +117,24 @@ struct ArticleContentView: View {
                 views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
                 text = Text("")
                 
-                if let identifier = inline.identifier, let reference = article.references[identifier], let variants = reference.variants {
-                    if let darkVariant = variants.first(where: { $0.traits.contains("dark") }), colorScheme == .dark {
-                        let image = KFImage(URL(string: darkVariant.url))
-                            .resizable()
-                            .scaledToFit()
-                            .padding(.bottom)
-                        
-                        views.append(.init(image))
-                    } else if let lightVariant = variants.first(where: { $0.traits.contains("light") }) {
-                        let image = KFImage(URL(string: lightVariant.url))
-                            .resizable()
-                            .scaledToFit()
-                            .padding(.bottom)
-                        
-                        views.append(.init(image))
-                    }
+                if let identifier = inline.identifier {
+                    let image = KFImage(fetchPhotoVideoURL(for: identifier))
+                        .resizable()
+                        .scaledToFit()
+                        .padding(.bottom)
+                    
+                    views.append(.init(image))
+                }
+            case .video:
+                views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
+                text = Text("")
+                
+                if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
+                    let player = AVPlayer(url: url)
+                    let playerView = VideoPlayer(player: player)
+                        .scaledToFit()
+                    
+                    views.append(.init(playerView))
                 }
             default: break
             }

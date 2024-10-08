@@ -12,10 +12,13 @@ struct ImageStruct: Decodable {
     let type: String
 }
 
-struct ContentStruct: Decodable, Hashable {
+struct ContentStruct: Decodable, Hashable, Identifiable {
+    let id = UUID()
+    
     let text: String?
+    let code: String?
     let identifier: String?
-    let type: String
+    let type: ContentType
 }
 
 struct Fragment: Decodable, Hashable {
@@ -43,6 +46,7 @@ struct ContentSection: Decodable {
                 case attribute
                 case identifier
                 case typeIdentifier
+                case externalParam
             }
         }
     }
@@ -154,6 +158,8 @@ struct ContentSection: Decodable {
     }
 }
 
+// MARK: Content Types
+
 enum ContentType: String, Decodable {
     case heading
     case paragraph
@@ -170,8 +176,11 @@ enum ContentType: String, Decodable {
     case codeListing
     case row
     case aside
+    case code
+    case codeVoice
 }
 
+// MARK: Platforms
 enum PlatformName: String, Decodable {
     case iOS
     case iPadOS

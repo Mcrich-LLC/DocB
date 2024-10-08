@@ -60,9 +60,8 @@ private struct _ArticleView: View {
                 .font(.title)
                 .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if let abstract = article.abstract?.first, let text = abstract.text {
-                Text(text)
-                    .font(.title3)
+            if let abstract = article.abstract {
+                AbstractView(abstract: abstract)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             

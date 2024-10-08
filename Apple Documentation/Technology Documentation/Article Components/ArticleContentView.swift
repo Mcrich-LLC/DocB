@@ -56,6 +56,28 @@ struct ArticleContentView: View {
         return nil
     }
     
+    func getReferenceText(for identifier: String) -> Text? {
+        guard let reference = article.references[identifier], let title = reference.title else {
+            return nil
+        }
+        
+        let attributes: [NSAttributedString.Key: Any]
+        
+        if let url = URL(string: reference.identifier) {
+            attributes = [
+                .foregroundColor: UIColor.blue,
+                .underlineStyle : NSUnderlineStyle.single,
+                .link: url
+            ]
+        } else {
+            attributes = [:]
+        }
+        
+        let attributedString = NSAttributedString(string: title, attributes: attributes)
+        
+        return Text(AttributedString(attributedString))
+    }
+    
     @ViewBuilder
     var typeBody: some View {
         switch content.type {
@@ -121,7 +143,9 @@ struct ArticleContentView: View {
         case .tabNavigator:
             EmptyView()
         case .reference:
-            EmptyView()
+            if let identifier = content.identifier, let referenceText = getReferenceText(for: identifier) {
+                referenceText
+            }
         case .table:
             EmptyView()
         case .emphasis:
@@ -175,23 +199,8 @@ struct ArticleContentView: View {
             case .codeVoice:
                 text = text + Text(inline.code ?? "").italic()
             case .reference:
-                if let identifier = inline.identifier, let reference = article.references[identifier], let title = reference.title {
-                    
-                    let attributes: [NSAttributedString.Key: Any]
-                        
-                    if let url = URL(string: reference.identifier) {
-                        attributes = [
-                            .foregroundColor: UIColor.blue,
-                            .underlineStyle : NSUnderlineStyle.single,
-                            .link: url
-                        ]
-                    } else {
-                        attributes = [:]
-                    }
-                    
-                    let attributedString = NSAttributedString(string: title, attributes: attributes)
-                    
-                    text = text + Text(AttributedString(attributedString))
+                if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
+                    text = text + referenceText
                 }
             case .image:
                 appendText()

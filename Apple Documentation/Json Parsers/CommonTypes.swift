@@ -92,8 +92,7 @@ struct ContentSection: Decodable, Identifiable {
             case text
             case level
             case inlineContent
-            case termListItems
-            case unorderedListItems
+            case items
             case tabs
             case numberOfColumns
             case columns
@@ -110,13 +109,13 @@ struct ContentSection: Decodable, Identifiable {
             
             // Lists
             if type == .termList {
-                self.termListItems = try container.decodeIfPresent([TermListItem].self, forKey: ContentSection.Content.CodingKeys.termListItems)
+                self.termListItems = try container.decodeIfPresent([TermListItem].self, forKey: .items)
             } else {
                 self.termListItems = nil
             }
             
             if type == .unorderedList {
-                self.unorderedListItems = try container.decodeIfPresent([UnorderedListItem].self, forKey: ContentSection.Content.CodingKeys.unorderedListItems)
+                self.unorderedListItems = try container.decodeIfPresent([UnorderedListItem].self, forKey: .items)
             } else {
                 self.unorderedListItems = nil
             }
@@ -148,7 +147,8 @@ struct ContentSection: Decodable, Identifiable {
             }
         }
         
-        struct TermListItem: Decodable {
+        struct TermListItem: Decodable, Identifiable {
+            let id = UUID()
             let term: Term
             let definition: Definition
             

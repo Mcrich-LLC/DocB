@@ -75,7 +75,18 @@ struct ArticleContentView: View {
             VideoPlayer(player: player)
                 .scaledToFit()
         case .termList:
-            EmptyView()
+            if let termListItems = content.termListItems {
+                ForEach(termListItems) { termItem in
+                    VStack {
+                        inlineContent(for: termItem.term.inlineContent)
+                            .font(.headline)
+                        
+                        ForEach(termItem.definition.content) { content in
+                            ArticleContentView(content: content, article: self.article)
+                        }
+                    }
+                }
+            }
         case .unorderedList:
             EmptyView()
         case .orderedList:

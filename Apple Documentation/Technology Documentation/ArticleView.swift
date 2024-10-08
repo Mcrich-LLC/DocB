@@ -99,11 +99,11 @@ struct ArticleView: View {
                             }
                             
                             Button("Download", systemImage: "arrow.down.circle.fill") {
-                                
+                                // TODO: Implement Downloading
                             }
                             
                             Button("Save", systemImage: "bookmark") {
-                                
+                                // TODO: Implement Bookmarks
                             }
                         }
                     }

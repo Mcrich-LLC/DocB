@@ -66,7 +66,7 @@ struct ArticleContentView: View {
         if let url = URL(string: reference.identifier) {
             attributes = [
                 .foregroundColor: UIColor.blue,
-                .underlineStyle : NSUnderlineStyle.single,
+                .underlineStyle : 1,
                 .link: url
             ]
         } else {

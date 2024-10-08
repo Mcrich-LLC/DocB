@@ -248,6 +248,7 @@ struct ContentSection: Decodable, Identifiable {
         enum Style: String, Decodable, CaseIterable {
             case compactGrid
             case note
+            case detailedGrid
         }
         
         struct Column: Decodable, Equatable {

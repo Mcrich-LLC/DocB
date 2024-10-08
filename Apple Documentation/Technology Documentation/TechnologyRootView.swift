@@ -27,6 +27,9 @@ struct TechnologyRootView: View {
         }
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
+        .onAppear(perform: {
+            navigationViewModel.reference = frameworkReference
+        })
         .task {
             await loadFramework()
         }
@@ -37,12 +40,22 @@ struct TechnologyRootView: View {
         }
     }
     
+    var frameworkReference: Reference {
+        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+    }
+    
     @ViewBuilder
     func frameworkView(_ framework: Framework) -> some View {
         if framework.topicSections.isEmpty {
             Text("No documentation available for \(framework.metadata.title)")
         } else {
             List {
+                Section {
+                    FrameworkListItem(reference: frameworkReference, title: frameworkSection.title)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+                
                 ForEach(framework.topicSections) { section in
                     Section(section.title) {
                         ForEach(section.identifiers, id: \.self) { identifier in

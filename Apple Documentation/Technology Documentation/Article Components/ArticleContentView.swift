@@ -210,6 +210,7 @@ struct ArticleContentView: View {
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity)
             .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         case .row:
             EmptyView()

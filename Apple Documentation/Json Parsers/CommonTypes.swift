@@ -70,6 +70,7 @@ struct ContentSection: Decodable, Identifiable {
         let anchor: String?
         let text: String?
         let level: Int?
+        let code: [String]?
         
         // Inline Content
         let inlineContent: [ContentStruct]?
@@ -97,6 +98,7 @@ struct ContentSection: Decodable, Identifiable {
             case tabs
             case numberOfColumns
             case columns
+            case code
         }
         
         init(from decoder: any Decoder) throws {
@@ -107,6 +109,7 @@ struct ContentSection: Decodable, Identifiable {
             self.text = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.text)
             self.level = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.level)
             self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.CodingKeys.inlineContent)
+            self.code = try container.decodeIfPresent([String].self, forKey: ContentSection.Content.CodingKeys.code)
             
             // Lists
             if type == .termList {

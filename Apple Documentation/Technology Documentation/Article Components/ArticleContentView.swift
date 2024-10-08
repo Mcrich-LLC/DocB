@@ -8,6 +8,7 @@
 import SwiftUI
 import Kingfisher
 import AVKit
+import HighlightSwift
 
 struct ArticleContentView: View {
     let content: ContentSection.Content
@@ -126,7 +127,13 @@ struct ArticleContentView: View {
         case .emphasis:
             EmptyView()
         case .codeListing:
-            EmptyView()
+            VStack {
+                if let code = content.code {
+                    CodeText(code.joined(separator: "\n"))
+                }
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         case .row:
             EmptyView()
         case .aside:
@@ -166,7 +173,7 @@ struct ArticleContentView: View {
                 case .text:
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
-                text = text + Text(inline.code ?? "")
+                text = text + Text(inline.code ?? "").italic()
             case .image:
                 appendText()
                 

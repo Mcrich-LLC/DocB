@@ -59,6 +59,7 @@ struct Framework: Decodable {
         let url: String?
         let role: Role?
         let fragments: [Fragment]?
+        let deprecated: Bool?
         
         enum Role: String, Decodable {
             case collectionGroup

@@ -32,6 +32,7 @@ struct Framework: Decodable {
             self.anchor = try container.decode(String.self, forKey: Framework.TopicSection.CodingKeys.anchor)
             let identifiers = try container.decode([String].self, forKey: Framework.TopicSection.CodingKeys.identifiers)
             
+            // Filter to remove ids with #
             self.identifiers = identifiers.filter({ !$0.contains("#") })
         }
         
@@ -46,13 +47,7 @@ struct Framework: Decodable {
         let title: String
         let role: String
         let images: [ImageStruct]?
-        let platforms: [Platforms]?
-        
-        struct Platforms: Decodable {
-            let name: String
-            let introducedAt: String
-            let beta: Bool
-        }
+        let platforms: [Platform]?
     }
     
     struct Reference: Decodable, Hashable {

@@ -160,12 +160,14 @@ enum ContentType: String, Decodable {
     case video
     case termList
     case unorderedList
+    case orderedList
     case tabNavigator
     case reference
     case table
     case emphasis
     case codeListing
     case row
+    case aside
 }
 
 enum PlatformName: String, Decodable {
@@ -176,12 +178,13 @@ enum PlatformName: String, Decodable {
     case tvOS
     case visionOS
     case watchOS
+    case Xcode
 }
 
 struct Platform: Decodable {
     let introducedAt: String
-    let unavailable: Bool
+    let unavailable: Bool?
     let beta: Bool
     let name: PlatformName
-    let deprecated: Bool
+    let deprecated: Bool?
 }

@@ -49,41 +49,4 @@ struct Framework: Decodable {
         let images: [ImageStruct]?
         let platforms: [Platform]?
     }
-    
-    struct Reference: Decodable, Hashable {
-        let title: String?
-        let abstract: [ContentStruct]?
-        let identifier: String
-        let kind: String?
-        let type: String
-        let url: String?
-        let role: Role?
-        let symbolKind: String?
-        let fragments: [Fragment]?
-        
-        enum Role: String, Decodable {
-            case collectionGroup
-            case collection
-            case article
-            case overview
-            case sampleCode
-            case symbol
-            case link
-            
-            func symbol(symbolKind: String? = nil) -> String {
-                switch self {
-                case .collectionGroup:
-                    "list.bullet"
-                case .collection:
-                    "list.bullet"
-                case .sampleCode:
-                    "curlybraces"
-                case .symbol:
-                    "curlybraces"
-                default:
-                    "text.document"
-                }
-            }
-        }
-    }
 }

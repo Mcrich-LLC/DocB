@@ -8,93 +8,87 @@
 import SwiftUI
 
 struct ArticleView: View {
-    
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    let reference: Framework.Reference
+    let reference: Reference
     
     @State var article: Article?
     
     var body: some View {
-        ScrollView {
-            VStack {
-                if let article {
-                    Heading(article)
+        VStack {
+            if let article {
+                _ArticleView(article: article)
+            } else {
+                Text("Loading...")
+            }
+        }
+            .task {
+                do {
+                    let article = try await documentationViewModel.fetchArticle(for: reference.identifier)
+                    
+                    self.article = article
+                } catch {
+                    print(error)
                 }
             }
-            .padding()
-        }
-        .id(reference)
-        .task {
-            await loadArticle()
-        }
-        .onChange(of: navigationViewModel.reference) {
-            Task { await loadArticle() }
-        }
     }
+}
+
+private struct _ArticleView: View {
+    let article: Article
     
-    func loadArticle() async {
-        do {
-            let article = try await documentationViewModel.fetchArticle(for: reference.identifier)
-            
-            self.article = article
-        } catch {
-            print(error)
+    var body: some View {
+        ScrollView {
+            VStack {
+                heading
+                // Main Content
+                ForEach(article.primaryContentSections) { section in
+                    switch section.kind {
+                    case .content:
+                        VStack(spacing: 15) {
+                            ForEach(section.content ?? []) { content in
+                                ArticleContentView(content: content, article: article)
+                            }
+                        }
+                    case .declarations:
+                        // TODO: Add declarations support
+                        EmptyView()
+                    }
+                }
+                Spacer()
+            }
+            .padding()
         }
     }
     
     @ViewBuilder
-    func Heading(_ article: Article) -> some View {
-        VStack(alignment: .leading, spacing: 15) {
+    var heading: some View {
+        VStack(spacing: 20) {
             HStack(spacing: 15) {
                 Text(article.metadata.roleHeading)
                     .foregroundStyle(.secondary)
-                HeadingBadge(article.metadata)
+                headingBadge(article.metadata)
             }
-            .font(.headline)
-            
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Text(article.metadata.title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            if let abstract = article.abstract?.first, let text = abstract.text {
-                Text(text)
-                    .font(.title3)
+                .font(.title)
+                .bold()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let abstract = article.abstract {
+                AbstractView(abstract: abstract)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             
-            WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
+            WrappingHStack(alignment: .leading, horizontalSpacing: 15) {
                 ForEach(article.metadata.platforms ?? []) { platform in
                     PlatformCapsule(platform: platform)
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .multilineTextAlignment(.leading)
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                let url = documentationViewModel.jsonUrl(for: reference.identifier)!.absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com").replacingOccurrences(of: ".json", with: "")
-                
-                ShareLink(item: URL(string: url)!) {
-                    Label("Share", systemImage: "square.and.arrow.up")
-                }
-                .labelsHidden()
-                
-                Button("Download", systemImage: "arrow.down.circle.fill") {
-                    
-                }
-                .labelsHidden()
-                
-                Button("Save", systemImage: "bookmark") {
-                    
-                }
-                .labelsHidden()
-            }
-        }
     }
     
     @ViewBuilder
-    func HeadingBadge(_ metadata: Article.Metadata) -> some View {
+    func headingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
             if platforms.filter({ $0.beta == true }).count == platforms.count {
                 ArticleBadge(badge: .beta)
@@ -109,118 +103,3 @@ struct ArticleView: View {
 //#Preview {
 //    ArticleView()
 //}
-
-/*
- 
- 
- //
- //  ArticleView.swift
- //  Apple Documentation
- //
- //  Created by Morris Richman on 10/6/24.
- //
- 
- import SwiftUI
- 
- struct ArticleView: View {
- @EnvironmentObject var navigationViewModel: NavigationViewModel
- @EnvironmentObject var documentationViewModel: DocumentationViewModel
- let reference: Framework.Reference
- 
- @State var article: Article?
- @State var showTitle: Bool = false
- 
- var body: some View {
- ScrollView {
- VStack(alignment: .leading) {
- if let article {
- VStack(alignment: .leading, spacing: 15) {
- if let role = reference.role {
- Label {
- Text(article.metadata.roleHeading)
- } icon: {
- Image(systemName: role.roleImage).foregroundStyle(.secondary)
- .foregroundStyle(.secondary)
- }
- }
- 
- Text(article.metadata.title)
- .font(.largeTitle)
- .fontWeight(.semibold)
- 
- 
- }
- .toolbar {
- ToolbarItemGroup(placement: .topBarTrailing) {
- let url = documentationViewModel.jsonUrl(for: reference.identifier)!.absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com").replacingOccurrences(of: ".json", with: "")
- 
- ShareLink(item: URL(string: url)!) {
- Label("Share", systemImage: "square.and.arrow.up")
- }
- .labelsHidden()
- 
- Button("Download", systemImage: "arrow.down.circle.fill") {
- 
- }
- .labelsHidden()
- 
- Button("Save", systemImage: "bookmark") {
- 
- }
- .labelsHidden()
- }
- }
- .onAppear {
- showTitle = false
- }
- .onDisappear {
- showTitle = true
- }
- }
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding()
- .multilineTextAlignment(.leading)
- .navigationBarTitleDisplayMode(.inline)
- .navigationTitle(showTitle ? reference.title ?? "" : "")
- }
- .task {
- await loadArticle()
- }
- .onChange(of: navigationViewModel.reference) {
- Task {
- await loadArticle()
- }
- }
- .id(reference.identifier)
- .transition(.opacity)
- }
- 
- func loadArticle() async {
- do {
- let article = try await documentationViewModel.fetchArticle(for: reference.identifier)
- 
- self.article = article
- } catch {
- print(error)
- }
- }
- }
- 
- func format(_ contentArray: [ContentStruct]) -> String {
- var result = ""
- 
- for content in contentArray {
- let text = content.text ?? ""
- 
- if content.type == "paragraph" {
- result += text
- } else if content.type == "reference", let identifier = content.identifier {
- result += "[\(text)](\(identifier))"
- }
- }
- 
- return result.trimmingCharacters(in: .whitespacesAndNewlines)
- }
- 
- */

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+@_exported import SFSafeSymbols
 
 @main
 struct Apple_DocumentationApp: App {

@@ -8,30 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    
-    @StateObject var navigationViewModel = NavigationViewModel()
     @StateObject var documentationViewModel = DocumentationViewModel()
     
     var body: some View {
-        NavigationSplitView {
-            if let technologies = documentationViewModel.technologies {
+        NavigationStack {
+            if let technologies = documentationViewModel.technologies, let headerText = technologies.header?.title {
                 techView(technologies)
-                    .navigationTitle("Documentation")
+                    .navigationTitle(headerText)
                     .navigationBarTitleDisplayMode(.large)
             } else {
-                ProgressView("Loading")
-            }
-        } content: {
-            if let technology = navigationViewModel.technology {
-                TechnologyRootView(frameworkSection: technology)
-            }
-        } detail: {
-            if let reference = navigationViewModel.reference {
-                ArticleView(reference: reference)
+                Text("Loading...")
             }
         }
         .environmentObject(documentationViewModel)
-        .environmentObject(navigationViewModel)
         .task {
             await documentationViewModel.fetchTechnologies()
         }
@@ -42,28 +31,28 @@ struct ContentView: View {
         List {
             if let groups = technology.groups {
                 ForEach(groups) { group in
-                    
                     Section(group.name) {
-                        
                         ForEach(group.technologies) { technology in
                             if technology.destination.isActive {
-                                Button {
-                                    navigationViewModel.technology = technology
-                                } label: {
+                                NavigationLink(value: technology) {
                                     Text(technology.title)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .padding(-10)
-                                        .foregroundStyle(Color(uiColor: .secondarySystemBackground))
-                                }
                             }
                         }
-                        
                     }
                 }
             }
+        }
+        
+        // Framework Navigator
+        .navigationDestination(for: Technologies.FrameworkSection.self) { framework in
+            TechnologyRootView(frameworkSection: framework)
+        }
+        
+        // Article View
+        .navigationDestination(for: Reference.self) { reference in
+            ArticleView(reference: reference)
         }
     }
 }

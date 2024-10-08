@@ -12,10 +12,13 @@ struct ImageStruct: Decodable {
     let type: String
 }
 
-struct ContentStruct: Decodable, Hashable {
+struct ContentStruct: Decodable, Hashable, Identifiable {
+    let id = UUID()
+    
     let text: String?
+    let code: String?
     let identifier: String?
-    let type: String
+    let type: ContentType
 }
 
 struct Fragment: Decodable, Hashable {
@@ -23,12 +26,20 @@ struct Fragment: Decodable, Hashable {
     let kind: String
 }
 
-struct ContentSection: Decodable {
-    let kind: String
+struct ContentSection: Decodable, Identifiable {
+    let id = UUID()
+    
+    let kind: Kind
     let content: [Content]?
     let declarations: [Declaration]?
     
-    struct Declaration: Decodable {
+    enum Kind: String, Decodable {
+        case content
+        case declarations
+    }
+    
+    struct Declaration: Decodable, Identifiable {
+        let id = UUID()
         let tokens: [Token]
         let languages: [String]
         let platforms: [PlatformName]
@@ -43,11 +54,13 @@ struct ContentSection: Decodable {
                 case attribute
                 case identifier
                 case typeIdentifier
+                case externalParam
             }
         }
     }
     
-    struct Content: Decodable {
+    struct Content: Decodable, Identifiable {
+        let id = UUID()
         let type: ContentType?
         
         // Media
@@ -154,6 +167,35 @@ struct ContentSection: Decodable {
     }
 }
 
+struct Reference: Decodable, Hashable {
+    let title: String?
+    let abstract: [ContentStruct]?
+    let identifier: String
+    let kind: String?
+    let type: String
+    let url: String?
+    let role: Role?
+    let fragments: [Fragment]?
+    let deprecated: Bool?
+    let variants: [Variant]?
+    
+    struct Variant: Decodable, Hashable {
+        let url: String
+        let traits: [String]
+    }
+    
+    enum Role: String, Decodable {
+        case collectionGroup
+        case collection
+        case article
+        case overview
+        case sampleCode
+        case symbol
+    }
+}
+
+// MARK: Content Types
+
 enum ContentType: String, Decodable {
     case heading
     case paragraph
@@ -170,8 +212,11 @@ enum ContentType: String, Decodable {
     case codeListing
     case row
     case aside
+    case code
+    case codeVoice
 }
 
+// MARK: Platforms
 enum PlatformName: String, Decodable {
     case iOS
     case iPadOS

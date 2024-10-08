@@ -176,7 +176,9 @@ struct ArticleContentView: View {
         case .table:
             EmptyView()
         case .emphasis:
-            EmptyView()
+            let string = getEmphasisString(content)
+            
+            Text(string).italic()
         case .codeListing:
             VStack {
                 if let code = content.code {

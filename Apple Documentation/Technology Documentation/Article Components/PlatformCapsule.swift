@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct PlatformCapsule: View {
-    @Environment(\.colorScheme) var colorScheme
     let platform: Platform
     
     var text: String {
@@ -32,20 +31,12 @@ struct PlatformCapsule: View {
             Text(text)
             
             if platform.beta == true {
-                Text("Beta")
-                    .foregroundStyle(colorScheme == .light ? Color.white : Color.black)
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 4)
-                    .background(RoundedRectangle(cornerRadius: 4).fill(Color.mint))
+                ArticleBadge(badge: .beta)
                     .padding(.vertical, 4)
             }
             
             if platform.deprecated == true {
-                Text("Deprecated")
-                    .foregroundStyle(colorScheme == .light ? Color.white : Color.black)
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 4)
-                    .background(RoundedRectangle(cornerRadius: 4).fill(Color.orange))
+                ArticleBadge(badge: .deprecated)
                     .padding(.vertical, 4)
             }
         }

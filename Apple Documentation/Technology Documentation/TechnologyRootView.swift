@@ -46,13 +46,20 @@ struct TechnologyRootView: View {
                             }
                         }
                     }
+                    .headerProminence(.increased)
                 }
             }
+            .listStyle(.inset)
+            .scrollContentBackground(.hidden)
+            .background(Color(uiColor: .systemBackground))
         }
     }
 }
 
 private struct FrameworkListItem: View {
+    
+    @StateObject var navigationViewModel = NavigationViewModel()
+    
     let reference: Reference
     let title: String
     
@@ -78,17 +85,19 @@ private struct FrameworkListItem: View {
         } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
             Link(destination: url) {
                 HStack {
-                    Text(title)
-                        .foregroundStyle(Color.primary)
-                    
-                    Spacer()
-                    
-                    Image(systemSymbol: .link)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 15)
-                        .bold()
-                        .foregroundStyle(Color.accentColor)
+                    Label {
+                        HStack {
+                            Text(reference.title ?? "")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Image(systemSymbol: .arrowUpRight)
+                                .imageScale(.small)
+                                .foregroundStyle(.accent)
+                        }
+                    } icon: {
+                        Image(systemSymbol: .link)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         } else if reference.role == .collection {
@@ -96,7 +105,23 @@ private struct FrameworkListItem: View {
             
             NavigationLink(title, value: section)
         } else {
-            NavigationLink(title, value: reference)
+            Button {
+                navigationViewModel.reference = reference
+            } label: {
+                Label {
+                    Text(reference.title ?? "")
+                } icon: {
+                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .padding(-10)
+                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
+            }
         }
     }
 }
@@ -128,6 +153,3 @@ private struct FrameworkDisclosureGroup: View {
     }
 }
 
-//#Preview {
-//    TechnologyRootView()
-//}

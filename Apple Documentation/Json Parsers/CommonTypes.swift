@@ -191,6 +191,22 @@ struct Reference: Decodable, Hashable {
         case overview
         case sampleCode
         case symbol
+        case link
+        
+        func labelIcon(symbolKind: String? = nil) -> String {
+            switch self {
+            case .collectionGroup:
+                "list.bullet"
+            case .collection:
+                "list.bullet"
+            case .sampleCode:
+                "curlybraces"
+            case .symbol:
+                "curlybraces"
+            default:
+                "text.document"
+            }
+        }
     }
 }
 

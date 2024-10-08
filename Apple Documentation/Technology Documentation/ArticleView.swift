@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ArticleView: View {
+    
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let reference: Reference
     

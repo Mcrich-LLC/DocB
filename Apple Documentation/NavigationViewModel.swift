@@ -10,7 +10,7 @@ import Foundation
 class NavigationViewModel: ObservableObject, Equatable {
      
     @Published var technology: Technologies.FrameworkSection?
-    @Published var reference: Framework.Reference?
+    @Published var reference: Reference?
     
     static func == (lhs: NavigationViewModel, rhs: NavigationViewModel) -> Bool {
         lhs.technology == rhs.technology && lhs.reference == rhs.reference

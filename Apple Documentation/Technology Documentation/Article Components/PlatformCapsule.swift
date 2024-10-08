@@ -31,8 +31,7 @@ struct PlatformCapsule: View {
         HStack {
             Text(text)
             
-//            if platform.beta == true {
-            if platform.name == .iOS {
+            if platform.beta == true {
                 Text("Beta")
                     .foregroundStyle(colorScheme == .light ? Color.white : Color.black)
                     .padding(.vertical, 2)

@@ -113,9 +113,11 @@ private struct FrameworkDisclosureGroup: View {
         DisclosureGroup {
             if let framework {
                 ForEach(framework.topicSections) { section in
-                    ForEach(section.identifiers, id: \.self) { subidentifier in
-                        if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
-                            FrameworkListItem(reference: subreference, title: subtitle)
+                    Section(section.title) {
+                        ForEach(section.identifiers, id: \.self) { subidentifier in
+                            if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
+                                FrameworkListItem(reference: subreference, title: subtitle)
+                            }
                         }
                     }
                 }

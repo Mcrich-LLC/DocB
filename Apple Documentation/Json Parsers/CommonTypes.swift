@@ -148,16 +148,23 @@ struct ContentSection: Decodable, Identifiable {
             let content: [Content]
         }
         
-        struct Tab: Decodable, Equatable {
+        struct Tab: Decodable, Equatable, Identifiable {
+            let id = UUID()
+            
             let content: [Content]
             let title: String
             
-            struct Content: Decodable, Equatable {
+            struct Content: Decodable, Equatable, Identifiable {
+                let id = UUID()
+                
                 let items: [Item]?
                 let inlineContent: [ContentStruct]?
+                let type: ContentType?
             }
             
-            struct Item: Decodable, Equatable {
+            struct Item: Decodable, Equatable, Identifiable {
+                let id = UUID()
+                
                 let content: [ContentSection.Content]
             }
         }

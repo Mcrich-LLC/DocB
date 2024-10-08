@@ -24,6 +24,7 @@ struct ArticleContentView: View {
     }
     
     @State var player: AVPlayer?
+    @State var tableSelection: String = ""
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -38,6 +39,10 @@ struct ArticleContentView: View {
         .onAppear {
             if content.type == .video, let identifier = content.identifier, let url = fetchPhotoVideoURL(for: identifier) {
                 self.player = AVPlayer(url: url)
+            }
+            
+            if content.type == .tabNavigator {
+                self.tableSelection = content.tabs?.first?.title ?? ""
             }
         }
     }
@@ -188,7 +193,33 @@ struct ArticleContentView: View {
                 }
             }
         case .tabNavigator:
-            EmptyView()
+            if let tabs = content.tabs {
+                VStack {
+                    Picker("", selection: self.$tableSelection) {
+                        ForEach(tabs) { tab in
+                            Text(tab.title)
+                                .tag(tab.title)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    if let tab = tabs.first(where: { $0.title == self.tableSelection }) {
+                        ForEach(tab.content) { tabContents in
+                            if let inlineContent = tabContents.inlineContent {
+                                self.inlineContent(for: inlineContent)
+                            }
+                            
+                            if let items = tabContents.items {
+                                ForEach(items) { tabItem in
+                                    ForEach(tabItem.content) { content in
+                                        ArticleContentView(content: content, article: self.article, from: tabContents.type)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         case .reference:
             if let identifier = content.identifier, let referenceText = getReferenceText(for: identifier) {
                 referenceText
@@ -298,6 +329,7 @@ struct ArticleContentView: View {
                 inlineContent.view
             }
         }
+        .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(type) ? 5 : 0)
     }
     
     private struct InlineContent: Identifiable {

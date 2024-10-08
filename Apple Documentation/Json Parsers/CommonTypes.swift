@@ -350,6 +350,7 @@ struct Reference: Decodable, Hashable {
         case codeListing
         case link
         case dictionarySymbol
+        case pseudoSymbol
     }
 }
 

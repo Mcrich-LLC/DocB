@@ -78,6 +78,33 @@ struct ArticleContentView: View {
         return Text(AttributedString(attributedString))
     }
     
+    func getEmphasisString(_ content: ContentStruct) -> String {
+        var string = ""
+        
+        for inContent in content.inlineContent ?? [] {
+            switch inContent.type {
+            case .text:
+                if let text = inContent.text {
+                    string.append(text)
+                }
+            case .codeVoice:
+                if let code = inContent.code {
+                    string.append(code)
+                }
+            case .emphasis:
+                let str = getEmphasisString(inContent)
+                
+                string.append(str)
+            default:
+                if let text = inContent.text {
+                    string.append(text)
+                }
+            }
+        }
+        
+        return string
+    }
+    
     @ViewBuilder
     var typeBody: some View {
         switch content.type {
@@ -198,6 +225,10 @@ struct ArticleContentView: View {
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
                 text = text + Text(inline.code ?? "").italic()
+            case .emphasis:
+                let string = getEmphasisString(inline)
+                
+                text = text + Text(string).italic()
             case .reference:
                 if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
                     text = text + referenceText

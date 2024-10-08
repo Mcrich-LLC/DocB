@@ -18,6 +18,7 @@ struct ContentStruct: Decodable, Hashable, Identifiable, Equatable {
     let text: String?
     let code: String?
     let identifier: String?
+    let inlineContent: [ContentStruct]?
     let type: ContentType
 }
 
@@ -68,9 +69,11 @@ struct ContentSection: Decodable, Identifiable {
         
         // Heading
         let anchor: String?
-        let text: String?
         let level: Int?
+        
+        // Text
         let code: [String]?
+        let text: String?
         
         // Inline Content
         let inlineContent: [ContentStruct]?
@@ -106,9 +109,11 @@ struct ContentSection: Decodable, Identifiable {
             self.type = try container.decodeIfPresent(ContentType.self, forKey: ContentSection.Content.CodingKeys.type)
             self.identifier = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.identifier)
             self.anchor = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.anchor)
-            self.text = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.text)
             self.level = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.level)
             self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.CodingKeys.inlineContent)
+            
+            // Text
+            self.text = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.text)
             self.code = try container.decodeIfPresent([String].self, forKey: ContentSection.Content.CodingKeys.code)
             
             // Lists

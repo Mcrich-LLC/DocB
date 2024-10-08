@@ -242,7 +242,7 @@ struct ArticleContentView: View {
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 4).fill(Color(uiColor: .secondarySystemBackground)))
         case .row:
 #warning("Row is not supported yet")

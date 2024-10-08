@@ -135,22 +135,34 @@ private struct FrameworkListItem: View {
             Text(title)
                 .foregroundStyle(.secondary)
         } else {
-            Button {
-                navigationViewModel.reference = reference
-            } label: {
-                Label {
-                    Text(reference.title ?? "")
-                } icon: {
-                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                        .foregroundStyle(.secondary)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                Button {
+                    navigationViewModel.reference = reference
+                } label: {
+                    Label {
+                        Text(title)
+                    } icon: {
+                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity(navigationViewModel.reference == reference ? 1 : 0)
+                }
+            } else {
+                NavigationLink(value: reference) {
+                    Label {
+                        Text(title)
+                    } icon: {
+                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
         }
     }

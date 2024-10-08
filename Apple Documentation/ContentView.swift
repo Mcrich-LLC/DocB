@@ -13,6 +13,22 @@ struct ContentView: View {
     @StateObject var documentationViewModel = DocumentationViewModel()
     
     var body: some View {
+        Group {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                navigationSplitView
+            } else {
+                navigationStackView
+            }
+        }
+        .environmentObject(documentationViewModel)
+        .environmentObject(navigationViewModel)
+        .task {
+            await documentationViewModel.fetchTechnologies()
+        }
+    }
+    
+    @ViewBuilder
+    var navigationSplitView: some View {
         NavigationSplitView {
             Group {
                 if let selectedTechnology = navigationViewModel.technology {
@@ -42,22 +58,37 @@ struct ContentView: View {
             }
             .navigationSplitViewColumnWidth(390)
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
-            
-            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
-                ArticleView(reference: reference)
-            }
-            
         } detail: {
             if let reference = navigationViewModel.reference {
                 ArticleView(reference: reference)
             }
         }
-        .environmentObject(documentationViewModel)
-        .environmentObject(navigationViewModel)
-        .task {
-            await documentationViewModel.fetchTechnologies()
+    }
+    
+    @ViewBuilder
+    var navigationStackView: some View {
+        NavigationStack {
+            Group {
+                if let technologies = documentationViewModel.technologies {
+                    techView(technologies)
+                        .navigationTitle("Documentation")
+                        .navigationBarTitleDisplayMode(.large)
+                        .transition(.move(edge: .leading))
+                } else {
+                    ProgressView("Loading")
+                }
+            }
+            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .navigationDestination(for: Reference.self) { reference in
+                ArticleView(reference: reference)
+            }
+            .navigationDestination(for: Technologies.FrameworkSection.self) { technology in
+                TechnologyRootView(frameworkSection: technology)
+            }
+//            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
+//                ArticleView(reference: reference)
+//            }
         }
-        
     }
     
     func techView(_ technology: Technologies) -> some View {
@@ -69,25 +100,31 @@ struct ContentView: View {
                         
                         ForEach(group.technologies) { technology in
                             if technology.destination.isActive {
-                                Button {
-                                    withAnimation(.snappy) {
-                                        navigationViewModel.technology = technology
-                                    }
-                                    
-                                } label: {
-                                    HStack {
-                                        Text(technology.title)
+                                if UIDevice.current.userInterfaceIdiom == .pad {
+                                    Button {
+                                        withAnimation(.snappy) {
+                                            navigationViewModel.technology = technology
+                                        }
                                         
-                                        Spacer()
-                                        
-                                        chevron
+                                    } label: {
+                                        HStack {
+                                            Text(technology.title)
+                                            
+                                            Spacer()
+                                            
+                                            chevron
+                                        }
                                     }
-                                }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .padding(-10)
-                                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                                        .opacity(navigationViewModel.technology == technology ? 1 : 0)
+                                    .foregroundStyle(Color.primary)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .padding(-10)
+                                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                                            .opacity(navigationViewModel.technology == technology ? 1 : 0)
+                                    }
+                                } else {
+                                    NavigationLink(technology.title, value: technology)
+                                        .foregroundStyle(Color.primary)
                                 }
                             }
                             
@@ -97,11 +134,6 @@ struct ContentView: View {
             }
             
         }
-//        .navigationDestination(isPresented: navigationViewModel.iphoneArticleDestinationBinding) {
-//            if let reference = navigationViewModel.reference {
-//                ArticleView(reference: reference)
-//            }
-//        }
     }
     
     

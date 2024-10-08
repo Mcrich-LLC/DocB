@@ -60,9 +60,17 @@ private struct _ArticleView: View {
                     }
                 }
                 
-                Divider()
-                    .padding(.vertical)
-                SeeAlsoView(article: article)
+                if article.topicSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    TopicsView(article: article)
+                }
+                
+                if article.seeAlsoSections != nil {
+                    Divider()
+                        .padding(.vertical)
+                    SeeAlsoView(article: article)
+                }
                 Spacer()
             }
             .padding()

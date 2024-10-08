@@ -14,6 +14,7 @@ struct Article: Decodable {
     let references: [String : Reference]
     let legalNotices: LegalNotices
     let seeAlsoSections: [Framework.TopicSection]?
+    let topicSections: [Framework.TopicSection]?
     
     struct Metadata: Decodable {
         // Role

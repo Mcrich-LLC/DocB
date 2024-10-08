@@ -1,5 +1,5 @@
 //
-//  SeeAlsoView.swift
+//  TopicsView.swift
 //  Apple Documentation
 //
 //  Created by Morris Richman on 10/8/24.
@@ -7,18 +7,18 @@
 
 import SwiftUI
 
-struct SeeAlsoView: View {
+struct TopicsView: View {
     let article: Article
     
     var body: some View {
-        if let seeAlsoSections = article.seeAlsoSections {
+        if let topicSections = article.topicSections {
             VStack {
-                Text("See Also")
+                Text("Topics")
                     .font(.title3)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                ForEach(seeAlsoSections) { section in
+                ForEach(topicSections) { section in
                     Section(header: Text(section.title)) {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = article.references[identifier], reference.title != nil {
@@ -69,4 +69,8 @@ struct SeeAlsoView: View {
         
         return AttributedString(nsAttributedString)
     }
+}
+
+extension RangeExpression where Bound == String.Index  {
+    func nsRange<S: StringProtocol>(in string: S) -> NSRange { .init(self, in: string) }
 }

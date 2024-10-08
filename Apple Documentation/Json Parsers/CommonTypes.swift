@@ -7,9 +7,23 @@
 
 import Foundation
 
-struct ImageStruct: Decodable {
+struct ImageStruct: Decodable, Identifiable, Equatable, Hashable {
+    let id = UUID()
+    
     let identifier: String
     let type: String
+    
+    enum CodingKeys: CodingKey {
+        case id
+        case identifier
+        case type
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.identifier = try container.decode(String.self, forKey: .identifier)
+        self.type = try container.decode(String.self, forKey: .type)
+    }
 }
 
 struct LegalNotices: Decodable {
@@ -149,6 +163,10 @@ struct ContentSection: Decodable, Identifiable {
         let code: [String]?
         let text: String?
         
+        // Links
+        let style: Style?
+        let linkItems: [String]?
+        
         // Inline Content
         let inlineContent: [ContentStruct]?
         
@@ -176,6 +194,7 @@ struct ContentSection: Decodable, Identifiable {
             case numberOfColumns
             case columns
             case code
+            case style
         }
         
         init(from decoder: any Decoder) throws {
@@ -185,6 +204,7 @@ struct ContentSection: Decodable, Identifiable {
             self.anchor = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.anchor)
             self.level = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.level)
             self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.CodingKeys.inlineContent)
+            self.style = try container.decodeIfPresent(Style.self, forKey: ContentSection.Content.CodingKeys.style)
             
             // Text
             self.text = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.text)
@@ -209,12 +229,22 @@ struct ContentSection: Decodable, Identifiable {
                 self.orderedListItems = nil
             }
             
+            if type == .links {
+                self.linkItems = try container.decodeIfPresent([String].self, forKey: .items)
+            } else {
+                self.linkItems = nil
+            }
+            
             // Tabs
             self.tabs = try container.decodeIfPresent([Tab].self, forKey: ContentSection.Content.CodingKeys.tabs)
             
             // Row
             self.numberOfColumns = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.numberOfColumns)
             self.columns = try container.decodeIfPresent([Column].self, forKey: ContentSection.Content.CodingKeys.columns)
+        }
+        
+        enum Style: String, Decodable, CaseIterable {
+            case compactGrid
         }
         
         struct Column: Decodable, Equatable {
@@ -334,6 +364,7 @@ struct Reference: Decodable, Hashable {
     let fragments: [Fragment]?
     let deprecated: Bool?
     let variants: [Variant]?
+    let images: [ImageStruct]?
     
     struct Variant: Decodable, Hashable {
         let url: String
@@ -360,6 +391,7 @@ enum ContentType: String, Decodable, Equatable {
     case heading
     case paragraph
     case text
+    case links
     case image
     case video
     case termList

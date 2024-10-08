@@ -256,6 +256,33 @@ struct ArticleContentView: View {
             let attributedString = getCodeString(content.code ?? [])
             
             Text(attributedString)
+        case .links:
+            switch content.style {
+            case .compactGrid:
+                WrappingHStack(alignment: .leading) {
+                    ForEach(content.linkItems ?? [], id: \.self) { identifier in
+                        if let reference = article.references[identifier], let title = reference.title, let imageId = reference.images?.first?.identifier, let openUrlString = reference.url, let openUrl = URL(string: openUrlString) {
+                            let imageUrl = fetchPhotoVideoURL(for: imageId)
+                            
+                            Link(destination: openUrl) {
+                                GroupBox {
+                                    KFImage(imageUrl)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+//                                        .frame(maxWidth: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    Text(title)
+                                        .foregroundStyle(Color.primary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .multilineTextAlignment(.leading)
+                                }
+                            }
+                        }
+                    }
+                }
+            case .none:
+                EmptyView()
+            }
         case .none:
             EmptyView()
         }

@@ -44,9 +44,10 @@ private struct _ArticleView: View {
                 ForEach(article.primaryContentSections) { section in
                     switch section.kind {
                     case .content:
-                        VStack(spacing: 15) {
+                        VStack {
                             ForEach(section.content ?? []) { content in
                                 ArticleContentView(content: content, article: article)
+                                    .padding(.top, content.type == .heading ? nil : 0)
                             }
                         }
                     case .declarations:

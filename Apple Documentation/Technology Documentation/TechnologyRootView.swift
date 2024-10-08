@@ -28,7 +28,9 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .onAppear(perform: {
-            navigationViewModel.reference = frameworkReference
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                navigationViewModel.reference = frameworkReference
+            }
         })
         .task {
             await loadFramework()

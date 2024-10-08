@@ -154,12 +154,17 @@ struct ArticleView: View {
             }
             .font(.headline)
             .padding(.bottom, 5)
+            .onScrollVisibilityChange { isVisible in
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    setToolbarVisibility(!isVisible)
+                }
+            }
             
             Text(article.metadata.title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .onScrollVisibilityChange { isVisible in
-                    if article.abstract == nil && article.metadata.platforms == nil {
+                    if UIDevice.current.userInterfaceIdiom == .pad && article.abstract == nil && article.metadata.platforms == nil {
                         setToolbarVisibility(!isVisible)
                     }
                 }
@@ -167,7 +172,7 @@ struct ArticleView: View {
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
                     .onScrollVisibilityChange { isVisible in
-                        if article.metadata.platforms == nil {
+                        if UIDevice.current.userInterfaceIdiom == .pad && article.metadata.platforms == nil {
                             setToolbarVisibility(!isVisible)
                         }
                     }
@@ -180,7 +185,9 @@ struct ArticleView: View {
                     }
                 }
                 .onScrollVisibilityChange { isVisible in
-                    setToolbarVisibility(!isVisible)
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        setToolbarVisibility(!isVisible)
+                    }
                 }
             }
         }

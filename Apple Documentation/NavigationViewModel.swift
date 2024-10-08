@@ -6,15 +6,23 @@
 //
 
 import Foundation
+import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
      
     // TODO: Implement url handling for doc://com.apple.documentation
     
     @Published var technology: Technologies.FrameworkSection?
-    @Published var reference: Reference? {
-        didSet {
-            print(reference?.title ?? "")
+    @Published var reference: Reference?
+
+    var iphoneArticleDestinationBinding: Binding<Reference?> {
+        Binding {
+            guard UIDevice.current.userInterfaceIdiom == .phone else {
+                return nil
+            }
+            return self.reference
+        } set: { reference in
+            self.reference = reference
         }
     }
     

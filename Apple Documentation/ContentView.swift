@@ -43,6 +43,9 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(390)
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
             
+            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
+                ArticleView(reference: reference)
+            }
             
         } detail: {
             if let reference = navigationViewModel.reference {
@@ -54,6 +57,7 @@ struct ContentView: View {
         .task {
             await documentationViewModel.fetchTechnologies()
         }
+        
     }
     
     func techView(_ technology: Technologies) -> some View {
@@ -93,6 +97,11 @@ struct ContentView: View {
             }
             
         }
+//        .navigationDestination(isPresented: navigationViewModel.iphoneArticleDestinationBinding) {
+//            if let reference = navigationViewModel.reference {
+//                ArticleView(reference: reference)
+//            }
+//        }
     }
     
     

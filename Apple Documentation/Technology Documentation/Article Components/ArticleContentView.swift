@@ -198,7 +198,25 @@ struct ArticleContentView: View {
         case .code:
             EmptyView()
         case .codeVoice:
-            EmptyView()
+            let attributes: [NSAttributedString.Key: Any] = [
+                .backgroundColor: UIColor.secondarySystemBackground
+            ]
+            
+            var codeString: String {
+                var codeCompiled: String = ""
+                
+                if let code = content.code {
+                    for c in code {
+                        codeCompiled.append(c)
+                    }
+                }
+                
+                return codeCompiled
+            }
+            
+            let attributedString = NSAttributedString(string: codeString, attributes: attributes)
+            
+            Text(AttributedString(attributedString))
         case .none:
             EmptyView()
         }
@@ -230,7 +248,13 @@ struct ArticleContentView: View {
                 case .text:
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
-                text = text + Text(inline.code ?? "").italic()
+                let attributes: [NSAttributedString.Key: Any] = [
+                    .backgroundColor: UIColor.secondarySystemBackground
+                ]
+                
+                let attributedString = NSAttributedString(string: inline.code ?? "", attributes: attributes)
+                
+                text = text + Text(AttributedString(attributedString))
             case .emphasis:
                 let string = getEmphasisString(inline)
                 

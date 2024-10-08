@@ -56,6 +56,10 @@ private struct _ArticleView: View {
                             DeclarationContentView(content: declaration, article: article)
                         }
                     }
+                    
+                    Divider()
+                        .padding(.vertical)
+                    SeeAlsoView(article: article)
                 }
                 Spacer()
             }

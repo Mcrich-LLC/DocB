@@ -325,6 +325,8 @@ struct Reference: Decodable, Hashable {
         case overview
         case sampleCode
         case symbol
+        case codeListing
+        case link
     }
 }
 

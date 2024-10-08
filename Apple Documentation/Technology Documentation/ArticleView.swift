@@ -41,7 +41,7 @@ private struct _ArticleView: View {
             VStack {
                 heading
                 // Main Content
-                ForEach(article.primaryContentSections) { section in
+                ForEach(article.primaryContentSections ?? []) { section in
                     switch section.kind {
                     case .content:
                         VStack {
@@ -67,8 +67,10 @@ private struct _ArticleView: View {
     var heading: some View {
         VStack(spacing: 20) {
             HStack(spacing: 15) {
-                Text(article.metadata.roleHeading)
-                    .foregroundStyle(.secondary)
+                if let roleHeading = article.metadata.roleHeading {
+                    Text(roleHeading)
+                        .foregroundStyle(.secondary)
+                }
                 headingBadge(article.metadata)
             }
                 .font(.headline)

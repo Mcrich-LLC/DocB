@@ -165,7 +165,7 @@ struct ArticleContentView: View {
             switch inline.type {
                 case .text:
                 text = text + Text(inline.text ?? "")
-            case .code:
+            case .codeVoice:
                 text = text + Text(inline.code ?? "")
             case .image:
                 appendText()

@@ -55,12 +55,14 @@ private struct _ArticleView: View {
                         ForEach(section.declarations ?? []) { declaration in
                             DeclarationContentView(content: declaration, article: article)
                         }
+                    case .mentions:
+                        MentionsView(mentions: section.mentions ?? [], article: article)
                     }
-                    
-                    Divider()
-                        .padding(.vertical)
-                    SeeAlsoView(article: article)
                 }
+                
+                Divider()
+                    .padding(.vertical)
+                SeeAlsoView(article: article)
                 Spacer()
             }
             .padding()

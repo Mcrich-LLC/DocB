@@ -57,12 +57,14 @@ struct ContentSection: Decodable, Identifiable {
     let kind: Kind
     let content: [Content]?
     let declarations: [Declaration]?
+    let mentions: [String]?
     
     enum CodingKeys: CodingKey {
         case id
         case kind
         case content
         case declarations
+        case mentions
     }
     
     init(from decoder: any Decoder) throws {
@@ -70,11 +72,13 @@ struct ContentSection: Decodable, Identifiable {
         self.kind = try container.decode(ContentSection.Kind.self, forKey: .kind)
         self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: .content)
         self.declarations = try container.decodeIfPresent([ContentSection.Declaration].self, forKey: .declarations)
+        self.mentions = try container.decodeIfPresent([String].self, forKey: .mentions)
     }
     
     enum Kind: String, Decodable {
         case content
         case declarations
+        case mentions
     }
     
     struct Declaration: Decodable, Identifiable {
@@ -99,16 +103,7 @@ struct ContentSection: Decodable, Identifiable {
         
         struct Token: Decodable {
             let text: String
-            let kind: Kind
-            
-            enum Kind: String, Decodable {
-                case text
-                case keyword
-                case attribute
-                case identifier
-                case typeIdentifier
-                case externalParam
-            }
+            let kind: String
         }
     }
     

@@ -176,9 +176,13 @@ struct ArticleContentView: View {
         case .table:
             EmptyView()
         case .emphasis:
-            let string = getEmphasisString(content)
-            
-            Text(string).italic()
+            if let inlineContent = content.inlineContent {
+                ForEach(inlineContent) { inline in
+                    let string = getEmphasisString(inline)
+                    
+                    Text(string).italic()
+                }
+            }
         case .codeListing:
             VStack {
                 if let code = content.code {

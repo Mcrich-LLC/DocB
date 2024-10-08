@@ -54,7 +54,7 @@ struct ArticleContentView: View {
         }
         if let darkVariant = variants.first(where: { $0.traits.contains("dark") }), colorScheme == .dark, let url = URL(string: darkVariant.url) {
             return url
-        } else if let lightVariant = variants.first(where: { $0.traits.contains("light") }), let url = URL(string: lightVariant.url) {
+        } else if let lightVariant = variants.first, let url = URL(string: lightVariant.url) {
             return url
         }
         

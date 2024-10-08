@@ -51,12 +51,15 @@ private struct _ArticleView: View {
                             }
                         }
                     case .declarations:
-                        // TODO: Add declarations support
                         ForEach(section.declarations ?? []) { declaration in
                             DeclarationContentView(content: declaration, article: article)
                         }
                     case .mentions:
                         MentionsView(mentions: section.mentions ?? [], article: article)
+                    case .details:
+                        if let details = section.details {
+                            DetailsView(details: details)
+                        }
                     }
                 }
                 

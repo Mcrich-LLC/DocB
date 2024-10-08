@@ -58,6 +58,7 @@ struct ContentSection: Decodable, Identifiable {
     let content: [Content]?
     let declarations: [Declaration]?
     let mentions: [String]?
+    let details: Details?
     
     enum CodingKeys: CodingKey {
         case id
@@ -65,6 +66,7 @@ struct ContentSection: Decodable, Identifiable {
         case content
         case declarations
         case mentions
+        case details
     }
     
     init(from decoder: any Decoder) throws {
@@ -73,12 +75,37 @@ struct ContentSection: Decodable, Identifiable {
         self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: .content)
         self.declarations = try container.decodeIfPresent([ContentSection.Declaration].self, forKey: .declarations)
         self.mentions = try container.decodeIfPresent([String].self, forKey: .mentions)
+        self.details = try container.decodeIfPresent(Details.self, forKey: .details)
     }
     
     enum Kind: String, Decodable {
         case content
         case declarations
         case mentions
+        case details
+    }
+    
+    struct Details: Decodable, Identifiable {
+        let id = UUID()
+        
+        let name: String
+        let value: [Value]
+        
+        enum CodingKeys: CodingKey {
+            case id
+            case name
+            case value
+        }
+        
+        init(from decoder: any Decoder) throws {
+            let container: KeyedDecodingContainer<ContentSection.Details.CodingKeys> = try decoder.container(keyedBy: ContentSection.Details.CodingKeys.self)
+            self.name = try container.decode(String.self, forKey: ContentSection.Details.CodingKeys.name)
+            self.value = try container.decode([ContentSection.Details.Value].self, forKey: ContentSection.Details.CodingKeys.value)
+        }
+        
+        struct Value: Decodable {
+            let baseType: String
+        }
     }
     
     struct Declaration: Decodable, Identifiable {

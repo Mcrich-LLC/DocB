@@ -16,6 +16,14 @@ struct ArticleView: View {
     @State var article: Article?
     @State var showToolbarBG: Bool = false
     
+    enum ScrollIdentifier: CaseIterable {
+        case header
+        case primaryContent
+        case topics
+        case relationships
+        case seeAlso
+    }
+    
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
@@ -23,54 +31,60 @@ struct ArticleView: View {
                     LazyVStack(alignment: .leading) {
                         Heading(article)
                             .padding(.bottom, 15)
-                            .id("HEADER")
+                            .id(ScrollIdentifier.header)
 
-                        // Main Content
-                        ForEach(article.primaryContentSections ?? []) { section in
-                            switch section.kind {
-                            case .content:
-                                VStack(spacing: 15) {
-                                    ForEach(section.content ?? []) { content in
-                                        ArticleContentView(content: content, article: article)
-                                            .padding(.top, content.type == .heading ? nil : 0)
+                        LazyVStack(alignment: .leading) {
+                            // Main Content
+                            ForEach(article.primaryContentSections ?? []) { section in
+                                switch section.kind {
+                                case .content:
+                                    VStack(spacing: 15) {
+                                        ForEach(section.content ?? []) { content in
+                                            ArticleContentView(content: content, article: article)
+                                                .padding(.top, content.type == .heading ? nil : 0)
+                                        }
                                     }
-                                }
-                            case .declarations:
-                                ForEach(section.declarations ?? []) { declaration in
-                                    DeclarationContentView(content: declaration, article: article)
-                                }
-                            case .mentions:
-                                MentionsView(mentions: section.mentions ?? [], article: article)
-                            case .details:
-                                if let details = section.details {
-                                    DetailsView(details: details)
-                                }
-                            default:
-                                VStack {
-                                    ForEach(section.content ?? []) { content in
-                                        ArticleContentView(content: content, article: article)
-                                            .padding(.top, content.type == .heading ? nil : 0)
+                                case .declarations:
+                                    ForEach(section.declarations ?? []) { declaration in
+                                        DeclarationContentView(content: declaration, article: article)
+                                    }
+                                case .mentions:
+                                    MentionsView(mentions: section.mentions ?? [], article: article)
+                                case .details:
+                                    if let details = section.details {
+                                        DetailsView(details: details)
+                                    }
+                                default:
+                                    VStack {
+                                        ForEach(section.content ?? []) { content in
+                                            ArticleContentView(content: content, article: article)
+                                                .padding(.top, content.type == .heading ? nil : 0)
+                                        }
                                     }
                                 }
                             }
                         }
+                        .id(ScrollIdentifier.primaryContent)
                         
                         if article.topicSections != nil {
                             Divider()
                                 .padding(.vertical)
                             TopicsView(article: article)
+                                .id(ScrollIdentifier.topics)
                         }
                         
                         if article.relationshipsSections != nil {
                             Divider()
                                 .padding(.vertical)
                             RelationshipsView(article: article)
+                                .id(ScrollIdentifier.relationships)
                         }
                         
                         if article.seeAlsoSections != nil {
                             Divider()
                                 .padding(.vertical)
                             SeeAlsoView(article: article)
+                                .id(ScrollIdentifier.seeAlso)
                         }
                     }
                     .frame(maxWidth: 950, alignment: .top)
@@ -113,12 +127,13 @@ struct ArticleView: View {
                     ProgressView("Loading")
                 }
             }
+            .scrollTargetLayout()
             .lineSpacing(4)
             .task {
                 await loadArticle()
             }
             .onChange(of: navigationViewModel.reference) {
-                proxy.scrollTo("HEADER")
+                proxy.scrollTo(ScrollIdentifier.header)
                 Task {
                     await loadArticle()
                 }
@@ -143,25 +158,40 @@ struct ArticleView: View {
             Text(article.metadata.title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .onAppear {
-                    showToolbarBG = false
-                }
-                .onDisappear {
-                    showToolbarBG = true
+                .onScrollVisibilityChange { isVisible in
+                    if article.abstract == nil && article.metadata.platforms == nil {
+                        setToolbarVisibility(!isVisible)
+                    }
                 }
             
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
+                    .onScrollVisibilityChange { isVisible in
+                        if article.metadata.platforms == nil {
+                            setToolbarVisibility(!isVisible)
+                        }
+                    }
             }
             
-            WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
-                ForEach(article.metadata.platforms ?? []) { platform in
-                    PlatformCapsule(platform: platform)
+            if let platforms = article.metadata.platforms {
+                WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
+                    ForEach(platforms) { platform in
+                        PlatformCapsule(platform: platform)
+                    }
+                }
+                .onScrollVisibilityChange { isVisible in
+                    setToolbarVisibility(!isVisible)
                 }
             }
         }
         .multilineTextAlignment(.leading)
         .lineSpacing(3)
+    }
+    
+    func setToolbarVisibility(_ isVisible: Bool) {
+        withAnimation {
+            self.showToolbarBG = isVisible
+        }
     }
     
     @ViewBuilder

@@ -12,6 +12,14 @@ import AVKit
 struct ArticleContentView: View {
     let content: ContentSection.Content
     let article: Article
+    let type: ContentType?
+    
+    init(content: ContentSection.Content, article: Article, from type: ContentType? = nil) {
+        self.content = content
+        self.article = article
+        self.type = type
+    }
+    
     @State var player: AVPlayer?
     
     @Environment(\.colorScheme) var colorScheme
@@ -50,19 +58,19 @@ struct ArticleContentView: View {
         switch content.type {
         case .heading:
             if let text = content.text {
-                Text(text)
+                Text(specialStyleString(text))
                     .font(.title3)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .paragraph:
             if let text = content.text {
-                Text(text)
+                Text(specialStyleString(text))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .text:
             if let text = content.text {
-                Text(text)
+                Text(specialStyleString(text))
             }
         case .image:
             if let identifier = content.identifier {
@@ -88,7 +96,15 @@ struct ArticleContentView: View {
                 }
             }
         case .unorderedList:
-            EmptyView()
+            if let unorderedListItems = content.unorderedListItems {
+                ForEach(unorderedListItems) { item in
+                    if let content = item.content {
+                        ForEach(content) { subcontent in
+                            ArticleContentView(content: subcontent, article: self.article, from: .unorderedList)
+                        }
+                    }
+                }
+            }
         case .orderedList:
             EmptyView()
         case .tabNavigator:
@@ -114,9 +130,24 @@ struct ArticleContentView: View {
         }
     }
     
+    func specialStyleString(_ string: String) -> String {
+        switch type {
+        case .unorderedList:
+            return "• \(string)"
+        default:
+            return string
+        }
+    }
+    
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
-        var text: Text = Text("")
+        
+        var text: Text = Text(specialStyleString(""))
+        
+        func appendText() {
+            views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
+            text = Text(specialStyleString(""))
+        }
         
         for inline in content {
             switch inline.type {
@@ -125,8 +156,7 @@ struct ArticleContentView: View {
             case .code:
                 text = text + Text(inline.code ?? "")
             case .image:
-                views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
-                text = Text("")
+                appendText()
                 
                 if let identifier = inline.identifier {
                     let image = KFImage(fetchPhotoVideoURL(for: identifier))
@@ -137,8 +167,7 @@ struct ArticleContentView: View {
                     views.append(.init(image))
                 }
             case .video:
-                views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
-                text = Text("")
+                appendText()
                 
                 if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
                     let player = AVPlayer(url: url)
@@ -152,8 +181,7 @@ struct ArticleContentView: View {
         }
         
         if text != Text("") {
-            views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
-            text = Text("")
+            appendText()
         }
         
         return VStack {

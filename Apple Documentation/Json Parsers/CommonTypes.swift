@@ -161,7 +161,9 @@ struct ContentSection: Decodable, Identifiable {
             }
         }
         
-        struct UnorderedListItem: Decodable {
+        struct UnorderedListItem: Decodable, Identifiable {
+            let id = UUID()
+            
             let content: [ContentSection.Content]?
         }
     }

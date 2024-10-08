@@ -70,8 +70,8 @@ struct ArticleContentView: View {
         
         if let url = URL(string: reference.identifier) {
             attributes = [
-                .foregroundColor: UIColor.blue,
-                .underlineStyle : 1,
+                .foregroundColor: UIColor.accent,
+                .underlineStyle : 0,
                 .link: url
             ]
         } else {
@@ -134,11 +134,21 @@ struct ArticleContentView: View {
     var typeBody: some View {
         switch content.type {
         case .heading:
-            if let text = content.text {
+            if let text = content.text, let level = content.level {
+                let font: Font = switch level {
+                case 3:
+                        .title3
+                case 2:
+                        .title2
+                default:
+                        .title
+                }
+                
                 Text(specialStyleString(text))
-                    .font(.title3)
+                    .font(font)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
             }
         case .paragraph:
             if let text = content.text {
@@ -154,20 +164,22 @@ struct ArticleContentView: View {
                 KFImage(fetchPhotoVideoURL(for: identifier))
                     .resizable()
                     .scaledToFit()
-                    .padding()
             }
         case .video:
             VideoPlayer(player: player)
                 .scaledToFit()
         case .termList:
             if let termListItems = content.termListItems {
-                ForEach(termListItems) { termItem in
-                    VStack {
-                        inlineContent(for: termItem.term.inlineContent)
-                            .font(.headline)
-                        
-                        ForEach(termItem.definition.content) { content in
-                            ArticleContentView(content: content, article: self.article)
+                VStack(alignment:.leading, spacing: 10) {
+                    ForEach(termListItems) { termItem in
+                        VStack {
+                            inlineContent(for: termItem.term.inlineContent)
+                                .font(.headline)
+                            
+                            ForEach(termItem.definition.content) { content in
+                                ArticleContentView(content: content, article: self.article)
+                                    .padding(.leading, 15)
+                            }
                         }
                     }
                 }
@@ -176,9 +188,13 @@ struct ArticleContentView: View {
             if let unorderedListItems = content.unorderedListItems {
                 ForEach(unorderedListItems) { item in
                     if let content = item.content {
-                        ForEach(content) { subcontent in
-                            ArticleContentView(content: subcontent, article: self.article, from: .unorderedList)
+                        VStack(spacing: 5) {
+                            ForEach(content) { subcontent in
+                                ArticleContentView(content: subcontent, article: self.article, from: .unorderedList)
+                                    .padding(.bottom, content.last == subcontent ? 10 : 0)
+                            }
                         }
+                        
                     }
                 }
             }
@@ -186,8 +202,11 @@ struct ArticleContentView: View {
             if let orderedListItems = content.orderedListItems {
                 ForEach(orderedListItems) { item in
                     if let content = item.content {
-                        ForEach(content) { subcontent in
-                            ArticleContentView(content: subcontent, article: self.article, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0)+1)
+                        VStack(spacing: 5) {
+                            ForEach(content) { subcontent in
+                                ArticleContentView(content: subcontent, article: self.article, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1 )
+                                    .padding(.bottom, content.last == subcontent ? 10 : 0)
+                            }
                         }
                     }
                 }
@@ -202,6 +221,7 @@ struct ArticleContentView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .padding([.horizontal, .bottom], 15)
                     
                     if let tab = tabs.first(where: { $0.title == self.tableSelection }) {
                         ForEach(tab.content) { tabContents in
@@ -239,6 +259,9 @@ struct ArticleContentView: View {
             GroupBox {
                 if let code = content.code {
                     CodeText(code.joined(separator: "\n"))
+                        .highlightLanguage(.swift)
+                        .codeTextColors(.theme(.xcode))
+                        .font(.subheadline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -280,7 +303,7 @@ struct ArticleContentView: View {
                         }
                     }
                 }
-            case .none:
+            default:
                 EmptyView()
             }
         case .none:
@@ -291,9 +314,9 @@ struct ArticleContentView: View {
     func specialStyleString(_ string: String) -> String {
         switch type {
         case .unorderedList:
-            return "• \(string)"
+            return " • \(string)"
         case .orderedList:
-            return "\(orderedListIndex) \(string)"
+            return " \(orderedListIndex). \(string)"
         default:
             return string
         }

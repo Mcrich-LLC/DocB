@@ -14,17 +14,36 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            if let technologies = documentationViewModel.technologies {
-                techView(technologies)
-                    .navigationTitle("Documentation")
-                    .navigationBarTitleDisplayMode(.large)
-            } else {
-                ProgressView("Loading")
+            Group {
+                if let selectedTechnology = navigationViewModel.technology {
+                    TechnologyRootView(frameworkSection: selectedTechnology)
+                        
+                        .transition(.move(edge: .trailing))
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Back", systemImage: "chevron.left") {
+                                    withAnimation(.snappy) {
+                                        navigationViewModel.technology = nil
+                                    }
+                                    
+                                }
+                            }
+                        }
+                } else {
+                    if let technologies = documentationViewModel.technologies {
+                        techView(technologies)
+                            .navigationTitle("Documentation")
+                            .navigationBarTitleDisplayMode(.large)
+                            .transition(.move(edge: .leading))
+                    } else {
+                        ProgressView("Loading")
+                    }
+                }
             }
-        } content: {
-            if let technology = navigationViewModel.technology {
-                TechnologyRootView(frameworkSection: technology)
-            }
+            .navigationSplitViewColumnWidth(390)
+            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            
+            
         } detail: {
             if let reference = navigationViewModel.reference {
                 ArticleView(reference: reference)
@@ -47,7 +66,10 @@ struct ContentView: View {
                         ForEach(group.technologies) { technology in
                             if technology.destination.isActive {
                                 Button {
-                                    navigationViewModel.technology = technology
+                                    withAnimation(.snappy) {
+                                        navigationViewModel.technology = technology
+                                    }
+                                    
                                 } label: {
                                     Text(technology.title)
                                         .frame(maxWidth: .infinity, alignment: .leading)

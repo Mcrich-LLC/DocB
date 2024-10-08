@@ -97,6 +97,7 @@ struct ContentSection: Decodable, Identifiable {
         case declarations
         case mentions
         case details
+        case kind
     }
     
     struct Details: Decodable, Identifiable {
@@ -195,6 +196,7 @@ struct ContentSection: Decodable, Identifiable {
             case columns
             case code
             case style
+            
         }
         
         init(from decoder: any Decoder) throws {
@@ -245,6 +247,7 @@ struct ContentSection: Decodable, Identifiable {
         
         enum Style: String, Decodable, CaseIterable {
             case compactGrid
+            case note
         }
         
         struct Column: Decodable, Equatable {
@@ -382,6 +385,21 @@ struct Reference: Decodable, Hashable {
         case link
         case dictionarySymbol
         case pseudoSymbol
+                
+        func labelIcon(symbolKind: String? = nil) -> String {
+            switch self {
+            case .collectionGroup:
+                "list.bullet"
+            case .collection:
+                "list.bullet"
+            case .sampleCode:
+                "curlybraces"
+            case .symbol:
+                "curlybraces"
+            default:
+                "text.document"
+            }
+        }
     }
 }
 

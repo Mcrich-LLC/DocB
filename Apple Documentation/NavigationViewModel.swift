@@ -12,7 +12,11 @@ class NavigationViewModel: ObservableObject, Equatable {
     // TODO: Implement url handling for doc://com.apple.documentation
     
     @Published var technology: Technologies.FrameworkSection?
-    @Published var reference: Reference?
+    @Published var reference: Reference? {
+        didSet {
+            print(reference?.title ?? "")
+        }
+    }
     
     static func == (lhs: NavigationViewModel, rhs: NavigationViewModel) -> Bool {
         lhs.technology == rhs.technology && lhs.reference == rhs.reference

@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct TechnologyRootView: View {
+    
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let frameworkSection: Technologies.FrameworkSection
     
@@ -26,8 +28,11 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .task {
-            if framework == nil {
-                await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
+            await loadFramework()
+        }
+        .onChange(of: navigationViewModel.technology) {
+            Task {
+                await loadFramework()
             }
         }
     }
@@ -39,10 +44,12 @@ struct TechnologyRootView: View {
         } else {
             List {
                 ForEach(framework.topicSections) { section in
-                    Section(header: Text(section.title)) {
+                    Section(section.title) {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
                                 FrameworkListItem(reference: reference, title: title)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                             }
                         }
                     }
@@ -52,13 +59,20 @@ struct TechnologyRootView: View {
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(uiColor: .systemBackground))
+            .listRowSpacing(0)
+        }
+    }
+    
+    func loadFramework() async {
+        if framework == nil {
+            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
         }
     }
 }
 
 private struct FrameworkListItem: View {
     
-    @StateObject var navigationViewModel = NavigationViewModel()
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     let reference: Reference
     let title: String
@@ -103,7 +117,8 @@ private struct FrameworkListItem: View {
         } else if reference.role == .collection {
             let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: reference.identifier))
             
-            NavigationLink(title, value: section)
+            Text(title)
+                .foregroundStyle(.secondary)
         } else {
             Button {
                 navigationViewModel.reference = reference
@@ -127,7 +142,10 @@ private struct FrameworkListItem: View {
 }
 
 private struct FrameworkDisclosureGroup: View {
+    
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    
     let identifier: String
     let title: String
     let reference: Reference
@@ -138,17 +156,39 @@ private struct FrameworkDisclosureGroup: View {
         DisclosureGroup {
             if let framework {
                 ForEach(framework.topicSections) { section in
-                    Section(section.title) {
+                    Section {
                         ForEach(section.identifiers, id: \.self) { subidentifier in
                             if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
                                 FrameworkListItem(reference: subreference, title: subtitle)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                             }
                         }
+                    } header: {
+                        Text(section.title)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
         } label: {
-            NavigationLink(title, value: reference)
+            Button {
+                navigationViewModel.reference = reference
+            } label: {
+                Label {
+                    Text(reference.title ?? "")
+                } icon: {
+                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .padding(-10)
+                    .padding(.trailing, -20)
+                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
+            }
         }
         .task {
             if framework == nil {

@@ -12,33 +12,44 @@ struct SeeAlsoView: View {
     
     var body: some View {
         if let seeAlsoSections = article.seeAlsoSections {
-            VStack {
+            VStack(alignment: .leading, spacing: 20) {
                 Text("See Also")
                     .font(.title2)
                     .bold()
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 
                 ForEach(seeAlsoSections) { section in
-                    Section(header: Text(section.title)) {
+                    Section {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = article.references[identifier], reference.title != nil {
                                 NavigationLink(value: reference) {
-                                    GroupBox {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                                            .resizable()
+                                            .foregroundStyle(.secondary)
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 20, height: 20)
+                                        
                                         VStack {
                                             Text(getFullTitle(reference))
                                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                                .foregroundStyle(.primary)
                                             
                                             if let abstract = reference.abstract {
                                                 AbstractView(abstract: abstract)
                                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                                    .foregroundStyle(Color.primary)
+                                                    .foregroundStyle(.secondary)
                                             }
                                         }
                                         .multilineTextAlignment(.leading)
                                     }
                                 }
+                                .tint(.primary)
                             }
                         }
+                    } header: {
+                        Text(section.title)
+                            .font(.title3)
+                            .bold()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -51,7 +62,7 @@ struct SeeAlsoView: View {
         let nsAttributedString: NSMutableAttributedString = .init()
         
         let fragments: String = (reference.fragments ?? []).dropLast().map({ $0.text }).joined()
-        let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.secondaryLabel]
+        let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.label]
         let fragmentAttributedString = NSAttributedString(string: fragments, attributes: fragmentAttributes)
         nsAttributedString.append(fragmentAttributedString)
         

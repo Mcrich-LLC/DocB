@@ -12,6 +12,7 @@ struct ContentView: View {
     @StateObject var navigationViewModel = NavigationViewModel()
     @StateObject var documentationViewModel = DocumentationViewModel()
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @State var searchText = ""
     
     var body: some View {
         Group {
@@ -103,7 +104,7 @@ struct ContentView: View {
                     
                     Section(group.name) {
                         
-                        ForEach(group.technologies) { technology in
+                        ForEach(group.technologies.filter(isVisibleForSearch)) { technology in
                             if technology.destination.isActive {
                                 TechnologyNavigationLinkButton(technology: technology) {
                                     HStack {
@@ -125,6 +126,13 @@ struct ContentView: View {
             }
             
         }
+        .searchable(text: $searchText)
+    }
+    
+    func isVisibleForSearch(_ technology: Technologies.FrameworkSection) -> Bool {
+        guard !searchText.isEmpty else { return true }
+        
+        return technology.title.contains(searchText) || technology.tags.contains(searchText)
     }
     
     var chevron: some View {

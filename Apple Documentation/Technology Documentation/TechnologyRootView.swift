@@ -28,6 +28,9 @@ struct TechnologyRootView: View {
         }
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
+        .onAppear(perform: {
+            navigationViewModel.technology = frameworkSection
+        })
         .task {
             await loadFramework()
         }

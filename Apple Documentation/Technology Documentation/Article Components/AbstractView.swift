@@ -13,6 +13,7 @@ struct AbstractView: View {
     var abstractText: Text {
         var text: Text = Text("")
         
+        // swiftlint:disable shorthand_operator
         for content in abstract {
             switch content.type {
                 case .text:
@@ -22,6 +23,7 @@ struct AbstractView: View {
             default: break
             }
         }
+        // swiftlint:enable shorthand_operator
         
         return text
     }

@@ -284,7 +284,11 @@ struct ArticleContentView: View {
             case .compactGrid:
                 WrappingHStack(alignment: .leading) {
                     ForEach(content.linkItems ?? [], id: \.self) { identifier in
-                        if let reference = article.references[identifier], let title = reference.title, let imageId = reference.images?.first?.identifier, let openUrlString = reference.url, let openUrl = URL(string: openUrlString) {
+                        if let reference = article.references[identifier],
+                            let title = reference.title,
+                            let imageId = reference.images?.first?.identifier,
+                            let openUrlString = reference.url,
+                            let openUrl = URL(string: openUrlString) {
                             let imageUrl = fetchPhotoVideoURL(for: imageId)
                             
                             Link(destination: openUrl) {
@@ -333,6 +337,7 @@ struct ArticleContentView: View {
             text = Text(specialStyleString(""))
         }
         
+        // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
                 case .text:
@@ -373,6 +378,7 @@ struct ArticleContentView: View {
             default: break
             }
         }
+        // swiftlint:enable shorthand_operator
         
         if text != Text("") {
             appendText()

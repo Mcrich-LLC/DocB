@@ -51,8 +51,11 @@ class NavigationViewModel: ObservableObject, Equatable {
             return
         }
         
-        withAnimation(.snappy) {
-            self.technology = technology
+        if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
+            withAnimation(.snappy) {
+                self.technology = technology
+            }
+            path.append(technology)
         }
         
         let articlePath = Array(url.pathComponents.dropFirst(2))
@@ -64,8 +67,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             for article in articlePath {
                 articleIdentifier.append("/\(article)")
                 
-                if let framework = documentationViewModel.frameworks[articleIdentifier]
-                {
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 } else {
                     await documentationViewModel.fetchFramework(for: articleIdentifier)
@@ -87,6 +89,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             
             DispatchQueue.main.async {
                 self.reference = article
+                self.path.append(technology)
             }
         }
     }

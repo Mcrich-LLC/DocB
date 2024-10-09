@@ -4,6 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
+// swiftlint:disable line_length
 
 import Foundation
 
@@ -480,12 +481,12 @@ enum ContentType: String, Decodable, Equatable {
 enum PlatformName: String, Decodable {
     case iOS
     case iPadOS
-    case MacCatalyst = "Mac Catalyst"
+    case macCatalyst = "Mac Catalyst"
     case macOS
     case tvOS
     case visionOS
     case watchOS
-    case Xcode
+    case xcode = "Xcode"
 }
 
 struct Platform: Decodable, Identifiable {
@@ -518,3 +519,5 @@ struct Platform: Decodable, Identifiable {
         self.deprecatedAt = try container.decodeIfPresent(String.self, forKey: .deprecatedAt)
     }
 }
+
+// swiftlint:enable line_length

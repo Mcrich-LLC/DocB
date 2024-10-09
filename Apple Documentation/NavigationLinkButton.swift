@@ -24,8 +24,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                 if let url = URL(string: reference.identifier),
                    let moduleString = Array(url.pathComponents.dropFirst(2)).first,
                    let technologies = documentationViewModel.technologies,
-                   let groups = technologies.groups
-                {
+                   let groups = technologies.groups {
                     let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
                     
                     if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
@@ -67,7 +66,9 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                     navigationViewModel.technology = technology
                 }
                 
+                // swiftlint:disable line_length
                 let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+                // swiftlint:enable line_length
                 navigationViewModel.reference = reference
             } label: {
                 label

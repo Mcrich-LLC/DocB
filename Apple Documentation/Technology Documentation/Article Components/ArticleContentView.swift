@@ -4,6 +4,7 @@
 //
 //  Created by Morris Richman on 10/7/24.
 //
+// swiftlint:disable type_body_length
 
 import SwiftUI
 import Kingfisher
@@ -11,9 +12,6 @@ import AVKit
 import HighlightSwift
 
 struct ArticleContentView: View {
-    
-    @Environment(\.horizontalSizeClass) var sizeClass
-    
     let content: ContentSection.Content
     let article: Article
     let type: ContentType?
@@ -125,8 +123,7 @@ struct ArticleContentView: View {
         }
         
         let attributes: [NSAttributedString.Key: Any] = [
-            .backgroundColor: UIColor.secondarySystemBackground,
-            .font: UIFont.monospacedSystemFont(ofSize: UIFont.systemFontSize, weight: .medium)
+            .backgroundColor: UIColor.secondarySystemBackground
         ]
         
         let attributedString = NSAttributedString(string: strings, attributes: attributes)
@@ -249,7 +246,7 @@ struct ArticleContentView: View {
                 referenceText
             }
         case .table:
-#warning("Table is not supported yet")
+            // TODO: Implement Content Table Support
             EmptyView()
         case .emphasis:
             if let inlineContent = content.inlineContent {
@@ -270,10 +267,10 @@ struct ArticleContentView: View {
                 }
             }
         case .row:
-#warning("Row is not supported yet")
+            // TODO: Implement Content Row Support
             EmptyView()
         case .aside:
-#warning("Aside is not supported yet")
+            // TODO: Implement Content Aside Support
             EmptyView()
         case .code:
             let attributedString = getCodeString(content.code ?? [])
@@ -286,36 +283,31 @@ struct ArticleContentView: View {
         case .links:
             switch content.style {
             case .compactGrid:
-                GeometryReader { geometry in
-                    
-                    let width: CGFloat = geometry.size.width / CGFloat(2) - 10
-                    
-                    WrappingHStack(horizontalSpacing: 10) {
-                        ForEach(content.linkItems ?? [], id: \.self) { identifier in
-                            if let reference = article.references[identifier], let title = reference.title, let imageId = reference.images?.first?.identifier, let openUrlString = reference.url, let openUrl = URL(string: openUrlString) {
-                                let imageUrl = fetchPhotoVideoURL(for: imageId)
-                                
-                                Link(destination: openUrl) {
-                                    VStack(alignment: .leading) {
-                                        KFImage(imageUrl)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        
-                                        
-                                        Text(title)
-                                            .foregroundStyle(Color.primary)
-                                            .multilineTextAlignment(.leading)
-                                    }
-                                    .frame(maxWidth: width)
+                WrappingHStack(alignment: .leading) {
+                    ForEach(content.linkItems ?? [], id: \.self) { identifier in
+                        if let reference = article.references[identifier],
+                            let title = reference.title,
+                            let imageId = reference.images?.first?.identifier,
+                            let openUrlString = reference.url,
+                            let openUrl = URL(string: openUrlString) {
+                            let imageUrl = fetchPhotoVideoURL(for: imageId)
+                            
+                            Link(destination: openUrl) {
+                                VStack(alignment: .leading) {
+                                    KFImage(imageUrl)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    
+                                    Text(title)
+                                        .foregroundStyle(Color.primary)
+                                        .multilineTextAlignment(.leading)
                                 }
+                                .frame(maxWidth: 300)
                             }
                         }
                     }
                 }
-                
-                
-                
             default:
                 EmptyView()
             }
@@ -335,6 +327,7 @@ struct ArticleContentView: View {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
@@ -345,6 +338,7 @@ struct ArticleContentView: View {
             text = Text(specialStyleString(""))
         }
         
+        // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
             case .text:
@@ -385,6 +379,7 @@ struct ArticleContentView: View {
             default: break
             }
         }
+        // swiftlint:enable shorthand_operator
         
         if text != Text("") {
             appendText()
@@ -397,6 +392,7 @@ struct ArticleContentView: View {
         }
         .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(type) ? 5 : 0)
     }
+    // swiftlint:enable cyclomatic_complexity
     
     private struct InlineContent: Identifiable {
         let id = UUID()
@@ -409,3 +405,4 @@ struct ArticleContentView: View {
     }
 }
 
+// swiftlint:enable type_body_length

@@ -119,7 +119,9 @@ struct ArticleView: View {
                         }  
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let url = documentationViewModel.jsonUrl(for: reference.identifier)!.absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com").replacingOccurrences(of: ".json", with: "")
+                            let url = documentationViewModel.jsonUrl(for: reference.identifier)!
+                                .absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com")
+                                .replacingOccurrences(of: ".json", with: "")
                             
                             let role = reference.role
                             let color: Color = switch role {
@@ -252,7 +254,3 @@ struct ArticleView: View {
         }
     }
 }
-
-//#Preview {
-//    ArticleView()
-//}

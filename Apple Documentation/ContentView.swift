@@ -111,7 +111,7 @@ struct ContentView: View {
                                         
                                         Spacer()
                                         
-                                        if UIDevice.current.userInterfaceIdiom != .pad || horizontalSizeClass == .compact {
+                                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                                             chevron
                                         }
                                     }
@@ -131,7 +131,6 @@ struct ContentView: View {
         .background(Color(uiColor: .systemBackground))
     }
     
-    
     var chevron: some View {
         Image(systemSymbol: .chevronRight)
             .resizable()
@@ -139,4 +138,3 @@ struct ContentView: View {
             .foregroundStyle(Color(uiColor: .systemGray3))
     }
 }
-

@@ -50,6 +50,9 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 withAnimation(.snappy) {
                     navigationViewModel.technology = technology
                 }
+                
+                let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+                navigationViewModel.reference = reference
             } label: {
                 label
             }

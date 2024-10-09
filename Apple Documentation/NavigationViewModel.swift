@@ -86,7 +86,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             
             DispatchQueue.main.async {
                 self.reference = article
-                self.path.append(technology)
+                self.path.append(article)
             }
         }
     }

@@ -42,7 +42,7 @@ struct ContentView: View {
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("Back", systemImage: "chevron.left") {
+                                Button("All Technologies", systemImage: "chevron.left") {
                                     withAnimation(.snappy) {
                                         navigationViewModel.technology = nil
                                     }

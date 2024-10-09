@@ -9,8 +9,6 @@ import SwiftUI
 
 struct TechnologyRootView: View {
     
-    
-    
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let frameworkSection: Technologies.FrameworkSection

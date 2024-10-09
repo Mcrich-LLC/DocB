@@ -62,6 +62,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
             Button {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = false
                 withAnimation(.snappy) {
                     navigationViewModel.technology = technology
                 }
@@ -69,6 +70,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 // swiftlint:disable line_length
                 let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
                 // swiftlint:enable line_length
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 navigationViewModel.reference = reference
             } label: {
                 label

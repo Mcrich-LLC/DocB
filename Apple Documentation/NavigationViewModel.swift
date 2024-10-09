@@ -10,6 +10,7 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
+    @Published var technologyHistoryUpdatingIsEnabled: Bool = false
     @Published var technology: Technologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -113,7 +114,12 @@ class NavigationViewModel: ObservableObject, Equatable {
             history = Array(history.prefix(currentIndex + 1))
         }
         
-        if let lastState = history.last, lastState.technology?.destination.identifier != technology.destination.identifier, lastState.reference?.identifier == reference.identifier {
+        let technologyURL = URL(string: technology.destination.identifier)
+        let technologyURLPath = technologyURL?.pathComponents.dropLast(2).first
+        
+        if let lastState = history.last, let technologyURLPath, lastState.reference?.url?.components(separatedBy: "/").dropFirst().first != technologyURLPath,
+            lastState.reference?.identifier == reference.identifier,
+           technologyHistoryUpdatingIsEnabled {
             history[history.count - 1].technology = technology
             return
         }

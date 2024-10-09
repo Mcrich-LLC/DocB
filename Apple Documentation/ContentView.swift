@@ -49,8 +49,8 @@ struct ContentView: View {
                                     withAnimation(.snappy) {
                                         navigationViewModel.technology = nil
                                     }
-                                    
                                 }
+                                .labelStyle(.titleAndIcon)
                             }
                         }
                 } else {

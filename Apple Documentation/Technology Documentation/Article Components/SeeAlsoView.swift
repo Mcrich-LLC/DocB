@@ -23,7 +23,7 @@ struct SeeAlsoView: View {
                             if let reference = article.references[identifier], reference.title != nil {
                                 ReferenceNavigationLinkButton(reference: reference) {
                                     HStack(spacing: 10) {
-                                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                                        Image(systemSymbol: reference.role?.labelIcon ?? .docText)
                                             .resizable()
                                             .foregroundStyle(.secondary)
                                             .aspectRatio(contentMode: .fit)

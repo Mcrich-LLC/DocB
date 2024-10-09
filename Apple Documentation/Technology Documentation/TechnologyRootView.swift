@@ -146,7 +146,7 @@ private struct DefaultListItem: View {
             Label {
                 Text(title)
             } icon: {
-                Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                Image(systemSymbol: reference.role?.labelIcon ?? .docText)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

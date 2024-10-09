@@ -440,18 +440,14 @@ struct Reference: Decodable, Hashable {
         case subsection
         case unknown
                 
-        func labelIcon(symbolKind: String? = nil) -> String {
+        var labelIcon: SFSymbol {
             switch self {
-            case .collectionGroup:
-                "list.bullet"
-            case .collection:
-                "list.bullet"
-            case .sampleCode:
-                "curlybraces"
-            case .symbol:
-                "curlybraces"
+            case .collectionGroup, .collection:
+                    .listBullet
+            case .sampleCode, .symbol:
+                    .curlybraces
             default:
-                "text.document"
+                    .docText
             }
         }
     }

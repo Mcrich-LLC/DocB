@@ -125,7 +125,8 @@ struct ArticleContentView: View {
         }
         
         let attributes: [NSAttributedString.Key: Any] = [
-            .backgroundColor: UIColor.secondarySystemBackground
+            .backgroundColor: UIColor.secondarySystemBackground,
+            .font: UIFont.monospacedSystemFont(ofSize: UIFont.systemFontSize, weight: .medium)
         ]
         
         let attributedString = NSAttributedString(string: strings, attributes: attributes)

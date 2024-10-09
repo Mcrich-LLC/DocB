@@ -41,11 +41,10 @@ struct ContentView: View {
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("Back", systemImage: "chevron.left") {
+                                Button("All Technologies") {
                                     withAnimation(.snappy) {
                                         navigationViewModel.technology = nil
                                     }
-                                    
                                 }
                             }
                         }
@@ -63,6 +62,7 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(390)
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
             .environment(\.horizontalSizeClass, horizontalSizeClass)
+            
         } detail: {
             if let reference = navigationViewModel.reference {
                 ArticleView(reference: reference)
@@ -97,7 +97,7 @@ struct ContentView: View {
     }
     
     func techView(_ technology: Technologies) -> some View {
-        List {
+        List {          
             if let groups = technology.groups {
                 ForEach(groups) { group in
                     
@@ -117,14 +117,18 @@ struct ContentView: View {
                                     }
                                 }
                                 .foregroundStyle(Color.primary)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                             
                         }
                     }
                 }
             }
-            
         }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(Color(uiColor: .systemBackground))
     }
     
     

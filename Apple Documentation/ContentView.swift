@@ -102,32 +102,18 @@ struct ContentView: View {
                         
                         ForEach(group.technologies) { technology in
                             if technology.destination.isActive {
-                                if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-                                    Button {
-                                        withAnimation(.snappy) {
-                                            navigationViewModel.technology = technology
-                                        }
+                                TechnologyNavigationLinkButton(technology: technology) {
+                                    HStack {
+                                        Text(technology.title)
                                         
-                                    } label: {
-                                        HStack {
-                                            Text(technology.title)
-                                            
-                                            Spacer()
-                                            
+                                        Spacer()
+                                        
+                                        if UIDevice.current.userInterfaceIdiom != .pad || horizontalSizeClass == .compact {
                                             chevron
                                         }
                                     }
-                                    .foregroundStyle(Color.primary)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .padding(-10)
-                                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                                            .opacity(navigationViewModel.technology == technology ? 1 : 0)
-                                    }
-                                } else {
-                                    NavigationLink(technology.title, value: technology)
-                                        .foregroundStyle(Color.primary)
                                 }
+                                .foregroundStyle(Color.primary)
                             }
                             
                         }

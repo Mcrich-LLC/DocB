@@ -10,9 +10,31 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
-    @Published var technology: Technologies.FrameworkSection?
-    @Published var reference: Reference?
+    // TODO: Implement url handling for doc://com.apple.documentation
+    
+    @Published var technology: Technologies.FrameworkSection? {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    @Published var reference: Reference? {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    @Published var history: [(technology: Technologies.FrameworkSection?, reference: Reference?)] = []
+    
+    private var currentIndex = -1
+    private var isNavigating = false
+    
     @Published var path: NavigationPath = .init()
+    
     
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
@@ -29,11 +51,8 @@ class NavigationViewModel: ObservableObject, Equatable {
             return
         }
         
-        if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
-            withAnimation(.snappy) {
-                self.technology = technology
-            }
-            path.append(technology)
+        withAnimation(.snappy) {
+            self.technology = technology
         }
         
         let articlePath = Array(url.pathComponents.dropFirst(2))
@@ -45,7 +64,8 @@ class NavigationViewModel: ObservableObject, Equatable {
             for article in articlePath {
                 articleIdentifier.append("/\(article)")
                 
-                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = documentationViewModel.frameworks[articleIdentifier]
+                {
                     references.merge(dict: framework.references)
                 } else {
                     await documentationViewModel.fetchFramework(for: articleIdentifier)
@@ -67,11 +87,10 @@ class NavigationViewModel: ObservableObject, Equatable {
             
             DispatchQueue.main.async {
                 self.reference = article
-                self.path.append(article)
             }
         }
     }
-
+    
     var iphoneArticleDestinationBinding: Binding<Reference?> {
         Binding {
             guard UIDevice.current.userInterfaceIdiom == .phone else {
@@ -83,6 +102,39 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
+    // Add current state to history
+    private func addToHistory() {
+        // Remove future history if we're adding a new state
+        if currentIndex < history.count - 1 {
+            history = Array(history.prefix(currentIndex + 1))
+        }
+        history.append((technology, reference))
+        currentIndex += 1
+    }
+    
+    // Navigate backward in history
+    func goBackward() {
+        guard currentIndex > 0 else { return }
+        currentIndex -= 1
+        navigateToCurrentHistory()
+    }
+    
+    // Navigate forward in history
+    func goForward() {
+        guard currentIndex < history.count - 1 else { return }
+        currentIndex += 1
+        navigateToCurrentHistory()
+    }
+    
+    // Helper function to update technology and reference based on the current history state
+    private func navigateToCurrentHistory() {
+        isNavigating = true
+        let currentState = history[currentIndex]
+        technology = currentState.technology
+        reference = currentState.reference
+        isNavigating = false
+    }
+    
     static func == (lhs: NavigationViewModel, rhs: NavigationViewModel) -> Bool {
         lhs.technology == rhs.technology && lhs.reference == rhs.reference
     }
@@ -90,7 +142,7 @@ class NavigationViewModel: ObservableObject, Equatable {
 }
 
 extension Dictionary {
-    mutating func merge(dict: [Key: Value]) {
+    mutating func merge(dict: [Key: Value]){
         for (k, v) in dict {
             updateValue(v, forKey: k)
         }

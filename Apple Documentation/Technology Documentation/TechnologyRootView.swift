@@ -51,7 +51,7 @@ struct TechnologyRootView: View {
         } else {
             List {
                 Spacer()
-                    .frame(height: 20)
+                    .frame(height: 1)
                     .listRowSeparator(.hidden)
                 
                 Section {

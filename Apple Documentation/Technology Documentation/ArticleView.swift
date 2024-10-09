@@ -106,22 +106,47 @@ struct ArticleView: View {
                         }
                     }
                     .toolbar {
+                        if UIDevice.current.userInterfaceIdiom == .pad {
+                            ToolbarItemGroup(placement: .navigation) {
+                                Button("Backward", systemImage: "chevron.backward") {
+                                    navigationViewModel.goBackward()
+                                }
+                                
+                                Button("Forward", systemImage: "chevron.forward") {
+                                    navigationViewModel.goForward()
+                                }
+                            }
+                        }  
+                        
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             let url = documentationViewModel.jsonUrl(for: reference.identifier)!
                                 .absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com")
                                 .replacingOccurrences(of: ".json", with: "")
                             
-                            ShareLink(item: URL(string: url)!) {
-                                Label("Share", systemImage: "square.and.arrow.up")
+                            let role = reference.role
+                            let color: Color = switch role {
+                            case .sampleCode:
+                                Color.sampleCode
+                            case .article:
+                                Color.article
+                            default:
+                                Color.blue
                             }
                             
-                            Button("Download", systemImage: "arrow.down.circle.fill") {
-                                // TODO: Implement Downloading
+                            Group {
+                                ShareLink(item: URL(string: url)!) {
+                                    Label("Share", systemImage: "square.and.arrow.up")
+                                }
+                                
+                                Button("Download", systemImage: "arrow.down.circle") {
+                                    // TODO: Implement Downloading
+                                }
+                                
+                                Button("Save", systemImage: "bookmark") {
+                                    // TODO: Implement Bookmarks
+                                }
                             }
-                            
-                            Button("Save", systemImage: "bookmark") {
-                                // TODO: Implement Bookmarks
-                            }
+                            .foregroundStyle(color)
                         }
                     }
                     .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)

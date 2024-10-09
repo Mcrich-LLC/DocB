@@ -249,6 +249,7 @@ struct ContentSection: Decodable, Identifiable {
             case compactGrid
             case note
             case detailedGrid
+            case important
         }
         
         struct Column: Decodable, Equatable {
@@ -370,6 +371,55 @@ struct Reference: Decodable, Hashable {
     let variants: [Variant]?
     let images: [ImageStruct]?
     
+    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, variants: [Variant]?, images: [ImageStruct]?) {
+        self.title = title
+        self.abstract = abstract
+        self.identifier = identifier
+        self.kind = kind
+        self.type = type
+        self.url = url
+        self.role = role
+        self.fragments = fragments
+        self.deprecated = deprecated
+        self.variants = variants
+        self.images = images
+    }
+    
+    enum CodingKeys: CodingKey {
+        case title
+        case abstract
+        case identifier
+        case kind
+        case type
+        case url
+        case role
+        case fragments
+        case deprecated
+        case variants
+        case images
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.title = try container.decodeIfPresent(String.self, forKey: .title)
+        self.abstract = try container.decodeIfPresent([ContentStruct].self, forKey: .abstract)
+        self.identifier = try container.decode(String.self, forKey: .identifier)
+        self.kind = try container.decodeIfPresent(String.self, forKey: .kind)
+        self.type = try container.decode(String.self, forKey: .type)
+        self.url = try container.decodeIfPresent(String.self, forKey: .url)
+        
+        if let role = try container.decodeIfPresent(String.self, forKey: .role) {
+            self.role = .init(rawValue: role) ?? .unknown
+        } else {
+            self.role = nil
+        }
+        
+        self.fragments = try container.decodeIfPresent([Fragment].self, forKey: .fragments)
+        self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
+        self.variants = try container.decodeIfPresent([Reference.Variant].self, forKey: .variants)
+        self.images = try container.decodeIfPresent([ImageStruct].self, forKey: .images)
+    }
+    
     struct Variant: Decodable, Hashable {
         let url: String
         let traits: [String]
@@ -386,6 +436,9 @@ struct Reference: Decodable, Hashable {
         case link
         case dictionarySymbol
         case pseudoSymbol
+        case task
+        case subsection
+        case unknown
                 
         func labelIcon(symbolKind: String? = nil) -> String {
             switch self {

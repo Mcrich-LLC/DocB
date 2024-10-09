@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ArticleView: View {
     
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let reference: Reference
@@ -164,7 +165,7 @@ struct ArticleView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom == .pad && article.abstract == nil && article.metadata.platforms == nil {
+                    if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact && article.abstract == nil && article.metadata.platforms == nil {
                         setToolbarVisibility(!isVisible)
                     }
                 }
@@ -172,7 +173,7 @@ struct ArticleView: View {
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
                     .onScrollVisibilityChange { isVisible in
-                        if UIDevice.current.userInterfaceIdiom == .pad && article.metadata.platforms == nil {
+                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact && article.metadata.platforms == nil {
                             setToolbarVisibility(!isVisible)
                         }
                     }
@@ -185,7 +186,7 @@ struct ArticleView: View {
                     }
                 }
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom == .pad {
+                    if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                         setToolbarVisibility(!isVisible)
                     }
                 }

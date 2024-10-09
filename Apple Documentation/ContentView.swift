@@ -11,10 +11,11 @@ struct ContentView: View {
     
     @StateObject var navigationViewModel = NavigationViewModel()
     @StateObject var documentationViewModel = DocumentationViewModel()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         Group {
-            if UIDevice.current.userInterfaceIdiom == .pad {
+            if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                 navigationSplitView
             } else {
                 navigationStackView
@@ -100,7 +101,7 @@ struct ContentView: View {
                         
                         ForEach(group.technologies) { technology in
                             if technology.destination.isActive {
-                                if UIDevice.current.userInterfaceIdiom == .pad {
+                                if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                                     Button {
                                         withAnimation(.snappy) {
                                             navigationViewModel.technology = technology

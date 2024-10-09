@@ -12,6 +12,7 @@ struct TechnologyRootView: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let frameworkSection: Technologies.FrameworkSection
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var framework: Framework? {
         documentationViewModel.frameworks[frameworkSection.destination.identifier]
@@ -28,7 +29,7 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .onAppear(perform: {
-            if UIDevice.current.userInterfaceIdiom == .pad {
+            if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                 navigationViewModel.reference = frameworkReference
             }
         })
@@ -133,40 +134,46 @@ private struct FrameworkListItem: View {
                     }
                 }
             }
-        } else if reference.role == .collection {
-            let section = Technologies.FrameworkSection(languages: [], title: title, tags: [], destination: .init(type: reference.type, isActive: true, identifier: reference.identifier))
-            
-            Text(title)
-                .foregroundStyle(.secondary)
         } else {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                Button {
-                    navigationViewModel.reference = reference
-                } label: {
-                    Label {
-                        Text(title)
-                    } icon: {
-                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            DefaultListItem(reference: reference, title: title)
+        }
+    }
+}
+
+private struct DefaultListItem: View {
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    let reference: Reference
+    let title: String
+    
+    var body: some View {
+        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+            Button {
+                navigationViewModel.reference = reference
+            } label: {
+                Label {
+                    Text(title)
+                } icon: {
+                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                        .foregroundStyle(.secondary)
                 }
-                .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                        .opacity(navigationViewModel.reference == reference ? 1 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .padding(-10)
+                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
+            }
+        } else {
+            NavigationLink(value: reference) {
+                Label {
+                    Text(title)
+                } icon: {
+                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
+                        .foregroundStyle(.secondary)
                 }
-            } else {
-                NavigationLink(value: reference) {
-                    Label {
-                        Text(title)
-                    } icon: {
-                        Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
@@ -202,24 +209,7 @@ private struct FrameworkDisclosureGroup: View {
                 }
             }
         } label: {
-            Button {
-                navigationViewModel.reference = reference
-            } label: {
-                Label {
-                    Text(reference.title ?? "")
-                } icon: {
-                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .padding(.trailing, -20)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
-            }
+            DefaultListItem(reference: reference, title: title)
         }
         .task {
             if framework == nil {

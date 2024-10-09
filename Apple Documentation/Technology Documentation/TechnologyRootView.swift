@@ -51,7 +51,7 @@ struct TechnologyRootView: View {
     
     @ViewBuilder
     func frameworkView(_ framework: Framework) -> some View {
-        if framework.topicSections.isEmpty {
+        if framework.topicSections?.isEmpty == true {
             Text("No documentation available for \(framework.metadata.title)")
         } else {
             List {
@@ -62,7 +62,7 @@ struct TechnologyRootView: View {
                         .listRowSeparator(.hidden)
                 }
                 
-                ForEach(framework.topicSections) { section in
+                ForEach(framework.topicSections ?? []) { section in
                     Section(section.title) {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
@@ -171,7 +171,7 @@ private struct FrameworkDisclosureGroup: View {
     var body: some View {
         DisclosureGroup {
             if let framework {
-                ForEach(framework.topicSections) { section in
+                ForEach(framework.topicSections ?? []) { section in
                     Section {
                         ForEach(section.identifiers, id: \.self) { subidentifier in
                             if let subreference = framework.references[subidentifier], let subtitle = subreference.title {

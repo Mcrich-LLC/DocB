@@ -252,6 +252,8 @@ struct ContentSection: Decodable, Identifiable {
             case note
             case detailedGrid
             case important
+            case value
+            case list
         }
         
         struct Column: Decodable, Equatable {

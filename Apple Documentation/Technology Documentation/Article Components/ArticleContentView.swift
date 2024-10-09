@@ -289,7 +289,7 @@ struct ArticleContentView: View {
                             let title = reference.title,
                             let imageId = reference.images?.first?.identifier,
                             let openUrlString = reference.url,
-                            let openUrl = URL(string: openUrlString) {
+                           let openUrl = (openUrlString == URL(string: openUrlString)?.path()) ? URL(string: "doc://com.apple.documentation\(openUrlString)") : URL(string: openUrlString) {
                             let imageUrl = fetchPhotoVideoURL(for: imageId)
                             
                             Link(destination: openUrl) {

@@ -8,7 +8,7 @@
 import Foundation
 
 struct Framework: Decodable {
-    let topicSections: [TopicSection]
+    let topicSections: [TopicSection]?
     let metadata: Metadata
     let references: [String : Reference]
     let legalNotices: LegalNotices

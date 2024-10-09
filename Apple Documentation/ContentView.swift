@@ -119,8 +119,6 @@ struct ContentView: View {
                                             HStack {
                                                 Text(technology.title)
                                                 
-                                                
-                                                
                                                 if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                                                     Spacer()
                                                     chevron

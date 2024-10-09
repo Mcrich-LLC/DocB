@@ -81,9 +81,17 @@ class NavigationViewModel: ObservableObject, Equatable {
                 }
             }
             
-            dump(references)
-            print(articleIdentifier)
-            guard let article = references[articleIdentifier] else {
+            let article: Reference?
+            
+            if let reference = references[articleIdentifier] {
+                article = reference
+            } else if let referece = references.values.first(where: { URL(string: $0.identifier)?.path() == URL(string: articleIdentifier)?.path() }) {
+                article = referece
+            } else {
+                article = nil
+            }
+            
+            guard let article else {
                 return
             }
             

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @EnvironmentObject var documentationViewModel: DocumentationViewModel
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     let reference: Reference
     
@@ -19,6 +20,22 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
             Button {
                 navigationViewModel.reference = reference
+                
+                if let url = URL(string: reference.identifier),
+                   let moduleString = Array(url.pathComponents.dropFirst(2)).first,
+                   let technologies = documentationViewModel.technologies,
+                   let groups = technologies.groups
+                {
+                    print(url.pathComponents)
+                    let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+                    
+                    if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
+                       let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
+                        withAnimation(.snappy) {
+                            navigationViewModel.technology = technology
+                        }
+                    }
+                }
             } label: {
                 label
             }

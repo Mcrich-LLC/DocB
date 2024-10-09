@@ -69,7 +69,7 @@ struct ContentView: View {
     
     @ViewBuilder
     var navigationStackView: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationViewModel.path) {
             Group {
                 if let technologies = documentationViewModel.technologies {
                     techView(technologies)

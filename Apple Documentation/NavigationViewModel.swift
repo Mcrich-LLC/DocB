@@ -14,6 +14,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var technology: Technologies.FrameworkSection?
     @Published var reference: Reference?
+    @Published var path: NavigationPath = .init()
 
     var iphoneArticleDestinationBinding: Binding<Reference?> {
         Binding {

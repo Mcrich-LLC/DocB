@@ -11,7 +11,10 @@ struct ContentView: View {
     
     @StateObject var navigationViewModel = NavigationViewModel()
     @StateObject var documentationViewModel = DocumentationViewModel()
+    
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
     @State var searchText = ""
     
     var body: some View {
@@ -22,6 +25,7 @@ struct ContentView: View {
                 navigationStackView
             }
         }
+        .background(Color(uiColor: .systemBackground))
         .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
         .task {
@@ -38,7 +42,6 @@ struct ContentView: View {
             Group {
                 if let selectedTechnology = navigationViewModel.technology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
-                        
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
@@ -79,7 +82,6 @@ struct ContentView: View {
                     techView(technologies)
                         .navigationTitle("Documentation")
                         .navigationBarTitleDisplayMode(.large)
-                        .transition(.move(edge: .leading))
                 } else {
                     ProgressView("Loading")
                 }
@@ -100,39 +102,60 @@ struct ContentView: View {
     func techView(_ technology: Technologies) -> some View {
         List {
             if let groups = technology.groups {
-                ForEach(groups) { group in
-                    
-                    Section(group.name) {
+                
+                let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
+                
+                if !filtered.isEmpty {
+                    ForEach(groups) { group in
                         
-                        ForEach(group.technologies.filter(isVisibleForSearch)) { technology in
-                            if technology.destination.isActive {
-                                TechnologyNavigationLinkButton(technology: technology) {
-                                    HStack {
-                                        Text(technology.title)
-                                        
-                                        Spacer()
-                                        
-                                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-                                            chevron
+                        let filtered = group.technologies.filter(isVisibleForSearch)
+                        
+                        if !filtered.isEmpty {
+                            Section(group.name) {
+                                
+                                ForEach(filtered) { technology in
+                                    if technology.destination.isActive {
+                                        TechnologyNavigationLinkButton(technology: technology) {
+                                            HStack {
+                                                Text(technology.title)
+                                                
+                                                
+                                                
+                                                if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+                                                    Spacer()
+                                                    chevron
+                                                }
+                                            }
                                         }
+                                        .foregroundStyle(Color.primary)
+                                        .listRowBackground(Color.clear)
+                                        
                                     }
+                                    
                                 }
-                                .foregroundStyle(Color.primary)
                             }
-                            
                         }
+                        
+                    }
+                } else {
+                    ContentUnavailableView {
+                        Label("No Results", systemSymbol: .magnifyingglass)
                     }
                 }
+                
             }
             
         }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(colorScheme == .light ? Color.white : Color.black)
         .searchable(text: $searchText)
     }
     
     func isVisibleForSearch(_ technology: Technologies.FrameworkSection) -> Bool {
         guard !searchText.isEmpty else { return true }
         
-        return technology.title.contains(searchText) || technology.tags.contains(searchText)
+        return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
     }
     
     var chevron: some View {

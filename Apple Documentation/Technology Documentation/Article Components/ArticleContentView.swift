@@ -283,7 +283,7 @@ struct ArticleContentView: View {
         case .links:
             switch content.style {
             case .compactGrid:
-                WrappingHStack(alignment: .leading) {
+                WrappingHStack(alignment: .topLeading) {
                     ForEach(content.linkItems ?? [], id: \.self) { identifier in
                         if let reference = article.references[identifier],
                             let title = reference.title,

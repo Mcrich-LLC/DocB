@@ -9,9 +9,13 @@ import SwiftUI
 
 struct TechnologyRootView: View {
     
+    
+    
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let frameworkSection: Technologies.FrameworkSection
+    
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var framework: Framework? {
@@ -50,10 +54,7 @@ struct TechnologyRootView: View {
             Text("No documentation available for \(framework.metadata.title)")
         } else {
             List {
-                Spacer()
-                    .frame(height: 1)
-                    .listRowSeparator(.hidden)
-                
+
                 Section {
                     FrameworkListItem(reference: frameworkReference, title: frameworkSection.title)
                         .listRowBackground(Color.clear)
@@ -75,7 +76,7 @@ struct TechnologyRootView: View {
             }
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
-            .background(Color(uiColor: .systemBackground))
+            .background(colorScheme == .light ? Color.white : Color.black)
             .listRowSpacing(0)
         }
     }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ArticleView: View {
     
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
@@ -90,6 +91,7 @@ struct ArticleView: View {
                     }
                     .frame(maxWidth: 950, alignment: .top)
                     .frame(maxWidth: .infinity)
+                    .padding(.top, 15)
                     .padding([.horizontal, .bottom], 25)
                     .background(alignment: .top) {
                         if let role = reference.role {
@@ -103,10 +105,11 @@ struct ArticleView: View {
                             LinearGradient(colors: [color.opacity(0.4), color.opacity(0.0)], startPoint: .top, endPoint: .bottom)
                                 .frame(height: 300)
                                 .padding(.top, -100)
+                                .zIndex(10)
                         }
                     }
                     .toolbar {
-                        if UIDevice.current.userInterfaceIdiom == .pad {
+                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                             ToolbarItemGroup(placement: .navigation) {
                                 Button("Backward", systemImage: "chevron.backward") {
                                     navigationViewModel.goBackward()
@@ -167,6 +170,8 @@ struct ArticleView: View {
                 }
             }
             .id(reference)
+            .scrollContentBackground(.hidden)
+            .background(colorScheme == .light ? Color.white : Color.black)
         }
         .onAppear {
             navigationViewModel.reference = reference

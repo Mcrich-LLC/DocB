@@ -10,8 +10,6 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
-    // TODO: Implement url handling for doc://com.apple.documentation
-    
     @Published var technology: Technologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -35,7 +33,6 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var path: NavigationPath = .init()
     
-    
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
               let technologies = documentationViewModel.technologies,
@@ -51,8 +48,11 @@ class NavigationViewModel: ObservableObject, Equatable {
             return
         }
         
-        withAnimation(.snappy) {
-            self.technology = technology
+        if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
+            withAnimation(.snappy) {
+                self.technology = technology
+            }
+            path.append(technology)
         }
         
         let articlePath = Array(url.pathComponents.dropFirst(2))
@@ -64,8 +64,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             for article in articlePath {
                 articleIdentifier.append("/\(article)")
                 
-                if let framework = documentationViewModel.frameworks[articleIdentifier]
-                {
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 } else {
                     await documentationViewModel.fetchFramework(for: articleIdentifier)
@@ -87,6 +86,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             
             DispatchQueue.main.async {
                 self.reference = article
+                self.path.append(article)
             }
         }
     }
@@ -142,7 +142,7 @@ class NavigationViewModel: ObservableObject, Equatable {
 }
 
 extension Dictionary {
-    mutating func merge(dict: [Key: Value]){
+    mutating func merge(dict: [Key: Value]) {
         for (k, v) in dict {
             updateValue(v, forKey: k)
         }

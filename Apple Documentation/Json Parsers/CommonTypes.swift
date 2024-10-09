@@ -99,6 +99,7 @@ struct ContentSection: Decodable, Identifiable {
         case mentions
         case details
         case kind
+        case parameters
     }
     
     struct Details: Decodable, Identifiable {

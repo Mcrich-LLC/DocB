@@ -113,7 +113,7 @@ struct ArticleView: View {
                                 Label("Share", systemImage: "square.and.arrow.up")
                             }
                             
-                            Button("Download", systemImage: "arrow.down.circle.fill") {
+                            Button("Download", systemImage: "arrow.down.circle") {
                                 // TODO: Implement Downloading
                             }
                             

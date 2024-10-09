@@ -11,6 +11,9 @@ import AVKit
 import HighlightSwift
 
 struct ArticleContentView: View {
+    
+    @Environment(\.horizontalSizeClass) var sizeClass
+    
     let content: ContentSection.Content
     let article: Article
     let type: ContentType?
@@ -245,7 +248,7 @@ struct ArticleContentView: View {
                 referenceText
             }
         case .table:
-            #warning("Table is not supported yet")
+#warning("Table is not supported yet")
             EmptyView()
         case .emphasis:
             if let inlineContent = content.inlineContent {
@@ -269,7 +272,7 @@ struct ArticleContentView: View {
 #warning("Row is not supported yet")
             EmptyView()
         case .aside:
-            #warning("Aside is not supported yet")
+#warning("Aside is not supported yet")
             EmptyView()
         case .code:
             let attributedString = getCodeString(content.code ?? [])
@@ -282,28 +285,36 @@ struct ArticleContentView: View {
         case .links:
             switch content.style {
             case .compactGrid:
-                WrappingHStack(alignment: .leading) {
-                    ForEach(content.linkItems ?? [], id: \.self) { identifier in
-                        if let reference = article.references[identifier], let title = reference.title, let imageId = reference.images?.first?.identifier, let openUrlString = reference.url, let openUrl = URL(string: openUrlString) {
-                            let imageUrl = fetchPhotoVideoURL(for: imageId)
-                            
-                            Link(destination: openUrl) {
-                                VStack(alignment: .leading) {
-                                    KFImage(imageUrl)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                                    
-                                    
-                                    Text(title)
-                                        .foregroundStyle(Color.primary)
-                                        .multilineTextAlignment(.leading)
+                GeometryReader { geometry in
+                    
+                    let width: CGFloat = geometry.size.width / CGFloat(2) - 10
+                    
+                    WrappingHStack(horizontalSpacing: 10) {
+                        ForEach(content.linkItems ?? [], id: \.self) { identifier in
+                            if let reference = article.references[identifier], let title = reference.title, let imageId = reference.images?.first?.identifier, let openUrlString = reference.url, let openUrl = URL(string: openUrlString) {
+                                let imageUrl = fetchPhotoVideoURL(for: imageId)
+                                
+                                Link(destination: openUrl) {
+                                    VStack(alignment: .leading) {
+                                        KFImage(imageUrl)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        
+                                        
+                                        Text(title)
+                                            .foregroundStyle(Color.primary)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    .frame(maxWidth: width)
                                 }
-                                .frame(maxWidth: 300)
                             }
                         }
                     }
                 }
+                
+                
+                
             default:
                 EmptyView()
             }
@@ -335,7 +346,7 @@ struct ArticleContentView: View {
         
         for inline in content {
             switch inline.type {
-                case .text:
+            case .text:
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)

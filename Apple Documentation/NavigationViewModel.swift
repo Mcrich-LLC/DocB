@@ -122,10 +122,10 @@ class NavigationViewModel: ObservableObject, Equatable {
             history = Array(history.prefix(currentIndex + 1))
         }
         
-        let technologyURL = URL(string: technology.destination.identifier)
-        let technologyURLPath = technologyURL?.pathComponents.dropLast(2).first
-        
-        if let lastState = history.last, let technologyURLPath, lastState.reference?.url?.components(separatedBy: "/").dropFirst().first != technologyURLPath,
+        if let lastState = history.last,
+            let lastStateTechnologyIdentifier = lastState.technology?.destination.identifier,
+           let lastStateReferenceIdentifier = lastState.reference?.identifier,
+           URL(string: lastStateReferenceIdentifier)?.pathComponents.dropFirst(2).first != URL(string: lastStateTechnologyIdentifier)?.pathComponents.dropFirst(2).first,
             lastState.reference?.identifier == reference.identifier,
            technologyHistoryUpdatingIsEnabled {
             history[history.count - 1].technology = technology

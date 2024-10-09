@@ -107,7 +107,9 @@ struct ArticleView: View {
                     }
                     .toolbar {
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let url = documentationViewModel.jsonUrl(for: reference.identifier)!.absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com").replacingOccurrences(of: ".json", with: "")
+                            let url = documentationViewModel.jsonUrl(for: reference.identifier)!
+                                .absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com")
+                                .replacingOccurrences(of: ".json", with: "")
                             
                             ShareLink(item: URL(string: url)!) {
                                 Label("Share", systemImage: "square.and.arrow.up")
@@ -227,7 +229,3 @@ struct ArticleView: View {
         }
     }
 }
-
-//#Preview {
-//    ArticleView()
-//}

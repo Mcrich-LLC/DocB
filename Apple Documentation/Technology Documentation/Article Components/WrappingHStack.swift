@@ -4,6 +4,7 @@
 //
 //  Created by Konstantin Semianov on 11/30/22.
 //
+// swiftlint:disable large_tuple function_body_length
 
 import SwiftUI
 
@@ -254,3 +255,5 @@ private extension UnitPoint {
         }
     }
 }
+
+// swiftlint:enable large_tuple function_body_length

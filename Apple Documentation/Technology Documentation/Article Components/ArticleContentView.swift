@@ -4,6 +4,7 @@
 //
 //  Created by Morris Richman on 10/7/24.
 //
+// swiftlint:disable type_body_length
 
 import SwiftUI
 import Kingfisher
@@ -298,7 +299,6 @@ struct ArticleContentView: View {
                                         .aspectRatio(contentMode: .fit)
                                         .clipShape(RoundedRectangle(cornerRadius: 4))
                                     
-                                    
                                     Text(title)
                                         .foregroundStyle(Color.primary)
                                         .multilineTextAlignment(.leading)
@@ -327,6 +327,7 @@ struct ArticleContentView: View {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
@@ -340,7 +341,7 @@ struct ArticleContentView: View {
         // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
-                case .text:
+            case .text:
                 text = text + Text(inline.text ?? "")
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)
@@ -391,6 +392,7 @@ struct ArticleContentView: View {
         }
         .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(type) ? 5 : 0)
     }
+    // swiftlint:enable cyclomatic_complexity
     
     private struct InlineContent: Identifiable {
         let id = UUID()
@@ -403,3 +405,4 @@ struct ArticleContentView: View {
     }
 }
 
+// swiftlint:enable type_body_length

@@ -44,8 +44,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             for article in articlePath {
                 articleIdentifier.append("/\(article)")
                 
-                if let framework = documentationViewModel.frameworks[articleIdentifier]
-                {
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 } else {
                     await documentationViewModel.fetchFramework(for: articleIdentifier)
@@ -89,7 +88,7 @@ class NavigationViewModel: ObservableObject, Equatable {
 }
 
 extension Dictionary {
-    mutating func merge(dict: [Key: Value]){
+    mutating func merge(dict: [Key: Value]) {
         for (k, v) in dict {
             updateValue(v, forKey: k)
         }

@@ -39,7 +39,9 @@ struct TechnologyRootView: View {
     }
     
     var frameworkReference: Reference {
+        // swiftlint:disable line_length
         .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+        // swiftlint:enable line_length
     }
     
     @ViewBuilder
@@ -100,8 +102,7 @@ private struct FrameworkListItem: View {
                $0.text.lowercased() == "protocol" ||
                $0.text.lowercased() == "actor" ||
                $0.text.lowercased() == "enum"
-           })
-        {
+           }) {
             return true
         }
         
@@ -193,4 +194,3 @@ private struct FrameworkDisclosureGroup: View {
         }
     }
 }
-

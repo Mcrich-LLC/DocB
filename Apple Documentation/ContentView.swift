@@ -127,7 +127,6 @@ struct ContentView: View {
         }
     }
     
-    
     var chevron: some View {
         Image(systemSymbol: .chevronRight)
             .resizable()
@@ -135,4 +134,3 @@ struct ContentView: View {
             .foregroundStyle(Color(uiColor: .systemGray3))
     }
 }
-

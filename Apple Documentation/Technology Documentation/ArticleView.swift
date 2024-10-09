@@ -141,6 +141,9 @@ struct ArticleView: View {
             }
             .id(reference)
         }
+        .onAppear {
+            navigationViewModel.reference = reference
+        }
     }
     
     @ViewBuilder

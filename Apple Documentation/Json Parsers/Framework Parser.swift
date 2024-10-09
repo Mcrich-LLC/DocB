@@ -49,5 +49,11 @@ struct Framework: Decodable {
         let role: String
         let images: [ImageStruct]?
         let platforms: [Platform]?
+        let modules: [Module]?
+        
+        struct Module: Decodable {
+            let name: String
+            
+        }
     }
 }

@@ -28,11 +28,6 @@ struct TechnologyRootView: View {
         }
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
-        .onAppear(perform: {
-            if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-                navigationViewModel.reference = frameworkReference
-            }
-        })
         .task {
             await loadFramework()
         }
@@ -147,34 +142,14 @@ private struct DefaultListItem: View {
     let title: String
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-            Button {
-                navigationViewModel.reference = reference
-            } label: {
-                Label {
-                    Text(title)
-                } icon: {
-                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+        ReferenceNavigationLinkButton(reference: reference) {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemSymbol: reference.role?.labelIcon ?? .docText)
+                    .foregroundStyle(.secondary)
             }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
-            }
-        } else {
-            NavigationLink(value: reference) {
-                Label {
-                    Text(title)
-                } icon: {
-                    Image(systemName: reference.role?.labelIcon() ?? "text.document")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

@@ -44,6 +44,13 @@ class DocumentationViewModel: ObservableObject {
     
     @Published var frameworks: [String : Framework] = [:]
     
+    func fetchFramework(for identifier: String, completion: @escaping () -> Void) {
+        Task {
+            await fetchFramework(for: identifier)
+            completion()
+        }
+    }
+    
     func fetchFramework(for identifier: String) async {
         do {
             guard let url = jsonUrl(for: identifier) else { return }
@@ -61,6 +68,17 @@ class DocumentationViewModel: ObservableObject {
     }
     
     // MARK: Articles
+    
+    func fetchArticle(for identifier: String, completion: @escaping (Article) -> Void) {
+        Task {
+            do {
+                let article = try await fetchArticle(for: identifier)
+                completion(article)
+            } catch {
+                print(error)
+            }
+        }
+    }
     
     func fetchArticle(for identifier: String) async throws -> Article {
 //        do {

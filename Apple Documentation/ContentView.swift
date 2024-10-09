@@ -26,6 +26,9 @@ struct ContentView: View {
         .task {
             await documentationViewModel.fetchTechnologies()
         }
+        .onOpenURL { url in
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+        }
     }
     
     @ViewBuilder

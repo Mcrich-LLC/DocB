@@ -111,7 +111,7 @@ struct ContentView: View {
                                         
                                         Spacer()
                                         
-                                        if UIDevice.current.userInterfaceIdiom != .pad || horizontalSizeClass == .compact {
+                                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
                                             chevron
                                         }
                                     }

@@ -159,8 +159,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     private func navigateToCurrentHistory() {
         isNavigating = true
         let currentState = history[currentIndex]
-        technology = currentState.technology
         reference = currentState.reference
+        technology = currentState.technology
         isNavigating = false
     }
     

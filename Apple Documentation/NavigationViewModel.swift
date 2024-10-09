@@ -10,8 +10,6 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
-    // TODO: Implement url handling for doc://com.apple.documentation
-    
     @Published var technology: Technologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -34,7 +32,6 @@ class NavigationViewModel: ObservableObject, Equatable {
     private var isNavigating = false
     
     @Published var path: NavigationPath = .init()
-    
     
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
@@ -145,7 +142,7 @@ class NavigationViewModel: ObservableObject, Equatable {
 }
 
 extension Dictionary {
-    mutating func merge(dict: [Key: Value]){
+    mutating func merge(dict: [Key: Value]) {
         for (k, v) in dict {
             updateValue(v, forKey: k)
         }

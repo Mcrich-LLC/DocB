@@ -26,7 +26,6 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                    let technologies = documentationViewModel.technologies,
                    let groups = technologies.groups
                 {
-                    print(url.pathComponents)
                     let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
                     
                     if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),

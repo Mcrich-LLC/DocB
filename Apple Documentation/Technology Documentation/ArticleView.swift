@@ -114,10 +114,12 @@ struct ArticleView: View {
                                 Button("Backward", systemImage: "chevron.backward") {
                                     navigationViewModel.goBackward()
                                 }
+                                .disabled(!navigationViewModel.previousHistoryExists)
                                 
                                 Button("Forward", systemImage: "chevron.forward") {
                                     navigationViewModel.goForward()
                                 }
+                                .disabled(!navigationViewModel.futureHistoryExists)
                             }
                         }  
                         

@@ -26,7 +26,9 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    @Published var history: [(technology: Technologies.FrameworkSection?, reference: Reference?)] = []
+    @Published private var history: [(technology: Technologies.FrameworkSection?, reference: Reference?)] = []
+    var previousHistoryExists: Bool { currentIndex > 0 }
+    var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
     private var currentIndex = -1
     private var isNavigating = false
@@ -104,10 +106,23 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     // Add current state to history
     private func addToHistory() {
+        guard let technology, let reference else { return }
+        
         // Remove future history if we're adding a new state
         if currentIndex < history.count - 1 {
             history = Array(history.prefix(currentIndex + 1))
         }
+        
+        if let lastState = history.last, lastState.technology?.destination.identifier != technology.destination.identifier, lastState.reference?.identifier == reference.identifier {
+            history[history.count - 1].technology = technology
+            return
+        }
+        
+        // Prevent Duplicates
+        guard history.last?.reference?.identifier != reference.identifier else {
+            return
+        }
+        
         history.append((technology, reference))
         currentIndex += 1
     }

@@ -59,6 +59,7 @@ struct ContentView: View {
             }
             .navigationSplitViewColumnWidth(390)
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .environment(\.horizontalSizeClass, horizontalSizeClass)
         } detail: {
             if let reference = navigationViewModel.reference {
                 ArticleView(reference: reference)

@@ -32,6 +32,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         withAnimation(.snappy) {
             self.technology = technology
         }
+        path.append(technology)
         
         let articlePath = Array(url.pathComponents.dropFirst(2))
         var articleIdentifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.documentation")/documentation"
@@ -64,6 +65,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             
             DispatchQueue.main.async {
                 self.reference = article
+                path.append(article)
             }
         }
     }

@@ -21,7 +21,7 @@ struct SeeAlsoView: View {
                     Section {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = article.references[identifier], reference.title != nil {
-                                NavigationLink(value: reference) {
+                                ReferenceNavigationLinkButton(reference: reference) {
                                     HStack(spacing: 10) {
                                         Image(systemName: reference.role?.labelIcon() ?? "text.document")
                                             .resizable()

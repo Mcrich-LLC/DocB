@@ -20,7 +20,7 @@ struct MentionsView: View {
             
             ForEach(mentions, id: \.self) { identifier in
                 if let reference = article.references[identifier], let title = reference.title {
-                    NavigationLink(value: reference) {
+                    ReferenceNavigationLinkButton(reference: reference) {
                         GroupBox {
                             Text(title)
                                 .frame(maxWidth: .infinity, alignment: .leading)

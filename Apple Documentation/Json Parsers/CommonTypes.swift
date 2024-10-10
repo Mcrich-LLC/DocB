@@ -254,6 +254,7 @@ struct ContentSection: Decodable, Identifiable {
             case important
             case value
             case list
+            case tip
         }
         
         struct Column: Decodable, Equatable, Hashable {
@@ -483,6 +484,7 @@ enum ContentType: String, Decodable, Equatable, Hashable {
     case aside
     case code
     case codeVoice
+    case strong
 }
 
 // MARK: Platforms

@@ -160,6 +160,11 @@ struct ArticleContentView: View {
             if let text = content.text {
                 Text(specialStyleString(text))
             }
+        case .strong:
+            if let text = content.text {
+                Text(specialStyleString(text))
+                    .bold()
+            }
         case .image:
             if let identifier = content.identifier {
                 KFImage(fetchPhotoVideoURL(for: identifier))
@@ -358,6 +363,10 @@ struct ArticleContentView: View {
                 let string = getEmphasisString(inline)
                 
                 text = text + Text(string).italic()
+            case .strong:
+                let string = getEmphasisString(inline)
+                
+                text = text + Text(string).bold()
             case .reference:
                 if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
                     text = text + referenceText

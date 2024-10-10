@@ -381,6 +381,14 @@ struct Reference: Decodable, Hashable {
     let variants: [Variant]?
     let images: [ImageStruct]?
     
+    var shareUrl: URL? {
+        guard let identifierUrl = URL(string: identifier) else { return nil }
+        
+        let shareUrlString = "https://developer.apple.com\(identifierUrl.path())"
+        
+        return URL(string: shareUrlString)
+    }
+    
     init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, variants: [Variant]?, images: [ImageStruct]?) {
         self.title = title
         self.abstract = abstract

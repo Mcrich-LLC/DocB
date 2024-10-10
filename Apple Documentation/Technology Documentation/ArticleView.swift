@@ -124,10 +124,6 @@ struct ArticleView: View {
                         }  
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let url = documentationViewModel.jsonUrl(for: reference.identifier)!
-                                .absoluteString.replacingOccurrences(of: "doc://com.apple.documentation", with: "https://developer.apple.com")
-                                .replacingOccurrences(of: ".json", with: "")
-                            
                             let role = reference.role
                             let color: Color = switch role {
                             case .sampleCode:
@@ -139,8 +135,10 @@ struct ArticleView: View {
                             }
                             
                             Group {
-                                ShareLink(item: URL(string: url)!) {
-                                    Label("Share", systemImage: "square.and.arrow.up")
+                                if let url = reference.shareUrl {
+                                    ShareLink(item: url) {
+                                        Label("Share", systemImage: "square.and.arrow.up")
+                                    }
                                 }
                                 
                                 Button("Download", systemImage: "arrow.down.circle") {

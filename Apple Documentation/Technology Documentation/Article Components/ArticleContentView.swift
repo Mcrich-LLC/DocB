@@ -295,8 +295,7 @@ struct ArticleContentView: View {
                         if let reference = article.references[identifier],
                             let title = reference.title,
                             let imageId = reference.images?.first?.identifier,
-                            let openUrlString = reference.url,
-                           let openUrl = (openUrlString == URL(string: openUrlString)?.path()) ? URL(string: "doc://com.apple.documentation\(openUrlString)") : URL(string: openUrlString) {
+                           let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
                             let imageUrl = fetchPhotoVideoURL(for: imageId)
                             
                             Link(destination: openUrl) {

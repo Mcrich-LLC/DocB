@@ -36,7 +36,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var path: NavigationPath = .init()
     
-    func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) {
+    func handleURL(_ url: URL,
+                   documentationViewModel: DocumentationViewModel) {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
               let technologies = documentationViewModel.technologies,
               let groups = technologies.groups

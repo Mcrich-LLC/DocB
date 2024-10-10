@@ -14,6 +14,18 @@
 				<string>doc</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string></string>
+			<key>CFBundleURLName</key>
+			<string>apple-doc</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>apple-doc</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

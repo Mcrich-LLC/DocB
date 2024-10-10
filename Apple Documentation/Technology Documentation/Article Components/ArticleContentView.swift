@@ -69,7 +69,7 @@ struct ArticleContentView: View {
         
         let attributes: [NSAttributedString.Key: Any]
         
-        if let url = URL(string: reference.identifier) {
+        if let url = URL(string: identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
             attributes = [
                 .foregroundColor: UIColor.accent,
                 .underlineStyle : 0,

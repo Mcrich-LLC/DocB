@@ -36,6 +36,8 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
         @unknown default: Color(uiColor: .systemBackground)
         }
     }
+    
+    let backgroundColor: Color = Color(uiColor: .secondarySystemFill)
 
     var body: some View {
         HStack(spacing: 0) {
@@ -55,6 +57,10 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
                                 .frame(maxHeight: .infinity)
                                 .matchedGeometryEffect(id: "Marker", in: ns)
                                 .shadow(color: .black.opacity(0.2), radius: 0.5, x: xShaddow, y: 0.7)
+                        } else {
+                            RoundedRectangle(cornerRadius: cornerRadius)
+                                .fill(backgroundColor.opacity(0.00000000001))
+                                .frame(maxHeight: .infinity)
                         }
                     }
                     
@@ -66,14 +72,14 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                    .onTapGesture {
-                        selection = item
-                    }
+                .onTapGesture {
+                    selection = item
+                }
             }
         }
         .animation(.linear(duration: 0.25), value: selection.id)
         .fixedSize(horizontal: false, vertical: true)
         .padding(2)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color(uiColor: .secondarySystemFill)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(backgroundColor))
     }
 }

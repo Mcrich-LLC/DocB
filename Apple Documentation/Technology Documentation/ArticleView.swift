@@ -173,7 +173,6 @@ struct ArticleView: View {
             }
             .id(reference)
             .scrollContentBackground(.hidden)
-            .background(colorScheme == .light ? Color.white : Color.black)
         }
         .onAppear {
             navigationViewModel.reference = reference

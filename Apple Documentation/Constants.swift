@@ -9,5 +9,5 @@ import Foundation
 
 struct Constants {
     static let basePath = URL(string: "https://developer.apple.com/tutorials/data")!
-    static let deeplinkScheme = "apple-doc://"
+    static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
 }

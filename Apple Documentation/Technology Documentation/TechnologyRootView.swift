@@ -77,7 +77,7 @@ struct TechnologyRootView: View {
             }
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
-            .background(colorScheme == .light ? Color.white : Color.black)
+            .background(Color(uiColor: .systemBackground))
             .listRowSpacing(0)
         }
     }

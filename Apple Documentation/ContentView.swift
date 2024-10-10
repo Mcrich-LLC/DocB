@@ -146,7 +146,7 @@ struct ContentView: View {
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
-        .background(colorScheme == .light ? Color.white : Color.black)
+        .background(Color(uiColor: .systemBackground))
         .searchable(text: $searchText)
     }
     

@@ -151,7 +151,7 @@ struct ContentSection: Decodable, Identifiable {
         }
     }
     
-    struct Content: Decodable, Identifiable, Equatable {
+    struct Content: Decodable, Identifiable, Equatable, Hashable {
         let id = UUID()
         let type: ContentType?
         
@@ -256,12 +256,12 @@ struct ContentSection: Decodable, Identifiable {
             case list
         }
         
-        struct Column: Decodable, Equatable {
+        struct Column: Decodable, Equatable, Hashable {
             let size: Int
             let content: [Content]
         }
         
-        struct Tab: Decodable, Equatable, Identifiable {
+        struct Tab: Decodable, Equatable, Identifiable, Hashable {
             let id = UUID()
             
             let content: [Content]
@@ -279,7 +279,12 @@ struct ContentSection: Decodable, Identifiable {
                 self.title = try container.decode(String.self, forKey: ContentSection.Content.Tab.CodingKeys.title)
             }
             
-            struct Content: Decodable, Equatable, Identifiable {
+            init(content: [Content], title: String) {
+                self.content = content
+                self.title = title
+            }
+            
+            struct Content: Decodable, Equatable, Identifiable, Hashable {
                 let id = UUID()
                 
                 let items: [Item]?
@@ -301,7 +306,7 @@ struct ContentSection: Decodable, Identifiable {
                 }
             }
             
-            struct Item: Decodable, Equatable, Identifiable {
+            struct Item: Decodable, Equatable, Identifiable, Hashable {
                 let id = UUID()
                 
                 let content: [ContentSection.Content]
@@ -318,7 +323,7 @@ struct ContentSection: Decodable, Identifiable {
             }
         }
         
-        struct TermListItem: Decodable, Identifiable, Equatable {
+        struct TermListItem: Decodable, Identifiable, Equatable, Hashable {
             let id = UUID()
             let term: Term
             let definition: Definition
@@ -335,16 +340,16 @@ struct ContentSection: Decodable, Identifiable {
                 self.definition = try container.decode(ContentSection.Content.TermListItem.Definition.self, forKey: ContentSection.Content.TermListItem.CodingKeys.definition)
             }
             
-            struct Definition: Decodable, Equatable {
+            struct Definition: Decodable, Equatable, Hashable {
                 let content: [ContentSection.Content]
             }
             
-            struct Term: Decodable, Equatable {
+            struct Term: Decodable, Equatable, Hashable {
                 let inlineContent: [ContentStruct]
             }
         }
         
-        struct UnorderedListItem: Decodable, Identifiable, Equatable {
+        struct UnorderedListItem: Decodable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
             let content: [ContentSection.Content]?
@@ -459,7 +464,7 @@ struct Reference: Decodable, Hashable {
 
 // MARK: Content Types
 
-enum ContentType: String, Decodable, Equatable {
+enum ContentType: String, Decodable, Equatable, Hashable {
     case heading
     case paragraph
     case text

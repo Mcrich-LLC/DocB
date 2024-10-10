@@ -25,7 +25,7 @@ struct ArticleContentView: View {
     }
     
     @State var player: AVPlayer?
-    @State var tableSelection: String = ""
+    @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -42,8 +42,8 @@ struct ArticleContentView: View {
                 self.player = AVPlayer(url: url)
             }
             
-            if content.type == .tabNavigator {
-                self.tableSelection = content.tabs?.first?.title ?? ""
+            if content.type == .tabNavigator, let tab = content.tabs?.first {
+                self.tabSelection = tab
             }
         }
     }
@@ -214,28 +214,35 @@ struct ArticleContentView: View {
             }
         case .tabNavigator:
             if let tabs = content.tabs {
-                VStack {
-                    Picker("", selection: self.$tableSelection) {
-                        ForEach(tabs) { tab in
+                if tabs.count <= 4 {
+                    MultilinePicker(data: tabs, selection: self.$tabSelection, cell: { tab in
+                        Text(tab.title)
+                            .tag(tab.title)
+                            .fixedSize(horizontal: false, vertical: true)
+                    })
+                    .padding([.horizontal, .bottom], 15)
+                } else {
+                    ScrollView(.horizontal) {
+                        MultilinePicker(data: tabs, selection: self.$tabSelection, cell: { tab in
                             Text(tab.title)
                                 .tag(tab.title)
-                        }
+                                .fixedSize(horizontal: false, vertical: true)
+                        })
+                        .padding(.bottom, 15)
+                        .padding(.horizontal, 25)
                     }
-                    .pickerStyle(.segmented)
-                    .padding([.horizontal, .bottom], 15)
+                    .padding(.horizontal, -25)
+                }
+                
+                ForEach(tabSelection.content) { tabContents in
+                    if let inlineContent = tabContents.inlineContent {
+                        self.inlineContent(for: inlineContent)
+                    }
                     
-                    if let tab = tabs.first(where: { $0.title == self.tableSelection }) {
-                        ForEach(tab.content) { tabContents in
-                            if let inlineContent = tabContents.inlineContent {
-                                self.inlineContent(for: inlineContent)
-                            }
-                            
-                            if let items = tabContents.items {
-                                ForEach(items) { tabItem in
-                                    ForEach(tabItem.content) { content in
-                                        ArticleContentView(content: content, article: self.article, from: tabContents.type)
-                                    }
-                                }
+                    if let items = tabContents.items {
+                        ForEach(items) { tabItem in
+                            ForEach(tabItem.content) { content in
+                                ArticleContentView(content: content, article: self.article, from: tabContents.type)
                             }
                         }
                     }

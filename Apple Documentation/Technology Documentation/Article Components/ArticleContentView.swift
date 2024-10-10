@@ -296,6 +296,7 @@ struct ArticleContentView: View {
                             let title = reference.title,
                             let imageId = reference.images?.first?.identifier,
                            let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+                            
                             let imageUrl = fetchPhotoVideoURL(for: imageId)
                             
                             Link(destination: openUrl) {

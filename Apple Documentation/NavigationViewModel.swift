@@ -43,7 +43,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         else {
             return
         }
-        let identifier = "\(url.scheme ?? "doc")://com.apple.documentation/documentation/\(moduleString)".lowercased()
+        let identifier = "doc://com.apple.documentation/documentation/\(moduleString)".lowercased()
         
         guard let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier.lowercased() == identifier }) }),
               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier.lowercased() == identifier })
@@ -59,7 +59,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
         
         let articlePath = Array(url.pathComponents.dropFirst(2))
-        var articleIdentifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.documentation")/documentation"
+        var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
         
         var references: [String : Reference] = [:]
         

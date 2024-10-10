@@ -26,6 +26,18 @@
 				<string>apple-doc</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string></string>
+			<key>CFBundleURLName</key>
+			<string>com.Mcrich.Apple-Documentation</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.Mcrich.Apple-Documentation</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

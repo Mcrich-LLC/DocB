@@ -19,7 +19,7 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+            if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                 navigationSplitView
             } else {
                 navigationStackView
@@ -119,7 +119,7 @@ struct ContentView: View {
                                             HStack {
                                                 Text(technology.title)
                                                 
-                                                if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+                                                if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                                                     Spacer()
                                                     chevron
                                                 }

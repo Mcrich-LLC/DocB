@@ -17,8 +17,8 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     let label: Content
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-            Button {
+        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+            MacOSAgnosticButton {
                 navigationViewModel.reference = reference
                 
                 if let url = URL(string: reference.identifier),
@@ -60,8 +60,8 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     let label: Content
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
-            Button {
+        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+            MacOSAgnosticButton {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = false
                 withAnimation(.snappy) {
                     navigationViewModel.technology = technology

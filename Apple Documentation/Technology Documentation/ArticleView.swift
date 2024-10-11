@@ -109,7 +109,7 @@ struct ArticleView: View {
                         }
                     }
                     .toolbar {
-                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                             ToolbarItemGroup(placement: .navigation) {
                                 Button("Backward", systemImage: "chevron.backward") {
                                     navigationViewModel.goBackward()
@@ -199,7 +199,7 @@ struct ArticleView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact && article.abstract == nil && article.metadata.platforms == nil {
+                    if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.abstract == nil && article.metadata.platforms == nil {
                         setToolbarVisibility(!isVisible)
                     }
                 }
@@ -207,7 +207,7 @@ struct ArticleView: View {
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
                     .onScrollVisibilityChange { isVisible in
-                        if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact && article.metadata.platforms == nil {
+                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.metadata.platforms == nil {
                             setToolbarVisibility(!isVisible)
                         }
                     }
@@ -220,7 +220,7 @@ struct ArticleView: View {
                     }
                 }
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass != .compact {
+                    if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                         setToolbarVisibility(!isVisible)
                     }
                 }

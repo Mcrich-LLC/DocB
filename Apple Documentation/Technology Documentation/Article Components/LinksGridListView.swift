@@ -27,7 +27,7 @@ struct LinksGridListView: View {
                         
                         let imageUrl = article.fetchPhotoVideoURL(for: imageId, colorScheme: colorScheme)
                         
-                        Link(destination: openUrl) {
+                        MacOSAgnosticLink(destination: openUrl) {
                             VStack(alignment: .leading) {
                                 KFImage(imageUrl)
                                     .placeholder({

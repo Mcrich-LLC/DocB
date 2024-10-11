@@ -95,14 +95,7 @@ struct ArticleView: View {
                     .padding([.horizontal, .bottom], 25)
                     .background(alignment: .top) {
                         if let role = reference.role {
-                            let color: Color = switch role {
-                            case .sampleCode:
-                                Color.sampleCode
-                            default:
-                                Color.article
-                            }
-                            
-                            LinearGradient(colors: [color.opacity(0.4), color.opacity(0.0)], startPoint: .top, endPoint: .bottom)
+                            LinearGradient(colors: role.gradientColors, startPoint: .top, endPoint: .bottom)
                                 .frame(height: 300)
                                 .padding(.top, -100)
                                 .zIndex(10)
@@ -125,14 +118,7 @@ struct ArticleView: View {
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             let role = reference.role
-                            let color: Color = switch role {
-                            case .sampleCode:
-                                Color.sampleCode
-                            case .article:
-                                Color.article
-                            default:
-                                Color.blue
-                            }
+                            let color: Color = role?.color ?? .accentColor
                             
                             Group {
                                 if let url = reference.shareUrl {

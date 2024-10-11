@@ -7,6 +7,7 @@
 // swiftlint:disable line_length
 
 import Foundation
+import SwiftUI
 
 struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
@@ -480,6 +481,7 @@ struct Reference: Codable, Hashable {
         case overview
         case sampleCode
         case symbol
+        case framework
         case codeListing
         case link
         case dictionarySymbol
@@ -487,6 +489,30 @@ struct Reference: Codable, Hashable {
         case task
         case subsection
         case unknown
+        
+        var color: Color? {
+            switch self {
+            case .sampleCode:
+                .sampleCode
+            case .collection, .collectionGroup:
+                    .collectionGroup
+            default:
+                nil
+            }
+        }
+        
+        var gradientColors: [Color] {
+            var color = color ?? .article
+            
+            switch self {
+            case .collection, .collectionGroup:
+                color = color.opacity(2)
+            default:
+                break
+            }
+            
+            return [color.opacity(0.4), color.opacity(0.0)]
+        }
                 
         var labelIcon: SFSymbol {
             switch self {

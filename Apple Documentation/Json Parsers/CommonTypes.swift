@@ -473,56 +473,57 @@ struct Reference: Codable, Hashable {
         let url: String
         let traits: [String]
     }
+}
+
+// MARK: Role
+enum Role: String, Codable {
+    case collectionGroup
+    case collection
+    case article
+    case overview
+    case sampleCode
+    case symbol
+    case framework
+    case codeListing
+    case link
+    case dictionarySymbol
+    case pseudoSymbol
+    case task
+    case subsection
+    case unknown
     
-    enum Role: String, Codable {
-        case collectionGroup
-        case collection
-        case article
-        case overview
-        case sampleCode
-        case symbol
-        case framework
-        case codeListing
-        case link
-        case dictionarySymbol
-        case pseudoSymbol
-        case task
-        case subsection
-        case unknown
+    var color: Color? {
+        switch self {
+        case .sampleCode:
+            .sampleCode
+        case .collection, .collectionGroup:
+                .collectionGroup
+        default:
+            nil
+        }
+    }
+    
+    var gradientColors: [Color] {
+        var color = color ?? .article
         
-        var color: Color? {
-            switch self {
-            case .sampleCode:
-                .sampleCode
-            case .collection, .collectionGroup:
-                    .collectionGroup
-            default:
-                nil
-            }
+        switch self {
+        case .collection, .collectionGroup:
+            color = color.opacity(2)
+        default:
+            break
         }
         
-        var gradientColors: [Color] {
-            var color = color ?? .article
+        return [color.opacity(0.4), color.opacity(0.0)]
+    }
             
-            switch self {
-            case .collection, .collectionGroup:
-                color = color.opacity(2)
-            default:
-                break
-            }
-            
-            return [color.opacity(0.4), color.opacity(0.0)]
-        }
-                
-        var labelIcon: SFSymbol {
-            switch self {
-            case .collectionGroup, .collection:
-                    .listBullet
-            case .sampleCode, .symbol:
-                    .curlybraces
-            default:
-                    .docText
-            }
+    var labelIcon: SFSymbol {
+        switch self {
+        case .collectionGroup, .collection:
+                .listBullet
+        case .sampleCode, .symbol:
+                .curlybraces
+        default:
+                .docText
         }
     }
 }

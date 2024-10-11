@@ -46,7 +46,7 @@ struct Framework: Codable {
 
     struct Metadata: Codable {
         let title: String
-        let role: String
+        let role: Role
         let images: [ImageStruct]?
         let platforms: [Platform]?
         let modules: [Module]?

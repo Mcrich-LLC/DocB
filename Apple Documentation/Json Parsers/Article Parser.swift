@@ -35,7 +35,7 @@ struct Article: Codable {
     
     struct Metadata: Codable {
         // Role
-        let role: String
+        let role: Role
         let roleHeading: String?
         
         // Other Data

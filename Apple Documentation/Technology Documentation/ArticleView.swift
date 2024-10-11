@@ -94,12 +94,10 @@ struct ArticleView: View {
                     .padding(.top, 15)
                     .padding([.horizontal, .bottom], 25)
                     .background(alignment: .top) {
-                        if let role = reference.role {
-                            LinearGradient(colors: role.gradientColors, startPoint: .top, endPoint: .bottom)
-                                .frame(height: 300)
-                                .padding(.top, -100)
-                                .zIndex(10)
-                        }
+                        LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
+                            .frame(height: 300)
+                            .padding(.top, -100)
+                            .zIndex(10)
                     }
                     .toolbar {
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
@@ -117,8 +115,8 @@ struct ArticleView: View {
                         }  
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let role = reference.role
-                            let color: Color = role?.color ?? .accentColor
+                            let role = article.metadata.role
+                            let color: Color = role.color ?? .accentColor
                             
                             Group {
                                 if let url = reference.shareUrl {

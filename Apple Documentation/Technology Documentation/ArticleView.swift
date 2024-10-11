@@ -184,6 +184,7 @@ struct ArticleView: View {
                 if let roleHeading = article.metadata.roleHeading {
                     Text(roleHeading)
                         .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
                 }
                 HeadingBadge(article.metadata)
             }
@@ -198,6 +199,7 @@ struct ArticleView: View {
             Text(article.metadata.title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
+                .textSelection(.enabled)
                 .onScrollVisibilityChange { isVisible in
                     if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.abstract == nil && article.metadata.platforms == nil {
                         setToolbarVisibility(!isVisible)
@@ -206,6 +208,7 @@ struct ArticleView: View {
             
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
+                    .textSelection(.enabled)
                     .onScrollVisibilityChange { isVisible in
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.metadata.platforms == nil {
                             setToolbarVisibility(!isVisible)

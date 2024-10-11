@@ -88,10 +88,6 @@ struct ArticleContentView: View {
                 if let code = inContent.code {
                     string.append(code)
                 }
-            case .emphasis:
-                let str = getEmphasisString(inContent)
-                
-                string.append(str)
             default:
                 if let text = inContent.text {
                     string.append(text)
@@ -138,22 +134,22 @@ struct ArticleContentView: View {
                 
                 Text(specialStyleString(text))
                     .font(font)
-                    .bold()
+                    .bold().textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 10)
             }
         case .paragraph:
             if let text = content.text {
-                Text(specialStyleString(text))
+                Text(specialStyleString(text)).textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         case .text:
             if let text = content.text {
-                Text(specialStyleString(text))
+                Text(specialStyleString(text)).textSelection(.enabled)
             }
         case .strong:
             if let text = content.text {
-                Text(specialStyleString(text))
+                Text(specialStyleString(text)).textSelection(.enabled)
                     .bold()
             }
         case .image:
@@ -253,6 +249,7 @@ struct ArticleContentView: View {
                     let string = getEmphasisString(inline)
                     
                     Text(string).italic()
+                        .textSelection(.enabled)
                 }
             }
         case .codeListing:
@@ -261,6 +258,7 @@ struct ArticleContentView: View {
                     CodeText(code.joined(separator: "\n"))
                         .highlightLanguage(.swift)
                         .codeTextColors(.theme(.xcode))
+                        .textSelection(.enabled)
                         .font(.subheadline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -274,10 +272,12 @@ struct ArticleContentView: View {
             let attributedString = getCodeString(content.code ?? [])
             
             Text(attributedString)
+                .textSelection(.enabled)
         case .codeVoice:
             let attributedString = getCodeString(content.code ?? [])
             
             Text(attributedString)
+                .textSelection(.enabled)
         case .links:
             if let linkItems = content.linkItems, let Style = content.style {
                 LinksGridListView(identifiers: linkItems, style: Style, article: article)
@@ -377,7 +377,7 @@ struct ArticleContentView: View {
         var text: Text = Text(specialStyleString(""))
         
         func appendText() {
-            views.append(.init(text.frame(maxWidth: .infinity, alignment: .leading)))
+            views.append(.init(text.textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)))
             text = Text(specialStyleString(""))
         }
         

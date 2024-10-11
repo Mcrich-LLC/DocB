@@ -50,16 +50,7 @@ struct ArticleContentView: View {
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        guard let reference = article.references[identifier], let variants = reference.variants else {
-            return nil
-        }
-        if let darkVariant = variants.first(where: { $0.traits.contains("dark") }), colorScheme == .dark, let url = URL(string: darkVariant.url) {
-            return url
-        } else if let lightVariant = variants.first, let url = URL(string: lightVariant.url) {
-            return url
-        }
-        
-        return nil
+        return article.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme)
     }
     
     func getReferenceText(for identifier: String) -> Text? {
@@ -283,35 +274,8 @@ struct ArticleContentView: View {
             
             Text(attributedString)
         case .links:
-            switch content.style {
-            case .compactGrid:
-                WrappingHStack(alignment: .topLeading) {
-                    ForEach(content.linkItems ?? [], id: \.self) { identifier in
-                        if let reference = article.references[identifier],
-                            let title = reference.title,
-                            let imageId = reference.images?.first?.identifier,
-                           let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-                            
-                            let imageUrl = fetchPhotoVideoURL(for: imageId)
-                            
-                            Link(destination: openUrl) {
-                                VStack(alignment: .leading) {
-                                    KFImage(imageUrl)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                                    
-                                    Text(title)
-                                        .foregroundStyle(Color.primary)
-                                        .multilineTextAlignment(.leading)
-                                }
-                                .frame(maxWidth: 300)
-                            }
-                        }
-                    }
-                }
-            default:
-                EmptyView()
+            if let linkItems = content.linkItems, let Style = content.style {
+                LinksGridListView(identifiers: linkItems, style: Style, article: article)
             }
         default:
             EmptyView()

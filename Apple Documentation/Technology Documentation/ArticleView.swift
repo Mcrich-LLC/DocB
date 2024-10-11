@@ -34,6 +34,13 @@ struct ArticleView: View {
                         Heading(article)
                             .padding(.bottom, 15)
                             .id(ScrollIdentifier.header)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(alignment: .top) {
+                                LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
+                                    .padding(.top, -100)
+                                    .padding(.horizontal, -25)
+                                    .zIndex(10)
+                            }
 
                         LazyVStack(alignment: .leading) {
                             // Main Content
@@ -93,12 +100,6 @@ struct ArticleView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top, 15)
                     .padding([.horizontal, .bottom], 25)
-                    .background(alignment: .top) {
-                        LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
-                            .frame(height: 300)
-                            .padding(.top, -100)
-                            .zIndex(10)
-                    }
                     .toolbar {
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                             ToolbarItemGroup(placement: .navigation) {

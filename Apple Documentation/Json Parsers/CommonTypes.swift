@@ -496,24 +496,24 @@ enum Role: String, Codable {
         switch self {
         case .sampleCode:
             .sampleCode
-        case .collection, .collectionGroup:
-                .collectionGroup
+        case .collectionGroup:
+            .collectionGroup
+        case .collection:
+            .collection
         default:
             nil
         }
     }
     
     var gradientColors: [Color] {
-        var color = color ?? .article
+        let color = color ?? .article
         
         switch self {
         case .collection, .collectionGroup:
-            color = color.opacity(2)
+            return [color.opacity(2), color.opacity(0.4)]
         default:
-            break
+            return [color.opacity(0.4), color.opacity(0.0)]
         }
-        
-        return [color.opacity(0.4), color.opacity(0.0)]
     }
             
     var labelIcon: SFSymbol {

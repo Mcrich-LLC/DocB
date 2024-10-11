@@ -500,6 +500,8 @@ enum Role: String, Codable {
             .collectionGroup
         case .collection:
             .collection
+        case .symbol:
+                .clear
         default:
             nil
         }

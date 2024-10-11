@@ -31,9 +31,13 @@ struct LinksGridListView: View {
                             VStack(alignment: .leading) {
                                 KFImage(imageUrl)
                                     .placeholder({
-                                        Image(systemSymbol: .photo)
-                                            .resizable()
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .fill(Color.clear)
+                                            .stroke(Color.primary, lineWidth: 2)
                                             .scaledToFit()
+                                            .overlay {
+                                                ProgressView()
+                                            }
                                     })
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)

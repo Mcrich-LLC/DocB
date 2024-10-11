@@ -248,7 +248,6 @@ struct ArticleContentView: View {
                 referenceText
             }
         case .table:
-            // TODO: Implement Content Table Support
             if let rows = content.rows {
                 tableView(rows: rows)
             }
@@ -270,8 +269,6 @@ struct ArticleContentView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-        case .row:
-            // TODO: Implement Content Row Support
             EmptyView()
         case .aside:
             if let style = content.style {
@@ -316,7 +313,7 @@ struct ArticleContentView: View {
             default:
                 EmptyView()
             }
-        case .none:
+        default:
             EmptyView()
         }
     }

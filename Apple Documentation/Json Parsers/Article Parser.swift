@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Article: Decodable {
+struct Article: Codable {
     let metadata: Metadata
     let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]?
@@ -17,7 +17,7 @@ struct Article: Decodable {
     let topicSections: [Framework.TopicSection]?
     let relationshipsSections: [Framework.TopicSection]?
     
-    struct Metadata: Decodable {
+    struct Metadata: Codable {
         // Role
         let role: String
         let roleHeading: String?

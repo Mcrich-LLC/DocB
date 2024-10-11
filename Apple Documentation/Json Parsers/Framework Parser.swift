@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct Framework: Decodable {
+struct Framework: Codable {
     let topicSections: [TopicSection]?
     let metadata: Metadata
     let references: [String : Reference]
     let legalNotices: LegalNotices
     
-    struct TopicSection: Decodable, Identifiable {
+    struct TopicSection: Codable, Identifiable {
         let id = UUID()
         
         let title: String
@@ -44,14 +44,14 @@ struct Framework: Decodable {
         }
     }
 
-    struct Metadata: Decodable {
+    struct Metadata: Codable {
         let title: String
         let role: String
         let images: [ImageStruct]?
         let platforms: [Platform]?
         let modules: [Module]?
         
-        struct Module: Decodable {
+        struct Module: Codable {
             let name: String
             
         }

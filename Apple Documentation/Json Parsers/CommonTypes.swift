@@ -4,11 +4,11 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length file_length
 
 import Foundation
 
-struct ImageStruct: Decodable, Identifiable, Equatable, Hashable {
+struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let identifier: String
@@ -27,13 +27,13 @@ struct ImageStruct: Decodable, Identifiable, Equatable, Hashable {
     }
 }
 
-struct LegalNotices: Decodable {
+struct LegalNotices: Codable {
     let copyright: String
     let termsOfUse: String
     let privacyPolicy: String
 }
 
-struct ContentStruct: Decodable, Hashable, Identifiable, Equatable {
+struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     let id = UUID()
     
     let text: String?
@@ -61,12 +61,12 @@ struct ContentStruct: Decodable, Hashable, Identifiable, Equatable {
     }
 }
 
-struct Fragment: Decodable, Hashable {
+struct Fragment: Codable, Hashable {
     let text: String
     let kind: String
 }
 
-struct ContentSection: Decodable, Identifiable {
+struct ContentSection: Codable, Identifiable {
     let id = UUID()
     
     let kind: Kind
@@ -93,7 +93,7 @@ struct ContentSection: Decodable, Identifiable {
         self.details = try container.decodeIfPresent(Details.self, forKey: .details)
     }
     
-    enum Kind: String, Decodable {
+    enum Kind: String, Codable {
         case content
         case declarations
         case mentions
@@ -102,7 +102,7 @@ struct ContentSection: Decodable, Identifiable {
         case parameters
     }
     
-    struct Details: Decodable, Identifiable {
+    struct Details: Codable, Identifiable {
         let id = UUID()
         
         let name: String
@@ -120,12 +120,12 @@ struct ContentSection: Decodable, Identifiable {
             self.value = try container.decode([ContentSection.Details.Value].self, forKey: ContentSection.Details.CodingKeys.value)
         }
         
-        struct Value: Decodable {
+        struct Value: Codable {
             let baseType: String
         }
     }
     
-    struct Declaration: Decodable, Identifiable {
+    struct Declaration: Codable, Identifiable {
         let id = UUID()
         let tokens: [Token]
         let languages: [String]
@@ -145,13 +145,13 @@ struct ContentSection: Decodable, Identifiable {
             self.platforms = try container.decode([PlatformName].self, forKey: ContentSection.Declaration.CodingKeys.platforms)
         }
         
-        struct Token: Decodable {
+        struct Token: Codable {
             let text: String
             let kind: String
         }
     }
     
-    struct Content: Decodable, Identifiable, Equatable, Hashable {
+    struct Content: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         let type: ContentType?
         
@@ -187,6 +187,7 @@ struct ContentSection: Decodable, Identifiable {
         // Row
         let numberOfColumns: Int?
         let columns: [Column]?
+        let rows: [[[Content]]]?
         
         enum CodingKeys: CodingKey {
             case type
@@ -202,6 +203,7 @@ struct ContentSection: Decodable, Identifiable {
             case code
             case style
             case content
+            case rows
         }
         
         init(from decoder: any Decoder) throws {
@@ -249,9 +251,51 @@ struct ContentSection: Decodable, Identifiable {
             // Row
             self.numberOfColumns = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.numberOfColumns)
             self.columns = try container.decodeIfPresent([Column].self, forKey: ContentSection.Content.CodingKeys.columns)
+            self.rows = try container.decodeIfPresent([[[Content]]].self, forKey: ContentSection.Content.CodingKeys.rows)
         }
         
-        enum Style: String, Decodable, CaseIterable {
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            try container.encode(type, forKey: .type)
+            try container.encode(identifier, forKey: .identifier)
+            try container.encode(anchor, forKey: .anchor)
+            try container.encode(level, forKey: .level)
+            try container.encode(inlineContent, forKey: .inlineContent)
+            try container.encode(content, forKey: .content)
+            try container.encode(style, forKey: .style)
+            
+            // Text
+            try container.encode(text, forKey: .text)
+            try container.encode(code, forKey: .code)
+            
+            // Lists
+            if type == .termList {
+                try container.encode(termListItems, forKey: .items)
+            }
+            
+            if type == .unorderedList {
+                try container.encode(unorderedListItems, forKey: .items)
+            }
+            
+            if type == .orderedList {
+                try container.encode(orderedListItems, forKey: .items)
+            }
+            
+            if type == .links {
+                try container.encode(linkItems, forKey: .items)
+            }
+            
+            // Tabs
+            try container.encode(tabs, forKey: .tabs)
+            
+            // Row
+            try container.encode(numberOfColumns, forKey: .numberOfColumns)
+            try container.encode(columns, forKey: .columns)
+            try container.encode(rows, forKey: .rows)
+        }
+        
+        enum Style: String, Codable, CaseIterable {
             case compactGrid
             case detailedGrid
             case value
@@ -265,12 +309,12 @@ struct ContentSection: Decodable, Identifiable {
             case note
         }
         
-        struct Column: Decodable, Equatable, Hashable {
+        struct Column: Codable, Equatable, Hashable {
             let size: Int
             let content: [Content]
         }
         
-        struct Tab: Decodable, Equatable, Identifiable, Hashable {
+        struct Tab: Codable, Equatable, Identifiable, Hashable {
             let id = UUID()
             
             let content: [Content]
@@ -284,7 +328,7 @@ struct ContentSection: Decodable, Identifiable {
             
             init(from decoder: any Decoder) throws {
                 let container: KeyedDecodingContainer<ContentSection.Content.Tab.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.Tab.CodingKeys.self)
-                self.content = try container.decode([ContentSection.Content.Tab.Content].self, forKey: ContentSection.Content.Tab.CodingKeys.content)
+                self.content = try container.decode([ContentSection.Content].self, forKey: ContentSection.Content.Tab.CodingKeys.content)
                 self.title = try container.decode(String.self, forKey: ContentSection.Content.Tab.CodingKeys.title)
             }
             
@@ -293,36 +337,7 @@ struct ContentSection: Decodable, Identifiable {
                 self.title = title
             }
             
-            struct Content: Decodable, Equatable, Identifiable, Hashable {
-                let id = UUID()
-                
-                let items: [Item]?
-                let inlineContent: [ContentStruct]?
-                let type: ContentType?
-                
-                let content: [ContentSection.Content]?
-                let style: ContentSection.Content.Style?
-                
-                enum CodingKeys: CodingKey {
-                    case id
-                    case items
-                    case inlineContent
-                    case type
-                    case content
-                    case style
-                }
-                
-                init(from decoder: any Decoder) throws {
-                    let container: KeyedDecodingContainer<ContentSection.Content.Tab.Content.CodingKeys> = try decoder.container(keyedBy: ContentSection.Content.Tab.Content.CodingKeys.self)
-                    self.items = try container.decodeIfPresent([ContentSection.Content.Tab.Item].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.items)
-                    self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.inlineContent)
-                    self.type = try container.decodeIfPresent(ContentType.self, forKey: ContentSection.Content.Tab.Content.CodingKeys.type)
-                    self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.content)
-                    self.style = try container.decodeIfPresent(ContentSection.Content.Style.self, forKey: ContentSection.Content.Tab.Content.CodingKeys.style)
-                }
-            }
-            
-            struct Item: Decodable, Equatable, Identifiable, Hashable {
+            struct Item: Codable, Equatable, Identifiable, Hashable {
                 let id = UUID()
                 
                 let content: [ContentSection.Content]
@@ -339,7 +354,7 @@ struct ContentSection: Decodable, Identifiable {
             }
         }
         
-        struct TermListItem: Decodable, Identifiable, Equatable, Hashable {
+        struct TermListItem: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             let term: Term
             let definition: Definition
@@ -356,16 +371,16 @@ struct ContentSection: Decodable, Identifiable {
                 self.definition = try container.decode(ContentSection.Content.TermListItem.Definition.self, forKey: ContentSection.Content.TermListItem.CodingKeys.definition)
             }
             
-            struct Definition: Decodable, Equatable, Hashable {
+            struct Definition: Codable, Equatable, Hashable {
                 let content: [ContentSection.Content]
             }
             
-            struct Term: Decodable, Equatable, Hashable {
+            struct Term: Codable, Equatable, Hashable {
                 let inlineContent: [ContentStruct]
             }
         }
         
-        struct UnorderedListItem: Decodable, Identifiable, Equatable, Hashable {
+        struct UnorderedListItem: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
             let content: [ContentSection.Content]?
@@ -383,7 +398,7 @@ struct ContentSection: Decodable, Identifiable {
     }
 }
 
-struct Reference: Decodable, Hashable {
+struct Reference: Codable, Hashable {
     let title: String?
     let abstract: [ContentStruct]?
     let identifier: String
@@ -453,12 +468,12 @@ struct Reference: Decodable, Hashable {
         self.images = try container.decodeIfPresent([ImageStruct].self, forKey: .images)
     }
     
-    struct Variant: Decodable, Hashable {
+    struct Variant: Codable, Hashable {
         let url: String
         let traits: [String]
     }
     
-    enum Role: String, Decodable {
+    enum Role: String, Codable {
         case collectionGroup
         case collection
         case article
@@ -488,7 +503,7 @@ struct Reference: Decodable, Hashable {
 
 // MARK: Content Types
 
-enum ContentType: String, Decodable, Equatable, Hashable {
+enum ContentType: String, Codable, Equatable, Hashable {
     case heading
     case paragraph
     case text
@@ -511,7 +526,7 @@ enum ContentType: String, Decodable, Equatable, Hashable {
 }
 
 // MARK: Platforms
-enum PlatformName: String, Decodable {
+enum PlatformName: String, Codable {
     case iOS
     case iPadOS
     case macCatalyst = "Mac Catalyst"
@@ -522,7 +537,7 @@ enum PlatformName: String, Decodable {
     case xcode = "Xcode"
 }
 
-struct Platform: Decodable, Identifiable {
+struct Platform: Codable, Identifiable {
     let id = UUID()
     
     let introducedAt: String
@@ -553,4 +568,4 @@ struct Platform: Decodable, Identifiable {
     }
 }
 
-// swiftlint:enable line_length
+// swiftlint:enable line_length file_length

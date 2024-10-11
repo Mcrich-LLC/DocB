@@ -35,7 +35,7 @@ struct Technologies: Decodable {
         }
     }
     
-    struct CommonTechnologiesSection: Decodable {
+    struct CommonTechnologiesSection: Codable {
         let kind: String
         
         // Header
@@ -47,14 +47,14 @@ struct Technologies: Decodable {
         let groups: [Technology]?
     }
     
-    struct Header: Decodable {
+    struct Header: Codable {
         let backgroundImage: String
         let image: String
         let title: String
         let kind: String
     }
     
-    struct Technology: Decodable, Identifiable {
+    struct Technology: Codable, Identifiable {
         let id = UUID()
         
         let name: String
@@ -78,7 +78,7 @@ struct Technologies: Decodable {
         }
     }
     
-    struct FrameworkSection: Decodable, Identifiable, Hashable {
+    struct FrameworkSection: Codable, Identifiable, Hashable {
         let id = UUID()
         
         let languages: [String]
@@ -109,7 +109,7 @@ struct Technologies: Decodable {
             self.destination = destination
         }
         
-        struct Destination: Decodable, Hashable {
+        struct Destination: Codable, Hashable {
             let type: String
             let isActive: Bool
             let identifier: String

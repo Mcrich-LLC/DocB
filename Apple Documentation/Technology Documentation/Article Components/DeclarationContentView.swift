@@ -19,6 +19,10 @@ struct DeclarationContentView: View {
     var body: some View {
         GroupBox {
             CodeText(code)
+                .highlightLanguage(.swift)
+                .codeTextColors(.theme(.xcode))
+                .textSelection(.enabled)
+                .foregroundStyle(Color.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

@@ -259,8 +259,9 @@ struct ArticleContentView: View {
                         .highlightLanguage(.swift)
                         .codeTextColors(.theme(.xcode))
                         .textSelection(.enabled)
-                        .font(.subheadline)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.primary)
                 }
             }
             EmptyView()

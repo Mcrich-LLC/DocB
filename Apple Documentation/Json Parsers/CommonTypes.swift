@@ -510,7 +510,7 @@ enum Role: String, Codable {
         
         switch self {
         case .collection, .collectionGroup:
-            return [color.opacity(2), color.opacity(0.4)]
+            return [color.opacity(2), color.opacity(0.0)]
         default:
             return [color.opacity(0.4), color.opacity(0.0)]
         }

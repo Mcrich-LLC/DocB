@@ -173,6 +173,9 @@ struct ContentSection: Decodable, Identifiable {
         // Inline Content
         let inlineContent: [ContentStruct]?
         
+        // Subcontent
+        let content: [Content]?
+        
         // List
         let termListItems: [TermListItem]?
         let unorderedListItems: [UnorderedListItem]?
@@ -198,7 +201,7 @@ struct ContentSection: Decodable, Identifiable {
             case columns
             case code
             case style
-            
+            case content
         }
         
         init(from decoder: any Decoder) throws {
@@ -208,6 +211,7 @@ struct ContentSection: Decodable, Identifiable {
             self.anchor = try container.decodeIfPresent(String.self, forKey: ContentSection.Content.CodingKeys.anchor)
             self.level = try container.decodeIfPresent(Int.self, forKey: ContentSection.Content.CodingKeys.level)
             self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.CodingKeys.inlineContent)
+            self.content = try container.decodeIfPresent([Content].self, forKey: ContentSection.Content.CodingKeys.content)
             self.style = try container.decodeIfPresent(Style.self, forKey: ContentSection.Content.CodingKeys.style)
             
             // Text
@@ -249,12 +253,16 @@ struct ContentSection: Decodable, Identifiable {
         
         enum Style: String, Decodable, CaseIterable {
             case compactGrid
-            case note
             case detailedGrid
-            case important
             case value
+            
+            // Asides
             case list
             case tip
+            case experiment
+            case warning
+            case important
+            case note
         }
         
         struct Column: Decodable, Equatable, Hashable {
@@ -292,11 +300,16 @@ struct ContentSection: Decodable, Identifiable {
                 let inlineContent: [ContentStruct]?
                 let type: ContentType?
                 
+                let content: [ContentSection.Content]?
+                let style: ContentSection.Content.Style?
+                
                 enum CodingKeys: CodingKey {
                     case id
                     case items
                     case inlineContent
                     case type
+                    case content
+                    case style
                 }
                 
                 init(from decoder: any Decoder) throws {
@@ -304,6 +317,8 @@ struct ContentSection: Decodable, Identifiable {
                     self.items = try container.decodeIfPresent([ContentSection.Content.Tab.Item].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.items)
                     self.inlineContent = try container.decodeIfPresent([ContentStruct].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.inlineContent)
                     self.type = try container.decodeIfPresent(ContentType.self, forKey: ContentSection.Content.Tab.Content.CodingKeys.type)
+                    self.content = try container.decodeIfPresent([ContentSection.Content].self, forKey: ContentSection.Content.Tab.Content.CodingKeys.content)
+                    self.style = try container.decodeIfPresent(ContentSection.Content.Style.self, forKey: ContentSection.Content.Tab.Content.CodingKeys.style)
                 }
             }
             

@@ -80,5 +80,96 @@
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "754C7E23-D662-4285-B70B-4ADFE9D2FD38"
+            shouldBeEnabled = "Yes"
+            condition = "tabItem.content.contains(where: { $0.type == .aside})"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/Technology Documentation/Article Components/ArticleContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "249"
+            endingLineNumber = "249"
+            landmarkName = "typeBody"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "754C7E23-D662-4285-B70B-4ADFE9D2FD38 - 377ae96c6e4e4891"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Apple_Documentation.ContentSection.Content.Tab.Item) -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt; in closure #6 (Apple_Documentation.ContentSection.Content.Tab.Content) -&gt; SwiftUI.TupleView&lt;(Swift.Optional&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.inlineContent(for: Swift.Array&lt;Apple_Documentation.ContentStruct&gt;) -&gt; some&gt;&gt;.0&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content.Tab.Item&gt;, Foundation.UUID, SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt;&gt;&gt;)&gt; in Apple_Documentation.ArticleContentView.typeBody.getter : some"
+                  moduleName = "Apple Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/Article%20Components/ArticleContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "249"
+                  endingLineNumber = "249">
+               </Location>
+               <Location
+                  uuid = "754C7E23-D662-4285-B70B-4ADFE9D2FD38 - 64d8483c3c0c046d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Apple_Documentation.ContentSection.Content) -&gt; Apple_Documentation.ArticleContentView in closure #1 (Apple_Documentation.ContentSection.Content.Tab.Item) -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt; in closure #6 (Apple_Documentation.ContentSection.Content.Tab.Content) -&gt; SwiftUI.TupleView&lt;(Swift.Optional&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.inlineContent(for: Swift.Array&lt;Apple_Documentation.ContentStruct&gt;) -&gt; some&gt;&gt;.0&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content.Tab.Item&gt;, Foundation.UUID, SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt;&gt;&gt;)&gt; in Apple_Documentation.ArticleContentView.typeBody.getter : some"
+                  moduleName = "Apple Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/Article%20Components/ArticleContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "250"
+                  endingLineNumber = "250">
+               </Location>
+               <Location
+                  uuid = "754C7E23-D662-4285-B70B-4ADFE9D2FD38 - d60f8fcdc2b881cc"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Apple_Documentation.ContentSection.Content.Tab.Item) -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt; in closure #6 (Apple_Documentation.ContentSection.Content.Tab.Content) -&gt; SwiftUI.TupleView&lt;(Swift.Optional&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.inlineContent(for: Swift.Array&lt;Apple_Documentation.ContentStruct&gt;) -&gt; some&gt;&gt;.0&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content.Tab.Item&gt;, Foundation.UUID, SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt;&gt;&gt;, Swift.Optional&lt;SwiftUI._ConditionalContent&lt;SwiftUI._ConditionalContent&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.asideViewSwitch(style: Apple_Documentation.ContentSection.Content.Style, content: Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;) -&gt; some&gt;&gt;.0, SwiftUI.EmptyView&gt;, SwiftUI.EmptyView&gt;&gt;)&gt; in Apple_Documentation.ArticleContentView.typeBody.getter : some"
+                  moduleName = "Apple Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/Article%20Components/ArticleContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "249"
+                  endingLineNumber = "249">
+               </Location>
+               <Location
+                  uuid = "754C7E23-D662-4285-B70B-4ADFE9D2FD38 - e97089fbbe4dbef7"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Apple_Documentation.ContentSection.Content) -&gt; Apple_Documentation.ArticleContentView in closure #1 (Apple_Documentation.ContentSection.Content.Tab.Item) -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt; in closure #6 (Apple_Documentation.ContentSection.Content.Tab.Content) -&gt; SwiftUI.TupleView&lt;(Swift.Optional&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.inlineContent(for: Swift.Array&lt;Apple_Documentation.ContentStruct&gt;) -&gt; some&gt;&gt;.0&gt;, Swift.Optional&lt;SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content.Tab.Item&gt;, Foundation.UUID, SwiftUI.ForEach&lt;Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;, Foundation.UUID, Apple_Documentation.ArticleContentView&gt;&gt;&gt;, Swift.Optional&lt;SwiftUI._ConditionalContent&lt;SwiftUI._ConditionalContent&lt;&lt;&lt;opaque return type of Apple_Documentation.ArticleContentView.asideViewSwitch(style: Apple_Documentation.ContentSection.Content.Style, content: Swift.Array&lt;Apple_Documentation.ContentSection.Content&gt;) -&gt; some&gt;&gt;.0, SwiftUI.EmptyView&gt;, SwiftUI.EmptyView&gt;&gt;)&gt; in Apple_Documentation.ArticleContentView.typeBody.getter : some"
+                  moduleName = "Apple Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/Article%20Components/ArticleContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "250"
+                  endingLineNumber = "250">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "6EFB85E4-E417-4B72-BA92-F93705DC3CD5"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/Technology Documentation/Article Components/ArticleContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "221"
+            endingLineNumber = "221"
+            landmarkName = "typeBody"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

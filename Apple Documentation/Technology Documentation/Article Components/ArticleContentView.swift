@@ -376,6 +376,7 @@ struct ArticleContentView: View {
         VStack {
             Text(title.capitalized)
                 .font(.title3)
+                .foregroundStyle(color)
                 .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
             

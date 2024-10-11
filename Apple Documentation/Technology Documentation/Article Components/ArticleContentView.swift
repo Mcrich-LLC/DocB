@@ -241,34 +241,6 @@ struct ArticleContentView: View {
                 
                 ForEach(tabSelection.content) { tabContents in
                     ArticleContentView(content: tabContents, article: article)
-//                    if let inlineContent = tabContents.inlineContent {
-//                        self.inlineContent(for: inlineContent)
-//                    }
-//                    
-//                    if let items = tabContents.items {
-//                        ForEach(items) { tabItem in
-//                            ForEach(tabItem.content) { content in
-//                                ArticleContentView(content: content, article: self.article, from: tabContents.type)
-//                            }
-//                        }
-//                    }
-//                    
-//                    if let type = tabContents.type {
-//                        switch type {
-//                        case .aside:
-//                            if let content = tabContents.content, let style = tabContents.style {
-//                                asideViewSwitch(style: style, content: content)
-//                            } else {
-//                                EmptyView()
-//                            }
-//                        case .table:
-//                            if let rows = content.rows {
-//                                tableView(rows: rows)
-//                            }
-//                        default:
-//                            EmptyView()
-//                        }
-//                    }
                 }
             }
         case .reference:

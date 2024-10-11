@@ -12,6 +12,7 @@ struct TechnologyRootView: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let frameworkSection: Technologies.FrameworkSection
+    @Binding var searchText: String
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -55,7 +56,13 @@ struct TechnologyRootView: View {
             Text("No documentation available for \(framework.metadata.title)")
         } else {
             List {
-
+                if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                    Section {
+                        EmptyView()
+                            .listRowSeparator(.hidden)
+                    }
+                }
+                
                 Section {
                     FrameworkListItem(reference: frameworkReference, title: frameworkSection.title)
                         .listRowBackground(Color.clear)
@@ -65,7 +72,7 @@ struct TechnologyRootView: View {
                 ForEach(framework.topicSections ?? []) { section in
                     Section(section.title) {
                         ForEach(section.identifiers, id: \.self) { identifier in
-                            if let reference = framework.references[identifier], let title = reference.title {
+                            if let reference = framework.references[identifier], let title = reference.title, (searchText.isEmpty || title.lowercased().contains(searchText.lowercased())) {
                                 FrameworkListItem(reference: reference, title: title)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)

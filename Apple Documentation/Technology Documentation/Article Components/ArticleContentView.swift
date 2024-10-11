@@ -322,8 +322,38 @@ struct ArticleContentView: View {
     }
     
     @ViewBuilder
+    func tableRow(content: [[ContentSection.Content]]) -> some View {
+        HStack {
+            ForEach(content, id: \.self) { contentSlice in
+                if contentSlice != content.first {
+                    Spacer()
+                    Divider()
+                    Spacer()
+                }
+                
+                VStack {
+                    ForEach(contentSlice) { item in
+                        ArticleContentView(content: item, article: self.article)
+                    }
+                }
+                .padding(.vertical)
+            }
+        }
+    }
+    
+    @ViewBuilder
     func tableView(rows: [[[ContentSection.Content]]]) -> some View {
-        EmptyView()
+        VStack(spacing: 0) {
+            if let firstRow = rows.first {
+                tableRow(content: firstRow)
+                    .bold()
+            }
+            
+            ForEach(rows.dropFirst(), id: \.self) { row in
+                Divider()
+                tableRow(content: row)
+            }
+        }
     }
     
     @ViewBuilder

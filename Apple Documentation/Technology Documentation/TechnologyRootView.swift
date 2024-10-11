@@ -85,7 +85,7 @@ struct TechnologyRootView: View {
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(uiColor: .systemBackground))
-            .listRowSpacing(0)
+            .listRowSpacing(UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular ? nil : 0)
         }
     }
     

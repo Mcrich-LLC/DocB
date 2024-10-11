@@ -144,6 +144,8 @@ private struct DefaultListItem: View {
     let reference: Reference
     let title: String
     
+    var shouldShowBackground: Bool = true
+    
     var body: some View {
         ReferenceNavigationLinkButton(reference: reference) {
             Label {
@@ -154,6 +156,14 @@ private struct DefaultListItem: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .showBackground(shouldShowBackground)
+    }
+    
+    func showBackground(_ bool: Bool) -> Self {
+        var view = self
+        view.shouldShowBackground = bool
+        
+        return view
     }
 }
 
@@ -188,6 +198,13 @@ private struct FrameworkDisclosureGroup: View {
             }
         } label: {
             DefaultListItem(reference: reference, title: title)
+                .showBackground(false)
+        }
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .padding(-10)
+                .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                .opacity((navigationViewModel.reference == reference) ? 1 : 0)
         }
         .task {
             if framework == nil {

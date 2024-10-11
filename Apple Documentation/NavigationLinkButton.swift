@@ -16,6 +16,8 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     @ViewBuilder
     let label: Content
     
+    var shouldShowBackground: Bool = true
+    
     var body: some View {
         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
             MacOSAgnosticButton {
@@ -41,13 +43,20 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .padding(-10)
                     .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.reference == reference ? 1 : 0)
+                    .opacity((navigationViewModel.reference == reference && shouldShowBackground) ? 1 : 0)
             }
         } else {
             NavigationLink(value: reference) {
                 label
             }
         }
+    }
+    
+    func showBackground(_ bool: Bool) -> Self {
+        var view = self
+        view.shouldShowBackground = bool
+        
+        return view
     }
 }
 

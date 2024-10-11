@@ -497,9 +497,9 @@ enum Role: String, Codable {
         case .sampleCode:
             .sampleCode
         case .collectionGroup:
-            .collectionGroup
+            .collectionGroup.opacity(2)
         case .collection:
-            .collection
+                .collection.opacity(2)
         case .symbol:
                 .clear
         case .article:
@@ -509,15 +509,21 @@ enum Role: String, Codable {
         }
     }
     
+    var accentColor: Color {
+        switch self {
+        case .collection, .symbol:
+                .accentColor
+        case .collectionGroup:
+                .pink
+        default:
+            color ?? .accentColor
+        }
+    }
+    
     var gradientColors: [Color] {
         let color = color ?? .article
         
-        switch self {
-        case .collection, .collectionGroup:
-            return [color.opacity(2), color.opacity(0.0)]
-        default:
-            return [color.opacity(0.4), color.opacity(0.0)]
-        }
+        return [color.opacity(0.4), color.opacity(0.0)]
     }
             
     var labelIcon: SFSymbol {

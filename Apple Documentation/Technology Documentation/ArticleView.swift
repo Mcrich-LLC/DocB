@@ -118,7 +118,7 @@ struct ArticleView: View {
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             let role = article.metadata.role
-                            let color: Color = role.color ?? .accentColor
+                            let color: Color = role.accentColor
                             
                             Group {
                                 if let url = reference.shareUrl {
@@ -135,7 +135,7 @@ struct ArticleView: View {
                                     // TODO: Implement Bookmarks
                                 }
                             }
-                            .foregroundStyle(color)
+                            .tint(color)
                         }
                     }
                     .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)

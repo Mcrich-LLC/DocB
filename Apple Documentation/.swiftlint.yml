@@ -47,6 +47,8 @@ line_length: 200
 type_body_length:
   - 300 # warning
   - 400 # error
+  
+function_body_length: 60
 # or they can set both explicitly
 file_length:
   warning: 600

@@ -4,7 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length file_length
+// swiftlint:disable line_length
 
 import Foundation
 
@@ -568,4 +568,4 @@ struct Platform: Codable, Identifiable {
     }
 }
 
-// swiftlint:enable line_length file_length
+// swiftlint:enable line_length

@@ -512,7 +512,7 @@ enum Role: String, Codable {
     var accentColor: Color {
         switch self {
         case .collection, .symbol:
-                .accentColor
+                .blue
         case .collectionGroup:
                 .pink
         default:

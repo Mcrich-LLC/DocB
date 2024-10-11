@@ -502,6 +502,8 @@ enum Role: String, Codable {
             .collection
         case .symbol:
                 .clear
+        case .article:
+                .article
         default:
             nil
         }

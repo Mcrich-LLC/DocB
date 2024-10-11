@@ -30,6 +30,11 @@ struct LinksGridListView: View {
                         Link(destination: openUrl) {
                             VStack(alignment: .leading) {
                                 KFImage(imageUrl)
+                                    .placeholder({
+                                        Image(systemSymbol: .photo)
+                                            .resizable()
+                                            .scaledToFit()
+                                    })
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .clipShape(RoundedRectangle(cornerRadius: 25))

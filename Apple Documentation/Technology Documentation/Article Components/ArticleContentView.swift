@@ -159,6 +159,11 @@ struct ArticleContentView: View {
         case .image:
             if let identifier = content.identifier {
                 KFImage(fetchPhotoVideoURL(for: identifier))
+                    .placeholder({
+                        Image(systemSymbol: .photo)
+                            .resizable()
+                            .scaledToFit()
+                    })
                     .resizable()
                     .scaledToFit()
             }
@@ -402,6 +407,11 @@ struct ArticleContentView: View {
                 
                 if let identifier = inline.identifier {
                     let image = KFImage(fetchPhotoVideoURL(for: identifier))
+                        .placeholder({
+                            Image(systemSymbol: .photo)
+                                .resizable()
+                                .scaledToFit()
+                        })
                         .resizable()
                         .scaledToFit()
                         .padding(.bottom)

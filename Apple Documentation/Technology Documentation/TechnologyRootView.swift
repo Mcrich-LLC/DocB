@@ -206,12 +206,13 @@ private struct FrameworkDisclosureGroup: View {
         } label: {
             DefaultListItem(reference: reference, title: title)
                 .showBackground(false)
-        }
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .padding(-10)
-                .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                .opacity((navigationViewModel.reference == reference) ? 1 : 0)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .padding(.trailing, -25)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity((navigationViewModel.reference == reference) ? 1 : 0)
+                }
         }
         .task {
             if framework == nil {

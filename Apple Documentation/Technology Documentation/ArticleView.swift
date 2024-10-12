@@ -39,6 +39,7 @@ struct ArticleView: View {
                                     .padding(.top, -120)
                                     .padding(.bottom, -50)
                                     .padding(.horizontal, -200)
+                                    .ignoresSafeArea()
                                     .zIndex(10)
                             }
 
@@ -159,6 +160,9 @@ struct ArticleView: View {
             }
             .id(reference)
             .scrollContentBackground(.hidden)
+            .background(Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
+            )
         }
         .onAppear {
             navigationViewModel.reference = reference

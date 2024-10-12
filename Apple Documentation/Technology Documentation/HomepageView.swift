@@ -12,7 +12,7 @@ struct HomepageView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 20) {
+            LazyVStack(spacing: 60) {
                 ForEach(homepage.sections) { section in
                     switch section.kind {
                     case .hero:

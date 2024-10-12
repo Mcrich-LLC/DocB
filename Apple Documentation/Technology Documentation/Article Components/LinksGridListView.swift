@@ -53,7 +53,7 @@ struct LinksGridListView: View {
                                 
                                 Text(title)
                                     .foregroundStyle(Color.primary)
-                                    .bold()
+                                    .font(.headline)
                                     .multilineTextAlignment(.leading)
                                 
                                 if let abstract = reference.abstract, style == .detailedGrid {

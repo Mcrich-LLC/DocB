@@ -112,17 +112,6 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    var iphoneArticleDestinationBinding: Binding<Reference?> {
-        Binding {
-            guard UIDevice.current.userInterfaceIdiom == .phone else {
-                return nil
-            }
-            return self.reference
-        } set: { reference in
-            self.reference = reference
-        }
-    }
-    
     // Add current state to history
     func addToHistory() {
         guard !isNavigating else { return }

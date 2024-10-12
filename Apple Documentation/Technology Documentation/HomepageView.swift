@@ -26,5 +26,7 @@ struct HomepageView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.homepageBackground)
     }
 }

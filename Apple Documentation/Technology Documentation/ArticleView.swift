@@ -107,7 +107,7 @@ struct ArticleView: View {
                         
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                             ToolbarItemGroup(placement: .navigation) {
-                                Group{
+                                Group {
                                     Button("Backward", systemImage: "chevron.backward") {
                                         navigationViewModel.goBackward()
                                     }
@@ -123,7 +123,6 @@ struct ArticleView: View {
                         }  
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            
                             
                             Group {
                                 if let url = reference.shareUrl {

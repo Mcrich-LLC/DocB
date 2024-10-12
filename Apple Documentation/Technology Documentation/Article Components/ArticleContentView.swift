@@ -158,9 +158,13 @@ struct ArticleContentView: View {
             if let identifier = content.identifier {
                 KFImage(fetchPhotoVideoURL(for: identifier))
                     .placeholder({
-                        Image(systemSymbol: .photo)
-                            .resizable()
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.clear)
+                            .stroke(Color.primary, lineWidth: 2)
                             .scaledToFit()
+                            .overlay {
+                                ProgressView()
+                            }
                     })
                     .resizable()
                     .scaledToFit()

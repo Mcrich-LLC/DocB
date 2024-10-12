@@ -37,7 +37,7 @@ struct ArticleView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(alignment: .top) {
                                 LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
-                                    .padding(.top, -100)
+                                    .padding(.top, -120)
                                     .padding(.bottom, -50)
                                     .padding(.horizontal, -200)
                                     .zIndex(10)

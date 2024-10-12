@@ -27,6 +27,8 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
+    @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
+    
     @Published private var history: [History] = [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
@@ -56,6 +58,10 @@ class NavigationViewModel: ObservableObject, Equatable {
                 self.technology = technology
             }
             path.append(technology)
+            
+#if !(os(macOS) || targetEnvironment(macCatalyst))
+            splitViewColumnVisibility = .all
+            #endif
         }
         
         let articlePath = Array(url.pathComponents.dropFirst(2))

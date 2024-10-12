@@ -39,7 +39,7 @@ struct ContentView: View {
     
     @ViewBuilder
     var navigationSplitView: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             Group {
                 if let selectedTechnology = navigationViewModel.technology {
                     TechnologyRootView(frameworkSection: selectedTechnology)

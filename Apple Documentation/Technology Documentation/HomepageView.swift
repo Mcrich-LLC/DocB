@@ -15,12 +15,9 @@ struct HomepageView: View {
             LazyVStack {
                 ForEach(homepage.sections) { section in
                     switch section.kind {
-                    case .cards: EmptyView()
                     case .hero:
                         HomepageHero(section: section, homepage: homepage)
-                    case .homepageLinks: EmptyView()
                     case .homepageResources: EmptyView()
-                    case .links: EmptyView()
                     case .section:
                         VStack {
                             if let body = section.body {
@@ -38,6 +35,8 @@ struct HomepageView: View {
                                             }
                                         }
                                     }
+                                case .cards: EmptyView()
+                                case .homepageLinks: EmptyView()
                                 default: EmptyView()
                                 }
                             }

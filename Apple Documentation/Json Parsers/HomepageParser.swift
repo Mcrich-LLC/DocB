@@ -32,10 +32,10 @@ struct HomepageParser: Codable, Hashable {
             title = try container.decodeIfPresent(String.self, forKey: .title)
             video = try container.decodeIfPresent(String.self, forKey: .video)
         }
-    }
-    
-    enum Kind: String, Codable {
-        case hero, links, homepageLinks, section, cards, homepageResources
+        
+        enum Kind: String, Codable {
+            case hero, section, homepageResources
+        }
     }
     
     struct Metadata: Codable, Hashable {
@@ -67,8 +67,12 @@ struct HomepageParser: Codable, Hashable {
                 let container: KeyedDecodingContainer<HomepageParser.Body.LinkItem.CodingKeys> = try decoder.container(keyedBy: HomepageParser.Body.LinkItem.CodingKeys.self)
                 self.items = try container.decode([String].self, forKey: HomepageParser.Body.LinkItem.CodingKeys.items)
                 self.style = try container.decode(ContentSection.Content.Style.self, forKey: HomepageParser.Body.LinkItem.CodingKeys.style)
-                self.type = try container.decode(HomepageParser.Kind.self, forKey: HomepageParser.Body.LinkItem.CodingKeys.type)
+                self.type = try container.decode(Kind.self, forKey: HomepageParser.Body.LinkItem.CodingKeys.type)
             }
+        }
+        
+        enum Kind: String, Codable {
+            case links, homepageLinks, cards
         }
         
         struct Card: Codable, Hashable {

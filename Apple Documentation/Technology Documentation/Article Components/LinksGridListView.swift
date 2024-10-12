@@ -22,7 +22,7 @@ struct LinksGridListView: View {
                 ForEach(identifiers, id: \.self) { identifier in
                     if let reference = references[identifier],
                         let title = reference.title,
-                        let imageId = reference.images?.first?.identifier,
+                       let imageId = reference.images?.first(where: { $0.type == .card })?.identifier,
                        let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
                         
                         let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)

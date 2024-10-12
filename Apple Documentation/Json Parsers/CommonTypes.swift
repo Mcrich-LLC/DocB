@@ -13,7 +13,12 @@ struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let identifier: String
-    let type: String
+    let type: ImageType
+    
+    enum ImageType: String, Codable, CaseIterable {
+        case icon
+        case card
+    }
     
     enum CodingKeys: CodingKey {
         case id
@@ -24,7 +29,7 @@ struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.identifier = try container.decode(String.self, forKey: .identifier)
-        self.type = try container.decode(String.self, forKey: .type)
+        self.type = try container.decode(ImageType.self, forKey: .type)
     }
 }
 

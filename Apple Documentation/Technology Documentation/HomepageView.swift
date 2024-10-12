@@ -45,7 +45,9 @@ struct HomepageView: View {
                     }
                 }
             }
+            .padding([.horizontal, .bottom], 25)
         }
+        .lineSpacing(4)
         .scrollContentBackground(.hidden)
         .background(Color.homepageBackground)
     }

@@ -101,24 +101,28 @@ struct ArticleView: View {
                     .padding(.top, 15)
                     .padding([.horizontal, .bottom], 25)
                     .toolbar {
+                        let role = article.metadata.role
+                        let color: Color = role.accentColor
+                        
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
-                            ToolbarItemGroup(placement: .navigation) {
-                                Button("Backward", systemImage: "chevron.backward") {
-                                    navigationViewModel.goBackward()
+                            
+                            // TODO: Decide if Navigation Buttons should be article accent
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                Group {
+                                    Button("Backward", systemImage: "chevron.backward") {
+                                        navigationViewModel.goBackward()
+                                    }
+                                    .disabled(!navigationViewModel.previousHistoryExists)
+                                    
+                                    Button("Forward", systemImage: "chevron.forward") {
+                                        navigationViewModel.goForward()
+                                    }
+                                    .disabled(!navigationViewModel.futureHistoryExists)
                                 }
-                                .disabled(!navigationViewModel.previousHistoryExists)
-                                
-                                Button("Forward", systemImage: "chevron.forward") {
-                                    navigationViewModel.goForward()
-                                }
-                                .disabled(!navigationViewModel.futureHistoryExists)
                             }
-                        }  
+                        }
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let role = article.metadata.role
-                            let color: Color = role.accentColor
-                            
                             Group {
                                 if let url = reference.shareUrl {
                                     ShareLink(item: url) {

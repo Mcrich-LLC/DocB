@@ -91,7 +91,7 @@ private struct Cards: View {
     @ViewBuilder
     func card(_ content: HomepageParser.Body.Card.Content) -> some View {
         if let url = URL(string: content.destination.identifier) {
-            Link(destination: url) {
+            MacOSAgnosticLink(destination: url) {
                 VStack {
                     if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme) {
                         KFImage(imageUrl)
@@ -217,7 +217,7 @@ private struct LinkCapsule: View {
     
     var body: some View {
         if let title, let url {
-            Link(destination: url) {
+            MacOSAgnosticLink(destination: url) {
                 Text(title)
                     .foregroundStyle(Color.purple)
                     .padding(.vertical, 5)

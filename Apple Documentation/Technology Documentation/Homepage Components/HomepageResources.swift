@@ -52,7 +52,7 @@ struct HomepageResources: View {
             }
             
             if let reference = homepage.references[item.destination.identifier], let url = URL(string: reference.identifier), let title = reference.title {
-                Link(destination: url) {
+                MacOSAgnosticLink(destination: url) {
                     HStack {
                         Text(title) + Text(" ") + Text(Image(systemSymbol: .chevronRight))
                     }

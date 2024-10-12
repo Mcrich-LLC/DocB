@@ -13,15 +13,17 @@ import HighlightSwift
 
 struct ArticleContentView: View {
     let content: ContentSection.Content
-    let article: Article
+    let references: [String : Reference]
     let type: ContentType?
     @State var orderedListIndex: Int
+    let alignment: Alignment
     
-    init(content: ContentSection.Content, article: Article, from type: ContentType? = nil, orderedListIndex: Int = 1) {
+    init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
         self.content = content
-        self.article = article
+        self.references = references
         self.type = type
         self.orderedListIndex = orderedListIndex
+        self.alignment = alignment
     }
     
     @State var player: AVPlayer?
@@ -50,11 +52,11 @@ struct ArticleContentView: View {
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        return article.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme)
+        return Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme)
     }
     
     func getReferenceText(for identifier: String) -> Text? {
-        guard let reference = article.references[identifier], let title = reference.title else {
+        guard let reference = references[identifier], let title = reference.title else {
             return nil
         }
         
@@ -135,13 +137,13 @@ struct ArticleContentView: View {
                 Text(specialStyleString(text))
                     .font(font)
                     .bold().textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: self.alignment)
                     .padding(.top, 10)
             }
         case .paragraph:
             if let text = content.text {
                 Text(specialStyleString(text)).textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: self.alignment)
             }
         case .text:
             if let text = content.text {
@@ -175,7 +177,7 @@ struct ArticleContentView: View {
                                 .font(.headline)
                             
                             ForEach(termItem.definition.content) { content in
-                                ArticleContentView(content: content, article: self.article)
+                                ArticleContentView(content: content, references: references, alignment: self.alignment)
                                     .padding(.leading, 15)
                             }
                         }
@@ -188,7 +190,7 @@ struct ArticleContentView: View {
                     if let content = item.content {
                         VStack(spacing: 5) {
                             ForEach(content) { subcontent in
-                                ArticleContentView(content: subcontent, article: self.article, from: .unorderedList)
+                                ArticleContentView(content: subcontent, references: references, from: .unorderedList, alignment: self.alignment)
                                     .padding(.bottom, content.last == subcontent ? 10 : 0)
                             }
                         }
@@ -202,7 +204,7 @@ struct ArticleContentView: View {
                     if let content = item.content {
                         VStack(spacing: 5) {
                             ForEach(content) { subcontent in
-                                ArticleContentView(content: subcontent, article: self.article, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1 )
+                                ArticleContentView(content: subcontent, references: references, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1, alignment: self.alignment)
                                     .padding(.bottom, content.last == subcontent ? 10 : 0)
                             }
                         }
@@ -232,7 +234,7 @@ struct ArticleContentView: View {
                 }
                 
                 ForEach(tabSelection.content) { tabContents in
-                    ArticleContentView(content: tabContents, article: article)
+                    ArticleContentView(content: tabContents, references: references, alignment: self.alignment)
                 }
             }
         case .reference:
@@ -259,7 +261,7 @@ struct ArticleContentView: View {
                         .highlightLanguage(.swift)
                         .codeTextColors(.theme(.xcode))
                         .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: self.alignment)
                         .font(.subheadline)
                         .foregroundStyle(Color.primary)
                 }
@@ -281,7 +283,7 @@ struct ArticleContentView: View {
                 .textSelection(.enabled)
         case .links:
             if let linkItems = content.linkItems, let Style = content.style {
-                LinksGridListView(identifiers: linkItems, style: Style, article: article)
+                LinksGridListView(identifiers: linkItems, style: Style, references: references)
             }
         default:
             EmptyView()
@@ -300,7 +302,7 @@ struct ArticleContentView: View {
                 
                 VStack {
                     ForEach(contentSlice) { item in
-                        ArticleContentView(content: item, article: self.article)
+                        ArticleContentView(content: item, references: references, alignment: self.alignment)
                     }
                 }
                 .padding(.vertical)
@@ -345,11 +347,11 @@ struct ArticleContentView: View {
                 .font(.title3)
                 .foregroundStyle(color)
                 .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: self.alignment)
             
             ForEach(content) { item in
-                ArticleContentView(content: item, article: article)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                ArticleContentView(content: item, references: references, alignment: self.alignment)
+                    .frame(maxWidth: .infinity, alignment: self.alignment)
             }
         }
         .padding()
@@ -378,7 +380,7 @@ struct ArticleContentView: View {
         var text: Text = Text(specialStyleString(""))
         
         func appendText() {
-            views.append(.init(text.textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)))
+            views.append(.init(text.textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
             text = Text(specialStyleString(""))
         }
         

@@ -7,6 +7,46 @@
 
 import SwiftUI
 
+struct HomepageNavigationLinkButton<Content: View>: View {
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    @ViewBuilder
+    let label: Content
+    
+    var shouldShowBackground: Bool = true
+    
+    var body: some View {
+        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+            MacOSAgnosticButton {
+                navigationViewModel.reference = nil
+            } label: {
+                label
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .padding(-10)
+                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
+            }
+        } else {
+            if let homepage = documentationViewModel.homepage {
+                NavigationLink(value: homepage) {
+                    label
+                }
+            }
+        }
+    }
+    
+    func showBackground(_ bool: Bool) -> Self {
+        var view = self
+        view.shouldShowBackground = bool
+        
+        return view
+    }
+}
+
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel

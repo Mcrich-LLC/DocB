@@ -20,7 +20,7 @@ struct TopicsView: View {
                 
                 ForEach(topicSections) { section in
                     Section {
-                        LinksGridListView(identifiers: section.identifiers, style: article.topicSectionsStyle ?? .list, article: article)
+                        LinksGridListView(identifiers: section.identifiers, style: article.topicSectionsStyle ?? .list, references: article.references)
                     } header: {
                         Text(section.title)
                             .font(.title3)

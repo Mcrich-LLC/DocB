@@ -11,7 +11,7 @@ import Kingfisher
 struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style
-    let article: Article
+    let references: [String : Reference]
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -20,12 +20,12 @@ struct LinksGridListView: View {
         case .compactGrid, .detailedGrid:
             WrappingHStack(alignment: .topLeading, horizontalSpacing: 20, verticalSpacing: 20) {
                 ForEach(identifiers, id: \.self) { identifier in
-                    if let reference = article.references[identifier],
+                    if let reference = references[identifier],
                         let title = reference.title,
                         let imageId = reference.images?.first?.identifier,
                        let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
                         
-                        let imageUrl = article.fetchPhotoVideoURL(for: imageId, colorScheme: colorScheme)
+                        let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)
                         
                         MacOSAgnosticLink(destination: openUrl) {
                             VStack(alignment: .leading) {
@@ -61,7 +61,7 @@ struct LinksGridListView: View {
             }
         case .list:
             ForEach(identifiers, id: \.self) { identifier in
-                if let reference = article.references[identifier], reference.title != nil {
+                if let reference = references[identifier], reference.title != nil {
                     ReferenceNavigationLinkButton(reference: reference) {
                         HStack(spacing: 15) {
                             Image(systemSymbol: reference.role?.labelIcon ?? .docText)

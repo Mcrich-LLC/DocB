@@ -50,7 +50,7 @@ struct ArticleView: View {
                                 case .content:
                                     VStack(spacing: 15) {
                                         ForEach(section.content ?? []) { content in
-                                            ArticleContentView(content: content, article: article)
+                                            ArticleContentView(content: content, references: article.references)
                                                 .padding(.top, content.type == .heading ? nil : 0)
                                         }
                                     }
@@ -67,7 +67,7 @@ struct ArticleView: View {
                                 default:
                                     VStack {
                                         ForEach(section.content ?? []) { content in
-                                            ArticleContentView(content: content, article: article)
+                                            ArticleContentView(content: content, references: article.references)
                                                 .padding(.top, content.type == .heading ? nil : 0)
                                         }
                                     }

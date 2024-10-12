@@ -10,6 +10,10 @@ import SwiftUI
 struct HomepageView: View {
     let homepage: HomepageParser
     
+    
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 60) {
@@ -26,6 +30,23 @@ struct HomepageView: View {
             }
             .padding([.horizontal, .bottom], 25)
         }
+        .toolbar(content: {
+            if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    Group {
+                        Button("Backward", systemImage: "chevron.backward") {
+                            navigationViewModel.goBackward()
+                        }
+                        .disabled(!navigationViewModel.previousHistoryExists)
+                        
+                        Button("Forward", systemImage: "chevron.forward") {
+                            navigationViewModel.goForward()
+                        }
+                        .disabled(!navigationViewModel.futureHistoryExists)
+                    }
+                }
+            }
+        })
         .lineSpacing(4)
         .scrollContentBackground(.hidden)
         .background(Color.homepageBackground)

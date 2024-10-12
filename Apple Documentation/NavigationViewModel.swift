@@ -27,11 +27,11 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    @Published private var history: [(technology: Technologies.FrameworkSection?, reference: Reference?)] = []
+    @Published private var history: [History] = [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
-    private var currentIndex = -1
+    private var currentIndex = 0
     private var isNavigating = false
     
     @Published var path: NavigationPath = .init()
@@ -114,8 +114,16 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     // Add current state to history
-    private func addToHistory() {
-        guard let technology, let reference else { return }
+    func addToHistory() {
+        guard !isNavigating else { return }
+        
+        guard let technology, let reference else {
+            if self.technology == nil && self.reference == nil && history.last?.isHomepage == false {
+                history.append(.init(technology: nil, reference: nil, isHomepage: true))
+                currentIndex += 1
+            }
+            return
+        }
         
         // Remove future history if we're adding a new state
         if currentIndex < history.count - 1 {
@@ -137,7 +145,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             return
         }
         
-        history.append((technology, reference))
+        history.append(History(technology: technology, reference: reference, isHomepage: false))
         currentIndex += 1
     }
     
@@ -176,4 +184,12 @@ extension Dictionary {
             updateValue(v, forKey: k)
         }
     }
+}
+
+private struct History: Identifiable {
+    let id = UUID()
+    
+    var technology: Technologies.FrameworkSection?
+    let reference: Reference?
+    let isHomepage: Bool
 }

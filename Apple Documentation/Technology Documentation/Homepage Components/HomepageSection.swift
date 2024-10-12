@@ -150,6 +150,7 @@ private struct Cards: View {
 private struct HomepageLinks: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         VStack {
@@ -168,19 +169,29 @@ private struct HomepageLinks: View {
                 }
             }
             
-            WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
-                if let homepageLinks = section.body?.homepageLinks {
-                    ForEach(homepageLinks) { link in
-                        LinkCapsule(reference: link, references: homepage.references)
+            if (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) {
+                WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
+                    }
+                }
+            } else {
+                VStack {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
                     }
                 }
             }
         }
         .padding()
-        .padding(.horizontal, 30)
-        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .systemBackground)))
+        .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? 30 : 15)
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .ter)))
         .padding(.horizontal)
-        .padding(.horizontal)
+        .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? nil : 0)
     }
 }
 
@@ -188,6 +199,7 @@ private struct LinkCapsule: View {
     @Environment(\.colorScheme) var colorScheme
     let reference: Reference
     let references: [String : Reference]
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var title: String? {
         if let title = reference.title {
@@ -210,6 +222,7 @@ private struct LinkCapsule: View {
                     .foregroundStyle(Color.purple)
                     .padding(.vertical, 5)
                     .padding(.horizontal, 20)
+                    .frame(width: (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? nil : 150)
                     .background(
                         Capsule()
                             .fill(Color.clear)

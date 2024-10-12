@@ -33,7 +33,7 @@ struct HomepageHero: View {
             VStack {
                 if let text = section.title {
                     Text(text)
-                        .font(.title)
+                        .font(.largeTitle)
                         .bold()
                         .foregroundColor(.primary)
                 }

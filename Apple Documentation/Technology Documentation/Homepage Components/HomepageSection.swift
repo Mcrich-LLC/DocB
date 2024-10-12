@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct HomepageSection: View {
     let section: HomepageParser.Section
@@ -17,7 +18,8 @@ struct HomepageSection: View {
                 switch body.kind {
                 case .links:
                     Links(section: section, homepage: homepage)
-                case .cards: EmptyView()
+                case .cards:
+                    Cards(section: section, homepage: homepage)
                 case .homepageLinks:
                     HomepageLinks(section: section, homepage: homepage)
                 }
@@ -35,7 +37,7 @@ private struct Links: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title2)
+                    .font(.title)
                     .bold()
             }
             
@@ -53,6 +55,97 @@ private struct Links: View {
     }
 }
 
+// MARK: Cards
+private struct Cards: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.title)
+                    .bold()
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            
+            WrappingHStack(alignment: .center, horizontalSpacing: 10) {
+                if let outerCards = section.body?.cards {
+                    ForEach(outerCards) { outerCard in
+                        ForEach(outerCard.cards) { card in
+                            self.card(card)
+                                .frame(maxWidth: 400, maxHeight: 600)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func card(_ content: HomepageParser.Body.Card.Content) -> some View {
+        if let url = URL(string: content.destination.identifier) {
+            Link(destination: url) {
+                VStack {
+                    if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme) {
+                        KFImage(imageUrl)
+                            .placeholder({
+                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                                    .fill(Color.clear)
+                                    .stroke(Color.primary, lineWidth: 2)
+                                    .scaledToFill()
+                                    .overlay {
+                                        ProgressView()
+                                    }
+                            })
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(
+                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                            )
+                    }
+                    
+                    VStack {
+                        if let eyebrow = content.eyebrow {
+                            Text(eyebrow)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        
+                        Text(content.title)
+                            .font(.title2)
+                            .bold()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        ForEach(content.content) { con in
+                            ArticleContentView(content: con, references: homepage.references)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .lineLimit(2)
+                        }
+                    }
+                    .multilineTextAlignment(.leading)
+                    .padding()
+                }
+                .frame(maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color(uiColor: .systemBackground))
+                )
+            }
+            .foregroundStyle(Color.primary)
+        }
+    }
+}
+
 // MARK: HomepageLinks
 private struct HomepageLinks: View {
     let section: HomepageParser.Section
@@ -62,7 +155,7 @@ private struct HomepageLinks: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title2)
+                    .font(.title)
                     .foregroundStyle(Color.purple)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)

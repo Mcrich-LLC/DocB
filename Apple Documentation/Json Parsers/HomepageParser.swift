@@ -75,22 +75,42 @@ struct HomepageParser: Codable, Hashable {
             case links, homepageLinks, cards
         }
         
-        struct Card: Codable, Hashable {
+        struct Card: Codable, Hashable, Identifiable {
+            let id = UUID()
+            
             let isFeatured: Bool
             let cards: [Content]
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<HomepageParser.Body.Card.CodingKeys> = try decoder.container(keyedBy: HomepageParser.Body.Card.CodingKeys.self)
+                self.isFeatured = try container.decode(Bool.self, forKey: HomepageParser.Body.Card.CodingKeys.isFeatured)
+                self.cards = try container.decode([HomepageParser.Body.Card.Content].self, forKey: HomepageParser.Body.Card.CodingKeys.cards)
+            }
 
             struct CallToAction: Codable, Hashable {
                 let ide: String?
                 let web: String?
             }
             
-            struct Content: Codable, Hashable {
+            struct Content: Codable, Hashable, Identifiable {
+                let id = UUID()
+                
                 let content: [ContentSection.Content]
                 let eyebrow: String?
                 let destination: Reference
                 let title: String
                 let image: String?
                 let callToAction: CallToAction?
+                
+                init(from decoder: any Decoder) throws {
+                    let container: KeyedDecodingContainer<HomepageParser.Body.Card.Content.CodingKeys> = try decoder.container(keyedBy: HomepageParser.Body.Card.Content.CodingKeys.self)
+                    self.content = try container.decode([ContentSection.Content].self, forKey: HomepageParser.Body.Card.Content.CodingKeys.content)
+                    self.eyebrow = try container.decodeIfPresent(String.self, forKey: HomepageParser.Body.Card.Content.CodingKeys.eyebrow)
+                    self.destination = try container.decode(Reference.self, forKey: HomepageParser.Body.Card.Content.CodingKeys.destination)
+                    self.title = try container.decode(String.self, forKey: HomepageParser.Body.Card.Content.CodingKeys.title)
+                    self.image = try container.decodeIfPresent(String.self, forKey: HomepageParser.Body.Card.Content.CodingKeys.image)
+                    self.callToAction = try container.decodeIfPresent(HomepageParser.Body.Card.CallToAction.self, forKey: HomepageParser.Body.Card.Content.CodingKeys.callToAction)
+                }
             }
         }
     }

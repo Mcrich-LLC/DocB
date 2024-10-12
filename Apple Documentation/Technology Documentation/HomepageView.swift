@@ -17,7 +17,8 @@ struct HomepageView: View {
                     switch section.kind {
                     case .hero:
                         HomepageHero(section: section, homepage: homepage)
-                    case .homepageResources: EmptyView()
+                    case .homepageResources:
+                        HomepageResources(section: section, homepage: homepage)
                     case .section:
                         HomepageSection(section: section, homepage: homepage)
                     }

@@ -43,11 +43,21 @@ struct HomepageParser: Codable, Hashable {
         let role: Role
     }
     
-    struct Resource: Codable, Hashable {
+    struct Resource: Codable, Hashable, Identifiable {
+        let id = UUID()
+        
         let title: String
         let image: String?
         let destination: Reference
         let content: [ContentSection.Content]
+        
+        init(from decoder: any Decoder) throws {
+            let container: KeyedDecodingContainer<HomepageParser.Resource.CodingKeys> = try decoder.container(keyedBy: HomepageParser.Resource.CodingKeys.self)
+            self.title = try container.decode(String.self, forKey: HomepageParser.Resource.CodingKeys.title)
+            self.image = try container.decodeIfPresent(String.self, forKey: HomepageParser.Resource.CodingKeys.image)
+            self.destination = try container.decode(Reference.self, forKey: HomepageParser.Resource.CodingKeys.destination)
+            self.content = try container.decode([ContentSection.Content].self, forKey: HomepageParser.Resource.CodingKeys.content)
+        }
     }
     
     struct Body: Codable, Hashable {

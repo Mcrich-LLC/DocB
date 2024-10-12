@@ -106,7 +106,7 @@ struct ArticleView: View {
                         let color: Color = role.accentColor
                         
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
-                            ToolbarItemGroup(placement: .navigation) {
+                            ToolbarItemGroup(placement: .topBarLeading) {
                                 Group {
                                     Button("Backward", systemImage: "chevron.backward") {
                                         navigationViewModel.goBackward()
@@ -120,7 +120,7 @@ struct ArticleView: View {
                                 }
                                 .tint(color)
                             }
-                        }  
+                        }
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             

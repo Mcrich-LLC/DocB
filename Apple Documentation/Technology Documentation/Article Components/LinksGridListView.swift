@@ -12,13 +12,21 @@ struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style
     let references: [String : Reference]
+    let alignment: Alignment
+    
+    init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], alignment: Alignment = .topLeading) {
+        self.identifiers = identifiers
+        self.style = style
+        self.references = references
+        self.alignment = alignment
+    }
     
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         switch style {
         case .compactGrid, .detailedGrid:
-            WrappingHStack(alignment: .topLeading, horizontalSpacing: 20, verticalSpacing: 20) {
+            WrappingHStack(alignment: alignment, horizontalSpacing: 20, verticalSpacing: 20) {
                 ForEach(identifiers, id: \.self) { identifier in
                     if let reference = references[identifier],
                         let title = reference.title,

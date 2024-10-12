@@ -16,24 +16,7 @@ struct HomepageSection: View {
             if let body = section.body {
                 switch body.kind {
                 case .links:
-                    VStack {
-                        if let title = section.title {
-                            Text(title)
-                                .font(.title2)
-                                .bold()
-                        }
-                        
-                        if let sectionContent = section.content {
-                            ForEach(sectionContent) { content in
-                                ArticleContentView(content: content, references: homepage.references)
-                            }
-                        }
-                        if let links = section.body?.links {
-                            ForEach(links) { link in
-                                LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references)
-                            }
-                        }
-                    }
+                    Links(section: section, homepage: homepage)
                 case .cards: EmptyView()
                 case .homepageLinks:
                     HomepageLinks(section: section, homepage: homepage)
@@ -43,8 +26,35 @@ struct HomepageSection: View {
     }
 }
 
+// MARK: Links
+private struct Links: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.title2)
+                    .bold()
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            if let links = section.body?.links {
+                ForEach(links) { link in
+                    LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references, alignment: .center)
+                }
+            }
+        }
+    }
+}
+
 // MARK: HomepageLinks
-struct HomepageLinks: View {
+private struct HomepageLinks: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
     

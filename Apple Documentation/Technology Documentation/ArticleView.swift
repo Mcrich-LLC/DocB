@@ -97,7 +97,6 @@ struct ArticleView: View {
                                 .id(ScrollIdentifier.seeAlso)
                         }
                     }
-                    .frame(maxWidth: 950, alignment: .top)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 15)
                     .padding([.horizontal, .bottom], 25)

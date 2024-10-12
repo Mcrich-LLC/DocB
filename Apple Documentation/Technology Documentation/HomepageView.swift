@@ -17,36 +17,10 @@ struct HomepageView: View {
                     switch section.kind {
                     case .hero:
                         HomepageHero(section: section, homepage: homepage)
-                    case .homepageResources: EmptyView()
+                    case .homepageResources:
+                        HomepageLinks(section: section, homepage: homepage)
                     case .section:
-                        VStack {
-                            if let title = section.title {
-                                Text(title)
-                                    .font(.title2)
-                                    .bold()
-                            }
-                            
-                            if let sectionContent = section.content {
-                                ForEach(sectionContent) { content in
-                                    ArticleContentView(content: content, references: homepage.references)
-                                }
-                            }
-                            
-                            if let body = section.body {
-                                switch body.kind {
-                                case .links:
-                                    VStack {
-                                        if let links = section.body?.links {
-                                            ForEach(links) { link in
-                                                LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references)
-                                            }
-                                        }
-                                    }
-                                case .cards: EmptyView()
-                                case .homepageLinks: EmptyView()
-                                }
-                            }
-                        }
+                        HomepageSection(section: section, homepage: homepage)
                     }
                 }
             }

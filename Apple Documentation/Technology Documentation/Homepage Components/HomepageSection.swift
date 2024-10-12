@@ -84,8 +84,10 @@ private struct HomepageLinks: View {
             }
         }
         .padding()
-        .padding(.horizontal, 50)
+        .padding(.horizontal, 30)
         .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .systemBackground)))
+        .padding(.horizontal)
+        .padding(.horizontal)
     }
 }
 

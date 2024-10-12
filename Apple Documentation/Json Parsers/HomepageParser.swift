@@ -54,11 +54,21 @@ struct HomepageParser: Codable, Hashable {
         let links: [LinkItem]?
         let cards: [Card]?
         let homepageLinks: [Reference]?
+        let kind: Kind
         
-        struct LinkItem: Codable, Hashable {
+        struct LinkItem: Codable, Hashable, Identifiable {
+            let id = UUID()
+            
             let items: [String]
             let style: ContentSection.Content.Style
             let type: Kind
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<HomepageParser.Body.LinkItem.CodingKeys> = try decoder.container(keyedBy: HomepageParser.Body.LinkItem.CodingKeys.self)
+                self.items = try container.decode([String].self, forKey: HomepageParser.Body.LinkItem.CodingKeys.items)
+                self.style = try container.decode(ContentSection.Content.Style.self, forKey: HomepageParser.Body.LinkItem.CodingKeys.style)
+                self.type = try container.decode(HomepageParser.Kind.self, forKey: HomepageParser.Body.LinkItem.CodingKeys.type)
+            }
         }
         
         struct Card: Codable, Hashable {

@@ -1,0 +1,234 @@
+//
+//  HomepageSection.swift
+//  Apple Documentation
+//
+//  Created by Morris Richman on 10/11/24.
+//
+
+import SwiftUI
+import Kingfisher
+
+struct HomepageSection: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    
+    var body: some View {
+        VStack {
+            if let body = section.body {
+                switch body.kind {
+                case .links:
+                    Links(section: section, homepage: homepage)
+                case .cards:
+                    Cards(section: section, homepage: homepage)
+                case .homepageLinks:
+                    HomepageLinks(section: section, homepage: homepage)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Links
+private struct Links: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.title)
+                    .bold()
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            if let links = section.body?.links {
+                ForEach(links) { link in
+                    LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references, alignment: .top)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Cards
+private struct Cards: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.title)
+                    .bold()
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            
+            WrappingHStack(alignment: .center, horizontalSpacing: 10) {
+                if let outerCards = section.body?.cards {
+                    ForEach(outerCards) { outerCard in
+                        ForEach(outerCard.cards) { card in
+                            self.card(card)
+                                .frame(maxWidth: 400, maxHeight: 600)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func card(_ content: HomepageParser.Body.Card.Content) -> some View {
+        if let url = URL(string: content.destination.identifier) {
+            Link(destination: url) {
+                VStack {
+                    if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme) {
+                        KFImage(imageUrl)
+                            .placeholder({
+                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                                    .fill(Color.clear)
+                                    .stroke(Color.primary, lineWidth: 2)
+                                    .scaledToFill()
+                                    .overlay {
+                                        ProgressView()
+                                    }
+                            })
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(
+                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                            )
+                    }
+                    
+                    VStack {
+                        if let eyebrow = content.eyebrow {
+                            Text(eyebrow)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        
+                        Text(content.title)
+                            .font(.title2)
+                            .bold()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        ForEach(content.content) { con in
+                            ArticleContentView(content: con, references: homepage.references)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .lineLimit(2)
+                        }
+                    }
+                    .multilineTextAlignment(.leading)
+                    .padding()
+                }
+                .frame(maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color(uiColor: .systemBackground))
+                )
+            }
+            .foregroundStyle(Color.primary)
+        }
+    }
+}
+
+// MARK: HomepageLinks
+private struct HomepageLinks: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.title)
+                    .foregroundStyle(Color.purple)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            
+            if (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) {
+                WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
+                    }
+                }
+            } else {
+                VStack {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? 30 : 15)
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .systemBackground)))
+        .padding(.horizontal)
+        .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? nil : 0)
+    }
+}
+
+private struct LinkCapsule: View {
+    @Environment(\.colorScheme) var colorScheme
+    let reference: Reference
+    let references: [String : Reference]
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    
+    var title: String? {
+        if let title = reference.title {
+            return title
+        } else {
+            return references[reference.identifier]?.title
+        }
+    }
+    
+    var url: URL? {
+        let urlString = reference.identifier.replacingOccurrences(of: "https://developer.apple.com", with: "\(Constants.deeplinkScheme)com.apple.documentation")
+        
+        return URL(string: urlString)
+    }
+    
+    var body: some View {
+        if let title, let url {
+            Link(destination: url) {
+                Text(title)
+                    .foregroundStyle(Color.purple)
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 20)
+                    .frame(width: (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? nil : 150)
+                    .background(
+                        Capsule()
+                            .fill(Color.clear)
+                            .stroke(Color.purple, lineWidth: 2)
+                    )
+            }
+        }
+    }
+}

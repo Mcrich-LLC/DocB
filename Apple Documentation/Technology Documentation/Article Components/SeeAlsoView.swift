@@ -19,7 +19,7 @@ struct SeeAlsoView: View {
                 
                 ForEach(seeAlsoSections) { section in
                     Section {
-                        LinksGridListView(identifiers: section.identifiers, style: .list, article: article)
+                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references)
                     } header: {
                         Text(section.title)
                             .font(.title3)

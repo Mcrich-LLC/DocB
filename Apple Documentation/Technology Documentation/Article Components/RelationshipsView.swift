@@ -20,7 +20,7 @@ struct RelationshipsView: View {
                 
                 ForEach(relationshipsSections) { section in
                     Section(header: Text(section.title)) {
-                        LinksGridListView(identifiers: section.identifiers, style: .list, article: article)
+                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

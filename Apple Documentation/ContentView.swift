@@ -29,6 +29,7 @@ struct ContentView: View {
         .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
         .task {
+            await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()
         }
         .onOpenURL { url in
@@ -71,6 +72,8 @@ struct ContentView: View {
         } detail: {
             if let reference = navigationViewModel.reference {
                 ArticleView(reference: reference)
+            } else if let homepage = documentationViewModel.homepage {
+                HomepageView(homepage: homepage)
             }
         }
     }
@@ -94,6 +97,9 @@ struct ContentView: View {
             .navigationDestination(for: Technologies.FrameworkSection.self) { technology in
                 TechnologyRootView(frameworkSection: technology)
             }
+            .navigationDestination(for: HomepageParser.self) { homepage in
+                HomepageView(homepage: homepage)
+            }
 //            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
 //                ArticleView(reference: reference)
 //            }
@@ -102,6 +108,21 @@ struct ContentView: View {
     
     func techView(_ technology: Technologies) -> some View {
         List {
+            Section {
+                HomepageNavigationLinkButton {
+                    HStack {
+                        Text("Discover")
+                        
+                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                            Spacer()
+                            chevron
+                        }
+                    }
+                }
+                .foregroundStyle(Color.primary)
+                .listRowBackground(Color.clear)
+            }
+            
             if let groups = technology.groups {
                 
                 let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
@@ -131,7 +152,6 @@ struct ContentView: View {
                                         .listRowBackground(Color.clear)
                                         .listRowSeparator(.hidden)
                                     }
-                                    
                                 }
                             }
                         }

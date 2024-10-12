@@ -22,6 +22,23 @@ class DocumentationViewModel: ObservableObject {
         return url
     }
     
+    // MARK: Homepage
+    private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
+    @Published var homepage: HomepageParser?
+    
+    func fetchHomepage() async {
+        do {
+            let (data, _) = try await URLSession.shared.data(from: homepageUrl)
+            
+            let homepage = try JSONDecoder().decode(HomepageParser.self, from: data)
+            await MainActor.run {
+                self.homepage = homepage
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     

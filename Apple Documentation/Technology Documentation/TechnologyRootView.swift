@@ -78,7 +78,7 @@ struct TechnologyRootView: View {
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(uiColor: .systemBackground))
-            .listRowSpacing(0)
+            .listRowSpacing(UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular ? nil : 0)
         }
     }
     
@@ -199,12 +199,13 @@ private struct FrameworkDisclosureGroup: View {
         } label: {
             DefaultListItem(reference: reference, title: title)
                 .showBackground(false)
-        }
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .padding(-10)
-                .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                .opacity((navigationViewModel.reference == reference) ? 1 : 0)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .padding(.trailing, -25)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity((navigationViewModel.reference == reference) ? 1 : 0)
+                }
         }
         .task {
             if framework == nil {

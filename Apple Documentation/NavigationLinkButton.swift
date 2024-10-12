@@ -72,7 +72,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
             MacOSAgnosticButton {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = false
-                withAnimation {
+                withAnimation(.snappy) {
                     navigationViewModel.technology = technology
                 }
                 

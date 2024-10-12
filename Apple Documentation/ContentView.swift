@@ -16,7 +16,6 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State var searchText = ""
-    @State var isSearching = false
     
     var body: some View {
         Group {
@@ -41,34 +40,28 @@ struct ContentView: View {
     var navigationSplitView: some View {
         NavigationSplitView {
             Group {
-                if let technologies = documentationViewModel.technologies {
-                    techView(technologies)
-                        .navigationTitle("Documentation")
-                        .navigationBarTitleDisplayMode(.large)
-                        .transition(.move(edge: .leading))
-                        .scaleEffect(navigationViewModel.technology != nil ? 0.6 : 1)
-                        .scrollContentBackground(.hidden)
-                        .background(Color(uiColor: .systemBackground))
-                        .overlay {
-                            if let selectedTechnology = navigationViewModel.technology {
-                                TechnologyRootView(frameworkSection: selectedTechnology, searchText: $searchText)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .background(Color(uiColor: .systemBackground))
-                                    .transition(.move(edge: .trailing))
-                                    .toolbar {
-                                        ToolbarItem(placement: .cancellationAction) {
-                                            Button("All Technologies", systemImage: "chevron.left") {
-                                                withAnimation(.snappy) {
-                                                    navigationViewModel.technology = nil
-                                                }
-                                            }
-                                            .labelStyle(.titleAndIcon)
-                                        }
+                if let selectedTechnology = navigationViewModel.technology {
+                    TechnologyRootView(frameworkSection: selectedTechnology)
+                        .transition(.move(edge: .trailing))
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("All Technologies", systemImage: "chevron.left") {
+                                    withAnimation(.snappy) {
+                                        navigationViewModel.technology = nil
                                     }
+                                }
+                                .labelStyle(.titleAndIcon)
                             }
                         }
                 } else {
-                    ProgressView("Loading")
+                    if let technologies = documentationViewModel.technologies {
+                        techView(technologies)
+                            .navigationTitle("Documentation")
+                            .navigationBarTitleDisplayMode(.large)
+                            .transition(.move(edge: .leading))
+                    } else {
+                        ProgressView("Loading")
+                    }
                 }
             }
             .navigationSplitViewColumnWidth(390)
@@ -98,7 +91,7 @@ struct ContentView: View {
                 ArticleView(reference: reference)
             }
             .navigationDestination(for: Technologies.FrameworkSection.self) { technology in
-                TechnologyRootView(frameworkSection: technology, searchText: $searchText)
+                TechnologyRootView(frameworkSection: technology)
             }
 //            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
 //                ArticleView(reference: reference)
@@ -154,7 +147,7 @@ struct ContentView: View {
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .background(Color(uiColor: .systemBackground))
-        .searchable(text: $searchText, isPresented: $isSearching)
+        .searchable(text: $searchText)
     }
     
     func isVisibleForSearch(_ technology: Technologies.FrameworkSection) -> Bool {

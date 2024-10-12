@@ -45,7 +45,7 @@ struct ContentView: View {
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("All Technologies", systemImage: "chevron.left") {
+                                Button("Back", systemImage: "chevron.left") {
                                     withAnimation(.snappy) {
                                         navigationViewModel.technology = nil
                                     }
@@ -64,7 +64,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationSplitViewColumnWidth(390)
+            .frame(minWidth: 290)
+            .navigationSplitViewColumnWidth(min: 290, ideal: 380)
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
             .environment(\.horizontalSizeClass, horizontalSizeClass)
         } detail: {
@@ -118,16 +119,17 @@ struct ContentView: View {
                                         TechnologyNavigationLinkButton(technology: technology) {
                                             HStack {
                                                 Text(technology.title)
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
                                                 
                                                 if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
-                                                    Spacer()
                                                     chevron
                                                 }
                                             }
+                                            .contentShape(Rectangle())
                                         }
                                         .foregroundStyle(Color.primary)
                                         .listRowBackground(Color.clear)
-                                        
+                                        .listRowSeparator(.hidden)
                                     }
                                     
                                 }

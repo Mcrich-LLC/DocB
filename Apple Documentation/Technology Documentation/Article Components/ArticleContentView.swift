@@ -61,11 +61,22 @@ struct ArticleContentView: View {
         let attributes: [NSAttributedString.Key: Any]
         
         if let url = URL(string: identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-            attributes = [
-                .foregroundColor: UIColor.accent,
-                .underlineStyle : 0,
-                .link: url
-            ]
+            let role = reference.role ?? .article
+            
+            if role == .symbol {
+                attributes = [
+                    .foregroundColor: UIColor.accent,
+                    .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium),
+                    .underlineStyle : 0,
+                    .link: url
+                ]
+            } else {
+                attributes = [
+                    .foregroundColor: UIColor.accent,
+                    .underlineStyle : 0,
+                    .link: url
+                ]
+            }
         } else {
             attributes = [:]
         }
@@ -172,7 +183,7 @@ struct ArticleContentView: View {
                     ForEach(termListItems) { termItem in
                         VStack {
                             inlineContent(for: termItem.term.inlineContent)
-                                .font(.headline)
+                                .fontWeight(.semibold)
                             
                             ForEach(termItem.definition.content) { content in
                                 ArticleContentView(content: content, article: self.article)
@@ -342,10 +353,11 @@ struct ArticleContentView: View {
     func asideView(color: Color, title: String, content: [ContentSection.Content]) -> some View {
         VStack {
             Text(title.capitalized)
-                .font(.title3)
+                .font(.headline)
+                .fontWeight(.semibold)
                 .foregroundStyle(color)
-                .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 5)
             
             ForEach(content) { item in
                 ArticleContentView(content: item, article: article)
@@ -354,9 +366,9 @@ struct ArticleContentView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(color.opacity(0.1))
-                .stroke(color, lineWidth: 2)
+                .stroke(color.opacity(0.5), lineWidth: 1)
         )
     }
     

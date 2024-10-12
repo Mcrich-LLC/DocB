@@ -96,19 +96,32 @@ struct LinksGridListView: View {
         if reference.role == .symbol {
             let nsAttributedString: NSMutableAttributedString = .init()
             
-            let fragments: String = (reference.fragments ?? []).dropLast().map({ $0.text }).joined()
-            let fragmentAttributes: [NSAttributedString.Key: Any] = [
-                .foregroundColor: UIColor.accent,
-                .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
-            ]
-            let fragmentAttributedString = NSAttributedString(string: fragments, attributes: fragmentAttributes)
-            nsAttributedString.append(fragmentAttributedString)
+            if let fragments = reference.fragments {
+                for fragment in fragments {
+                    
+                    let fragmentAttributes: [NSAttributedString.Key: Any] = switch fragment.kind {
+                    case "identifier":
+                        [
+                            .foregroundColor: UIColor.accent,
+                            .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+                        ]
+                    default:
+                        [
+                            .foregroundColor: UIColor.secondaryLabel,
+                            .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+                        ]
+                    }
+                    let fragmentAttributedString = NSAttributedString(string: fragment.text, attributes: fragmentAttributes)
+                    
+                    nsAttributedString.append(fragmentAttributedString)
+                }
+            }
             
             return AttributedString(nsAttributedString)
         } else {
             let nsAttributedString: NSMutableAttributedString = .init()
             
-            let fragments: String = (reference.fragments ?? []).dropLast().map({ $0.text }).joined()
+            let fragments: String = (reference.fragments ?? []).map({ $0.text }).joined()
             let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.label]
             let fragmentAttributedString = NSAttributedString(string: fragments, attributes: fragmentAttributes)
             nsAttributedString.append(fragmentAttributedString)

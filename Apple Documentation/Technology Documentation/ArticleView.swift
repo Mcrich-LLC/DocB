@@ -38,8 +38,8 @@ struct ArticleView: View {
                             .background(alignment: .top) {
                                 LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
                                     .padding(.top, -100)
-                                    .padding(.bottom, -30)
-                                    .padding(.horizontal, -25)
+                                    .padding(.bottom, -50)
+                                    .padding(.horizontal, -200)
                                     .zIndex(10)
                             }
 
@@ -100,25 +100,30 @@ struct ArticleView: View {
                     .frame(maxWidth: 950, alignment: .top)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 15)
-                    .padding([.horizontal, .bottom], 25)
+                    .padding([.horizontal, .bottom], 30)
                     .toolbar {
+                        let role = article.metadata.role
+                        let color: Color = role.accentColor
+                        
                         if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
                             ToolbarItemGroup(placement: .navigation) {
-                                Button("Backward", systemImage: "chevron.backward") {
-                                    navigationViewModel.goBackward()
+                                Group{
+                                    Button("Backward", systemImage: "chevron.backward") {
+                                        navigationViewModel.goBackward()
+                                    }
+                                    .disabled(!navigationViewModel.previousHistoryExists)
+                                    
+                                    Button("Forward", systemImage: "chevron.forward") {
+                                        navigationViewModel.goForward()
+                                    }
+                                    .disabled(!navigationViewModel.futureHistoryExists)
                                 }
-                                .disabled(!navigationViewModel.previousHistoryExists)
-                                
-                                Button("Forward", systemImage: "chevron.forward") {
-                                    navigationViewModel.goForward()
-                                }
-                                .disabled(!navigationViewModel.futureHistoryExists)
+                                .tint(color)
                             }
                         }  
                         
                         ToolbarItemGroup(placement: .topBarTrailing) {
-                            let role = article.metadata.role
-                            let color: Color = role.accentColor
+                            
                             
                             Group {
                                 if let url = reference.shareUrl {

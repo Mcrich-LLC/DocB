@@ -12,7 +12,7 @@ struct HomepageView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack {
+            LazyVStack(spacing: 20) {
                 ForEach(homepage.sections) { section in
                     switch section.kind {
                     case .hero:
@@ -20,15 +20,22 @@ struct HomepageView: View {
                     case .homepageResources: EmptyView()
                     case .section:
                         VStack {
+                            if let title = section.title {
+                                Text(title)
+                                    .font(.title2)
+                                    .bold()
+                            }
+                            
+                            if let sectionContent = section.content {
+                                ForEach(sectionContent) { content in
+                                    ArticleContentView(content: content, references: homepage.references)
+                                }
+                            }
+                            
                             if let body = section.body {
                                 switch body.kind {
                                 case .links:
                                     VStack {
-                                        if let title = section.title {
-                                            Text(title)
-                                                .font(.title2)
-                                                .bold()
-                                        }
                                         if let links = section.body?.links {
                                             ForEach(links) { link in
                                                 LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references)
@@ -37,7 +44,6 @@ struct HomepageView: View {
                                     }
                                 case .cards: EmptyView()
                                 case .homepageLinks: EmptyView()
-                                default: EmptyView()
                                 }
                             }
                         }

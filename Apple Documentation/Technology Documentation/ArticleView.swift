@@ -10,7 +10,6 @@ import SwiftUI
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
     let reference: Reference
@@ -105,7 +104,7 @@ struct ArticleView: View {
                         let role = article.metadata.role
                         let color: Color = role.accentColor
                         
-                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                        if navigationViewModel.isUsingSplitView {
                             ToolbarItemGroup(placement: .topBarLeading) {
                                 Group {
                                     Button("Backward", systemImage: "chevron.backward") {
@@ -191,7 +190,7 @@ struct ArticleView: View {
                 .fontWeight(.bold)
                 .textSelection(.enabled)
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.abstract == nil && article.metadata.platforms == nil {
+                    if navigationViewModel.isUsingSplitView && article.abstract == nil && article.metadata.platforms == nil {
                         setToolbarVisibility(!isVisible)
                     }
                 }
@@ -200,7 +199,7 @@ struct ArticleView: View {
                 AbstractView(abstract: abstract)
                     .textSelection(.enabled)
                     .onScrollVisibilityChange { isVisible in
-                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular && article.metadata.platforms == nil {
+                        if navigationViewModel.isUsingSplitView && article.metadata.platforms == nil {
                             setToolbarVisibility(!isVisible)
                         }
                     }
@@ -213,7 +212,7 @@ struct ArticleView: View {
                     }
                 }
                 .onScrollVisibilityChange { isVisible in
-                    if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                    if navigationViewModel.isUsingSplitView {
                         setToolbarVisibility(!isVisible)
                     }
                 }

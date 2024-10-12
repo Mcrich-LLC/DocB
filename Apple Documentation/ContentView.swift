@@ -19,7 +19,7 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+            if navigationViewModel.isUsingSplitView {
                 navigationSplitView
             } else {
                 navigationStackView
@@ -28,6 +28,12 @@ struct ContentView: View {
         .background(Color(uiColor: .systemBackground))
         .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
+        .onAppear(perform: {
+            navigationViewModel.horizontalSizeClass = horizontalSizeClass
+        })
+        .onChange(of: horizontalSizeClass, {
+            navigationViewModel.horizontalSizeClass = horizontalSizeClass
+        })
         .task {
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()
@@ -113,7 +119,7 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                        if navigationViewModel.isUsingSplitView {
                             Spacer()
                             chevron
                         }
@@ -142,7 +148,7 @@ struct ContentView: View {
                                                 Text(technology.title)
                                                     .frame(maxWidth: .infinity, alignment: .leading)
                                                 
-                                                if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+                                                if navigationViewModel.isUsingSplitView {
                                                     chevron
                                                 }
                                             }

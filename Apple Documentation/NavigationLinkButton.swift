@@ -10,7 +10,6 @@ import SwiftUI
 struct HomepageNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @ViewBuilder
     let label: Content
@@ -18,7 +17,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+        if navigationViewModel.isUsingSplitView {
             MacOSAgnosticButton {
                 navigationViewModel.reference = nil
             } label: {
@@ -50,7 +49,6 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     let reference: Reference
     
     @ViewBuilder
@@ -59,7 +57,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+        if navigationViewModel.isUsingSplitView {
             MacOSAgnosticButton {
                 navigationViewModel.reference = reference
                 
@@ -102,14 +100,13 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 
 struct TechnologyNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     let technology: Technologies.FrameworkSection
     
     @ViewBuilder
     let label: Content
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+        if navigationViewModel.isUsingSplitView {
             MacOSAgnosticButton {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = false
                 withAnimation(.snappy) {

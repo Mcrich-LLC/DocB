@@ -10,9 +10,7 @@ import SwiftUI
 struct HomepageView: View {
     let homepage: HomepageParser
     
-    
     @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         ScrollView {
@@ -31,7 +29,7 @@ struct HomepageView: View {
             .padding([.horizontal, .bottom], 25)
         }
         .toolbar(content: {
-            if UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular {
+            if navigationViewModel.isUsingSplitView {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Group {
                         Button("Backward", systemImage: "chevron.backward") {

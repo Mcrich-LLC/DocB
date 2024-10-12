@@ -14,7 +14,6 @@ struct TechnologyRootView: View {
     let frameworkSection: Technologies.FrameworkSection
     
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var framework: Framework? {
         documentationViewModel.frameworks[frameworkSection.destination.identifier]
@@ -78,7 +77,7 @@ struct TechnologyRootView: View {
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(uiColor: .systemBackground))
-            .listRowSpacing(UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular ? nil : 0)
+            .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
         }
     }
     
@@ -140,7 +139,6 @@ private struct FrameworkListItem: View {
 
 private struct DefaultListItem: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     let reference: Reference
     let title: String
     

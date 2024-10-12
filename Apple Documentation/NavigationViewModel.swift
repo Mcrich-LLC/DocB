@@ -28,6 +28,10 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
+    @Published var horizontalSizeClass: UserInterfaceSizeClass? = .regular
+    var isUsingSplitView: Bool {
+        UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular
+    }
     
     @Published private var history: [History] = [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }

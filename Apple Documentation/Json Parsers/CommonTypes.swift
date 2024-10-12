@@ -404,7 +404,9 @@ struct ContentSection: Codable, Identifiable {
     }
 }
 
-struct Reference: Codable, Hashable {
+struct Reference: Codable, Hashable, Identifiable {
+    let id = UUID()
+    
     let title: String?
     let abstract: [ContentStruct]?
     let identifier: String

@@ -189,7 +189,7 @@ private struct HomepageLinks: View {
         }
         .padding()
         .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? 30 : 15)
-        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .ter)))
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .systemBackground)))
         .padding(.horizontal)
         .padding(.horizontal, (UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular) ? nil : 0)
     }

@@ -42,8 +42,45 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var path: NavigationPath = .init()
     
-    func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) {
-        guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
+    func getRedirectedURL(for url: URL) async throws -> URL {
+        let (_, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse, let url = httpResponse.url else {
+            throw URLError(.badServerResponse)
+        }
+        
+        return url
+    }
+    
+    func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel, completion: (() -> Void)? = nil) {
+        Task {
+            await handleURL(url, documentationViewModel: documentationViewModel)
+            completion?()
+        }
+    }
+    
+    func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
+        let updatedUrl: URL
+        if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
+            do {
+                let fetchUrl = Constants.basePath.appending(path: url.path()).appendingPathExtension("json")
+                let url = try await getRedirectedURL(for: fetchUrl)
+                let updateUrlPathComponents = Array(url.pathComponents.dropFirst(3))
+                
+                if let updateUrl = URL(string: "doc://com.apple.documentation/\(updateUrlPathComponents.joined(separator: "/"))") {
+                    updatedUrl = updateUrl.deletingPathExtension()
+                } else {
+                    throw URLError(.badURL)
+                }
+            } catch {
+                print(error)
+                updatedUrl = url
+            }
+        } else {
+            updatedUrl = url
+        }
+        
+        guard let moduleString = Array(updatedUrl.pathComponents.dropFirst(2)).first,
               let technologies = documentationViewModel.technologies,
               let groups = technologies.groups
         else {
@@ -54,65 +91,74 @@ class NavigationViewModel: ObservableObject, Equatable {
         guard let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier.lowercased() == identifier }) }),
               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier.lowercased() == identifier })
         else {
+            print("\(identifier) Not Found")
             return
         }
         
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
-            withAnimation(.snappy) {
-                self.technology = technology
-            } completion: {
+            await MainActor.run {
+                withAnimation(.snappy) {
+                    self.technology = technology
+                } completion: {
 #if (os(macOS) || targetEnvironment(macCatalyst))
-            self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
-            #endif
-            }
-            path.append(technology)
-            
+                    self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
+#endif
+                }
+                path.append(technology)
+                
 #if !(os(macOS) || targetEnvironment(macCatalyst))
-            self.splitViewColumnVisibility = .all // Better experience
-            #endif
+                self.splitViewColumnVisibility = .all // Better experience
+#endif
+            }
         }
         
-        let articlePath = Array(url.pathComponents.dropFirst(2))
-        var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
+        let articlePath = Array(updatedUrl.pathComponents.dropFirst(2))
+        var articleIdentifier = "doc://\(updatedUrl.host() ?? "com.apple.documentation")/documentation"
         
         var references: [String : Reference] = [:]
         
-        Task {
-            for article in articlePath {
-                articleIdentifier.append("/\(article)")
-                
+        for article in articlePath {
+            articleIdentifier.append("/\(article)")
+            
+            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                references.merge(dict: framework.references)
+            } else {
+                await documentationViewModel.fetchFramework(for: articleIdentifier)
                 if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
-                } else {
-                    await documentationViewModel.fetchFramework(for: articleIdentifier)
-                    if let framework = documentationViewModel.frameworks[articleIdentifier] {
-                        references.merge(dict: framework.references)
-                    }
-                    
-                    if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier) {
-                        references.merge(dict: article.references)
-                    }
+                }
+                
+                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier) {
+                    references.merge(dict: article.references)
                 }
             }
-            
-            let article: Reference?
-            
-            if let reference = references[articleIdentifier] {
+        }
+        
+        let article: Reference?
+        
+        if let reference = references[articleIdentifier] {
+            article = reference
+        } else if let referece = references.values.first(where: { URL(string: $0.identifier)?.path() == URL(string: articleIdentifier)?.path() }) {
+            article = referece
+        } else {
+            do {
+                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier)
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, variants: nil, images: nil)
+                
                 article = reference
-            } else if let referece = references.values.first(where: { URL(string: $0.identifier)?.path() == URL(string: articleIdentifier)?.path() }) {
-                article = referece
-            } else {
+            } catch {
                 article = nil
             }
-            
-            guard let article else {
-                return
-            }
-            
-            DispatchQueue.main.async {
-                self.reference = article
-                self.path.append(article)
-            }
+        }
+        
+        guard let article else {
+            print("\(articleIdentifier) Not Found")
+            return
+        }
+        
+        DispatchQueue.main.async {
+            self.reference = article
+            self.path.append(article)
         }
     }
     

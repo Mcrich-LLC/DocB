@@ -22,6 +22,16 @@ class DocumentationViewModel: ObservableObject {
         return url
     }
     
+    func getRedirectedURL(for url: URL) async throws -> URL {
+        let (_, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse, let url = httpResponse.url else {
+            throw URLError(.badServerResponse)
+        }
+        
+        return url
+    }
+    
     // MARK: Homepage
     private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
     @Published var homepage: HomepageParser?

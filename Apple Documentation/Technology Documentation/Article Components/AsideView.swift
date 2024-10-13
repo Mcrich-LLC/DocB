@@ -50,7 +50,7 @@ struct AsideView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 12.5)
                 .fill(color.opacity(0.1))
                 .stroke(color.opacity(0.5), lineWidth: 1)
         )

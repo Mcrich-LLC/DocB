@@ -115,12 +115,12 @@ struct ArticleView: View {
                         if navigationViewModel.isUsingSplitView {
                             ToolbarItemGroup(placement: .topBarLeading) {
                                 Group {
-                                    Button("Backward", systemImage: "chevron.backward") {
+                                    Button("Backward", systemImage: "chevron.left") {
                                         navigationViewModel.goBackward()
                                     }
                                     .disabled(!navigationViewModel.previousHistoryExists)
                                     
-                                    Button("Forward", systemImage: "chevron.forward") {
+                                    Button("Forward", systemImage: "chevron.right") {
                                         navigationViewModel.goForward()
                                     }
                                     .disabled(!navigationViewModel.futureHistoryExists)

@@ -197,6 +197,10 @@ struct ContentView: View {
         Image(systemSymbol: .chevronRight)
             .resizable()
             .frame(width: 8, height: 12)
+        #if os(visionOS)
+            .foregroundStyle(colorScheme == .dark ? Color.primary : Color(uiColor: .systemGray3))
+        #else
             .foregroundStyle(Color(uiColor: .systemGray3))
+        #endif
     }
 }

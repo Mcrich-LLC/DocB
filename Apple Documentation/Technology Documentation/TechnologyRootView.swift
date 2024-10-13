@@ -156,8 +156,6 @@ private struct DefaultListItem: View {
                 if reference.deprecated == true {
                     ArticleBadge(badge: .deprecated)
                 }
-                
-                Spacer()
             } icon: {
                 Image(systemSymbol: reference.role?.labelIcon ?? .docText)
                     .foregroundStyle(.secondary)

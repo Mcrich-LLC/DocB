@@ -18,6 +18,7 @@ struct Article: Codable {
     let seeAlsoSections: [Framework.TopicSection]?
     let topicSections: [Framework.TopicSection]?
     let relationshipsSections: [Framework.TopicSection]?
+    let sampleCodeDownload: SampleCodeDownload?
     
     struct Metadata: Codable {
         // Role
@@ -30,5 +31,17 @@ struct Article: Codable {
         
         // Platforms
         let platforms: [Platform]?
+    }
+    
+    struct SampleCodeDownload: Codable {
+        let kind: String
+        let action: Action
+        
+        struct Action: Codable {
+            let isActive: Bool
+            let identifier: String
+            let overridingTitle: String?
+            let type: ContentType
+        }
     }
 }

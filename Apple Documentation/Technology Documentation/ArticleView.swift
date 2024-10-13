@@ -204,6 +204,10 @@ struct ArticleView: View {
                     .textSelection(.enabled)
             }
             
+            if let sampleCodeDownload = article.sampleCodeDownload {
+                DownloadButtonView(sampleCodeDownload: sampleCodeDownload, references: article.references)
+            }
+            
             if let platforms = article.metadata.platforms {
                 WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
                     ForEach(platforms) { platform in

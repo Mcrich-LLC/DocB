@@ -78,6 +78,8 @@ struct LinksGridListView: View {
                             }
                             .frame(maxWidth: 300)
                         }
+                        .contentShape(UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25))
+                        .hoverEffect()
                     }
                 }
             }

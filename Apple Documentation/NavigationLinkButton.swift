@@ -57,37 +57,40 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var body: some View {
-        if navigationViewModel.isUsingSplitView {
-            MacOSAgnosticButton {
-                navigationViewModel.reference = reference
-                
-                if let url = URL(string: reference.identifier),
-                   let moduleString = Array(url.pathComponents.dropFirst(2)).first,
-                   let technologies = documentationViewModel.technologies,
-                   let groups = technologies.groups {
-                    let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+        Group {
+            if navigationViewModel.isUsingSplitView {
+                MacOSAgnosticButton {
+                    navigationViewModel.reference = reference
                     
-                    if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
-                       let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
-                        withAnimation(.snappy) {
-                            navigationViewModel.technology = technology
+                    if let url = URL(string: reference.identifier),
+                       let moduleString = Array(url.pathComponents.dropFirst(2)).first,
+                       let technologies = documentationViewModel.technologies,
+                       let groups = technologies.groups {
+                        let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+                        
+                        if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
+                           let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
+                            withAnimation(.snappy) {
+                                navigationViewModel.technology = technology
+                            }
                         }
                     }
+                } label: {
+                    label
                 }
-            } label: {
-                label
-            }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity((navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased() && shouldShowBackground) ? 1 : 0)
-            }
-        } else {
-            NavigationLink(value: reference) {
-                label
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity((navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased() && shouldShowBackground) ? 1 : 0)
+                }
+            } else {
+                NavigationLink(value: reference) {
+                    label
+                }
             }
         }
+        .hoverEffect()
     }
     
     func showBackground(_ bool: Bool) -> Self {
@@ -106,31 +109,34 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     let label: Content
     
     var body: some View {
-        if navigationViewModel.isUsingSplitView {
-            MacOSAgnosticButton {
-                navigationViewModel.technologyHistoryUpdatingIsEnabled = false
-                withAnimation(.snappy) {
-                    navigationViewModel.technology = technology
+        Group {
+            if navigationViewModel.isUsingSplitView {
+                MacOSAgnosticButton {
+                    navigationViewModel.technologyHistoryUpdatingIsEnabled = false
+                    withAnimation(.snappy) {
+                        navigationViewModel.technology = technology
+                    }
+                    
+                    // swiftlint:disable line_length
+                    let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+                    // swiftlint:enable line_length
+                    navigationViewModel.technologyHistoryUpdatingIsEnabled = true
+                    navigationViewModel.reference = reference
+                } label: {
+                    label
                 }
-                
-                // swiftlint:disable line_length
-                let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
-                // swiftlint:enable line_length
-                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
-                navigationViewModel.reference = reference
-            } label: {
-                label
-            }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
-            }
-        } else {
-            NavigationLink(value: technology) {
-                label
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
+                }
+            } else {
+                NavigationLink(value: technology) {
+                    label
+                }
             }
         }
+        .hoverEffect()
     }
 }

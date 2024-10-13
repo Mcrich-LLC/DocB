@@ -99,13 +99,13 @@ struct LinksGridListView: View {
                                 
                                 if let abstract = reference.abstract {
                                     AbstractView(abstract: abstract)
+                                        .foregroundStyle(.primary)
                                         .frame(maxWidth: .infinity, alignment: alignment)
                                 }
                             }
                             .multilineTextAlignment(textAlignment)
                         }
                     }
-                    .tint(.primary)
                 }
             }
         default:

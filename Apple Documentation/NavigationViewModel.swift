@@ -60,11 +60,15 @@ class NavigationViewModel: ObservableObject, Equatable {
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
             withAnimation(.snappy) {
                 self.technology = technology
+            } completion: {
+#if (os(macOS) || targetEnvironment(macCatalyst))
+            self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
+            #endif
             }
             path.append(technology)
             
 #if !(os(macOS) || targetEnvironment(macCatalyst))
-            splitViewColumnVisibility = .all
+            self.splitViewColumnVisibility = .all // Better experience
             #endif
         }
         

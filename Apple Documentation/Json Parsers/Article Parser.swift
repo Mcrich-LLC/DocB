@@ -20,6 +20,7 @@ struct Article: Codable {
     let relationshipsSections: [Framework.TopicSection]?
     let sampleCodeDownload: SampleCodeDownload?
     let deprecationSummary: [ContentSection.Content]?
+    let betaSummary: [ContentSection.Content]?
     
     struct Metadata: Codable {
         // Role

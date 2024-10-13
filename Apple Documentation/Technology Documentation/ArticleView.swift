@@ -43,6 +43,10 @@ struct ArticleView: View {
                                     .zIndex(10)
                             }
                         
+                        if let betaSummary = article.betaSummary {
+                            AsideView(style: .experiment, content: betaSummary, references: article.references)
+                        }
+                        
                         if let deprecationSummary = article.deprecationSummary {
                             AsideView(style: .deprecated, content: deprecationSummary, references: article.references)
                         }
@@ -233,7 +237,7 @@ struct ArticleView: View {
     @ViewBuilder
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
-            if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true {
+            if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true || article?.betaSummary != nil {
                 ArticleBadge(badge: .beta)
             }
             if platforms.filter({ $0.deprecated == true || $0.deprecatedAt != nil }).count == platforms.count || article?.deprecationSummary != nil || reference.deprecated == true {

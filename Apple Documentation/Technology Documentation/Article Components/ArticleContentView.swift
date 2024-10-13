@@ -277,7 +277,9 @@ struct ArticleContentView: View {
                         .foregroundStyle(Color.primary)
                 }
             }
-            EmptyView()
+#if os(visionOS)
+            .backgroundStyle(colorScheme == .dark ? .black : .white)
+#endif
         case .aside:
             if let style = content.style {
                 AsideView(style: style, content: content.content ?? [], references: references)

@@ -11,6 +11,7 @@ import HighlightSwift
 struct DeclarationContentView: View {
     let content: ContentSection.Declaration
     let article: Article
+    @Environment(\.colorScheme) var colorScheme
     
     var code: String {
         content.tokens.map({ $0.text }).joined()
@@ -22,8 +23,11 @@ struct DeclarationContentView: View {
                 .highlightLanguage(.swift)
                 .codeTextColors(.theme(.xcode))
                 .textSelection(.enabled)
-                .foregroundStyle(Color.primary)
+                .tint(Color(uiColor: .systemBlue))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+#if os(visionOS)
+            .backgroundStyle(colorScheme == .dark ? .black : .white)
+#endif
     }
 }

@@ -56,6 +56,17 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     
     var shouldShowBackground: Bool = true
     
+    var isSelected: Bool {
+        guard let currentReference = navigationViewModel.reference,
+                let currentUrl = URL(string: currentReference.identifier),
+              let url = URL(string: reference.identifier)
+        else {
+            return navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased()
+        }
+        
+        return currentUrl.path().lowercased() == url.path().lowercased()
+    }
+    
     var body: some View {
         Group {
             if navigationViewModel.isUsingSplitView {
@@ -82,7 +93,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .padding(-10)
                         .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                        .opacity((navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased() && shouldShowBackground) ? 1 : 0)
+                        .opacity((isSelected && shouldShowBackground) ? 1 : 0)
                 }
             } else {
                 NavigationLink(value: reference) {

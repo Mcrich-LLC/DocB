@@ -42,6 +42,10 @@ struct ArticleView: View {
                                     .ignoresSafeArea()
                                     .zIndex(10)
                             }
+                        
+                        if let deprecationSummary = article.deprecationSummary {
+                            AsideView(style: .deprecated, content: deprecationSummary, references: article.references)
+                        }
 
                         LazyVStack(alignment: .leading) {
                             // Main Content
@@ -229,10 +233,10 @@ struct ArticleView: View {
     @ViewBuilder
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
-            if platforms.filter({ $0.beta == true }).count == platforms.count {
+            if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true {
                 ArticleBadge(badge: .beta)
             }
-            if platforms.filter({ $0.deprecated == true || $0.deprecatedAt != nil }).count == platforms.count {
+            if platforms.filter({ $0.deprecated == true || $0.deprecatedAt != nil }).count == platforms.count || article?.deprecationSummary != nil || reference.deprecated == true {
                 ArticleBadge(badge: .deprecated)
             }
         }

@@ -146,7 +146,16 @@ struct ContentView: View {
                                         TechnologyNavigationLinkButton(technology: technology) {
                                             HStack {
                                                 Text(technology.title)
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                
+                                                if technology.tags.contains(where: { $0.lowercased() == "beta" }) {
+                                                    ArticleBadge(badge: .beta)
+                                                }
+                                                
+                                                if technology.tags.contains(where: { $0.lowercased() == "deprecated" }) {
+                                                    ArticleBadge(badge: .deprecated)
+                                                }
+                                                
+                                                Spacer()
                                                 
                                                 if navigationViewModel.isUsingSplitView {
                                                     chevron

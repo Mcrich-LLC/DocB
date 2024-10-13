@@ -44,7 +44,7 @@ struct TechnologyRootView: View {
     
     var frameworkReference: Reference {
         // swiftlint:disable line_length
-        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: .collection, fragments: nil, deprecated: nil, variants: nil, images: nil)
+        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: .collection, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
         // swiftlint:enable line_length
     }
     
@@ -148,6 +148,16 @@ private struct DefaultListItem: View {
         ReferenceNavigationLinkButton(reference: reference) {
             Label {
                 Text(title)
+                
+                if reference.beta == true {
+                    ArticleBadge(badge: .beta)
+                }
+                
+                if reference.deprecated == true {
+                    ArticleBadge(badge: .deprecated)
+                }
+                
+                Spacer()
             } icon: {
                 Image(systemSymbol: reference.role?.labelIcon ?? .docText)
                     .foregroundStyle(.secondary)

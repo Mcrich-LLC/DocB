@@ -225,7 +225,7 @@ extension NavigationViewModel {
         } else {
             do {
                 let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier)
-                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, variants: nil, images: nil)
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
                 
                 article = reference
             } catch {

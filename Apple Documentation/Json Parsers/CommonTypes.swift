@@ -313,6 +313,7 @@ struct ContentSection: Codable, Identifiable {
             case warning
             case important
             case note
+            case deprecated
         }
         
         struct Column: Codable, Equatable, Hashable {
@@ -416,6 +417,7 @@ struct Reference: Codable, Hashable, Identifiable {
     let role: Role?
     let fragments: [Fragment]?
     let deprecated: Bool?
+    let beta: Bool?
     let variants: [Variant]?
     let images: [ImageStruct]?
     
@@ -427,7 +429,7 @@ struct Reference: Codable, Hashable, Identifiable {
         return URL(string: shareUrlString)
     }
     
-    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, variants: [Variant]?, images: [ImageStruct]?) {
+    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?) {
         self.title = title
         self.abstract = abstract
         self.identifier = identifier
@@ -437,6 +439,7 @@ struct Reference: Codable, Hashable, Identifiable {
         self.role = role
         self.fragments = fragments
         self.deprecated = deprecated
+        self.beta = beta
         self.variants = variants
         self.images = images
     }
@@ -451,6 +454,7 @@ struct Reference: Codable, Hashable, Identifiable {
         case role
         case fragments
         case deprecated
+        case beta
         case variants
         case images
     }
@@ -472,6 +476,7 @@ struct Reference: Codable, Hashable, Identifiable {
         
         self.fragments = try container.decodeIfPresent([Fragment].self, forKey: .fragments)
         self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
+        self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta)
         self.variants = try container.decodeIfPresent([Reference.Variant].self, forKey: .variants)
         self.images = try container.decodeIfPresent([ImageStruct].self, forKey: .images)
     }

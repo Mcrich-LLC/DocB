@@ -280,7 +280,7 @@ struct ArticleContentView: View {
             EmptyView()
         case .aside:
             if let style = content.style {
-                asideViewSwitch(style: style, content: content.content ?? [])
+                AsideView(style: style, content: content.content ?? [], references: references)
             }
         case .code:
             let attributedString = getCodeString(content.code ?? [])
@@ -334,44 +334,6 @@ struct ArticleContentView: View {
                 tableRow(content: row)
             }
         }
-    }
-    
-    @ViewBuilder
-    func asideViewSwitch(style: ContentSection.Content.Style, content: [ContentSection.Content]) -> some View {
-        switch style {
-        case .tip:
-            asideView(color: .mint, title: style.rawValue.capitalized, content: content)
-        case .experiment:
-            asideView(color: .mint, title: style.rawValue.capitalized, content: content)
-        case .warning:
-            asideView(color: .yellow, title: style.rawValue.capitalized, content: content)
-        case .important:
-            asideView(color: .red, title: style.rawValue.capitalized, content: content)
-        default:
-            asideView(color: .gray, title: style.rawValue.capitalized, content: content)
-        }
-    }
-    @ViewBuilder
-    func asideView(color: Color, title: String, content: [ContentSection.Content]) -> some View {
-        VStack {
-            Text(title.capitalized)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(color)
-                .frame(maxWidth: .infinity, alignment: self.alignment)
-                .padding(.bottom, 5)
-            
-            ForEach(content) { item in
-                ArticleContentView(content: item, references: references)
-                    .frame(maxWidth: .infinity, alignment: self.alignment)
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(color.opacity(0.1))
-                .stroke(color.opacity(0.5), lineWidth: 1)
-        )
     }
     
     func specialStyleString(_ string: String) -> String {

@@ -114,7 +114,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 }
                 
                 // swiftlint:disable line_length
-                let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+                let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
                 // swiftlint:enable line_length
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 navigationViewModel.reference = reference

@@ -44,7 +44,7 @@ struct TechnologyRootView: View {
     
     var frameworkReference: Reference {
         // swiftlint:disable line_length
-        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, variants: nil, images: nil)
+        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: .collection, fragments: nil, deprecated: nil, variants: nil, images: nil)
         // swiftlint:enable line_length
     }
     

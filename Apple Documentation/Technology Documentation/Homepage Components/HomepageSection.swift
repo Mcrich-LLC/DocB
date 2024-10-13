@@ -49,7 +49,7 @@ private struct Links: View {
             }
             if let links = section.body?.links {
                 ForEach(links) { link in
-                    LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references)
+                    LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references, navigationViewModel: navigationViewModel)
                         .alignment(.top)
                 }
             }

@@ -17,6 +17,7 @@ struct ArticleContentView: View {
     let type: ContentType?
     let alignment: Alignment
     @State var orderedListIndex: Int
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
         self.content = content
@@ -296,7 +297,7 @@ struct ArticleContentView: View {
                 .textSelection(.enabled)
         case .links:
             if let linkItems = content.linkItems, let Style = content.style {
-                LinksGridListView(identifiers: linkItems, style: Style, references: references)
+                LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         default:
             EmptyView()

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SeeAlsoView: View {
     let article: Article
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     var body: some View {
         if let seeAlsoSections = article.seeAlsoSections {
@@ -19,7 +20,7 @@ struct SeeAlsoView: View {
                 
                 ForEach(seeAlsoSections) { section in
                     Section {
-                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references)
+                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references, navigationViewModel: navigationViewModel)
                     } header: {
                         Text(section.title)
                             .font(.title3)

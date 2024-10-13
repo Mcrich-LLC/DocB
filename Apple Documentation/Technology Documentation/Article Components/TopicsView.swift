@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TopicsView: View {
     let article: Article
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     var body: some View {
         if let topicSections = article.topicSections {
@@ -20,7 +21,7 @@ struct TopicsView: View {
                 
                 ForEach(topicSections) { section in
                     Section {
-                        LinksGridListView(identifiers: section.identifiers, style: article.topicSectionsStyle ?? .list, references: article.references)
+                        LinksGridListView(identifiers: section.identifiers, style: article.topicSectionsStyle ?? .list, references: article.references, navigationViewModel: navigationViewModel)
                     } header: {
                         Text(section.title)
                             .font(.title3)

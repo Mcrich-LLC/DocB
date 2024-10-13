@@ -12,13 +12,14 @@ struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style
     let references: [String : Reference]
-    var alignment: Alignment = .topLeading
+    var alignment: Alignment
     var textAlignment: TextAlignment = .leading
     
-    init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference]) {
+    init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], navigationViewModel: NavigationViewModel) {
         self.identifiers = identifiers
         self.style = style
         self.references = references
+        self.alignment = !navigationViewModel.isUsingSplitView ? .top : .topLeading
     }
     
     @Environment(\.colorScheme) var colorScheme

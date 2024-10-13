@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RelationshipsView: View {
     let article: Article
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     var body: some View {
         if let relationshipsSections = article.relationshipsSections {
@@ -20,7 +21,7 @@ struct RelationshipsView: View {
                 
                 ForEach(relationshipsSections) { section in
                     Section(header: Text(section.title)) {
-                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references)
+                        LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references, navigationViewModel: navigationViewModel)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

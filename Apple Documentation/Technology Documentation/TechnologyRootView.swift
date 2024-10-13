@@ -77,7 +77,11 @@ struct TechnologyRootView: View {
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(uiColor: .systemBackground))
+#if os(macOS) || targetEnvironment(macCatalyst)
+            .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)
+            #else
             .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
+            #endif
         }
     }
     

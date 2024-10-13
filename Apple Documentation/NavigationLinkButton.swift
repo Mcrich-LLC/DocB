@@ -81,7 +81,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .padding(-10)
                     .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity((navigationViewModel.reference?.identifier == reference.identifier && shouldShowBackground) ? 1 : 0)
+                    .opacity((navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased() && shouldShowBackground) ? 1 : 0)
             }
         } else {
             NavigationLink(value: reference) {
@@ -125,7 +125,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .padding(-10)
                     .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity(navigationViewModel.technology == technology ? 1 : 0)
+                    .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
             }
         } else {
             NavigationLink(value: technology) {

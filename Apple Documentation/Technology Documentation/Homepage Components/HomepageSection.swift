@@ -212,8 +212,14 @@ private struct LinkCapsule: View {
     }
     
     var url: URL? {
-        let urlString = reference.identifier.replacingOccurrences(of: "https://developer.apple.com", with: "\(Constants.deeplinkScheme)com.apple.documentation")
-        
+        let urlString: String
+        if let title {
+            let urlTitle = title.replacingOccurrences(of: "/", with: "-")
+            urlString = reference.identifier.replacingOccurrences(of: "https://developer.apple.com", with: "\(Constants.deeplinkScheme)com.apple.\(title)-Release-Notes")
+        } else {
+            urlString = reference.identifier.replacingOccurrences(of: "https://developer.apple.com", with: "\(Constants.deeplinkScheme)com.apple.documentation")
+        }
+            
         return URL(string: urlString)
     }
     

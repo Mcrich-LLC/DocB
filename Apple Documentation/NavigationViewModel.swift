@@ -142,7 +142,7 @@ extension NavigationViewModel {
                 let url = try await documentationViewModel.getRedirectedURL(for: fetchUrl)
                 let updateUrlPathComponents = Array(url.pathComponents.dropFirst(3))
                 
-                if let updateUrl = URL(string: "doc://com.apple.documentation/\(updateUrlPathComponents.joined(separator: "/"))") {
+                if let updateUrl = URL(string: "doc://\(url.host() ?? "com.apple.documentation")/\(updateUrlPathComponents.joined(separator: "/"))") {
                     updatedUrl = updateUrl.deletingPathExtension()
                 } else {
                     throw URLError(.badURL)
@@ -225,7 +225,10 @@ extension NavigationViewModel {
         } else {
             do {
                 let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier)
+                
+                // swiftlint:disable line_length
                 let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+                // swiftlint:enable line_length
                 
                 article = reference
             } catch {

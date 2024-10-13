@@ -172,18 +172,19 @@ struct ArticleView: View {
     @ViewBuilder
     func Heading(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 15) {
-                if let roleHeading = article.metadata.roleHeading {
-                    Text(roleHeading)
-                        .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
+            if article.metadata.roleHeading != nil || article.metadata.platforms != nil {
+                HStack(spacing: 15) {
+                    if let roleHeading = article.metadata.roleHeading {
+                        Text(roleHeading)
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    }
+                    
+                    HeadingBadge(article.metadata)
                 }
-                HeadingBadge(article.metadata)
-            }
-            .font(.headline)
-            .padding(.bottom, 5)
-            .onScrollVisibilityChange { isVisible in
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                .font(.headline)
+                .padding(.bottom, 5)
+                .onScrollVisibilityChange { isVisible in
                     setToolbarVisibility(!isVisible)
                 }
             }
@@ -193,30 +194,20 @@ struct ArticleView: View {
                 .fontWeight(.bold)
                 .textSelection(.enabled)
                 .onScrollVisibilityChange { isVisible in
-                    if navigationViewModel.isUsingSplitView && article.abstract == nil && article.metadata.platforms == nil {
-                        setToolbarVisibility(!isVisible)
+                    if article.metadata.roleHeading == nil && article.metadata.platforms == nil {
+                        setToolbarVisibility(!isVisible) // Runs if nothing is above this view
                     }
                 }
             
             if let abstract = article.abstract {
                 AbstractView(abstract: abstract)
                     .textSelection(.enabled)
-                    .onScrollVisibilityChange { isVisible in
-                        if navigationViewModel.isUsingSplitView && article.metadata.platforms == nil {
-                            setToolbarVisibility(!isVisible)
-                        }
-                    }
             }
             
             if let platforms = article.metadata.platforms {
                 WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
                     ForEach(platforms) { platform in
                         PlatformCapsule(platform: platform)
-                    }
-                }
-                .onScrollVisibilityChange { isVisible in
-                    if navigationViewModel.isUsingSplitView {
-                        setToolbarVisibility(!isVisible)
                     }
                 }
             }

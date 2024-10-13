@@ -223,6 +223,8 @@ private struct LinkCapsule: View {
         return URL(string: urlString)
     }
     
+    @State var isHovering = false
+    
     var body: some View {
         if let title, let url {
             MacOSAgnosticLink(destination: url) {
@@ -234,8 +236,14 @@ private struct LinkCapsule: View {
                     .background(
                         Capsule()
                             .fill(Color.clear)
-                            .stroke(Color.purple, lineWidth: 2)
+                            .stroke(Color.purple, lineWidth: isHovering ? 4 : 2)
                     )
+            }
+            .clipShape(Capsule())
+            .onHover { isHovering in
+                withAnimation {
+                    self.isHovering = isHovering
+                }
             }
         }
     }

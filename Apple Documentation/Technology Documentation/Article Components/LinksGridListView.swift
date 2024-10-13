@@ -12,16 +12,30 @@ struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style
     let references: [String : Reference]
-    let alignment: Alignment
+    var alignment: Alignment = .topLeading
+    var textAlignment: TextAlignment = .leading
     
-    init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], alignment: Alignment = .topLeading) {
+    init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference]) {
         self.identifiers = identifiers
         self.style = style
         self.references = references
-        self.alignment = alignment
     }
     
     @Environment(\.colorScheme) var colorScheme
+    
+    func alignment(_ alignment: Alignment) -> Self {
+        var view = self
+        view.alignment = alignment
+        
+        return view
+    }
+    
+    func multilineTextAlignment(_ textAlignment: TextAlignment) -> Self {
+        var view = self
+        view.textAlignment = textAlignment
+        
+        return view
+    }
     
     var body: some View {
         switch style {
@@ -54,12 +68,12 @@ struct LinksGridListView: View {
                                 Text(title)
                                     .foregroundStyle(Color.primary)
                                     .font(.headline)
-                                    .multilineTextAlignment(.leading)
+                                    .multilineTextAlignment(textAlignment)
                                 
                                 if let abstract = reference.abstract, style == .detailedGrid {
                                     AbstractView(abstract: abstract)
                                         .foregroundStyle(Color.primary)
-                                        .multilineTextAlignment(.leading)
+                                        .multilineTextAlignment(textAlignment)
                                 }
                             }
                             .frame(maxWidth: 300)
@@ -80,15 +94,15 @@ struct LinksGridListView: View {
                             
                             VStack {
                                 Text(getFullTitle(reference))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(maxWidth: .infinity, alignment: alignment)
                                     .foregroundStyle(.primary)
                                 
                                 if let abstract = reference.abstract {
                                     AbstractView(abstract: abstract)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .frame(maxWidth: .infinity, alignment: alignment)
                                 }
                             }
-                            .multilineTextAlignment(.leading)
+                            .multilineTextAlignment(textAlignment)
                         }
                     }
                     .tint(.primary)

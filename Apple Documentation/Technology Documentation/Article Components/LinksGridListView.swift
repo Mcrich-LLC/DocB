@@ -14,6 +14,7 @@ struct LinksGridListView: View {
     let references: [String : Reference]
     var alignment: Alignment
     var textAlignment: TextAlignment = .leading
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], navigationViewModel: NavigationViewModel) {
         self.identifiers = identifiers
@@ -77,7 +78,7 @@ struct LinksGridListView: View {
                                         .multilineTextAlignment(textAlignment)
                                 }
                             }
-                            .frame(maxWidth: 300)
+                            .frame(maxWidth: navigationViewModel.isUsingSplitView ? 300 : 400)
                         }
                         .contentShape(UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25))
                         .hoverEffect()

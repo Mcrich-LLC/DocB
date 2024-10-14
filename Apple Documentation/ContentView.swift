@@ -30,9 +30,15 @@ struct ContentView: View {
         .environmentObject(navigationViewModel)
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
+            if navigationViewModel.isUsingSplitView {
+                navigationViewModel.addHomepageToHistoryIfEmpty()
+            }
         })
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
+        })
+        .onChange(of: navigationViewModel.isUsingSplitView, {
+            navigationViewModel.path = navigationViewModel.backupPath
         })
         .task {
             await documentationViewModel.fetchHomepage()
@@ -54,7 +60,7 @@ struct ContentView: View {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("Back", systemImage: "chevron.left") {
                                     withAnimation(.snappy) {
-                                        navigationViewModel.technology = nil
+                                        navigationViewModel.setTechnology(nil)
                                     }
                                 }
                                 .labelStyle(.titleAndIcon)
@@ -119,7 +125,7 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        if navigationViewModel.isUsingSplitView {
+                        if UIDevice.current.userInterfaceIdiom != .phone {
                             Spacer()
                             chevron
                         }
@@ -157,7 +163,7 @@ struct ContentView: View {
                                                 
                                                 Spacer()
                                                 
-                                                if navigationViewModel.isUsingSplitView {
+                                                if UIDevice.current.userInterfaceIdiom != .phone {
                                                     chevron
                                                 }
                                             }

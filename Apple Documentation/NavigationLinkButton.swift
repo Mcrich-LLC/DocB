@@ -17,17 +17,24 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var body: some View {
-        if navigationViewModel.isUsingSplitView {
+        if UIDevice.current.userInterfaceIdiom != .phone {
             MacOSAgnosticButton {
-                navigationViewModel.reference = nil
+                navigationViewModel.setReference(nil)
+                navigationViewModel.removeLastPath(navigationViewModel.path.count)
+                
+                if let homepage = documentationViewModel.homepage {
+                    navigationViewModel.appendPath(homepage)
+                }
             } label: {
                 label
             }
             .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                    .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
+                if navigationViewModel.isUsingSplitView {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
+                }
             }
         } else {
             if let homepage = documentationViewModel.homepage {
@@ -57,22 +64,13 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var isSelected: Bool {
-        guard let currentReference = navigationViewModel.reference,
-                let currentUrl = URL(string: currentReference.identifier),
-              let url = URL(string: reference.identifier)
-        else {
-            return navigationViewModel.reference?.identifier.lowercased() == reference.identifier.lowercased()
-        }
-        
-        return currentUrl.path().lowercased() == url.path().lowercased()
+        navigationViewModel.reference?.isEqual(to: reference) == true
     }
     
     var body: some View {
         Group {
-            if navigationViewModel.isUsingSplitView {
+            if UIDevice.current.userInterfaceIdiom != .phone {
                 MacOSAgnosticButton {
-                    navigationViewModel.reference = reference
-                    
                     if let url = URL(string: reference.identifier),
                        let moduleString = Array(url.pathComponents.dropFirst(2)).first,
                        let technologies = documentationViewModel.technologies,
@@ -82,18 +80,22 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                         if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
                            let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
                             withAnimation(.snappy) {
-                                navigationViewModel.technology = technology
+                                navigationViewModel.setTechnology(technology)
                             }
                         }
                     }
+                    
+                    navigationViewModel.setReference(reference)
                 } label: {
                     label
                 }
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                        .opacity((isSelected && shouldShowBackground) ? 1 : 0)
+                    if navigationViewModel.isUsingSplitView {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .padding(-10)
+                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                            .opacity((isSelected && shouldShowBackground) ? 1 : 0)
+                    }
                 }
             } else {
                 NavigationLink(value: reference) {
@@ -121,26 +123,33 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     
     var body: some View {
         Group {
-            if navigationViewModel.isUsingSplitView {
+            if UIDevice.current.userInterfaceIdiom != .phone {
                 MacOSAgnosticButton {
-                    navigationViewModel.technologyHistoryUpdatingIsEnabled = false
+//                    navigationViewModel.technologyHistoryUpdatingIsEnabled = false
+//                    defer {
+                        navigationViewModel.technologyHistoryUpdatingIsEnabled = true
+//                    }
+                    
                     withAnimation(.snappy) {
-                        navigationViewModel.technology = technology
+                        navigationViewModel.setTechnology(technology)
                     }
                     
-                    // swiftlint:disable line_length
-                    let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
-                    // swiftlint:enable line_length
-                    navigationViewModel.technologyHistoryUpdatingIsEnabled = true
-                    navigationViewModel.reference = reference
+                    if navigationViewModel.isUsingSplitView {
+                        // swiftlint:disable line_length
+                        let reference = Reference(title: technology.title, abstract: nil, identifier: technology.destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+                        // swiftlint:enable line_length
+                        navigationViewModel.setReference(reference)
+                    }
                 } label: {
                     label
                 }
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                        .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
+                    if navigationViewModel.isUsingSplitView {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .padding(-10)
+                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                            .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
+                    }
                 }
             } else {
                 NavigationLink(value: technology) {

@@ -35,7 +35,7 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .onAppear(perform: {
-            navigationViewModel.technology = frameworkSection
+            navigationViewModel.setTechnology(frameworkSection)
         })
         .task {
             await loadFramework()
@@ -51,6 +51,11 @@ struct TechnologyRootView: View {
                 await loadFramework()
             }
         })
+        .onDisappear {
+            if navigationViewModel.shouldRemoveTechnologyFromPath(frameworkSection) && navigationViewModel.reference == nil && !navigationViewModel.isUsingSplitView {
+                navigationViewModel.goBackward(updatePath: false)
+            }
+        }
     }
     
     var frameworkReference: Reference {

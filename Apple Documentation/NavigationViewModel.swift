@@ -11,7 +11,7 @@ import SwiftUI
 class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
-    @Published var technology: Technologies.FrameworkSection? {
+    @Published private(set) var technology: Technologies.FrameworkSection? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -19,7 +19,13 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    @Published var reference: Reference? {
+    func setTechnology(_ technology: Technologies.FrameworkSection?) {
+        if self.technology != technology {
+            self.technology = technology
+        }
+    }
+    
+    @Published private(set) var reference: Reference? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -27,84 +33,244 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
+    func setReference(_ reference: Reference?) {
+        if self.reference != reference {
+            self.reference = reference
+        }
+    }
+        
     @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     @Published var horizontalSizeClass: UserInterfaceSizeClass? = .regular
     var isUsingSplitView: Bool {
         UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular
     }
     
-    @Published private var history: [History] = [.init(technology: nil, reference: nil, isHomepage: true)]
+    @Published var isStartingHistory: Bool = false
+    @Published private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
-    private var currentIndex = 0
+    private var currentIndex = -1 {
+        willSet {
+            guard currentIndex >= 0 else { return }
+            previousIndex = currentIndex
+        }
+    }
+    private var previousIndex = 0
     private var isNavigating = false
     
     @Published var path: NavigationPath = .init()
+    @Published var backupPath: NavigationPath = .init()
+    
+    func appendPath(_ hashable: any Hashable) {
+        path.append(hashable)
+        backupPath.append(hashable)
+    }
+    
+    func removeLastPath(_ k: Int = 1) {
+        path.removeLast(k)
+        backupPath.removeLast(k)
+    }
     
     // MARK: History
     // Add current state to history
     func addToHistory() {
         guard !isNavigating else { return }
         
-        guard let technology, let reference else {
+        guard let technology else {
+            if let technology {
+                appendPath(technology)
+            }
             if self.technology == nil && self.reference == nil && history.last?.isHomepage == false {
                 history.append(.init(technology: nil, reference: nil, isHomepage: true))
-                currentIndex += 1
+                goForward()
             }
             return
         }
         
         // Remove future history if we're adding a new state
-        if currentIndex < history.count - 1 {
-            history = Array(history.prefix(currentIndex + 1))
+        if currentIndex < history.count - 1, currentIndex >= 0 {
+            removeLastPath(path.count)
+            
+            history = [history[self.currentIndex]]
+            currentIndex = 0
         }
         
-        if let lastState = history.last,
-            let lastStateTechnologyIdentifier = lastState.technology?.destination.identifier,
-           let lastStateReferenceIdentifier = lastState.reference?.identifier,
-           URL(string: lastStateReferenceIdentifier)?.pathComponents.dropFirst(2).first != URL(string: lastStateTechnologyIdentifier)?.pathComponents.dropFirst(2).first,
-            lastState.reference?.identifier == reference.identifier,
-           technologyHistoryUpdatingIsEnabled {
-            history[history.count - 1].technology = technology
-            return
+        if let lastState = history.last {
+           if (lastState.technology?.isEqual(to: technology) == true),
+              let reference,
+           lastState.reference?.isEqual(to: reference) == true,
+               technologyHistoryUpdatingIsEnabled {
+                history[history.count - 1].technology = technology
+                
+                return
+            }
+            
+            if let reference,
+               lastState.reference == nil,
+               lastState.technology?.isEqual(to: technology) == true,
+               technologyHistoryUpdatingIsEnabled {
+                history[history.count - 1].reference = reference
+                
+                if history.last?.reference?.isEqual(to: reference) == true {
+                    appendPath(reference)
+                }
+                
+                return
+            }
         }
         
         // Prevent Duplicates
-        guard history.last?.reference?.identifier != reference.identifier else {
+        if let reference, history.last?.reference?.isEqual(to: reference) == true {
+            return
+        }
+        if reference == nil, history.last?.technology?.isEqual(to: technology) == true {
             return
         }
         
+        if history.isEmpty {
+            isStartingHistory = true
+        }
         history.append(History(technology: technology, reference: reference, isHomepage: false))
-        currentIndex += 1
+        goForward()
+        isStartingHistory = false
     }
     
     // Navigate backward in history
-    func goBackward() {
-        guard currentIndex > 0 else { return }
+    func goBackward(updatePath: Bool = true) {
         currentIndex -= 1
         navigateToCurrentHistory()
+        
+        // Update navigation stack path
+        guard updatePath else { return }
+        let oldState = history[previousIndex]
+        
+        if let technology, let oldTechnology = oldState.technology, !technology.isEqual(to: oldTechnology) {
+            removeLastPath()
+        }
+        if let reference, let oldReference = oldState.reference, !reference.isEqual(to: oldReference) {
+            removeLastPath()
+        }
     }
     
     // Navigate forward in history
-    func goForward() {
+    func goForward(updatePath: Bool = true) {
         guard currentIndex < history.count - 1 else { return }
         currentIndex += 1
         navigateToCurrentHistory()
+        
+        // Update navigation stack path
+        guard updatePath, let technology, previousIndex >= 0 else {
+            return
+        }
+        let oldState = history[previousIndex]
+        
+        if let oldTechnology = oldState.technology {
+            if !technology.isEqual(to: oldTechnology) || isStartingHistory {
+                appendPath(technology)
+            }
+        } else {
+            appendPath(technology)
+        }
+        
+        if let reference,
+           let currentUrl = URL(string: reference.identifier),
+           let technologyUrl = URL(string: technology.destination.identifier),
+           currentUrl.deletingPathExtension().path().lowercased().contains(technologyUrl.deletingPathExtension().path().lowercased()) {
+            if let oldReference = oldState.reference {
+                if !reference.isEqual(to: oldReference) || history.count == 1 {
+                    appendPath(reference)
+                }
+            } else {
+                appendPath(reference)
+            }
+        }
     }
     
     // Helper function to update technology and reference based on the current history state
     private func navigateToCurrentHistory() {
         isNavigating = true
+        defer { isNavigating = false }
+        
+        guard currentIndex >= 0 else {
+            history = []
+            currentIndex = -1
+            technology = nil
+            reference = nil
+            return
+        }
         let currentState = history[currentIndex]
         reference = currentState.reference
         technology = currentState.technology
-        isNavigating = false
+    }
+    
+    func shouldRemoveReferenceFromPath(_ reference: Reference?) -> Bool {
+        history[currentIndex].reference == reference
+    }
+    
+    func shouldRemoveTechnologyFromPath(_ technology: Technologies.FrameworkSection?) -> Bool {
+        history[currentIndex].technology == technology && history[currentIndex].reference == nil
+    }
+    
+    func homepageIsCurrent() -> Bool {
+        history[currentIndex].isHomepage
+    }
+    
+    func addHomepageToHistoryIfEmpty() {
+        guard history.isEmpty else { return }
+        
+        history.append(.init(technology: nil, reference: nil, isHomepage: true))
+        currentIndex = 0
+    }
+    
+    func getHistoryIndexOfReference(_ reference: Reference) -> Int? {
+        history.lastIndex(where: { history in
+            guard let ref = history.reference else {
+                return history.reference == reference
+            }
+            
+            return ref.isEqual(to: reference)
+        })
+    }
+    
+    func getHistoryTechnology(at index: Int) -> Technologies.FrameworkSection? {
+        if index < history.count - 1 && index >= 0 {
+            return history[index].technology
+        } else {
+            return nil
+        }
+    }
+    
+    func handleHistoryRemoval(for reference: Reference) {
+        isNavigating = true
+        defer { isNavigating = false }
+        
+        guard !isUsingSplitView else { return }
+        
+        guard shouldRemoveReferenceFromPath(reference),
+           let historyIndex = getHistoryIndexOfReference(reference),
+           let technology = technology
+        else {
+            return
+        }
+        
+        guard getHistoryTechnology(at: historyIndex-1)?.isEqual(to: technology) == true else {
+            setReference(nil)
+            return
+        }
+        
+        goBackward(updatePath: false)
     }
     
     // Equatibility
     static func == (lhs: NavigationViewModel, rhs: NavigationViewModel) -> Bool {
-        lhs.technology == rhs.technology && lhs.reference == rhs.reference
+        guard let lhsTech = lhs.technology, let lhsReference = lhs.reference,
+              let rhsTech = rhs.technology, let rhsReference = rhs.reference
+        else {
+            return lhs.technology == rhs.technology && lhs.reference == rhs.reference
+        }
+        
+        return lhsTech.isEqual(to: rhsTech) && lhsReference.isEqual(to: rhsReference)
     }
     
 }
@@ -117,11 +283,11 @@ extension Dictionary {
     }
 }
 
-private struct History: Identifiable {
+struct History: Identifiable {
     let id = UUID()
     
     var technology: Technologies.FrameworkSection?
-    let reference: Reference?
+    var reference: Reference?
     let isHomepage: Bool
 }
 
@@ -184,7 +350,7 @@ extension NavigationViewModel {
                     self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
 #endif
                 }
-                path.append(technology)
+                appendPath(technology)
                 
 #if !(os(macOS) || targetEnvironment(macCatalyst))
                 self.splitViewColumnVisibility = .all // Better experience
@@ -243,7 +409,7 @@ extension NavigationViewModel {
         
         await MainActor.run {
             self.reference = article
-            self.path.append(article)
+            self.appendPath(article)
         }
     }
 }

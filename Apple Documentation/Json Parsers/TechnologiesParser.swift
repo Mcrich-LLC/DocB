@@ -86,6 +86,16 @@ struct Technologies: Decodable {
         let tags: [String]
         let destination: Destination
         
+        func isEqual(to framework: FrameworkSection) -> Bool {
+            guard let currentUrl = URL(string: destination.identifier),
+                  let url = URL(string: framework.destination.identifier)
+            else {
+                return destination.identifier.lowercased() == framework.destination.identifier.lowercased()
+            }
+            
+            return currentUrl.path().lowercased() == url.path().lowercased()
+        }
+        
         enum CodingKeys: CodingKey {
             case id
             case languages

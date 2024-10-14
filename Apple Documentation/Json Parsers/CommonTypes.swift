@@ -430,6 +430,16 @@ struct Reference: Codable, Hashable, Identifiable {
     let variants: [Variant]?
     let images: [ImageStruct]?
     
+    func isEqual(to reference: Self) -> Bool {
+        guard let currentUrl = URL(string: identifier),
+              let url = URL(string: reference.identifier)
+        else {
+            return identifier.lowercased() == reference.identifier.lowercased()
+        }
+        
+        return currentUrl.path().lowercased() == url.path().lowercased()
+    }
+    
     var shareUrl: URL? {
         guard let identifierUrl = URL(string: identifier) else { return nil }
         

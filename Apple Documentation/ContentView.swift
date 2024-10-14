@@ -112,9 +112,6 @@ struct ContentView: View {
             .navigationDestination(for: HomepageParser.self) { homepage in
                 HomepageView(homepage: homepage)
             }
-//            .navigationDestination(item: navigationViewModel.iphoneArticleDestinationBinding) { reference in
-//                ArticleView(reference: reference)
-//            }
         }
     }
     

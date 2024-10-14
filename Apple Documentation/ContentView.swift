@@ -31,7 +31,7 @@ struct ContentView: View {
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
             if navigationViewModel.isUsingSplitView {
-                navigationViewModel.addHomepageToHistoryIfEmpty()
+                navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
         })
         .onChange(of: horizontalSizeClass, {

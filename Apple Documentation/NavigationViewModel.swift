@@ -59,6 +59,7 @@ class NavigationViewModel: ObservableObject, Equatable {
                 splitViewColumnVisibility = .all
             }
         }
+        toggleHomepageInBeginingOfHistory()
     }
     
     @Published var isStartingHistory: Bool = false
@@ -254,11 +255,14 @@ class NavigationViewModel: ObservableObject, Equatable {
         history[currentIndex].isHomepage
     }
     
-    func addHomepageToHistoryIfEmpty() {
-        guard history.isEmpty else { return }
-        
-        history.append(.init(technology: nil, reference: nil, isHomepage: true))
-        currentIndex = 0
+    func toggleHomepageInBeginingOfHistory() {
+        if isUsingSplitView && history.first != .init(technology: nil, reference: nil, isHomepage: true) {
+            history.insert(.init(technology: nil, reference: nil, isHomepage: true), at: 0)
+            currentIndex += 1
+        } else if !isUsingSplitView && history.first == .init(technology: nil, reference: nil, isHomepage: true) {
+            history.remove(at: 0)
+            currentIndex -= 1
+        }
     }
     
     func getHistoryIndexOfReference(_ reference: Reference) -> Int? {
@@ -324,7 +328,7 @@ extension Dictionary {
     }
 }
 
-private struct History: Identifiable {
+private struct History: Identifiable, Hashable {
     let id = UUID()
     
     var technology: Technologies.FrameworkSection?

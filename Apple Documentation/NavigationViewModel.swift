@@ -75,14 +75,23 @@ class NavigationViewModel: ObservableObject, Equatable {
     private var previousIndex = 0
     private var isNavigating = false
     
-    @Published var path: NavigationPath = .init()
-    @Published private var backupPath: NavigationPath = .init()
+    @Published var path: [PathElement] = []
+    @Published private var backupPath: [PathElement] = []
     
-    func appendPath(_ hashable: any Hashable, overrideGaurds: Bool = false) {
+    func appendPath(_ element: PathElement, overrideGaurds: Bool = false) {
         guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
         
-        path.append(hashable)
-        backupPath.append(hashable)
+        switch path.last {
+        case .reference:
+            switch element {
+            case .reference:
+                removeLastPath()
+            default: break
+            }
+        default: break
+        }
+        path.append(element)
+        backupPath.append(element)
     }
     
     func removeLastPath(_ k: Int = 1, overrideGaurds: Bool = false) {
@@ -99,7 +108,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         
         guard let technology else {
             if let technology {
-                appendPath(technology)
+                appendPath(.technology(technology))
             }
             if self.technology == nil && self.reference == nil && history.last?.isHomepage == false {
                 history.append(.init(technology: nil, reference: nil, isHomepage: true))
@@ -157,7 +166,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             history[history.count - 1].reference = reference
             
             if history.last?.reference?.isEqual(to: reference) == true {
-                appendPath(reference)
+                appendPath(.reference(reference))
             }
             
             return true
@@ -197,10 +206,10 @@ class NavigationViewModel: ObservableObject, Equatable {
         
         if let oldTechnology = oldState.technology {
             if !technology.isEqual(to: oldTechnology) || isStartingHistory {
-                appendPath(technology)
+                appendPath(.technology(technology))
             }
         } else {
-            appendPath(technology)
+            appendPath(.technology(technology))
         }
         
         if let reference,
@@ -209,10 +218,10 @@ class NavigationViewModel: ObservableObject, Equatable {
            currentUrl.deletingPathExtension().path().lowercased().contains(technologyUrl.deletingPathExtension().path().lowercased()) {
             if let oldReference = oldState.reference {
                 if !reference.isEqual(to: oldReference) || history.count == 1 {
-                    appendPath(reference)
+                    appendPath(.reference(reference))
                 }
             } else {
-                appendPath(reference)
+                appendPath(.reference(reference))
             }
         }
     }
@@ -324,6 +333,12 @@ private struct History: Identifiable {
     let isHomepage: Bool
 }
 
+enum PathElement: Hashable {
+    case reference(Reference)
+    case technology(Technologies.FrameworkSection)
+    case homepage
+}
+
 // MARK: Deeplinking
 extension NavigationViewModel {
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel, completion: (() -> Void)? = nil) {
@@ -377,7 +392,7 @@ extension NavigationViewModel {
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
             await MainActor.run {
                 guard UIDevice.current.userInterfaceIdiom != .phone else {
-                    appendPath(technology, overrideGaurds: true)
+                    appendPath(.technology(technology), overrideGaurds: true)
                     return
                 }
                 
@@ -446,7 +461,7 @@ extension NavigationViewModel {
         
         await MainActor.run {
             if UIDevice.current.userInterfaceIdiom == .phone {
-                self.appendPath(article, overrideGaurds: true)
+                self.appendPath(.reference(article), overrideGaurds: true)
             } else {
                 self.setReference(article)
             }

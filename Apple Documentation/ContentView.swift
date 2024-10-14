@@ -110,6 +110,18 @@ struct ContentView: View {
             .navigationDestination(for: HomepageParser.self) { homepage in
                 HomepageView(homepage: homepage)
             }
+            .navigationDestination(for: PathElement.self) { element in
+                switch element {
+                case .homepage:
+                    if let homepage = documentationViewModel.homepage {
+                        HomepageView(homepage: homepage)
+                    }
+                case .reference(let reference):
+                    ArticleView(reference: reference)
+                case .technology(let technology):
+                    TechnologyRootView(frameworkSection: technology)
+                }
+            }
         }
     }
     

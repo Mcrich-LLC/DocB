@@ -23,7 +23,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
                 navigationViewModel.removeLastPath(navigationViewModel.path.count)
                 
                 if let homepage = documentationViewModel.homepage {
-                    navigationViewModel.appendPath(homepage)
+                    navigationViewModel.appendPath(.homepage)
                 }
             } label: {
                 label

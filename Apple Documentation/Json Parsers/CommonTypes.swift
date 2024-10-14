@@ -405,6 +405,15 @@ struct ContentSection: Codable, Identifiable {
     }
 }
 
+struct Variant: Codable {
+    let traits: [Trait]
+    let paths: [String]
+    
+    struct Trait: Codable {
+        let interfaceLanguage: PreferedProgrammingLanguage
+    }
+}
+
 struct Reference: Codable, Hashable, Identifiable {
     let id = UUID()
     

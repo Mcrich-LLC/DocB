@@ -23,6 +23,11 @@ struct TechnologyRootView: View {
         VStack {
             if let framework {
                 frameworkView(framework)
+                    .toolbar {
+                        if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
+                            LanguagePicker(variants: variants)
+                        }
+                    }
             } else {
                 Text("Loading...")
             }

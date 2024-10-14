@@ -12,6 +12,7 @@ struct Framework: Codable {
     let metadata: Metadata
     let references: [String : Reference]
     let legalNotices: LegalNotices
+    let variants: [Variant]?
     
     struct TopicSection: Codable, Identifiable {
         let id = UUID()

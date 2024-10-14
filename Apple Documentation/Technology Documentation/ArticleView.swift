@@ -25,6 +25,17 @@ struct ArticleView: View {
         case seeAlso
     }
     
+    var filteredLanguages: [PreferedProgrammingLanguage] {
+        guard let variants = article?.variants else {
+            return []
+        }
+        
+        let traits = variants.flatMap({ $0.traits })
+        let languages = traits.compactMap({ $0.interfaceLanguage })
+        
+        return languages
+    }
+    
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
@@ -145,6 +156,17 @@ struct ArticleView: View {
                                 Button("Save", systemImage: "bookmark") {
                                     // TODO: Implement Bookmarks
                                 }
+                                Picker("Language: ", selection: $documentationViewModel.preferedProgrammingLanguage) {
+                                    if filteredLanguages.count == 1 {
+                                        Text(filteredLanguages[0].humanReadable)
+                                            .tag(documentationViewModel.preferedProgrammingLanguage)
+                                    } else {
+                                        ForEach(filteredLanguages, id: \.self) { language in
+                                            Text(language.humanReadable)
+                                                .tag(language)
+                                        }
+                                    }
+                                }
                             }
                             .tint(color)
                         }
@@ -172,6 +194,12 @@ struct ArticleView: View {
                 .ignoresSafeArea()
             )
         }
+        .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
+            Task {
+                self.article = nil
+                await loadArticle()
+            }
+        })
         .onAppear {
             navigationViewModel.reference = reference
         }

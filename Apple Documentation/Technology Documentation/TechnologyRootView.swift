@@ -40,6 +40,12 @@ struct TechnologyRootView: View {
                 await loadFramework()
             }
         }
+        .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
+            Task {
+                documentationViewModel.frameworks[frameworkSection.destination.identifier] = nil
+                await loadFramework()
+            }
+        })
     }
     
     var frameworkReference: Reference {

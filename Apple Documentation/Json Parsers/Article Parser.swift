@@ -21,6 +21,16 @@ struct Article: Codable {
     let sampleCodeDownload: SampleCodeDownload?
     let deprecationSummary: [ContentSection.Content]?
     let betaSummary: [ContentSection.Content]?
+    let variants: [Variant]?
+    
+    struct Variant: Codable {
+        let traits: [Trait]
+        let paths: [String]
+        
+        struct Trait: Codable {
+            let interfaceLanguage: PreferedProgrammingLanguage
+        }
+    }
     
     struct Metadata: Codable {
         // Role

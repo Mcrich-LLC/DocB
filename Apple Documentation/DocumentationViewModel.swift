@@ -6,8 +6,24 @@
 //
 
 import Foundation
+import SwiftUI
+
+enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
+    case swift
+    case objectivec = "occ"
+    
+    var humanReadable: String {
+        switch self {
+        case .swift:
+            "Swift"
+        case .objectivec:
+            "Objective-C"
+        }
+    }
+}
 
 class DocumentationViewModel: ObservableObject {
+    @AppStorage("preferedProgrammingLanguage") var preferedProgrammingLanguage = PreferedProgrammingLanguage.swift
     
     // MARK: URL Functions
     func jsonUrl(for identifier: String) -> URL? {
@@ -15,9 +31,13 @@ class DocumentationViewModel: ObservableObject {
             return nil
         }
         
-        let path = identifier.path + ".json"
+        let queryItems: [URLQueryItem] = [
+            .init(name: "language", value: preferedProgrammingLanguage.rawValue)
+        ]
         
-        let url = Constants.basePath.appending(path: path)
+        let url = Constants.basePath.appending(path: identifier.path)
+            .appendingPathExtension("json")
+            .appending(queryItems: queryItems)
         
         return url
     }

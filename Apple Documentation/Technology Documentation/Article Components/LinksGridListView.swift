@@ -14,6 +14,18 @@ struct LinksGridListView: View {
     let references: [String : Reference]
     var alignment: Alignment
     var textAlignment: TextAlignment = .leading
+    
+    var textFrameAlignment: HorizontalAlignment {
+        switch textAlignment {
+        case .leading:
+                .leading
+        case .center:
+                .center
+        case .trailing:
+                .trailing
+        }
+    }
+    
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], navigationViewModel: NavigationViewModel) {
@@ -52,7 +64,7 @@ struct LinksGridListView: View {
                         let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)
                         
                         MacOSAgnosticLink(destination: openUrl) {
-                            VStack(alignment: .leading) {
+                            VStack(alignment: textFrameAlignment) {
                                 KFImage(imageUrl)
                                     .placeholder({
                                         RoundedRectangle(cornerRadius: 25)
@@ -96,15 +108,13 @@ struct LinksGridListView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
                             
-                            VStack {
+                            VStack(alignment: textFrameAlignment) {
                                 Text(getFullTitle(reference))
-                                    .frame(maxWidth: .infinity, alignment: alignment)
                                     .foregroundStyle(.primary)
                                 
                                 if let abstract = reference.abstract {
                                     AbstractView(abstract: abstract)
                                         .foregroundStyle(.primary)
-                                        .frame(maxWidth: .infinity, alignment: alignment)
                                 }
                             }
                             .multilineTextAlignment(textAlignment)

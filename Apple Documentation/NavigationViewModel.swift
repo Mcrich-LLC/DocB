@@ -269,7 +269,10 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
         
         guard let oldTechnology = getHistoryTechnology(at: historyIndex-1), !oldTechnology.isEqual(to: technology) else {
+            isNavigating = true
+            history[historyIndex].reference = nil
             setReference(nil)
+            isNavigating = false
             return
         }
         

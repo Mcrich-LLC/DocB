@@ -39,6 +39,13 @@ struct ContentView: View {
         })
         .onChange(of: navigationViewModel.isUsingSplitView, {
             navigationViewModel.path = navigationViewModel.backupPath
+            if navigationViewModel.isUsingSplitView {
+                if UIDevice.current.orientation.isPortrait && navigationViewModel.reference == nil {
+                    navigationViewModel.splitViewColumnVisibility = .all
+                } else if UIDevice.current.orientation.isLandscape {
+                    navigationViewModel.splitViewColumnVisibility = .all
+                }
+            }
         })
         .task {
             await documentationViewModel.fetchHomepage()

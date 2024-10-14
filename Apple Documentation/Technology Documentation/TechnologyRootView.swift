@@ -35,7 +35,7 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
         .onAppear(perform: {
-            navigationViewModel.setTechnology(frameworkSection)
+//            navigationViewModel.setTechnology(frameworkSection)
         })
         .task {
             await loadFramework()
@@ -158,6 +158,14 @@ private struct DefaultListItem: View {
     
     var shouldShowBackground: Bool = true
     
+    var removeLastPathComponentFirst: Bool {
+        guard let url = URL(string: reference.identifier), let currentTech = navigationViewModel.technology, let currentTechUrl = URL(string: currentTech.destination.identifier) else {
+            return false
+        }
+        
+        return !url.path().contains(currentTechUrl.path())
+    }
+    
     var body: some View {
         ReferenceNavigationLinkButton(reference: reference) {
             Label {
@@ -177,6 +185,7 @@ private struct DefaultListItem: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .showBackground(shouldShowBackground)
+        .removeLastPathComponentFirst(removeLastPathComponentFirst)
     }
     
     func showBackground(_ bool: Bool) -> Self {

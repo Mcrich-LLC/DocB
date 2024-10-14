@@ -95,7 +95,9 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func removeLastPath(_ k: Int = 1, overrideGaurds: Bool = false) {
-        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
+        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else {
+            return
+        }
         
         path.removeLast(k)
         backupPath.removeLast(k)
@@ -119,10 +121,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         
         // Remove future history if we're adding a new state
         if currentIndex < history.count - 1, currentIndex >= 0 {
-            removeLastPath(path.count)
-            
-            history = [history[self.currentIndex]]
-            currentIndex = 0
+            history = Array(history.prefix(currentIndex+1))
         }
         
         let didRectify = rectifyHistory()

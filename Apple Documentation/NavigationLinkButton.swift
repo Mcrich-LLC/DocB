@@ -62,31 +62,43 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     let label: Content
     
     var shouldShowBackground: Bool = true
+    var removeLastPathComponentFirst: Bool = false
     
     var isSelected: Bool {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
     
+    func action() {
+        switch navigationViewModel.path.last {
+        case .reference:
+            if removeLastPathComponentFirst {
+                navigationViewModel.removeLastPath()
+            }
+        default:
+            break
+        }
+        
+        if let url = URL(string: reference.identifier),
+           let moduleString = Array(url.pathComponents.dropFirst(2)).first,
+           let technologies = documentationViewModel.technologies,
+           let groups = technologies.groups {
+            let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+            
+            if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
+               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
+                withAnimation(.snappy) {
+                    navigationViewModel.setTechnology(technology)
+                }
+            }
+        }
+        
+        navigationViewModel.setReference(reference)
+    }
+    
     var body: some View {
         Group {
             if UIDevice.current.userInterfaceIdiom != .phone {
-                MacOSAgnosticButton {
-                    if let url = URL(string: reference.identifier),
-                       let moduleString = Array(url.pathComponents.dropFirst(2)).first,
-                       let technologies = documentationViewModel.technologies,
-                       let groups = technologies.groups {
-                        let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
-                        
-                        if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
-                           let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
-                            withAnimation(.snappy) {
-                                navigationViewModel.setTechnology(technology)
-                            }
-                        }
-                    }
-                    
-                    navigationViewModel.setReference(reference)
-                } label: {
+                MacOSAgnosticButton(action: action) {
                     label
                 }
                 .background {
@@ -109,6 +121,13 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
+        
+        return view
+    }
+    
+    func removeLastPathComponentFirst(_ bool: Bool) -> Self {
+        var view = self
+        view.removeLastPathComponentFirst = bool
         
         return view
     }

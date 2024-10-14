@@ -63,11 +63,15 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published var backupPath: NavigationPath = .init()
     
     func appendPath(_ hashable: any Hashable) {
+        guard UIDevice.current.userInterfaceIdiom != .phone else { return }
+        
         path.append(hashable)
         backupPath.append(hashable)
     }
     
     func removeLastPath(_ k: Int = 1) {
+        guard UIDevice.current.userInterfaceIdiom != .phone else { return }
+        
         path.removeLast(k)
         backupPath.removeLast(k)
     }

@@ -58,12 +58,6 @@ struct TechnologyRootView: View {
         }
     }
     
-    var frameworkReference: Reference {
-        // swiftlint:disable line_length
-        .init(title: frameworkSection.title, abstract: nil, identifier: frameworkSection.destination.identifier, kind: nil, type: "", url: nil, role: .collection, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
-        // swiftlint:enable line_length
-    }
-    
     @ViewBuilder
     func frameworkView(_ framework: Framework) -> some View {
         if framework.topicSections?.isEmpty == true {
@@ -72,7 +66,7 @@ struct TechnologyRootView: View {
             List {
 
                 Section {
-                    FrameworkListItem(reference: frameworkReference, title: frameworkSection.title)
+                    FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }

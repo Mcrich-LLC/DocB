@@ -45,6 +45,22 @@ class NavigationViewModel: ObservableObject, Equatable {
         UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular
     }
     
+    func handleIsUsingSplitViewChanged() {
+        path = backupPath
+        if isUsingSplitView {
+            let reference = reference
+            
+            if reference == nil, let frameworkReference = technology?.frameworkReference {
+                setReference(frameworkReference)
+            }
+            if UIDevice.current.orientation.isPortrait && reference == nil {
+                splitViewColumnVisibility = .all
+            } else if UIDevice.current.orientation.isLandscape {
+                splitViewColumnVisibility = .all
+            }
+        }
+    }
+    
     @Published var isStartingHistory: Bool = false
     @Published private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }
@@ -60,7 +76,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     private var isNavigating = false
     
     @Published var path: NavigationPath = .init()
-    @Published var backupPath: NavigationPath = .init()
+    @Published private var backupPath: NavigationPath = .init()
     
     func appendPath(_ hashable: any Hashable, overrideGaurds: Bool = false) {
         guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }

@@ -37,16 +37,7 @@ struct ContentView: View {
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
         })
-        .onChange(of: navigationViewModel.isUsingSplitView, {
-            navigationViewModel.path = navigationViewModel.backupPath
-            if navigationViewModel.isUsingSplitView {
-                if UIDevice.current.orientation.isPortrait && navigationViewModel.reference == nil {
-                    navigationViewModel.splitViewColumnVisibility = .all
-                } else if UIDevice.current.orientation.isLandscape {
-                    navigationViewModel.splitViewColumnVisibility = .all
-                }
-            }
-        })
+        .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()

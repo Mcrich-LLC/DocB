@@ -124,5 +124,9 @@ struct Technologies: Decodable {
             let isActive: Bool
             let identifier: String
         }
+        
+        var frameworkReference: Reference {
+            Reference(title: title, abstract: nil, identifier: destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+        }
     }
 }

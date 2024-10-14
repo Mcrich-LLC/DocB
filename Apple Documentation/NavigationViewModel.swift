@@ -62,15 +62,15 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published var path: NavigationPath = .init()
     @Published var backupPath: NavigationPath = .init()
     
-    func appendPath(_ hashable: any Hashable) {
-        guard UIDevice.current.userInterfaceIdiom != .phone else { return }
+    func appendPath(_ hashable: any Hashable, overrideGaurds: Bool = false) {
+        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
         
         path.append(hashable)
         backupPath.append(hashable)
     }
     
-    func removeLastPath(_ k: Int = 1) {
-        guard UIDevice.current.userInterfaceIdiom != .phone else { return }
+    func removeLastPath(_ k: Int = 1, overrideGaurds: Bool = false) {
+        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
         
         path.removeLast(k)
         backupPath.removeLast(k)
@@ -347,14 +347,18 @@ extension NavigationViewModel {
         
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
             await MainActor.run {
+                guard UIDevice.current.userInterfaceIdiom != .phone else {
+                    appendPath(technology, overrideGaurds: true)
+                    return
+                }
+                
                 withAnimation(.snappy) {
-                    self.technology = technology
+                    self.setTechnology(technology)
                 } completion: {
 #if (os(macOS) || targetEnvironment(macCatalyst))
                     self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
 #endif
                 }
-                appendPath(technology)
                 
 #if !(os(macOS) || targetEnvironment(macCatalyst))
                 self.splitViewColumnVisibility = .all // Better experience
@@ -412,8 +416,11 @@ extension NavigationViewModel {
         }
         
         await MainActor.run {
-            self.reference = article
-            self.appendPath(article)
+            if UIDevice.current.userInterfaceIdiom == .phone {
+                self.appendPath(article, overrideGaurds: true)
+            } else {
+                self.setReference(article)
+            }
         }
     }
 }

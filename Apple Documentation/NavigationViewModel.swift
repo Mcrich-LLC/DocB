@@ -316,7 +316,7 @@ extension Dictionary {
     }
 }
 
-struct History: Identifiable {
+private struct History: Identifiable {
     let id = UUID()
     
     var technology: Technologies.FrameworkSection?

@@ -100,28 +100,9 @@ class NavigationViewModel: ObservableObject, Equatable {
             currentIndex = 0
         }
         
-        if let lastState = history.last {
-           if (lastState.technology?.isEqual(to: technology) == true),
-              let reference,
-           lastState.reference?.isEqual(to: reference) == true,
-               technologyHistoryUpdatingIsEnabled {
-                history[history.count - 1].technology = technology
-                
-                return
-            }
-            
-            if let reference,
-               lastState.reference == nil,
-               lastState.technology?.isEqual(to: technology) == true,
-               technologyHistoryUpdatingIsEnabled {
-                history[history.count - 1].reference = reference
-                
-                if history.last?.reference?.isEqual(to: reference) == true {
-                    appendPath(reference)
-                }
-                
-                return
-            }
+        let didRectify = rectifyHistory()
+        if didRectify {
+            return
         }
         
         // Prevent Duplicates
@@ -138,6 +119,35 @@ class NavigationViewModel: ObservableObject, Equatable {
         history.append(History(technology: technology, reference: reference, isHomepage: false))
         goForward()
         isStartingHistory = false
+    }
+    
+    private func rectifyHistory() -> Bool {
+        guard let lastState = history.last, let technology else {
+            return false
+        }
+        if (lastState.technology?.isEqual(to: technology) == true),
+           let reference,
+           lastState.reference?.isEqual(to: reference) == true,
+           technologyHistoryUpdatingIsEnabled {
+            history[history.count - 1].technology = technology
+            
+            return true
+        }
+        
+        if let reference,
+           lastState.reference == nil,
+           lastState.technology?.isEqual(to: technology) == true,
+           technologyHistoryUpdatingIsEnabled {
+            history[history.count - 1].reference = reference
+            
+            if history.last?.reference?.isEqual(to: reference) == true {
+                appendPath(reference)
+            }
+            
+            return true
+        }
+        
+        return false
     }
     
     // Navigate backward in history
@@ -258,7 +268,7 @@ class NavigationViewModel: ObservableObject, Equatable {
             return
         }
         
-        guard getHistoryTechnology(at: historyIndex-1)?.isEqual(to: technology) == true else {
+        guard let oldTechnology = getHistoryTechnology(at: historyIndex-1), !oldTechnology.isEqual(to: technology) else {
             setReference(nil)
             return
         }

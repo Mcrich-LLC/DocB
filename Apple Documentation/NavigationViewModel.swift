@@ -78,16 +78,19 @@ class NavigationViewModel: ObservableObject, Equatable {
     
     @Published var path: [PathElement] = []
     @Published private var backupPath: [PathElement] = []
+    private var isHandlingDeeplink = false
     
     func appendPath(_ element: PathElement) {
-        switch path.last {
-        case .reference:
-            switch element {
+        if !isHandlingDeeplink {
+            switch path.last {
             case .reference:
-                removeLastPath()
+                switch element {
+                case .reference:
+                    removeLastPath()
+                default: break
+                }
             default: break
             }
-        default: break
         }
         path.append(element)
         backupPath.append(element)
@@ -348,6 +351,11 @@ extension NavigationViewModel {
     }
     
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
+        isHandlingDeeplink = true
+        defer {
+            isHandlingDeeplink = false
+        }
+        
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
             do {

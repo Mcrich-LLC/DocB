@@ -79,9 +79,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published var path: [PathElement] = []
     @Published private var backupPath: [PathElement] = []
     
-    func appendPath(_ element: PathElement, overrideGaurds: Bool = false) {
-//        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
-        
+    func appendPath(_ element: PathElement) {
         switch path.last {
         case .reference:
             switch element {
@@ -95,11 +93,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         backupPath.append(element)
     }
     
-    func removeLastPath(_ k: Int = 1, overrideGaurds: Bool = false) {
-//        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else {
-//            return
-//        }
-        
+    func removeLastPath(_ k: Int = 1) {
         path.removeLast(k)
         backupPath.removeLast(k)
     }
@@ -397,7 +391,7 @@ extension NavigationViewModel {
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
             await MainActor.run {
                 guard UIDevice.current.userInterfaceIdiom != .phone else {
-                    appendPath(.technology(technology), overrideGaurds: true)
+                    appendPath(.technology(technology))
                     return
                 }
                 
@@ -466,7 +460,7 @@ extension NavigationViewModel {
         
         await MainActor.run {
             if UIDevice.current.userInterfaceIdiom == .phone {
-                self.appendPath(.reference(article), overrideGaurds: true)
+                self.appendPath(.reference(article))
             } else {
                 self.setReference(article)
             }

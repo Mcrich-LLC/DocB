@@ -46,6 +46,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func handleIsUsingSplitViewChanged() {
+        toggleHomepageInBeginingOfHistory()
         path = backupPath
         if isUsingSplitView {
             let reference = reference
@@ -59,7 +60,6 @@ class NavigationViewModel: ObservableObject, Equatable {
                 splitViewColumnVisibility = .all
             }
         }
-        toggleHomepageInBeginingOfHistory()
     }
     
     @Published var isStartingHistory: Bool = false
@@ -256,12 +256,14 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func toggleHomepageInBeginingOfHistory() {
-        if isUsingSplitView && history.first != .init(technology: nil, reference: nil, isHomepage: true) {
+        if isUsingSplitView && history.first?.isHomepage != true {
             history.insert(.init(technology: nil, reference: nil, isHomepage: true), at: 0)
             currentIndex += 1
-        } else if !isUsingSplitView && history.first == .init(technology: nil, reference: nil, isHomepage: true) {
+        } else if !isUsingSplitView && history.first?.isHomepage == true {
             history.remove(at: 0)
-            currentIndex -= 1
+            if currentIndex > 0 {
+                currentIndex -= 1
+            }
         }
     }
     

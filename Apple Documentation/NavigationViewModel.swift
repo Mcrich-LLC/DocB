@@ -390,11 +390,6 @@ extension NavigationViewModel {
         
         if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
             await MainActor.run {
-                guard UIDevice.current.userInterfaceIdiom != .phone else {
-                    appendPath(.technology(technology))
-                    return
-                }
-                
                 withAnimation(.snappy) {
                     self.setTechnology(technology)
                 } completion: {
@@ -459,11 +454,7 @@ extension NavigationViewModel {
         }
         
         await MainActor.run {
-            if UIDevice.current.userInterfaceIdiom == .phone {
-                self.appendPath(.reference(article))
-            } else {
-                self.setReference(article)
-            }
+            self.setReference(article)
         }
     }
 }

@@ -101,15 +101,6 @@ struct ContentView: View {
                 }
             }
             .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
-            .navigationDestination(for: Reference.self) { reference in
-                ArticleView(reference: reference)
-            }
-            .navigationDestination(for: Technologies.FrameworkSection.self) { technology in
-                TechnologyRootView(frameworkSection: technology)
-            }
-            .navigationDestination(for: HomepageParser.self) { homepage in
-                HomepageView(homepage: homepage)
-            }
             .navigationDestination(for: PathElement.self) { element in
                 switch element {
                 case .homepage:

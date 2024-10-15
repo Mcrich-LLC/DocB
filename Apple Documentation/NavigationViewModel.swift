@@ -54,11 +54,15 @@ class NavigationViewModel: ObservableObject, Equatable {
             if reference == nil, let frameworkReference = technology?.frameworkReference {
                 setReference(frameworkReference)
             }
+#if os(iOS)
             if UIDevice.current.orientation.isPortrait && reference == nil {
                 splitViewColumnVisibility = .all
             } else if UIDevice.current.orientation.isLandscape {
                 splitViewColumnVisibility = .all
             }
+            #else
+            splitViewColumnVisibility = .all
+            #endif
         }
     }
     

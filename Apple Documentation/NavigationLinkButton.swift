@@ -17,30 +17,20 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom != .phone {
-            MacOSAgnosticButton {
-                navigationViewModel.setReference(nil)
-                navigationViewModel.removeLastPath(navigationViewModel.path.count)
-                
-                if let homepage = documentationViewModel.homepage {
-                    navigationViewModel.appendPath(.homepage)
-                }
-            } label: {
-                label
-            }
-            .background {
-                if navigationViewModel.isUsingSplitView {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                        .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
-                }
-            }
-        } else {
-            if let homepage = documentationViewModel.homepage {
-                NavigationLink(value: homepage) {
-                    label
-                }
+        MacOSAgnosticButton {
+            navigationViewModel.setReference(nil)
+            navigationViewModel.removeLastPath(navigationViewModel.path.count)
+            
+            navigationViewModel.appendPath(.homepage)
+        } label: {
+            label
+        }
+        .background {
+            if navigationViewModel.isUsingSplitView {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .padding(-10)
+                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
             }
         }
     }
@@ -97,21 +87,15 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     
     var body: some View {
         Group {
-            if UIDevice.current.userInterfaceIdiom != .phone {
-                MacOSAgnosticButton(action: action) {
-                    label
-                }
-                .background {
-                    if navigationViewModel.isUsingSplitView {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .padding(-10)
-                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                            .opacity((isSelected && shouldShowBackground) ? 1 : 0)
-                    }
-                }
-            } else {
-                NavigationLink(value: reference) {
-                    label
+            MacOSAgnosticButton(action: action) {
+                label
+            }
+            .background {
+                if navigationViewModel.isUsingSplitView {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity((isSelected && shouldShowBackground) ? 1 : 0)
                 }
             }
         }
@@ -142,37 +126,28 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     
     var body: some View {
         Group {
-            if UIDevice.current.userInterfaceIdiom != .phone {
-                MacOSAgnosticButton {
-//                    navigationViewModel.technologyHistoryUpdatingIsEnabled = false
-//                    defer {
-                        navigationViewModel.technologyHistoryUpdatingIsEnabled = true
-//                    }
-                    
-                    withAnimation(.snappy) {
-                        navigationViewModel.setTechnology(technology)
-                    }
-                    
-                    if navigationViewModel.isUsingSplitView {
-                        // swiftlint:disable line_length
-                        let reference = technology.frameworkReference
-                        // swiftlint:enable line_length
-                        navigationViewModel.setReference(reference)
-                    }
-                } label: {
-                    label
+            MacOSAgnosticButton {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
+                
+                withAnimation(.snappy) {
+                    navigationViewModel.setTechnology(technology)
                 }
-                .background {
-                    if navigationViewModel.isUsingSplitView {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .padding(-10)
-                            .foregroundStyle(Color(uiColor: .tertiarySystemFill))
-                            .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
-                    }
+                
+                if navigationViewModel.isUsingSplitView {
+                    // swiftlint:disable line_length
+                    let reference = technology.frameworkReference
+                    // swiftlint:enable line_length
+                    navigationViewModel.setReference(reference)
                 }
-            } else {
-                NavigationLink(value: technology) {
-                    label
+            } label: {
+                label
+            }
+            .background {
+                if navigationViewModel.isUsingSplitView {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .padding(-10)
+                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
                 }
             }
         }

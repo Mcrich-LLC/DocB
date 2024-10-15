@@ -132,10 +132,8 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        if UIDevice.current.userInterfaceIdiom != .phone {
-                            Spacer()
-                            chevron
-                        }
+                        Spacer()
+                        chevron
                     }
                 }
                 .foregroundStyle(Color.primary)
@@ -170,9 +168,7 @@ struct ContentView: View {
                                                 
                                                 Spacer()
                                                 
-                                                if UIDevice.current.userInterfaceIdiom != .phone {
-                                                    chevron
-                                                }
+                                                chevron
                                             }
                                             .contentShape(Rectangle())
                                         }

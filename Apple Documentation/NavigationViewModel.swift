@@ -80,7 +80,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published private var backupPath: [PathElement] = []
     
     func appendPath(_ element: PathElement, overrideGaurds: Bool = false) {
-        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
+//        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else { return }
         
         switch path.last {
         case .reference:
@@ -96,9 +96,9 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func removeLastPath(_ k: Int = 1, overrideGaurds: Bool = false) {
-        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else {
-            return
-        }
+//        guard UIDevice.current.userInterfaceIdiom != .phone || overrideGaurds else {
+//            return
+//        }
         
         path.removeLast(k)
         backupPath.removeLast(k)

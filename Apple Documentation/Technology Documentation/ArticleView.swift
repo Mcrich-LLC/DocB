@@ -79,11 +79,9 @@ struct ArticleView: View {
                                 case .restResponses:
                                     WebEndpointRestResponse(contentSection: section, references: article.references)
                                 case .properties:
-                                    // TODO: Implement Properties
                                     WebEndpointRestPropertiesView(contentSection: section, references: article.references)
                                 case .attributes:
-                                    // TODO: Implement text
-                                    EmptyView()
+                                    WebEndpointRestAttributesView(contentSection: section, references: article.references)
                                 default:
                                     VStack {
                                         ForEach(section.content ?? []) { content in

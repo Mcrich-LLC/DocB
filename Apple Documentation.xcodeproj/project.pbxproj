@@ -56,6 +56,7 @@
 		22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */; };
 		22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */; };
 		22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */; };
+		22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */; };
 		22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22C450B02CB4D61B00376AA5 /* SFSafeSymbols */; };
 		22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 22E7F4E12CB5048400FD6B2C /* HighlightSwift */; };
 /* End PBXBuildFile section */
@@ -110,6 +111,7 @@
 		22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestEndPoint.swift; sourceTree = "<group>"; };
 		22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestResponse.swift; sourceTree = "<group>"; };
 		22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestPropertiesView.swift; sourceTree = "<group>"; };
+		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Apple Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -172,6 +174,7 @@
 				22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */,
 				22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */,
 				22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */,
+				22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */,
 				2287E3BF2CBF6A8500090C9F /* DetailsView.swift */,
 				2287E3C02CBF6A8500090C9F /* DownloadButtonView.swift */,
 				2287E3C12CBF6A8500090C9F /* LinksGridListView.swift */,
@@ -385,6 +388,7 @@
 				222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */,
 				2287E3EE2CBF6A8500090C9F /* RelationshipsView.swift in Sources */,
 				2287E3EF2CBF6A8500090C9F /* SeeAlsoView.swift in Sources */,
+				22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */,
 				2287E3F02CBF6A8500090C9F /* TopicsView.swift in Sources */,
 				2287E3F12CBF6A8500090C9F /* WrappingHStack.swift in Sources */,
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,

@@ -1,0 +1,31 @@
+//
+//  WebEndpointRestAttributesView.swift
+//  Apple Documentation
+//
+//  Created by Morris Richman on 10/16/24.
+//
+
+import SwiftUI
+
+struct WebEndpointRestAttributesView: View {
+    let contentSection: ContentSection
+    let references: [String : Reference]
+    
+    var body: some View {
+        VStack {
+            if let title = contentSection.title {
+                Text(title)
+                    .font(.title2)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            Text("Possible types:")
+            if let attributes = contentSection.attributes {
+                ForEach(attributes) { attribute in
+                    EmptyView()
+                }
+            }
+        }
+    }
+}

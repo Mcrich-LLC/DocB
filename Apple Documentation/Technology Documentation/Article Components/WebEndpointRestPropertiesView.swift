@@ -27,6 +27,7 @@ struct WebEndpointRestPropertiesView: View {
                             VStack {
                                 if let name = item.name {
                                     Text("\(name)")
+                                        .bold()
                                         .frame(maxWidth: .infinity, alignment: .trailing)
                                 }
                                 ForEach(item.type) { type in

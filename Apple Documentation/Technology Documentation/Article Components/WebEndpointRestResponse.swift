@@ -51,6 +51,7 @@ struct WebEndpointRestResponse: View {
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                             }
+                            .multilineTextAlignment(.leading)
                             .padding(.leading)
                             .padding(.vertical)
                         }

@@ -22,30 +22,37 @@ struct WebEndpointRestBody: View {
             
             if let bodyContentType = contentSection.bodyContentType,
                let content = contentSection.content {
-                HStack {
-                    VStack(alignment: .leading) {
-                        ForEach(bodyContentType) { body in
-                            if let url = URL(string: body.identifier) {
-                                Link(body.text, destination: url)
+                Grid(verticalSpacing: 0) {
+                        GridRow {
+                            VStack {
+                                ForEach(bodyContentType) { body in
+                                    if let url = URL(string: body.identifier) {
+                                        Link(body.text, destination: url)
+                                    }
+                                }
                             }
+                            .multilineTextAlignment(.trailing)
+                            .padding(.trailing)
+                            .padding(.vertical)
+                            
+                            HStack {
+                                Divider()
+                            }
+                            
+                            VStack {
+                                ForEach(content) { item in
+                                    ArticleContentView(content: item, references: references, alignment: .trailing)
+                                }
+                                if let mimeType = contentSection.mimeType {
+                                    Text(mimeType)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+                            .multilineTextAlignment(.leading)
+                            .padding(.leading)
+                            .padding(.vertical)
                         }
-                    }
-                    
-                    Spacer()
-                    
-                    Divider()
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing) {
-                        ForEach(content) { item in
-                            ArticleContentView(content: item, references: references, alignment: .trailing)
-                        }
-                        if let mimeType = contentSection.mimeType {
-                            Text(mimeType)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
                 }
             }
         }

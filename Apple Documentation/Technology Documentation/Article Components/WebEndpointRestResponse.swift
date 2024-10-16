@@ -21,31 +21,38 @@ struct WebEndpointRestResponse: View {
             }
             
             if let items = contentSection.items {
-                ForEach(items) { item in
-                    VStack {
-                        HStack {
-                            VStack(alignment: .leading) {
+                Grid(verticalSpacing: 0) {
+                    ForEach(items) { item in
+                        GridRow {
+                            VStack {
                                 Text("\(item.status)")
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
                                 ForEach(item.type) { type in
                                     if let url = URL(string: type.identifier) {
                                         Link(type.text, destination: url)
+                                            .frame(maxWidth: .infinity, alignment: .trailing)
                                     }
                                 }
                             }
+                            .multilineTextAlignment(.trailing)
+                            .padding(.trailing)
+                            .padding(.vertical)
                             
-                            Spacer()
+                            HStack {
+                                Divider()
+                            }
                             
-                            Divider()
-                            
-                            Spacer()
-                            
-                            VStack(alignment: .trailing) {
+                            VStack {
                                 Text(item.reason)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 if let mimeType = contentSection.mimeType {
                                     Text(mimeType)
                                         .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                             }
+                            .padding(.leading)
+                            .padding(.vertical)
                         }
                     }
                 }

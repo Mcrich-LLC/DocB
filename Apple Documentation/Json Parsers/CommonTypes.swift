@@ -132,7 +132,7 @@ struct ContentSection: Codable, Identifiable {
         case restResponses
     }
     
-    struct RestResponse: Codable, Identifiable {
+    struct RestResponse: Codable, Identifiable, Equatable {
         let id = UUID()
         
         let type: [RestResponseType]
@@ -141,7 +141,7 @@ struct ContentSection: Codable, Identifiable {
         let content: [ContentSection.Content]
         let reason: String
         
-        struct RestResponseType: Codable, Identifiable {
+        struct RestResponseType: Codable, Identifiable, Equatable {
             let id = UUID()
             
             let text: String

@@ -38,7 +38,7 @@ struct WebEndpointRestEndPoint: View {
             if let code {
                 GroupBox {
                     CodeText(code)
-                        .highlightLanguage(.swift)
+                        .highlightLanguage(.javaScript)
                         .codeTextColors(.theme(.xcode))
                         .textSelection(.enabled)
                         .tint(Color(uiColor: .systemBlue))

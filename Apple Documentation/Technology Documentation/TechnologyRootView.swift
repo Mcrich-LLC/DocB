@@ -176,7 +176,7 @@ private struct DefaultListItem: View {
                     ArticleBadge(badge: .deprecated)
                 }
                 
-                if navigationViewModel.isUsingSplitView {
+                if !navigationViewModel.isUsingSplitView {
                     Spacer()
                     ChevronView()
                 }

@@ -123,7 +123,7 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        if navigationViewModel.isUsingSplitView {
+                        if !navigationViewModel.isUsingSplitView {
                             Spacer()
                             ChevronView()
                         }
@@ -161,7 +161,7 @@ struct ContentView: View {
                                                 
                                                 Spacer()
                                                 
-                                                if navigationViewModel.isUsingSplitView {
+                                                if !navigationViewModel.isUsingSplitView {
                                                     Spacer()
                                                     ChevronView()
                                                 }

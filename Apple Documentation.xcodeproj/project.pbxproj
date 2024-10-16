@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -285,6 +285,7 @@
 				};
 			};
 			buildConfigurationList = 22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "Apple Documentation" */;
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -298,7 +299,6 @@
 				22BE0E1F2CB4D5EB00075074 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 				22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 			);
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";

@@ -208,7 +208,9 @@ struct ContentSection: Codable, Identifiable {
             let container: KeyedDecodingContainer<ContentSection.Declaration.CodingKeys> = try decoder.container(keyedBy: ContentSection.Declaration.CodingKeys.self)
             self.tokens = try container.decode([ContentSection.Token].self, forKey: ContentSection.Declaration.CodingKeys.tokens)
             self.languages = try container.decode([String].self, forKey: ContentSection.Declaration.CodingKeys.languages)
-            self.platforms = try container.decode([PlatformName].self, forKey: ContentSection.Declaration.CodingKeys.platforms)
+            
+            let platforms = try container.decode([String].self, forKey: .platforms)
+            self.platforms = platforms.map { .init(rawValue: $0) ?? PlatformName.unknownOS }
         }
     }
     

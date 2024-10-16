@@ -26,7 +26,7 @@ struct WebEndpointRestBody: View {
                         GridRow {
                             VStack {
                                 ForEach(bodyContentType) { body in
-                                    if let url = URL(string: body.identifier) {
+                                    if let identifier = body.identifier, let url = URL(string: identifier) {
                                         Link(body.text, destination: url)
                                     }
                                 }

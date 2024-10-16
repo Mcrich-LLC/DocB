@@ -25,10 +25,12 @@ struct WebEndpointRestResponse: View {
                     ForEach(items) { item in
                         GridRow {
                             VStack {
-                                Text("\(item.status)")
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                                if let status = item.status {
+                                    Text("\(status)")
+                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                                }
                                 ForEach(item.type) { type in
-                                    if let url = URL(string: type.identifier) {
+                                    if let identifier = type.identifier, let url = URL(string: identifier) {
                                         Link(type.text, destination: url)
                                             .frame(maxWidth: .infinity, alignment: .trailing)
                                     }
@@ -43,8 +45,10 @@ struct WebEndpointRestResponse: View {
                             }
                             
                             VStack {
-                                Text(item.reason)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                if let reason = item.reason {
+                                    Text(reason)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
                                 if let mimeType = contentSection.mimeType {
                                     Text(mimeType)
                                         .foregroundStyle(.secondary)

@@ -4,7 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length file_length
+// swiftlint:disable line_length file_length type_body_length
 
 import Foundation
 import SwiftUI
@@ -87,6 +87,7 @@ struct ContentSection: Codable, Identifiable {
     let mimeType: String?
     let title: String?
     let tokens: [Token]?
+    let attributes: [Attribute]?
     
     enum CodingKeys: CodingKey {
         case id
@@ -102,6 +103,7 @@ struct ContentSection: Codable, Identifiable {
         case mimeType
         case title
         case tokens
+        case attributes
     }
     
     init(from decoder: any Decoder) throws {
@@ -118,6 +120,7 @@ struct ContentSection: Codable, Identifiable {
         self.mimeType = try container.decodeIfPresent(String.self, forKey: .mimeType)
         self.title = try container.decodeIfPresent(String.self, forKey: .title)
         self.tokens = try container.decodeIfPresent([Token].self, forKey: .tokens)
+        self.attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes)
     }
     
     enum Kind: String, Codable {
@@ -130,41 +133,53 @@ struct ContentSection: Codable, Identifiable {
         case restEndpoint
         case restBody
         case restResponses
+        case properties
+        case typeIdentifier
+        case text
+        case attributes
+    }
+    
+    struct Attribute: Codable, Identifiable {
+        let id = UUID()
+        
+        let name: String?
     }
     
     struct RestResponse: Codable, Identifiable, Equatable {
         let id = UUID()
         
         let type: [RestResponseType]
-        let status: Int
+        let status: Int?
         let mimeContent: String?
         let content: [ContentSection.Content]
-        let reason: String
+        let reason: String?
+        let name: String?
         
         struct RestResponseType: Codable, Identifiable, Equatable {
             let id = UUID()
             
             let text: String
-            let kind: String
-            let preciseIdentifier: String
-            let identifier: String
+            let kind: Kind
+            let preciseIdentifier: String?
+            let identifier: String?
             
             init(from decoder: any Decoder) throws {
                 let container: KeyedDecodingContainer<ContentSection.RestResponse.RestResponseType.CodingKeys> = try decoder.container(keyedBy: ContentSection.RestResponse.RestResponseType.CodingKeys.self)
                 self.text = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.text)
-                self.kind = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.kind)
-                self.preciseIdentifier = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.preciseIdentifier)
-                self.identifier = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.identifier)
+                self.kind = try container.decode(Kind.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.kind)
+                self.preciseIdentifier = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.preciseIdentifier)
+                self.identifier = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.identifier)
             }
         }
         
         init(from decoder: any Decoder) throws {
             let container: KeyedDecodingContainer<ContentSection.RestResponse.CodingKeys> = try decoder.container(keyedBy: ContentSection.RestResponse.CodingKeys.self)
             self.type = try container.decode([ContentSection.RestResponse.RestResponseType].self, forKey: ContentSection.RestResponse.CodingKeys.type)
-            self.status = try container.decode(Int.self, forKey: ContentSection.RestResponse.CodingKeys.status)
+            self.status = try container.decodeIfPresent(Int.self, forKey: ContentSection.RestResponse.CodingKeys.status)
             self.mimeContent = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.mimeContent)
             self.content = try container.decode([ContentSection.Content].self, forKey: ContentSection.RestResponse.CodingKeys.content)
-            self.reason = try container.decode(String.self, forKey: ContentSection.RestResponse.CodingKeys.reason)
+            self.reason = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.reason)
+            self.name = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.name)
         }
     }
     
@@ -703,4 +718,4 @@ struct Platform: Codable, Identifiable {
     }
 }
 
-// swiftlint:enable line_length file_length
+// swiftlint:enable line_length file_length type_body_length

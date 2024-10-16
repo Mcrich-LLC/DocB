@@ -42,10 +42,26 @@ struct ContentView: View {
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()
         }
+        .environment(\.openURL, urlActionHandler)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
         }
     }
+    
+    let urlActionHandler: OpenURLAction = OpenURLAction { url in
+            if url.absoluteString.contains("developer.apple.com/documentation"),
+               let url = URL(string: url.absoluteString
+                .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
+                .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
+                return .systemAction(url)
+            } else if url.scheme == "doc",
+                   let url = URL(string: url.absoluteString
+                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+                return .systemAction(url)
+            } else {
+                return .systemAction
+            }
+        }
     
     @ViewBuilder
     var navigationSplitView: some View {

@@ -14,7 +14,17 @@ struct DeclarationContentView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var code: String {
-        content.tokens.map({ $0.text }).joined()
+        content.tokens.compactMap({ token in
+            if let text = token.text {
+                return text
+            }
+            
+            if let code = token.code {
+                return code
+            }
+            
+            return nil
+        }).joined()
     }
     
     var body: some View {

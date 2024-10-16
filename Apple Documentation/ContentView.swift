@@ -159,8 +159,6 @@ struct ContentView: View {
                                                     ArticleBadge(badge: .deprecated)
                                                 }
                                                 
-                                                Spacer()
-                                                
                                                 if !navigationViewModel.isUsingSplitView {
                                                     Spacer()
                                                     ChevronView()

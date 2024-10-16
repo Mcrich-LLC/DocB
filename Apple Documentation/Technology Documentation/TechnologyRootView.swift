@@ -177,7 +177,6 @@ private struct DefaultListItem: View {
                 }
                 
                 if !navigationViewModel.isUsingSplitView {
-                    Spacer()
                     ChevronView()
                 }
             } icon: {

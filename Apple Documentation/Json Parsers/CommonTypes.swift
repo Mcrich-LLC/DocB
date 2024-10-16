@@ -4,7 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length file_length
 
 import Foundation
 import SwiftUI
@@ -148,6 +148,14 @@ struct ContentSection: Codable, Identifiable {
             let kind: String
             let preciseIdentifier: String
             let identifier: String
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<ContentSection.RestResponse.RestResponseType.CodingKeys> = try decoder.container(keyedBy: ContentSection.RestResponse.RestResponseType.CodingKeys.self)
+                self.text = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.text)
+                self.kind = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.kind)
+                self.preciseIdentifier = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.preciseIdentifier)
+                self.identifier = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.identifier)
+            }
         }
         
         init(from decoder: any Decoder) throws {
@@ -693,4 +701,4 @@ struct Platform: Codable, Identifiable {
     }
 }
 
-// swiftlint:enable line_length
+// swiftlint:enable line_length file_length

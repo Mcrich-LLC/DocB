@@ -42,10 +42,26 @@ struct ContentView: View {
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()
         }
+        .environment(\.openURL, urlActionHandler)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
         }
     }
+    
+    let urlActionHandler: OpenURLAction = OpenURLAction { url in
+            if url.absoluteString.contains("developer.apple.com/documentation"),
+               let url = URL(string: url.absoluteString
+                .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
+                .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
+                return .systemAction(url)
+            } else if url.scheme == "doc",
+                   let url = URL(string: url.absoluteString
+                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+                return .systemAction(url)
+            } else {
+                return .systemAction
+            }
+        }
     
     @ViewBuilder
     var navigationSplitView: some View {
@@ -123,8 +139,10 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        Spacer()
-                        chevron
+                        if !navigationViewModel.isUsingSplitView {
+                            Spacer()
+                            ChevronView()
+                        }
                     }
                 }
                 .foregroundStyle(Color.primary)
@@ -143,23 +161,26 @@ struct ContentView: View {
                         if !filtered.isEmpty {
                             Section(group.name) {
                                 
-                                ForEach(filtered) { technology in
-                                    if technology.destination.isActive {
-                                        TechnologyNavigationLinkButton(technology: technology) {
+                                ForEach(filtered) { framework in
+                                    if framework.destination.isActive {
+                                        TechnologyNavigationLinkButton(technology: framework) {
                                             HStack {
-                                                Text(technology.title)
+                                                Text(framework.title)
                                                 
-                                                if technology.tags.contains(where: { $0.lowercased() == "beta" }) {
-                                                    ArticleBadge(badge: .beta)
+                                                if let reference = technology.references[framework.destination.identifier] {
+                                                    if reference.beta == true {
+                                                        ArticleBadge(badge: .beta)
+                                                    }
+                                                    
+                                                    if reference.deprecated == true {
+                                                        ArticleBadge(badge: .deprecated)
+                                                    }
                                                 }
                                                 
-                                                if technology.tags.contains(where: { $0.lowercased() == "deprecated" }) {
-                                                    ArticleBadge(badge: .deprecated)
+                                                if !navigationViewModel.isUsingSplitView {
+                                                    Spacer()
+                                                    ChevronView()
                                                 }
-                                                
-                                                Spacer()
-                                                
-                                                chevron
                                             }
                                             .contentShape(Rectangle())
                                         }
@@ -191,16 +212,5 @@ struct ContentView: View {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
-    }
-    
-    var chevron: some View {
-        Image(systemSymbol: .chevronRight)
-            .resizable()
-            .frame(width: 8, height: 12)
-        #if os(visionOS)
-            .foregroundStyle(colorScheme == .dark ? Color.primary : Color(uiColor: .systemGray3))
-        #else
-            .foregroundStyle(Color(uiColor: .systemGray3))
-        #endif
     }
 }

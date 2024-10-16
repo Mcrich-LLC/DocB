@@ -134,9 +134,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 }
                 
                 if navigationViewModel.isUsingSplitView {
-                    // swiftlint:disable line_length
                     let reference = technology.frameworkReference
-                    // swiftlint:enable line_length
                     navigationViewModel.setReference(reference)
                 }
             } label: {

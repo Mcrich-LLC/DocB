@@ -19,14 +19,22 @@ struct LanguagePicker: View {
     }
     
     var body: some View {
-        Picker("Language: ", selection: $documentationViewModel.preferedProgrammingLanguage) {
-            if filteredLanguages.count == 1 {
-                Text(filteredLanguages[0].humanReadable)
-                    .tag(documentationViewModel.preferedProgrammingLanguage)
-            } else {
-                ForEach(filteredLanguages, id: \.self) { language in
-                    Text(language.humanReadable)
-                        .tag(language)
+        if filteredLanguages.count == 1 && filteredLanguages[0].humanReadable == nil {
+            EmptyView()
+        } else {
+            Picker("Language: ", selection: $documentationViewModel.preferedProgrammingLanguage) {
+                if filteredLanguages.count == 1 {
+                    if let humanReadable = filteredLanguages[0].humanReadable {
+                        Text(humanReadable)
+                            .tag(documentationViewModel.preferedProgrammingLanguage)
+                    }
+                } else {
+                    ForEach(filteredLanguages, id: \.self) { language in
+                        if let humanReadable = language.humanReadable {
+                            Text(humanReadable)
+                                .tag(language)
+                        }
+                    }
                 }
             }
         }

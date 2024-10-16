@@ -11,13 +11,16 @@ import SwiftUI
 enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     case swift
     case objectivec = "occ"
+    case data
     
-    var humanReadable: String {
+    var humanReadable: String? {
         switch self {
         case .swift:
             "Swift"
         case .objectivec:
             "Objective-C"
+        case .data:
+            nil
         }
     }
 }

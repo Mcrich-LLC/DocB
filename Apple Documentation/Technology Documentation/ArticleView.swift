@@ -72,6 +72,16 @@ struct ArticleView: View {
                                     if let details = section.details {
                                         DetailsView(details: details)
                                     }
+                                case .restBody:
+                                    WebEndpointRestBody(contentSection: section, references: article.references)
+                                case .restEndpoint:
+                                    WebEndpointRestEndPoint(contentSection: section, references: article.references)
+                                case .restResponses:
+                                    WebEndpointRestResponse(contentSection: section, references: article.references)
+                                case .properties:
+                                    WebEndpointRestPropertiesView(contentSection: section, references: article.references)
+                                case .attributes:
+                                    WebEndpointRestAttributesView(contentSection: section, references: article.references)
                                 default:
                                     VStack {
                                         ForEach(section.content ?? []) { content in

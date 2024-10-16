@@ -4,7 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length file_length type_body_length
 
 import Foundation
 import SwiftUI
@@ -81,6 +81,14 @@ struct ContentSection: Codable, Identifiable {
     let mentions: [String]?
     let details: Details?
     
+    // Web Endpoint
+    let items: [RestResponse]?
+    let bodyContentType: [RestResponse.RestResponseType]?
+    let mimeType: String?
+    let title: String?
+    let tokens: [Token]?
+    let attributes: [Attribute]?
+    
     enum CodingKeys: CodingKey {
         case id
         case kind
@@ -88,6 +96,14 @@ struct ContentSection: Codable, Identifiable {
         case declarations
         case mentions
         case details
+        
+        // Web Endpoint
+        case items
+        case bodyContentType
+        case mimeType
+        case title
+        case tokens
+        case attributes
     }
     
     init(from decoder: any Decoder) throws {
@@ -97,6 +113,14 @@ struct ContentSection: Codable, Identifiable {
         self.declarations = try container.decodeIfPresent([ContentSection.Declaration].self, forKey: .declarations)
         self.mentions = try container.decodeIfPresent([String].self, forKey: .mentions)
         self.details = try container.decodeIfPresent(Details.self, forKey: .details)
+        
+        // Web Endpoint
+        self.items = try container.decodeIfPresent([RestResponse].self, forKey: .items)
+        self.bodyContentType = try container.decodeIfPresent([RestResponse.RestResponseType].self, forKey: .bodyContentType)
+        self.mimeType = try container.decodeIfPresent(String.self, forKey: .mimeType)
+        self.title = try container.decodeIfPresent(String.self, forKey: .title)
+        self.tokens = try container.decodeIfPresent([Token].self, forKey: .tokens)
+        self.attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes)
     }
     
     enum Kind: String, Codable {
@@ -106,6 +130,61 @@ struct ContentSection: Codable, Identifiable {
         case details
         case kind
         case parameters
+        case restEndpoint
+        case restBody
+        case restResponses
+        case properties
+        case typeIdentifier
+        case text
+        case attributes
+    }
+    
+    struct Attribute: Codable, Identifiable {
+        let id = UUID()
+        
+        let name: String?
+        
+        init(name: String?) {
+            self.name = name
+        }
+    }
+    
+    struct RestResponse: Codable, Identifiable, Equatable {
+        let id = UUID()
+        
+        let type: [RestResponseType]
+        let status: Int?
+        let mimeContent: String?
+        let content: [ContentSection.Content]
+        let reason: String?
+        let name: String?
+        
+        struct RestResponseType: Codable, Identifiable, Equatable {
+            let id = UUID()
+            
+            let text: String
+            let kind: Kind
+            let preciseIdentifier: String?
+            let identifier: String?
+            
+            init(from decoder: any Decoder) throws {
+                let container: KeyedDecodingContainer<ContentSection.RestResponse.RestResponseType.CodingKeys> = try decoder.container(keyedBy: ContentSection.RestResponse.RestResponseType.CodingKeys.self)
+                self.text = try container.decode(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.text)
+                self.kind = try container.decode(Kind.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.kind)
+                self.preciseIdentifier = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.preciseIdentifier)
+                self.identifier = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.RestResponseType.CodingKeys.identifier)
+            }
+        }
+        
+        init(from decoder: any Decoder) throws {
+            let container: KeyedDecodingContainer<ContentSection.RestResponse.CodingKeys> = try decoder.container(keyedBy: ContentSection.RestResponse.CodingKeys.self)
+            self.type = try container.decode([ContentSection.RestResponse.RestResponseType].self, forKey: ContentSection.RestResponse.CodingKeys.type)
+            self.status = try container.decodeIfPresent(Int.self, forKey: ContentSection.RestResponse.CodingKeys.status)
+            self.mimeContent = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.mimeContent)
+            self.content = try container.decode([ContentSection.Content].self, forKey: ContentSection.RestResponse.CodingKeys.content)
+            self.reason = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.reason)
+            self.name = try container.decodeIfPresent(String.self, forKey: ContentSection.RestResponse.CodingKeys.name)
+        }
     }
     
     struct Details: Codable, Identifiable {
@@ -135,7 +214,7 @@ struct ContentSection: Codable, Identifiable {
         let id = UUID()
         let tokens: [Token]
         let languages: [String]
-        let platforms: [PlatformName]
+        let platforms: [String]
         
         enum CodingKeys: CodingKey {
             case id
@@ -146,15 +225,16 @@ struct ContentSection: Codable, Identifiable {
         
         init(from decoder: any Decoder) throws {
             let container: KeyedDecodingContainer<ContentSection.Declaration.CodingKeys> = try decoder.container(keyedBy: ContentSection.Declaration.CodingKeys.self)
-            self.tokens = try container.decode([ContentSection.Declaration.Token].self, forKey: ContentSection.Declaration.CodingKeys.tokens)
+            self.tokens = try container.decode([ContentSection.Token].self, forKey: ContentSection.Declaration.CodingKeys.tokens)
             self.languages = try container.decode([String].self, forKey: ContentSection.Declaration.CodingKeys.languages)
-            self.platforms = try container.decode([PlatformName].self, forKey: ContentSection.Declaration.CodingKeys.platforms)
+            self.platforms = try container.decode([String].self, forKey: .platforms)
         }
-        
-        struct Token: Codable {
-            let text: String
-            let kind: String
-        }
+    }
+    
+    struct Token: Codable {
+        let text: String?
+        let kind: String
+        let code: String?
     }
     
     struct Content: Codable, Identifiable, Equatable, Hashable {
@@ -594,24 +674,13 @@ enum ContentType: String, Codable, Equatable, Hashable {
 }
 
 // MARK: Platforms
-enum PlatformName: String, Codable {
-    case iOS
-    case iPadOS
-    case macCatalyst = "Mac Catalyst"
-    case macOS
-    case tvOS
-    case visionOS
-    case watchOS
-    case xcode = "Xcode"
-}
-
 struct Platform: Codable, Identifiable {
     let id = UUID()
     
     let introducedAt: String
     let unavailable: Bool?
     let beta: Bool?
-    let name: PlatformName
+    let name: String
     let deprecated: Bool?
     let deprecatedAt: String?
     
@@ -630,10 +699,10 @@ struct Platform: Codable, Identifiable {
         self.introducedAt = try container.decode(String.self, forKey: .introducedAt)
         self.unavailable = try container.decodeIfPresent(Bool.self, forKey: .unavailable)
         self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta)
-        self.name = try container.decode(PlatformName.self, forKey: .name)
+        self.name = try container.decode(String.self, forKey: .name)
         self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
         self.deprecatedAt = try container.decodeIfPresent(String.self, forKey: .deprecatedAt)
     }
 }
 
-// swiftlint:enable line_length
+// swiftlint:enable line_length file_length type_body_length

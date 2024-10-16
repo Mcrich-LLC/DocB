@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
 		2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A42CBF6A8500090C9F /* Fastfile */; };
@@ -51,11 +52,17 @@
 		2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3B82CBF6A8500090C9F /* Preview Assets.xcassets */; };
 		2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3D32CBF6A8500090C9F /* .swiftlint.yml */; };
 		2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3D62CBF6A8500090C9F /* Assets.xcassets */; };
+		22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299EF2CBF852A008EE3E5 /* WebEndpointRestBody.swift */; };
+		22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */; };
+		22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */; };
+		22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */; };
+		22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */; };
 		22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22C450B02CB4D61B00376AA5 /* SFSafeSymbols */; };
 		22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 22E7F4E12CB5048400FD6B2C /* HighlightSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
 		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
@@ -100,6 +107,11 @@
 		2287E3DA2CBF6A8500090C9F /* MacOSAgnosticButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSAgnosticButton.swift; sourceTree = "<group>"; };
 		2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLinkButton.swift; sourceTree = "<group>"; };
 		2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewModel.swift; sourceTree = "<group>"; };
+		22A299EF2CBF852A008EE3E5 /* WebEndpointRestBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestBody.swift; sourceTree = "<group>"; };
+		22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestEndPoint.swift; sourceTree = "<group>"; };
+		22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestResponse.swift; sourceTree = "<group>"; };
+		22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestPropertiesView.swift; sourceTree = "<group>"; };
+		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Apple Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -158,6 +170,11 @@
 				2287E3BC2CBF6A8500090C9F /* ArticleContentView.swift */,
 				2287E3BD2CBF6A8500090C9F /* AsideView.swift */,
 				2287E3BE2CBF6A8500090C9F /* DeclarationContentView.swift */,
+				22A299EF2CBF852A008EE3E5 /* WebEndpointRestBody.swift */,
+				22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */,
+				22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */,
+				22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */,
+				22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */,
 				2287E3BF2CBF6A8500090C9F /* DetailsView.swift */,
 				2287E3C02CBF6A8500090C9F /* DownloadButtonView.swift */,
 				2287E3C12CBF6A8500090C9F /* LinksGridListView.swift */,
@@ -207,6 +224,7 @@
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
+				222AB77A2CBF78B2001196C1 /* ChevronView.swift */,
 				2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */,
 				2287E3DA2CBF6A8500090C9F /* MacOSAgnosticButton.swift */,
 				2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */,
@@ -353,10 +371,12 @@
 				2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */,
 				2287E3E02CBF6A8500090C9F /* Framework Parser.swift in Sources */,
 				2287E3E12CBF6A8500090C9F /* HomepageParser.swift in Sources */,
+				22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */,
 				2287E3E22CBF6A8500090C9F /* TechnologiesParser.swift in Sources */,
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
 				2287E3E42CBF6A8500090C9F /* ArticleBadges.swift in Sources */,
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,
+				22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */,
 				2287E3E62CBF6A8500090C9F /* AsideView.swift in Sources */,
 				2287E3E72CBF6A8500090C9F /* DeclarationContentView.swift in Sources */,
 				2287E3E82CBF6A8500090C9F /* DetailsView.swift in Sources */,
@@ -365,12 +385,16 @@
 				2287E3EB2CBF6A8500090C9F /* MentionsView.swift in Sources */,
 				2287E3EC2CBF6A8500090C9F /* MultiLine Picker.swift in Sources */,
 				2287E3ED2CBF6A8500090C9F /* PlatformCapsule.swift in Sources */,
+				222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */,
 				2287E3EE2CBF6A8500090C9F /* RelationshipsView.swift in Sources */,
 				2287E3EF2CBF6A8500090C9F /* SeeAlsoView.swift in Sources */,
+				22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */,
 				2287E3F02CBF6A8500090C9F /* TopicsView.swift in Sources */,
 				2287E3F12CBF6A8500090C9F /* WrappingHStack.swift in Sources */,
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
+				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
+				22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */,
 				2287E3F42CBF6A8500090C9F /* HomepageSection.swift in Sources */,
 				2287E3F52CBF6A8500090C9F /* ArticleView.swift in Sources */,
 				2287E3F62CBF6A8500090C9F /* HomepageView.swift in Sources */,
@@ -515,7 +539,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -523,6 +547,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -552,7 +577,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -560,6 +585,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

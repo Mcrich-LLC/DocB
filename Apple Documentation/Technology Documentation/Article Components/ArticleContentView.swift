@@ -216,7 +216,12 @@ struct ArticleContentView: View {
                     if let content = item.content {
                         VStack(spacing: 5) {
                             ForEach(content) { subcontent in
-                                ArticleContentView(content: subcontent, references: self.references, from: .orderedList, orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1 )
+                                ArticleContentView(
+                                    content: subcontent,
+                                    references: self.references,
+                                    from: .orderedList,
+                                    orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1
+                                )
                                     .padding(.bottom, content.last == subcontent ? 10 : 0)
                             }
                         }
@@ -350,7 +355,7 @@ struct ArticleContentView: View {
         }
     }
     
-    // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable cyclomatic_complexity function_body_length
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
@@ -428,7 +433,7 @@ struct ArticleContentView: View {
         }
         .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(type) ? 5 : 0)
     }
-    // swiftlint:enable cyclomatic_complexity
+    // swiftlint:enable cyclomatic_complexity function_body_length
     
     private struct InlineContent: Identifiable {
         let id = UUID()

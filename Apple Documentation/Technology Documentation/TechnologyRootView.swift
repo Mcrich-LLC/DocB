@@ -105,6 +105,7 @@ private struct FrameworkListItem: View {
     
     let reference: Reference
     let title: String
+    var isShowingChevron: Bool = true
     
     var hasSubParts: Bool {
         if let fragments = reference.fragments,
@@ -144,7 +145,15 @@ private struct FrameworkListItem: View {
             }
         } else {
             DefaultListItem(reference: reference, title: title)
+                .showChevron(isShowingChevron)
         }
+    }
+    
+    func showChevron(_ bool: Bool) -> Self {
+        var view = self
+        view.isShowingChevron = bool
+        
+        return view
     }
 }
 
@@ -153,6 +162,7 @@ private struct DefaultListItem: View {
     let reference: Reference
     let title: String
     
+    var isShowingChevron: Bool = true
     var shouldShowBackground: Bool = true
     
     var removeLastPathComponentFirst: Bool {
@@ -166,14 +176,20 @@ private struct DefaultListItem: View {
     var body: some View {
         ReferenceNavigationLinkButton(reference: reference) {
             Label {
-                Text(title)
-                
-                if reference.beta == true {
-                    ArticleBadge(badge: .beta)
-                }
-                
-                if reference.deprecated == true {
-                    ArticleBadge(badge: .deprecated)
+                HStack {
+                    Text(title)
+                    
+                    if reference.beta == true {
+                        ArticleBadge(badge: .beta)
+                    }
+                    
+                    if reference.deprecated == true {
+                        ArticleBadge(badge: .deprecated)
+                    }
+                    
+                    if !navigationViewModel.isUsingSplitView && isShowingChevron {
+                        ChevronView()
+                    }
                 }
             } icon: {
                 Image(systemSymbol: reference.role?.labelIcon ?? .docText)
@@ -188,6 +204,13 @@ private struct DefaultListItem: View {
     func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
+        
+        return view
+    }
+    
+    func showChevron(_ bool: Bool) -> Self {
+        var view = self
+        view.isShowingChevron = bool
         
         return view
     }
@@ -225,6 +248,7 @@ private struct FrameworkDisclosureGroup: View {
         } label: {
             DefaultListItem(reference: reference, title: title)
                 .showBackground(false)
+                .showChevron(false)
                 .background {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .padding(-10)

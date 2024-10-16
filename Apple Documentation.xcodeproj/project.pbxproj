@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,7 +13,6 @@
 		2287E3AD2CBF6A8500090C9F /* Matchfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A52CBF6A8500090C9F /* Matchfile */; };
 		2287E3AE2CBF6A8500090C9F /* Precheckfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A62CBF6A8500090C9F /* Precheckfile */; };
 		2287E3AF2CBF6A8500090C9F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A72CBF6A8500090C9F /* README.md */; };
-		2287E3B02CBF6A8500090C9F /* report.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A82CBF6A8500090C9F /* report.xml */; };
 		2287E3B12CBF6A8500090C9F /* Snapfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A92CBF6A8500090C9F /* Snapfile */; };
 		2287E3DE2CBF6A8500090C9F /* Article Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B22CBF6A8500090C9F /* Article Parser.swift */; };
 		2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B32CBF6A8500090C9F /* CommonTypes.swift */; };
@@ -62,7 +61,6 @@
 		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
 		2287E3A62CBF6A8500090C9F /* Precheckfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Precheckfile; sourceTree = "<group>"; };
 		2287E3A72CBF6A8500090C9F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		2287E3A82CBF6A8500090C9F /* report.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = report.xml; sourceTree = "<group>"; };
 		2287E3A92CBF6A8500090C9F /* Snapfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Snapfile; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
 		2287E3B32CBF6A8500090C9F /* CommonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTypes.swift; sourceTree = "<group>"; };
@@ -127,7 +125,6 @@
 				2287E3A52CBF6A8500090C9F /* Matchfile */,
 				2287E3A62CBF6A8500090C9F /* Precheckfile */,
 				2287E3A72CBF6A8500090C9F /* README.md */,
-				2287E3A82CBF6A8500090C9F /* report.xml */,
 				2287E3A92CBF6A8500090C9F /* Snapfile */,
 			);
 			path = fastlane;
@@ -293,7 +290,6 @@
 				Base,
 			);
 			mainGroup = 22F8CD5D2CB23D6C0081BB0A;
-			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				22BE0E1F2CB4D5EB00075074 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
@@ -318,7 +314,6 @@
 				2287E3AD2CBF6A8500090C9F /* Matchfile in Resources */,
 				2287E3AE2CBF6A8500090C9F /* Precheckfile in Resources */,
 				2287E3AF2CBF6A8500090C9F /* README.md in Resources */,
-				2287E3B02CBF6A8500090C9F /* report.xml in Resources */,
 				2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */,
 				2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */,
 				2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */,
@@ -520,7 +515,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -557,7 +552,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;

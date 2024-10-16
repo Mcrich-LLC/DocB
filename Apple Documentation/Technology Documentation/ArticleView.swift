@@ -138,9 +138,9 @@ struct ArticleView: View {
                                     }
                                 }
                                 
-                                Button("Download", systemImage: "arrow.down.circle") {
-                                    // TODO: Implement Downloading
-                                }
+//                                Button("Download", systemImage: "arrow.down.circle") {
+//                                    // TODO: Implement Downloading
+//                                }
                                 
                                 Button("Save", systemImage: "bookmark") {
                                     // TODO: Implement Bookmarks

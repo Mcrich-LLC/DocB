@@ -182,9 +182,6 @@ struct ArticleView: View {
                 await loadArticle()
             }
         })
-        .onAppear {
-//            navigationViewModel.setReference(reference)
-        }
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }

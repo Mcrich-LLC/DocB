@@ -17,6 +17,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		226831552CBF690900BFD4DD /* fastlane */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = fastlane;
+			sourceTree = "<group>";
+		};
 		22F8CD682CB23D6C0081BB0A /* Apple Documentation */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Apple Documentation";
@@ -48,6 +53,7 @@
 		22F8CD5D2CB23D6C0081BB0A = {
 			isa = PBXGroup;
 			children = (
+				226831552CBF690900BFD4DD /* fastlane */,
 				22F8CD682CB23D6C0081BB0A /* Apple Documentation */,
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
@@ -79,6 +85,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				226831552CBF690900BFD4DD /* fastlane */,
 				22F8CD682CB23D6C0081BB0A /* Apple Documentation */,
 			);
 			name = "Apple Documentation";

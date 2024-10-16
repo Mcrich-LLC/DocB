@@ -21,11 +21,12 @@ struct WebEndpointRestAttributesView: View {
             }
             
             Text("Possible types:")
-            if let attributes = contentSection.attributes {
-                ForEach(attributes) { attribute in
-                    EmptyView()
-                }
-            }
+                .frame(maxWidth: .infinity, alignment: .leading)
+//            if let attributes = contentSection.attributes {
+//                ForEach(attributes) { attribute in
+//                    EmptyView()
+//                }
+//            }
         }
     }
 }

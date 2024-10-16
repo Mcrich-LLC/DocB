@@ -214,7 +214,7 @@ struct ContentSection: Codable, Identifiable {
         let id = UUID()
         let tokens: [Token]
         let languages: [String]
-        let platforms: [PlatformName]
+        let platforms: [String]
         
         enum CodingKeys: CodingKey {
             case id
@@ -227,9 +227,7 @@ struct ContentSection: Codable, Identifiable {
             let container: KeyedDecodingContainer<ContentSection.Declaration.CodingKeys> = try decoder.container(keyedBy: ContentSection.Declaration.CodingKeys.self)
             self.tokens = try container.decode([ContentSection.Token].self, forKey: ContentSection.Declaration.CodingKeys.tokens)
             self.languages = try container.decode([String].self, forKey: ContentSection.Declaration.CodingKeys.languages)
-            
-            let platforms = try container.decode([String].self, forKey: .platforms)
-            self.platforms = platforms.map { .init(rawValue: $0) ?? PlatformName.unknownOS }
+            self.platforms = try container.decode([String].self, forKey: .platforms)
         }
     }
     
@@ -676,25 +674,13 @@ enum ContentType: String, Codable, Equatable, Hashable {
 }
 
 // MARK: Platforms
-enum PlatformName: String, Codable {
-    case iOS
-    case iPadOS
-    case macCatalyst = "Mac Catalyst"
-    case macOS
-    case tvOS
-    case visionOS
-    case watchOS
-    case xcode = "Xcode"
-    case unknownOS = "Unkown OS"
-}
-
 struct Platform: Codable, Identifiable {
     let id = UUID()
     
     let introducedAt: String
     let unavailable: Bool?
     let beta: Bool?
-    let name: PlatformName
+    let name: String
     let deprecated: Bool?
     let deprecatedAt: String?
     
@@ -713,10 +699,7 @@ struct Platform: Codable, Identifiable {
         self.introducedAt = try container.decode(String.self, forKey: .introducedAt)
         self.unavailable = try container.decodeIfPresent(Bool.self, forKey: .unavailable)
         self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta)
-        
-        let name = try container.decode(String.self, forKey: .name)
-        self.name = .init(rawValue: name) ?? PlatformName.unknownOS
-        
+        self.name = try container.decode(String.self, forKey: .name)
         self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated)
         self.deprecatedAt = try container.decodeIfPresent(String.self, forKey: .deprecatedAt)
     }

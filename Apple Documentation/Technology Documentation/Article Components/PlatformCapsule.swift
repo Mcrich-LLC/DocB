@@ -19,7 +19,7 @@ struct PlatformCapsule: View {
             version = "\(platform.introducedAt)+"
         }
         
-        return "\(platform.name.rawValue) \(version)"
+        return "\(platform.name) \(version)"
     }
     
     var hasBadge: Bool {

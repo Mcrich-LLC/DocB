@@ -161,18 +161,20 @@ struct ContentView: View {
                         if !filtered.isEmpty {
                             Section(group.name) {
                                 
-                                ForEach(filtered) { technology in
-                                    if technology.destination.isActive {
-                                        TechnologyNavigationLinkButton(technology: technology) {
+                                ForEach(filtered) { framework in
+                                    if framework.destination.isActive {
+                                        TechnologyNavigationLinkButton(technology: framework) {
                                             HStack {
-                                                Text(technology.title)
+                                                Text(framework.title)
                                                 
-                                                if technology.tags.contains(where: { $0.lowercased() == "beta" }) {
-                                                    ArticleBadge(badge: .beta)
-                                                }
-                                                
-                                                if technology.tags.contains(where: { $0.lowercased() == "deprecated" }) {
-                                                    ArticleBadge(badge: .deprecated)
+                                                if let reference = technology.references[framework.destination.identifier] {
+                                                    if reference.beta == true {
+                                                        ArticleBadge(badge: .beta)
+                                                    }
+                                                    
+                                                    if reference.deprecated == true {
+                                                        ArticleBadge(badge: .deprecated)
+                                                    }
                                                 }
                                                 
                                                 if !navigationViewModel.isUsingSplitView {

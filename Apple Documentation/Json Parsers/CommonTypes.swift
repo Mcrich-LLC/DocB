@@ -143,6 +143,10 @@ struct ContentSection: Codable, Identifiable {
         let id = UUID()
         
         let name: String?
+        
+        init(name: String?) {
+            self.name = name
+        }
     }
     
     struct RestResponse: Codable, Identifiable, Equatable {

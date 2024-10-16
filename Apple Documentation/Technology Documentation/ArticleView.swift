@@ -80,11 +80,8 @@ struct ArticleView: View {
                                     WebEndpointRestResponse(contentSection: section, references: article.references)
                                 case .properties:
                                     // TODO: Implement Properties
-                                    EmptyView()
-                                case .typeIdentifier:
-                                    // TODO: Implement typeIdentifier
-                                    EmptyView()
-                                case .text:
+                                    WebEndpointRestPropertiesView(contentSection: section, references: article.references)
+                                case .attributes:
                                     // TODO: Implement text
                                     EmptyView()
                                 default:

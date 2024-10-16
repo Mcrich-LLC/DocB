@@ -175,6 +175,11 @@ private struct DefaultListItem: View {
                 if reference.deprecated == true {
                     ArticleBadge(badge: .deprecated)
                 }
+                
+                if navigationViewModel.isUsingSplitView {
+                    Spacer()
+                    ChevronView()
+                }
             } icon: {
                 Image(systemSymbol: reference.role?.labelIcon ?? .docText)
                     .foregroundStyle(.secondary)

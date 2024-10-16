@@ -123,8 +123,10 @@ struct ContentView: View {
                     HStack {
                         Text("Discover")
                         
-                        Spacer()
-                        chevron
+                        if navigationViewModel.isUsingSplitView {
+                            Spacer()
+                            ChevronView()
+                        }
                     }
                 }
                 .foregroundStyle(Color.primary)
@@ -159,7 +161,10 @@ struct ContentView: View {
                                                 
                                                 Spacer()
                                                 
-                                                chevron
+                                                if navigationViewModel.isUsingSplitView {
+                                                    Spacer()
+                                                    ChevronView()
+                                                }
                                             }
                                             .contentShape(Rectangle())
                                         }
@@ -191,16 +196,5 @@ struct ContentView: View {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
-    }
-    
-    var chevron: some View {
-        Image(systemSymbol: .chevronRight)
-            .resizable()
-            .frame(width: 8, height: 12)
-        #if os(visionOS)
-            .foregroundStyle(colorScheme == .dark ? Color.primary : Color(uiColor: .systemGray3))
-        #else
-            .foregroundStyle(Color(uiColor: .systemGray3))
-        #endif
     }
 }

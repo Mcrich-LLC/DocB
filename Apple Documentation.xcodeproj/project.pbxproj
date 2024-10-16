@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
 		2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A42CBF6A8500090C9F /* Fastfile */; };
@@ -56,6 +57,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
 		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
+				222AB77A2CBF78B2001196C1 /* ChevronView.swift */,
 				2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */,
 				2287E3DA2CBF6A8500090C9F /* MacOSAgnosticButton.swift */,
 				2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */,
@@ -365,6 +368,7 @@
 				2287E3EB2CBF6A8500090C9F /* MentionsView.swift in Sources */,
 				2287E3EC2CBF6A8500090C9F /* MultiLine Picker.swift in Sources */,
 				2287E3ED2CBF6A8500090C9F /* PlatformCapsule.swift in Sources */,
+				222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */,
 				2287E3EE2CBF6A8500090C9F /* RelationshipsView.swift in Sources */,
 				2287E3EF2CBF6A8500090C9F /* SeeAlsoView.swift in Sources */,
 				2287E3F02CBF6A8500090C9F /* TopicsView.swift in Sources */,

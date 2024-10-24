@@ -7,11 +7,12 @@
 
 import SwiftUI
 
-struct CopyOverlayButton: View {
+struct CodeCopyOverlayButton: View {
     let string: String
     @State private var hasCoppied: Bool = false
     
     var body: some View {
+#if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
         GroupBox {
             MacOSAgnosticButton {
                 UIPasteboard.general.string = string
@@ -29,5 +30,9 @@ struct CopyOverlayButton: View {
             }
         }
         .scaleEffect(string.contains("\n") ? 1 : 0.75)
+        #else
+        EmptyView()
+            .frame(width: 0, height: 0)
+        #endif
     }
 }

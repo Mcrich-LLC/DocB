@@ -282,7 +282,7 @@ struct ArticleContentView: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.primary)
                         .overlay(alignment: .topTrailing) {
-                            CopyOverlayButton(string: code.joined(separator: "\n"))
+                            CodeCopyOverlayButton(string: code.joined(separator: "\n"))
                         }
                 }
             }

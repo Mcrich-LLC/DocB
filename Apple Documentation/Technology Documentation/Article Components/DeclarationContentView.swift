@@ -40,7 +40,7 @@ struct DeclarationContentView: View {
             .backgroundStyle(colorScheme == .dark ? .black : .white)
 #endif
             .overlay(alignment: .topTrailing) {
-                CopyOverlayButton(string: code)
+                CodeCopyOverlayButton(string: code)
             }
     }
 }

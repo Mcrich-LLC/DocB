@@ -373,7 +373,9 @@ struct ArticleContentView: View {
         for inline in content {
             switch inline.type {
             case .text:
-                text = text + Text(inline.text ?? "")
+                if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
+                    text = text + Text(inline.text ?? "")
+                }
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)
                 

@@ -35,17 +35,15 @@ struct AsideView: View {
         
     @ViewBuilder
     func asideView(color: Color) -> some View {
-        VStack {
+        VStack(alignment: .leading) {
             Text(title.capitalized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(color)
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 5)
             
             ForEach(content) { item in
                 ArticleContentView(content: item, references: references)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding()

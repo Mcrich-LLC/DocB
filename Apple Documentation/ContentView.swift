@@ -163,26 +163,16 @@ struct ContentView: View {
                                 
                                 ForEach(filtered) { framework in
                                     if framework.destination.isActive {
-                                        TechnologyNavigationLinkButton(technology: framework) {
-                                            HStack {
-                                                Text(framework.title)
-                                                
-                                                if let reference = technology.references[framework.destination.identifier] {
-                                                    if reference.beta == true {
-                                                        ArticleBadge(badge: .beta)
-                                                    }
-                                                    
-                                                    if reference.deprecated == true {
-                                                        ArticleBadge(badge: .deprecated)
-                                                    }
+                                        Group {
+                                            if framework.destination.identifier.lowercased().contains("/documentation") {
+                                                TechnologyNavigationLinkButton(technology: framework) {
+                                                    ListItemLabel(framework: framework, references: technology.references)
                                                 }
-                                                
-                                                if !navigationViewModel.isUsingSplitView {
-                                                    Spacer()
-                                                    ChevronView()
+                                            } else if let url = URL(string: framework.destination.identifier) {
+                                                MacOSAgnosticLink(destination: url) {
+                                                    ListItemLabel(framework: framework, references: technology.references)
                                                 }
                                             }
-                                            .contentShape(Rectangle())
                                         }
                                         .foregroundStyle(Color.primary)
                                         .listRowBackground(Color.clear)
@@ -217,5 +207,34 @@ struct ContentView: View {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
+    }
+    
+    private struct ListItemLabel: View {
+        let framework: Technologies.FrameworkSection
+        let references: [String: Reference]
+        
+        @EnvironmentObject var navigationViewModel: NavigationViewModel
+        
+        var body: some View {
+            HStack {
+                Text(framework.title)
+                
+                if let reference = references[framework.destination.identifier] {
+                    if reference.beta == true {
+                        ArticleBadge(badge: .beta)
+                    }
+                    
+                    if reference.deprecated == true {
+                        ArticleBadge(badge: .deprecated)
+                    }
+                }
+                
+                if !navigationViewModel.isUsingSplitView {
+                    Spacer()
+                    ChevronView()
+                }
+            }
+            .contentShape(Rectangle())
+        }
     }
 }

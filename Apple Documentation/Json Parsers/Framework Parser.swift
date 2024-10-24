@@ -11,7 +11,7 @@ struct Framework: Codable, AppleDocumentation {
     let topicSections: [TopicSection]?
     let metadata: Metadata
     let references: [String : Reference]
-    let legalNotices: LegalNotices
+    let legalNotices: LegalNotices?
     let variants: [Variant]?
     
     struct TopicSection: Codable, Identifiable, Equatable, Hashable {

@@ -191,7 +191,12 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        
+                    }
+                    Section {} footer: {
+                        if let legalNotices = technology.legalNotices {
+                            LegalNoticesView(legalNotices: legalNotices)
+                                .padding(.bottom)
+                        }
                     }
                 } else {
                     ContentUnavailableView {

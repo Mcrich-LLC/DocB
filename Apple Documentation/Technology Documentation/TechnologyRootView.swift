@@ -80,6 +80,13 @@ struct TechnologyRootView: View {
                     }
                     .headerProminence(.increased)
                 }
+                
+                Section {} footer: {
+                    if let legalNotices = framework.legalNotices {
+                        LegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
+                }
             }
             .listStyle(.inset)
             .scrollContentBackground(.hidden)

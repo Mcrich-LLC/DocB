@@ -11,7 +11,7 @@ struct Technologies: Decodable, AppleDocumentation {
     let header: Header?
     let groups: [Technology]?
     let references: [String : Reference]
-    let legalNotices: LegalNotices
+    let legalNotices: LegalNotices?
     
     enum CodingKeys: CodingKey {
         case sections, legalNotices, references
@@ -20,7 +20,7 @@ struct Technologies: Decodable, AppleDocumentation {
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.legalNotices = try container.decode(LegalNotices.self, forKey: .legalNotices)
+        self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
         self.references = try container.decode([String : Reference].self, forKey: .references)
         let sectionsArray = try container.decode([CommonTechnologiesSection].self, forKey: .sections)
         
@@ -56,31 +56,27 @@ struct Technologies: Decodable, AppleDocumentation {
         let kind: String
     }
     
-    struct Technology: Codable, Identifiable, AppleDocumentation {
+    struct Technology: Codable, Identifiable, Hashable, Equatable {
         let id = UUID()
         
         let name: String
         let technologies: [FrameworkSection]
-        let legalNotices: LegalNotices
         
         enum CodingKeys: CodingKey {
             case id
             case name
             case technologies
-            case legalNotices
         }
         
         init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.name = try container.decode(String.self, forKey: .name)
-            self.legalNotices = try container.decode(LegalNotices.self, forKey: .legalNotices)
             self.technologies = try container.decode([FrameworkSection].self, forKey: .technologies)
         }
         
-        init(name: String, technologies: [FrameworkSection], legalNotices: LegalNotices) {
+        init(name: String, technologies: [FrameworkSection]) {
             self.name = name
             self.technologies = technologies
-            self.legalNotices = legalNotices
         }
     }
     
@@ -91,7 +87,7 @@ struct Technologies: Decodable, AppleDocumentation {
         let title: String
         let tags: [String]
         let destination: Destination
-        let legalNotices: LegalNotices
+        let legalNotices: LegalNotices?
         
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
@@ -116,7 +112,7 @@ struct Technologies: Decodable, AppleDocumentation {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.languages = try container.decode([String].self, forKey: .languages)
             self.title = try container.decode(String.self, forKey: .title)
-            self.legalNotices = try container.decode(LegalNotices.self, forKey: .legalNotices)
+            self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
             self.tags = try container.decode([String].self, forKey: .tags)
             self.destination = try container.decode(Destination.self, forKey: .destination)
         }

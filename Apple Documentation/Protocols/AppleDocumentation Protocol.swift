@@ -8,5 +8,5 @@
 import Foundation
 
 protocol AppleDocumentation: Decodable, Equatable, Hashable {
-    var legalNotices: LegalNotices { get }
+    var legalNotices: LegalNotices? { get }
 }

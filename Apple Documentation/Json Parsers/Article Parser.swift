@@ -14,7 +14,7 @@ struct Article: Codable, AppleDocumentation {
     let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]?
     let references: [String : Reference]
-    let legalNotices: LegalNotices
+    let legalNotices: LegalNotices?
     let seeAlsoSections: [Framework.TopicSection]?
     let topicSections: [Framework.TopicSection]?
     let relationshipsSections: [Framework.TopicSection]?

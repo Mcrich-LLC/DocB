@@ -165,6 +165,10 @@ struct ArticleView: View {
                     }
                     .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
                     
+                    if let legalNotices = article.legalNotices {
+                        LegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
                 } else {
                     ProgressView("Loading")
                 }

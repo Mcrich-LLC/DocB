@@ -281,6 +281,9 @@ struct ArticleContentView: View {
                         .frame(maxWidth: .infinity, alignment: self.alignment)
                         .font(.subheadline)
                         .foregroundStyle(Color.primary)
+                        .overlay(alignment: .topTrailing) {
+                            CopyOverlayButton(string: code.joined(separator: "\n"))
+                        }
                 }
             }
 #if os(visionOS)

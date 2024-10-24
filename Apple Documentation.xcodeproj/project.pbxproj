@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */; };
 		2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */; };
+		2229BFF12CCA12E200E7AD3F /* CopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
@@ -66,6 +67,7 @@
 /* Begin PBXFileReference section */
 		2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppleDocumentation Protocol.swift"; sourceTree = "<group>"; };
 		2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalNoticesView.swift; sourceTree = "<group>"; };
+		2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyOverlayButton.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				2287E3C62CBF6A8500090C9F /* SeeAlsoView.swift */,
 				2287E3C72CBF6A8500090C9F /* TopicsView.swift */,
 				2287E3C82CBF6A8500090C9F /* WrappingHStack.swift */,
+				2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */,
 			);
 			path = "Article Components";
 			sourceTree = "<group>";
@@ -385,6 +388,7 @@
 				2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */,
 				2287E3E02CBF6A8500090C9F /* Framework Parser.swift in Sources */,
 				2287E3E12CBF6A8500090C9F /* HomepageParser.swift in Sources */,
+				2229BFF12CCA12E200E7AD3F /* CopyOverlayButton.swift in Sources */,
 				22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */,
 				2287E3E22CBF6A8500090C9F /* TechnologiesParser.swift in Sources */,
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,

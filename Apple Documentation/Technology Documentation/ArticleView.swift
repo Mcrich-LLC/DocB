@@ -78,7 +78,7 @@ struct ArticleView: View {
                                     WebEndpointRestEndPoint(contentSection: section, references: article.references)
                                 case .restResponses:
                                     WebEndpointRestResponse(contentSection: section, references: article.references)
-                                case .properties:
+                                case .properties, .restParameters:
                                     WebEndpointRestPropertiesView(contentSection: section, references: article.references)
                                 case .attributes:
                                     WebEndpointRestAttributesView(contentSection: section, references: article.references)

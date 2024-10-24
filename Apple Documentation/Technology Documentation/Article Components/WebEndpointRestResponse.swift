@@ -24,15 +24,15 @@ struct WebEndpointRestResponse: View {
                 Grid(verticalSpacing: 0) {
                     ForEach(items) { item in
                         GridRow {
-                            VStack {
+                            VStack(alignment: .trailing) {
                                 if let status = item.status {
                                     Text("\(status)")
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
                                 }
-                                ForEach(item.type) { type in
-                                    if let identifier = type.identifier, let url = URL(string: identifier) {
-                                        Link(type.text, destination: url)
-                                            .frame(maxWidth: .infinity, alignment: .trailing)
+                                HStack(spacing: 0) {
+                                    ForEach(item.type) { type in
+                                        if let identifier = type.identifier, let url = URL(string: identifier) {
+                                            Link(type.text, destination: url)
+                                        }
                                     }
                                 }
                             }

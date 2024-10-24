@@ -137,6 +137,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         case typeIdentifier
         case text
         case attributes
+        case restParameters
     }
     
     struct Attribute: Codable, Identifiable, Equatable, Hashable {
@@ -601,6 +602,7 @@ enum Role: String, Codable, Equatable, Hashable {
     case pseudoSymbol
     case task
     case subsection
+    case restRequestSymbol
     case unknown
     
     var color: Color? {

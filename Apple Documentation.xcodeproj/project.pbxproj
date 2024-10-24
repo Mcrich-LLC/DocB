@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */; };
+		2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
@@ -62,6 +64,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppleDocumentation Protocol.swift"; sourceTree = "<group>"; };
+		2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalNoticesView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
@@ -129,6 +133,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2209FBB92CC9885900372F9E /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
 		2287E3AA2CBF6A8500090C9F /* fastlane */ = {
 			isa = PBXGroup;
 			children = (
@@ -169,12 +181,12 @@
 				2287E3BB2CBF6A8500090C9F /* ArticleBadges.swift */,
 				2287E3BC2CBF6A8500090C9F /* ArticleContentView.swift */,
 				2287E3BD2CBF6A8500090C9F /* AsideView.swift */,
-				2287E3BE2CBF6A8500090C9F /* DeclarationContentView.swift */,
 				22A299EF2CBF852A008EE3E5 /* WebEndpointRestBody.swift */,
 				22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */,
 				22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */,
 				22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */,
 				22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */,
+				2287E3BE2CBF6A8500090C9F /* DeclarationContentView.swift */,
 				2287E3BF2CBF6A8500090C9F /* DetailsView.swift */,
 				2287E3C02CBF6A8500090C9F /* DownloadButtonView.swift */,
 				2287E3C12CBF6A8500090C9F /* LinksGridListView.swift */,
@@ -215,6 +227,7 @@
 		2287E3DD2CBF6A8500090C9F /* Apple Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				2209FBB92CC9885900372F9E /* Protocols */,
 				2287E3B72CBF6A8500090C9F /* Json Parsers */,
 				2287E3B92CBF6A8500090C9F /* Preview Content */,
 				2287E3D22CBF6A8500090C9F /* Technology Documentation */,
@@ -224,6 +237,7 @@
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
+				2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */,
 				222AB77A2CBF78B2001196C1 /* ChevronView.swift */,
 				2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */,
 				2287E3DA2CBF6A8500090C9F /* MacOSAgnosticButton.swift */,
@@ -385,6 +399,7 @@
 				2287E3EB2CBF6A8500090C9F /* MentionsView.swift in Sources */,
 				2287E3EC2CBF6A8500090C9F /* MultiLine Picker.swift in Sources */,
 				2287E3ED2CBF6A8500090C9F /* PlatformCapsule.swift in Sources */,
+				2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */,
 				222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */,
 				2287E3EE2CBF6A8500090C9F /* RelationshipsView.swift in Sources */,
 				2287E3EF2CBF6A8500090C9F /* SeeAlsoView.swift in Sources */,
@@ -403,6 +418,7 @@
 				2287E3F92CBF6A8500090C9F /* Apple_DocumentationApp.swift in Sources */,
 				2287E3FA2CBF6A8500090C9F /* Constants.swift in Sources */,
 				2287E3FB2CBF6A8500090C9F /* ContentView.swift in Sources */,
+				2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */,
 				2287E3FC2CBF6A8500090C9F /* DocumentationViewModel.swift in Sources */,
 				2287E3FD2CBF6A8500090C9F /* MacOSAgnosticButton.swift in Sources */,
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
@@ -539,7 +555,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -577,7 +593,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;

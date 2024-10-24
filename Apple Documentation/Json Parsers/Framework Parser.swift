@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct Framework: Codable {
+struct Framework: Codable, AppleDocumentation {
     let topicSections: [TopicSection]?
     let metadata: Metadata
     let references: [String : Reference]
-    let legalNotices: LegalNotices
+    let legalNotices: LegalNotices?
     let variants: [Variant]?
     
-    struct TopicSection: Codable, Identifiable {
+    struct TopicSection: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
         let title: String
@@ -45,14 +45,14 @@ struct Framework: Codable {
         }
     }
 
-    struct Metadata: Codable {
+    struct Metadata: Codable, Equatable, Hashable {
         let title: String
         let role: Role
         let images: [ImageStruct]?
         let platforms: [Platform]?
         let modules: [Module]?
         
-        struct Module: Codable {
+        struct Module: Codable, Equatable, Hashable {
             let name: String
             
         }

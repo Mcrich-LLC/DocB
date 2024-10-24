@@ -78,7 +78,7 @@ struct ArticleView: View {
                                     WebEndpointRestEndPoint(contentSection: section, references: article.references)
                                 case .restResponses:
                                     WebEndpointRestResponse(contentSection: section, references: article.references)
-                                case .properties:
+                                case .properties, .restParameters:
                                     WebEndpointRestPropertiesView(contentSection: section, references: article.references)
                                 case .attributes:
                                     WebEndpointRestAttributesView(contentSection: section, references: article.references)
@@ -165,6 +165,10 @@ struct ArticleView: View {
                     }
                     .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
                     
+                    if let legalNotices = article.legalNotices {
+                        LegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
                 } else {
                     ProgressView("Loading")
                 }

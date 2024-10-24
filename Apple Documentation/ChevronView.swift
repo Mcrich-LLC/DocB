@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ChevronView: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         Image(systemSymbol: .chevronRight)
             .resizable()

@@ -8,13 +8,13 @@
 import Foundation
 import SwiftUI
 
-struct Article: Codable {
+struct Article: Codable, AppleDocumentation {
     let metadata: Metadata
     let topicSectionsStyle: ContentSection.Content.Style?
     let abstract: [ContentStruct]?
     let primaryContentSections: [ContentSection]?
     let references: [String : Reference]
-    let legalNotices: LegalNotices
+    let legalNotices: LegalNotices?
     let seeAlsoSections: [Framework.TopicSection]?
     let topicSections: [Framework.TopicSection]?
     let relationshipsSections: [Framework.TopicSection]?
@@ -23,7 +23,7 @@ struct Article: Codable {
     let betaSummary: [ContentSection.Content]?
     let variants: [Variant]?
     
-    struct Metadata: Codable {
+    struct Metadata: Codable, Equatable, Hashable {
         // Role
         let role: Role
         let roleHeading: String?
@@ -36,11 +36,11 @@ struct Article: Codable {
         let platforms: [Platform]?
     }
     
-    struct SampleCodeDownload: Codable {
+    struct SampleCodeDownload: Codable, Equatable, Hashable {
         let kind: String
         let action: Action
         
-        struct Action: Codable {
+        struct Action: Codable, Equatable, Hashable {
             let isActive: Bool
             let identifier: String
             let overridingTitle: String?

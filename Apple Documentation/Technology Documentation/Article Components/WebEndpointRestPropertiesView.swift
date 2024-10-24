@@ -24,20 +24,18 @@ struct WebEndpointRestPropertiesView: View {
                 Grid(verticalSpacing: 0) {
                     ForEach(items) { item in
                         GridRow {
-                            VStack {
+                            VStack(alignment: .trailing) {
                                 if let name = item.name {
                                     Text("\(name)")
                                         .bold()
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
                                 }
-                                ForEach(item.type) { type in
-                                    if let identifier = type.identifier, let url = URL(string: identifier) {
-                                        Link(type.text, destination: url)
-                                            .frame(maxWidth: .infinity, alignment: .trailing)
-                                    } else {
-                                        Text(type.text)
-                                            .frame(maxWidth: .infinity, alignment: .trailing)
-                                            .foregroundStyle(.secondary)
+                                HStack(spacing: 0) {
+                                    ForEach(item.type) { type in
+                                        if let identifier = type.identifier, let url = URL(string: identifier) {
+                                            Link(type.text, destination: url)
+                                        } else {
+                                            Text(type.text)
+                                        }
                                     }
                                 }
                             }

@@ -25,6 +25,9 @@ struct HomepageView: View {
                         HomepageSection(section: section, homepage: homepage)
                     }
                 }
+                if let legalNotices = homepage.legalNotices {
+                    LegalNoticesView(legalNotices: legalNotices)
+                }
             }
             .padding([.horizontal, .bottom], 25)
         }

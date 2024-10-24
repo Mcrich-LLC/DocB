@@ -8,10 +8,11 @@
 import Foundation
 import SwiftUI
 
-struct HomepageParser: Codable, Hashable {
+struct HomepageParser: Codable, Hashable, AppleDocumentation {
     let metadata: Metadata
     let sections: [Section]
     let references: [String : Reference]
+    let legalNotices: LegalNotices?
     
     struct Section: Codable, Identifiable, Hashable {
         let id = UUID()

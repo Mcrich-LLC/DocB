@@ -24,7 +24,7 @@ struct WebEndpointRestBody: View {
                let content = contentSection.content {
                 Grid(verticalSpacing: 0) {
                         GridRow {
-                            VStack {
+                            VStack(alignment: .trailing) {
                                 ForEach(bodyContentType) { body in
                                     if let identifier = body.identifier, let url = URL(string: identifier) {
                                         Link(body.text, destination: url)

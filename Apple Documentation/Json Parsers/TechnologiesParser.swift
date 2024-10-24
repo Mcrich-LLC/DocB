@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct Technologies: Decodable {
+struct Technologies: Decodable, AppleDocumentation {
     let header: Header?
     let groups: [Technology]?
-    let legalNotices: LegalNotices
     let references: [String : Reference]
+    let legalNotices: LegalNotices?
     
     enum CodingKeys: CodingKey {
         case sections, legalNotices, references
@@ -20,7 +20,7 @@ struct Technologies: Decodable {
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.legalNotices = try container.decode(LegalNotices.self, forKey: .legalNotices)
+        self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
         self.references = try container.decode([String : Reference].self, forKey: .references)
         let sectionsArray = try container.decode([CommonTechnologiesSection].self, forKey: .sections)
         
@@ -49,14 +49,14 @@ struct Technologies: Decodable {
         let groups: [Technology]?
     }
     
-    struct Header: Codable {
+    struct Header: Codable, Equatable, Hashable {
         let backgroundImage: String
         let image: String
         let title: String
         let kind: String
     }
     
-    struct Technology: Codable, Identifiable {
+    struct Technology: Codable, Identifiable, Hashable, Equatable {
         let id = UUID()
         
         let name: String
@@ -80,13 +80,14 @@ struct Technologies: Decodable {
         }
     }
     
-    struct FrameworkSection: Codable, Identifiable, Hashable {
+    struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
         let id = UUID()
         
         let languages: [String]
         let title: String
         let tags: [String]
         let destination: Destination
+        let legalNotices: LegalNotices?
         
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
@@ -104,21 +105,24 @@ struct Technologies: Decodable {
             case title
             case tags
             case destination
+            case legalNotices
         }
         
         init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.languages = try container.decode([String].self, forKey: .languages)
             self.title = try container.decode(String.self, forKey: .title)
+            self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
             self.tags = try container.decode([String].self, forKey: .tags)
             self.destination = try container.decode(Destination.self, forKey: .destination)
         }
         
-        init(languages: [String], title: String, tags: [String], destination: Destination) {
+        init(languages: [String], title: String, tags: [String], destination: Destination, legalNotices: LegalNotices) {
             self.languages = languages
             self.title = title
             self.tags = tags
             self.destination = destination
+            self.legalNotices = legalNotices
         }
         
         struct Destination: Codable, Hashable {

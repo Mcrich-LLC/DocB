@@ -33,7 +33,7 @@ struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-struct LegalNotices: Codable {
+struct LegalNotices: Codable, Equatable, Hashable {
     let copyright: String
     let termsOfUse: String
     let privacyPolicy: String
@@ -72,7 +72,7 @@ struct Fragment: Codable, Hashable {
     let kind: String
 }
 
-struct ContentSection: Codable, Identifiable {
+struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let kind: Kind
@@ -123,7 +123,7 @@ struct ContentSection: Codable, Identifiable {
         self.attributes = try container.decodeIfPresent([Attribute].self, forKey: .attributes)
     }
     
-    enum Kind: String, Codable {
+    enum Kind: String, Codable, Equatable, Hashable {
         case content
         case declarations
         case mentions
@@ -137,9 +137,10 @@ struct ContentSection: Codable, Identifiable {
         case typeIdentifier
         case text
         case attributes
+        case restParameters
     }
     
-    struct Attribute: Codable, Identifiable {
+    struct Attribute: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
         let name: String?
@@ -149,7 +150,7 @@ struct ContentSection: Codable, Identifiable {
         }
     }
     
-    struct RestResponse: Codable, Identifiable, Equatable {
+    struct RestResponse: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
         let type: [RestResponseType]
@@ -159,7 +160,7 @@ struct ContentSection: Codable, Identifiable {
         let reason: String?
         let name: String?
         
-        struct RestResponseType: Codable, Identifiable, Equatable {
+        struct RestResponseType: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
             let text: String
@@ -187,7 +188,7 @@ struct ContentSection: Codable, Identifiable {
         }
     }
     
-    struct Details: Codable, Identifiable {
+    struct Details: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
         let name: String
@@ -205,12 +206,12 @@ struct ContentSection: Codable, Identifiable {
             self.value = try container.decode([ContentSection.Details.Value].self, forKey: ContentSection.Details.CodingKeys.value)
         }
         
-        struct Value: Codable {
+        struct Value: Codable, Equatable, Hashable {
             let baseType: String
         }
     }
     
-    struct Declaration: Codable, Identifiable {
+    struct Declaration: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         let tokens: [Token]
         let languages: [String]
@@ -231,7 +232,7 @@ struct ContentSection: Codable, Identifiable {
         }
     }
     
-    struct Token: Codable {
+    struct Token: Codable, Equatable, Hashable {
         let text: String?
         let kind: String
         let code: String?
@@ -381,7 +382,7 @@ struct ContentSection: Codable, Identifiable {
             try container.encode(rows, forKey: .rows)
         }
         
-        enum Style: String, Codable, CaseIterable {
+        enum Style: String, Codable, CaseIterable, Equatable {
             case compactGrid
             case detailedGrid
             case value
@@ -485,11 +486,11 @@ struct ContentSection: Codable, Identifiable {
     }
 }
 
-struct Variant: Codable {
+struct Variant: Codable, Equatable, Hashable {
     let traits: [Trait]
     let paths: [String]
     
-    struct Trait: Codable {
+    struct Trait: Codable, Equatable, Hashable {
         let interfaceLanguage: PreferedProgrammingLanguage
     }
 }
@@ -587,7 +588,7 @@ struct Reference: Codable, Hashable, Identifiable {
 }
 
 // MARK: Role
-enum Role: String, Codable {
+enum Role: String, Codable, Equatable, Hashable {
     case collectionGroup
     case collection
     case article
@@ -601,6 +602,7 @@ enum Role: String, Codable {
     case pseudoSymbol
     case task
     case subsection
+    case restRequestSymbol
     case unknown
     
     var color: Color? {
@@ -674,7 +676,7 @@ enum ContentType: String, Codable, Equatable, Hashable {
 }
 
 // MARK: Platforms
-struct Platform: Codable, Identifiable {
+struct Platform: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let introducedAt: String

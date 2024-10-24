@@ -195,6 +195,7 @@ private struct DefaultListItem: View {
                     }
                     
                     if !navigationViewModel.isUsingSplitView && isShowingChevron {
+                        Spacer()
                         ChevronView()
                     }
                 }

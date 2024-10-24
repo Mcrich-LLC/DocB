@@ -24,29 +24,37 @@ struct LegalNoticesView: View {
             return nil
         }
         attributedString.addAttributes([
-            .font: UIFont.preferredFont(forTextStyle: .body)
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: UIColor(Color.primary)
         ], range: NSRange(location: 0, length: attributedString.length))
         
         return AttributedString(attributedString)
     }
     
     var body: some View {
-        VStack {
-            if let text {
-                Text(text)
-            }
-            HStack {
-                if let privacyPolicy = URL(string: legalNotices.privacyPolicy) {
-                    Link("Privacy Policy", destination: privacyPolicy)
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: 150)
+        GroupBox {
+            VStack(alignment: .center) {
+                if let text {
+                    Text(text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center)
                 }
-                if let termsOfUse = URL(string: legalNotices.termsOfUse) {
-                    Link("Terms of Use", destination: termsOfUse)
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: 150)
+                HStack {
+                    if let privacyPolicy = URL(string: legalNotices.privacyPolicy) {
+                        Link("Privacy Policy", destination: privacyPolicy)
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: 150)
+                    }
+                    if let termsOfUse = URL(string: legalNotices.termsOfUse) {
+                        Link("Terms of Use", destination: termsOfUse)
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: 150)
+                    }
                 }
             }
+            .frame(maxWidth: .infinity)
         }
+        .listRowBackground(Color.clear)
     }
 }

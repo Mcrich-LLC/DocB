@@ -167,7 +167,7 @@ struct ArticleView: View {
                     
                     if let legalNotices = article.legalNotices {
                         LegalNoticesView(legalNotices: legalNotices)
-                            .padding(.bottom)
+                            .padding([.horizontal, .bottom])
                     }
                 } else {
                     ProgressView("Loading")

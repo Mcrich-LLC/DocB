@@ -39,5 +39,8 @@ struct DeclarationContentView: View {
 #if os(visionOS)
             .backgroundStyle(colorScheme == .dark ? .black : .white)
 #endif
+            .overlay(alignment: .topTrailing) {
+                CopyOverlayButton(string: code)
+            }
     }
 }

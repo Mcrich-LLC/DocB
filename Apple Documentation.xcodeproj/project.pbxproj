@@ -118,7 +118,7 @@
 		22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestResponse.swift; sourceTree = "<group>"; };
 		22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestPropertiesView.swift; sourceTree = "<group>"; };
 		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
-		22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Apple Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Developer Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -270,7 +270,7 @@
 		22F8CD672CB23D6C0081BB0A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */,
+				22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -278,9 +278,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		22F8CD652CB23D6C0081BB0A /* Apple Documentation */ = {
+		22F8CD652CB23D6C0081BB0A /* Developer Documentation */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Apple Documentation" */;
+			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */;
 			buildPhases = (
 				22F8CD622CB23D6C0081BB0A /* Sources */,
 				22F8CD632CB23D6C0081BB0A /* Frameworks */,
@@ -291,14 +291,14 @@
 			);
 			dependencies = (
 			);
-			name = "Apple Documentation";
+			name = "Developer Documentation";
 			packageProductDependencies = (
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
 				22E7F4E12CB5048400FD6B2C /* HighlightSwift */,
 			);
 			productName = "Apple Documentation";
-			productReference = 22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */;
+			productReference = 22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -334,7 +334,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				22F8CD652CB23D6C0081BB0A /* Apple Documentation */,
+				22F8CD652CB23D6C0081BB0A /* Developer Documentation */,
 			);
 		};
 /* End PBXProject section */
@@ -640,7 +640,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Apple Documentation" */ = {
+		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22F8CD752CB23D6E0081BB0A /* Debug */,

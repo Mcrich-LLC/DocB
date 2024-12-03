@@ -15,8 +15,10 @@ struct Apple_DocumentationApp: App {
             ContentView()
         }
         
+        #if os(macOS)
         Settings {
             SettingsView()
         }
+        #endif
     }
 }

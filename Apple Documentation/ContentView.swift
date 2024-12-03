@@ -48,20 +48,38 @@ struct ContentView: View {
         }
     }
     
-    let urlActionHandler: OpenURLAction = OpenURLAction { url in
-            if url.absoluteString.contains("developer.apple.com/documentation"),
-               let url = URL(string: url.absoluteString
-                .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
-                .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
-                return .systemAction(url)
-            } else if url.scheme == "doc",
-                   let url = URL(string: url.absoluteString
-                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-                return .systemAction(url)
-            } else {
+    var urlActionHandler: OpenURLAction { OpenURLAction { url in
+        guard !url.absoluteString.contains("videos"),
+              !url.absoluteString.contains("tutorials"),
+              !url.absoluteString.contains("design")
+        else {
+            guard let url = URL(string: url.absoluteString
+                .replacingOccurrences(of: "com.Mcrich.Apple-Documentation://", with: "https://")
+                .replacingOccurrences(of: "com.apple.documentation", with: "developer.apple.com")) else {
                 return .systemAction
             }
+            
+            return .systemAction(url)
         }
+        
+        if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+            return .handled
+        } else if url.absoluteString.contains("developer.apple.com/documentation"),
+           let url = URL(string: url.absoluteString
+            .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
+            .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+            return .handled
+        } else if url.scheme == "doc",
+                  let url = URL(string: url.absoluteString
+                    .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+            return .handled
+        } else {
+            return .systemAction
+        }
+    }}
     
     @ViewBuilder
     var navigationSplitView: some View {

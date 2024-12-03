@@ -38,7 +38,7 @@ platform :ios do
   lane :iosbeta do
     #sh("rm -r ~/Library/Developer/Xcode/DerivedData/*")
     #precheck
-    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Apple Documentation")
+    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Developer Documentation")
     getBuild = get_build_number(xcodeproj: "Apple Documentation.xcodeproj")
     build_ios_app(scheme: "Apple Documentation", output_directory: "./Builds/#{getVersion}/#{getBuild}")
     upload_to_testflight(ipa: "./Builds/#{getVersion}/#{getBuild}/Apple Documentation.ipa")
@@ -50,7 +50,7 @@ platform :mac do
   lane :macbeta do
     #sh("rm -r ~/Library/Developer/Xcode/DerivedData/*")
     #precheck
-    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Apple Documentation")
+    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Developer Documentation")
     getBuild = get_build_number(xcodeproj: "Apple Documentation.xcodeproj")
     build_mac_app(scheme: "Apple Documentation", output_directory: "./Builds/#{getVersion}/#{getBuild}")
     upload_to_testflight(pkg: "./Builds/#{getVersion}/#{getBuild}/Apple Documentation.pkg")
@@ -61,7 +61,7 @@ end
 desc "Upload both iOS and macOS beta builds"
 lane :beta do
   # Bump Build Number
-    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Apple Documentation")
+    getVersion = get_version_number(xcodeproj: "Apple Documentation.xcodeproj", target: "Developer Documentation")
     getOldBuild = get_build_number(xcodeproj: "Apple Documentation.xcodeproj")
     increment_build_number(build_number: Integer(getOldBuild) + 1, xcodeproj: "Apple Documentation.xcodeproj")
     getBuild = get_build_number(xcodeproj: "Apple Documentation.xcodeproj")

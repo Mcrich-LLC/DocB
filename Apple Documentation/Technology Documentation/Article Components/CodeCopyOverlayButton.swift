@@ -34,6 +34,8 @@ struct CodeCopyOverlayButton: View {
                     .labelStyle(.iconOnly)
             }
         }
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
         .scaleEffect(string.contains("\n") ? 1 : 0.75)
         #else
         EmptyView()

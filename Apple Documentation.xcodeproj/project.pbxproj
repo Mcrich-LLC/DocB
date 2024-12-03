@@ -10,6 +10,7 @@
 		2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */; };
 		2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */; };
 		2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */; };
+		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
@@ -68,6 +69,7 @@
 		2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppleDocumentation Protocol.swift"; sourceTree = "<group>"; };
 		2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalNoticesView.swift; sourceTree = "<group>"; };
 		2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCopyOverlayButton.swift; sourceTree = "<group>"; };
+		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 				2287E3D32CBF6A8500090C9F /* .swiftlint.yml */,
 				2287E3D42CBF6A8500090C9F /* Apple Documentation.entitlements */,
 				2287E3D52CBF6A8500090C9F /* Apple_DocumentationApp.swift */,
+				2229DBB02CFEEF35009EB389 /* SettingsView.swift */,
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
@@ -426,6 +429,7 @@
 				2287E3FC2CBF6A8500090C9F /* DocumentationViewModel.swift in Sources */,
 				2287E3FD2CBF6A8500090C9F /* MacOSAgnosticButton.swift in Sources */,
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
+				2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */,
 				2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

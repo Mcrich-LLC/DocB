@@ -14,5 +14,9 @@ struct Apple_DocumentationApp: App {
         WindowGroup {
             ContentView()
         }
+        
+        Settings {
+            SettingsView()
+        }
     }
 }

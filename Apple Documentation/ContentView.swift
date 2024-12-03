@@ -63,19 +63,37 @@ struct ContentView: View {
         }
         
         if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
-            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
-            return .handled
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
         } else if url.absoluteString.contains("developer.apple.com/documentation"),
            let url = URL(string: url.absoluteString
             .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
             .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
-            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
-            return .handled
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
         } else if url.scheme == "doc",
                   let url = URL(string: url.absoluteString
                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
-            return .handled
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
         } else {
             return .systemAction
         }

@@ -10,6 +10,9 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
+    // MARK: Settings
+    @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
+    
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
     @Published private(set) var technology: Technologies.FrameworkSection? {
         didSet {

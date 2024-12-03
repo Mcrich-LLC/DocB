@@ -93,6 +93,7 @@ struct ArticleView: View {
                             }
                         }
                         .id(ScrollIdentifier.primaryContent)
+                        .textSelection(.enabled)
                         
                         if article.topicSections != nil {
                             Divider()

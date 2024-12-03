@@ -68,14 +68,14 @@ struct ArticleContentView: View {
             
             if role == .symbol {
                 attributes = [
-                    .foregroundColor: UIColor.accent,
-                    .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium),
+                    .foregroundColor: PlatformColor.accent,
+                    .font: PlatformFont.monospacedSystemFont(ofSize: PlatformFont.labelFontSize, weight: .medium),
                     .underlineStyle : 0,
                     .link: url
                 ]
             } else {
                 attributes = [
-                    .foregroundColor: UIColor.accent,
+                    .foregroundColor: PlatformColor.accent,
                     .underlineStyle : 0,
                     .link: url
                 ]
@@ -123,9 +123,15 @@ struct ArticleContentView: View {
             strings.append(subcontent)
         }
         
+        #if os(macOS)
         let attributes: [NSAttributedString.Key: Any] = [
-            .backgroundColor: UIColor.secondarySystemBackground
+            .backgroundColor: PlatformColor.controlBackgroundColor
         ]
+        #else
+        let attributes: [NSAttributedString.Key: Any] = [
+            .backgroundColor: PlatformColor.secondarySystemBackground
+        ]
+        #endif
         
         let attributedString = NSAttributedString(string: strings, attributes: attributes)
         
@@ -282,7 +288,7 @@ struct ArticleContentView: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.primary)
                         .overlay(alignment: .topTrailing) {
-                            CopyOverlayButton(string: code.joined(separator: "\n"))
+                            CodeCopyOverlayButton(string: code.joined(separator: "\n"))
                         }
                 }
             }

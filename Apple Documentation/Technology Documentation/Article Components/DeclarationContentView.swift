@@ -33,14 +33,14 @@ struct DeclarationContentView: View {
                 .highlightLanguage(.swift)
                 .codeTextColors(.theme(.xcode))
                 .textSelection(.enabled)
-                .tint(Color(uiColor: .systemBlue))
+                .tint(Color(platformColor: .systemBlue))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
 #if os(visionOS)
             .backgroundStyle(colorScheme == .dark ? .black : .white)
 #endif
             .overlay(alignment: .topTrailing) {
-                CopyOverlayButton(string: code)
+                CodeCopyOverlayButton(string: code)
             }
     }
 }

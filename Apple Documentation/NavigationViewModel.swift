@@ -10,6 +10,9 @@ import SwiftUI
 
 class NavigationViewModel: ObservableObject, Equatable {
     
+    // MARK: Settings
+    @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
+    
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
     @Published private(set) var technology: Technologies.FrameworkSection? {
         didSet {
@@ -42,7 +45,11 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     @Published var horizontalSizeClass: UserInterfaceSizeClass? = .regular
     var isUsingSplitView: Bool {
+        #if os(macOS)
+        true
+        #else
         UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular
+        #endif
     }
     
     func handleIsUsingSplitViewChanged() {

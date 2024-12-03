@@ -93,6 +93,7 @@ struct ArticleView: View {
                             }
                         }
                         .id(ScrollIdentifier.primaryContent)
+                        .textSelection(.enabled)
                         
                         if article.topicSections != nil {
                             Divider()
@@ -186,7 +187,7 @@ struct ArticleView: View {
             }
             .id(reference)
             .scrollContentBackground(.hidden)
-            .background(Color(uiColor: .systemBackground)
+            .background(Color(platformColor: .systemBackground)
                 .ignoresSafeArea()
             )
         }

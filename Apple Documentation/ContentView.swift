@@ -25,7 +25,7 @@ struct ContentView: View {
                 navigationStackView
             }
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(platformColor: .systemBackground))
         .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
         .onAppear(perform: {
@@ -48,20 +48,56 @@ struct ContentView: View {
         }
     }
     
-    let urlActionHandler: OpenURLAction = OpenURLAction { url in
-            if url.absoluteString.contains("developer.apple.com/documentation"),
-               let url = URL(string: url.absoluteString
-                .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
-                .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
-                return .systemAction(url)
-            } else if url.scheme == "doc",
-                   let url = URL(string: url.absoluteString
-                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-                return .systemAction(url)
-            } else {
+    var urlActionHandler: OpenURLAction { OpenURLAction { url in
+        guard !url.absoluteString.contains("videos"),
+              !url.absoluteString.contains("tutorials"),
+              !url.absoluteString.contains("design")
+        else {
+            guard let url = URL(string: url.absoluteString
+                .replacingOccurrences(of: "com.Mcrich.Apple-Documentation://", with: "https://")
+                .replacingOccurrences(of: "com.apple.documentation", with: "developer.apple.com")) else {
                 return .systemAction
             }
+            
+            return .systemAction(url)
         }
+        
+        if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
+        } else if url.absoluteString.contains("developer.apple.com/documentation"),
+           let url = URL(string: url.absoluteString
+            .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
+            .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
+        } else if url.scheme == "doc",
+                  let url = URL(string: url.absoluteString
+                    .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+            
+            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            case true:
+                return .systemAction(url)
+            case false:
+                navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+                return .handled
+            }
+        } else {
+            return .systemAction
+        }
+    }}
     
     @ViewBuilder
     var navigationSplitView: some View {
@@ -83,8 +119,10 @@ struct ContentView: View {
                 } else {
                     if let technologies = documentationViewModel.technologies {
                         techView(technologies)
+#if !os(macOS)
                             .navigationTitle("Documentation")
                             .navigationBarTitleDisplayMode(.large)
+#endif
                             .transition(.move(edge: .leading))
                     } else {
                         ProgressView("Loading")
@@ -93,14 +131,17 @@ struct ContentView: View {
             }
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
-            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .environment(\.horizontalSizeClass, horizontalSizeClass)
         } detail: {
-            if let reference = navigationViewModel.reference {
-                ArticleView(reference: reference)
-            } else if let homepage = documentationViewModel.homepage {
-                HomepageView(homepage: homepage)
+            Group {
+                if let reference = navigationViewModel.reference {
+                    ArticleView(reference: reference)
+                } else if let homepage = documentationViewModel.homepage {
+                    HomepageView(homepage: homepage)
+                }
             }
+            .frame(minWidth: 150, minHeight: 150)
         }
     }
     
@@ -110,23 +151,27 @@ struct ContentView: View {
             Group {
                 if let technologies = documentationViewModel.technologies {
                     techView(technologies)
+#if !os(macOS)
                         .navigationTitle("Documentation")
                         .navigationBarTitleDisplayMode(.large)
+#endif
                 } else {
                     ProgressView("Loading")
                 }
             }
-            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
-                switch element {
-                case .homepage:
-                    if let homepage = documentationViewModel.homepage {
-                        HomepageView(homepage: homepage)
+                Group {
+                    switch element {
+                    case .homepage:
+                        if let homepage = documentationViewModel.homepage {
+                            HomepageView(homepage: homepage)
+                        }
+                    case .reference(let reference):
+                        ArticleView(reference: reference)
+                    case .technology(let technology):
+                        TechnologyRootView(frameworkSection: technology)
                     }
-                case .reference(let reference):
-                    ArticleView(reference: reference)
-                case .technology(let technology):
-                    TechnologyRootView(frameworkSection: technology)
                 }
             }
         }
@@ -199,7 +244,7 @@ struct ContentView: View {
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(platformColor: .systemBackground))
         .searchable(text: $searchText)
     }
     

@@ -9,7 +9,8 @@
 /* Begin PBXBuildFile section */
 		2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */; };
 		2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */; };
-		2229BFF12CCA12E200E7AD3F /* CopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */; };
+		2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */; };
+		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
@@ -67,7 +68,8 @@
 /* Begin PBXFileReference section */
 		2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppleDocumentation Protocol.swift"; sourceTree = "<group>"; };
 		2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalNoticesView.swift; sourceTree = "<group>"; };
-		2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyOverlayButton.swift; sourceTree = "<group>"; };
+		2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCopyOverlayButton.swift; sourceTree = "<group>"; };
+		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
@@ -118,7 +120,7 @@
 		22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestResponse.swift; sourceTree = "<group>"; };
 		22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestPropertiesView.swift; sourceTree = "<group>"; };
 		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
-		22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Apple Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Developer Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,7 +201,7 @@
 				2287E3C62CBF6A8500090C9F /* SeeAlsoView.swift */,
 				2287E3C72CBF6A8500090C9F /* TopicsView.swift */,
 				2287E3C82CBF6A8500090C9F /* WrappingHStack.swift */,
-				2229BFF02CCA12E200E7AD3F /* CopyOverlayButton.swift */,
+				2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */,
 			);
 			path = "Article Components";
 			sourceTree = "<group>";
@@ -237,6 +239,7 @@
 				2287E3D32CBF6A8500090C9F /* .swiftlint.yml */,
 				2287E3D42CBF6A8500090C9F /* Apple Documentation.entitlements */,
 				2287E3D52CBF6A8500090C9F /* Apple_DocumentationApp.swift */,
+				2229DBB02CFEEF35009EB389 /* SettingsView.swift */,
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
@@ -270,7 +273,7 @@
 		22F8CD672CB23D6C0081BB0A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */,
+				22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -278,9 +281,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		22F8CD652CB23D6C0081BB0A /* Apple Documentation */ = {
+		22F8CD652CB23D6C0081BB0A /* Developer Documentation */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Apple Documentation" */;
+			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */;
 			buildPhases = (
 				22F8CD622CB23D6C0081BB0A /* Sources */,
 				22F8CD632CB23D6C0081BB0A /* Frameworks */,
@@ -291,14 +294,14 @@
 			);
 			dependencies = (
 			);
-			name = "Apple Documentation";
+			name = "Developer Documentation";
 			packageProductDependencies = (
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
 				22E7F4E12CB5048400FD6B2C /* HighlightSwift */,
 			);
 			productName = "Apple Documentation";
-			productReference = 22F8CD662CB23D6C0081BB0A /* Apple Documentation.app */;
+			productReference = 22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -334,7 +337,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				22F8CD652CB23D6C0081BB0A /* Apple Documentation */,
+				22F8CD652CB23D6C0081BB0A /* Developer Documentation */,
 			);
 		};
 /* End PBXProject section */
@@ -388,7 +391,7 @@
 				2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */,
 				2287E3E02CBF6A8500090C9F /* Framework Parser.swift in Sources */,
 				2287E3E12CBF6A8500090C9F /* HomepageParser.swift in Sources */,
-				2229BFF12CCA12E200E7AD3F /* CopyOverlayButton.swift in Sources */,
+				2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */,
 				22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */,
 				2287E3E22CBF6A8500090C9F /* TechnologiesParser.swift in Sources */,
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
@@ -426,6 +429,7 @@
 				2287E3FC2CBF6A8500090C9F /* DocumentationViewModel.swift in Sources */,
 				2287E3FD2CBF6A8500090C9F /* MacOSAgnosticButton.swift in Sources */,
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
+				2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */,
 				2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -559,7 +563,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -580,8 +584,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = YES;
+				REGISTER_APP_GROUPS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -597,7 +602,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -618,8 +623,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = YES;
+				REGISTER_APP_GROUPS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -640,7 +646,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Apple Documentation" */ = {
+		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22F8CD752CB23D6E0081BB0A /* Debug */,

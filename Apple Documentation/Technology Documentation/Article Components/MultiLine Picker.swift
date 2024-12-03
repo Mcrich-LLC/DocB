@@ -30,14 +30,18 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
     @Environment(\.colorScheme) var colorScheme
     
     var selectedBackgroundColor: Color {
+        #if os(macOS)
+        Color(platformColor: .windowBackgroundColor)
+        #else
         switch colorScheme {
-        case .light: Color(uiColor: .systemBackground)
-        case .dark: Color(uiColor: .systemGray2)
-        @unknown default: Color(uiColor: .systemBackground)
+        case .light: Color(platformColor: .systemBackground)
+        case .dark: Color(platformColor: .systemGray2)
+        @unknown default: Color(platformColor: .systemBackground)
         }
+        #endif
     }
     
-    let backgroundColor: Color = Color(uiColor: .secondarySystemFill)
+    let backgroundColor: Color = Color(platformColor: .secondarySystemFill)
 
     var body: some View {
         HStack(spacing: 0) {

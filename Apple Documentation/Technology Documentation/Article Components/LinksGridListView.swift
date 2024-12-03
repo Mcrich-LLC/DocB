@@ -93,7 +93,9 @@ struct LinksGridListView: View {
                             .frame(maxWidth: navigationViewModel.isUsingSplitView ? 300 : 400)
                         }
                         .contentShape(UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25))
+                        #if !os(macOS)
                         .hoverEffect()
+                        #endif
                     }
                 }
             }
@@ -138,13 +140,13 @@ struct LinksGridListView: View {
                     let fragmentAttributes: [NSAttributedString.Key: Any] = switch fragment.kind {
                     case "identifier":
                         [
-                            .foregroundColor: UIColor.accent,
-                            .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+                            .foregroundColor: PlatformColor.accent,
+                            .font: PlatformFont.monospacedSystemFont(ofSize: PlatformFont.labelFontSize, weight: .medium)
                         ]
                     default:
                         [
-                            .foregroundColor: UIColor.secondaryLabel,
-                            .font: UIFont.monospacedSystemFont(ofSize: UIFont.labelFontSize, weight: .medium)
+                            .foregroundColor: PlatformColor(Color.secondary),
+                            .font: PlatformFont.monospacedSystemFont(ofSize: PlatformFont.labelFontSize, weight: .medium)
                         ]
                     }
                     let fragmentAttributedString = NSAttributedString(string: fragment.text, attributes: fragmentAttributes)
@@ -158,19 +160,19 @@ struct LinksGridListView: View {
             let nsAttributedString: NSMutableAttributedString = .init()
             
             let fragments: String = (reference.fragments ?? []).map({ $0.text }).joined()
-            let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.label]
+            let fragmentAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor(Color.primary)]
             let fragmentAttributedString = NSAttributedString(string: fragments, attributes: fragmentAttributes)
             nsAttributedString.append(fragmentAttributedString)
             
             if !nsAttributedString.string.contains(reference.title ?? "") {
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
                 let titleAttributedString = NSAttributedString(string: reference.title ?? "", attributes: titleAttributes)
                 nsAttributedString.append(titleAttributedString)
             } else {
                 let string = nsAttributedString.string
                 let range: NSRange = string.range(of: reference.title ?? "")!.nsRange(in: string)
                 
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
                 nsAttributedString.addAttributes(titleAttributes, range: range)
             }
             

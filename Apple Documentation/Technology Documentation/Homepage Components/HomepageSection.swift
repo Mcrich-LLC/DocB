@@ -140,7 +140,7 @@ private struct Cards: View {
                 .frame(maxHeight: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 25)
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color(platformColor: .systemBackground))
                 )
             }
             .foregroundStyle(Color.primary)
@@ -191,7 +191,7 @@ private struct HomepageLinks: View {
         }
         .padding()
         .padding(.horizontal, (navigationViewModel.isUsingSplitView) ? 30 : 15)
-        .background(RoundedRectangle(cornerRadius: 25).fill(Color(uiColor: .systemBackground)))
+        .background(RoundedRectangle(cornerRadius: 25).fill(Color(platformColor: .systemBackground)))
         .padding(.horizontal)
         .padding(.horizontal, (navigationViewModel.isUsingSplitView) ? nil : 0)
     }

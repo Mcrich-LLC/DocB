@@ -24,8 +24,8 @@ struct LegalNoticesView: View {
             return nil
         }
         attributedString.addAttributes([
-            .font: UIFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: UIColor(Color.primary)
+            .font: PlatformFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: PlatformColor(Color.primary)
         ], range: NSRange(location: 0, length: attributedString.length))
         
         return AttributedString(attributedString)

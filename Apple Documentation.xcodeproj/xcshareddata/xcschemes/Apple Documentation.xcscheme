@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-               BuildableName = "Apple Documentation.app"
-               BlueprintName = "Apple Documentation"
+               BuildableName = "Developer Documentation.app"
+               BlueprintName = "Developer Documentation"
                ReferencedContainer = "container:Apple Documentation.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-            BuildableName = "Apple Documentation.app"
-            BlueprintName = "Apple Documentation"
+            BuildableName = "Developer Documentation.app"
+            BlueprintName = "Developer Documentation"
             ReferencedContainer = "container:Apple Documentation.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-            BuildableName = "Apple Documentation.app"
-            BlueprintName = "Apple Documentation"
+            BuildableName = "Developer Documentation.app"
+            BlueprintName = "Developer Documentation"
             ReferencedContainer = "container:Apple Documentation.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

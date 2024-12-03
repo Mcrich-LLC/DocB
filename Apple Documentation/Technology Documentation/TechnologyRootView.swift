@@ -32,8 +32,10 @@ struct TechnologyRootView: View {
                 Text("Loading...")
             }
         }
+#if !os(macOS)
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
+#endif
         .task {
             await loadFramework()
         }
@@ -90,7 +92,7 @@ struct TechnologyRootView: View {
             }
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
-            .background(Color(uiColor: .systemBackground))
+            .background(Color(platformColor: .systemBackground))
 #if os(macOS) || targetEnvironment(macCatalyst)
             .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)
             #else
@@ -261,7 +263,7 @@ private struct FrameworkDisclosureGroup: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .padding(-10)
                         .padding(.trailing, -25)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
                         .opacity((navigationViewModel.reference == reference) ? 1 : 0)
                 }
         }

@@ -25,7 +25,7 @@ struct ContentView: View {
                 navigationStackView
             }
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(platformColor: .systemBackground))
         .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
         .onAppear(perform: {
@@ -83,8 +83,10 @@ struct ContentView: View {
                 } else {
                     if let technologies = documentationViewModel.technologies {
                         techView(technologies)
+#if !os(macOS)
                             .navigationTitle("Documentation")
                             .navigationBarTitleDisplayMode(.large)
+#endif
                             .transition(.move(edge: .leading))
                     } else {
                         ProgressView("Loading")
@@ -93,14 +95,17 @@ struct ContentView: View {
             }
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
-            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .environment(\.horizontalSizeClass, horizontalSizeClass)
         } detail: {
-            if let reference = navigationViewModel.reference {
-                ArticleView(reference: reference)
-            } else if let homepage = documentationViewModel.homepage {
-                HomepageView(homepage: homepage)
+            Group {
+                if let reference = navigationViewModel.reference {
+                    ArticleView(reference: reference)
+                } else if let homepage = documentationViewModel.homepage {
+                    HomepageView(homepage: homepage)
+                }
             }
+            .frame(minWidth: 150, minHeight: 150)
         }
     }
     
@@ -110,23 +115,27 @@ struct ContentView: View {
             Group {
                 if let technologies = documentationViewModel.technologies {
                     techView(technologies)
+#if !os(macOS)
                         .navigationTitle("Documentation")
                         .navigationBarTitleDisplayMode(.large)
+#endif
                 } else {
                     ProgressView("Loading")
                 }
             }
-            .shadow(color: .init(uiColor: .separator), radius: 0, x: 0.5)
+            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
-                switch element {
-                case .homepage:
-                    if let homepage = documentationViewModel.homepage {
-                        HomepageView(homepage: homepage)
+                Group {
+                    switch element {
+                    case .homepage:
+                        if let homepage = documentationViewModel.homepage {
+                            HomepageView(homepage: homepage)
+                        }
+                    case .reference(let reference):
+                        ArticleView(reference: reference)
+                    case .technology(let technology):
+                        TechnologyRootView(frameworkSection: technology)
                     }
-                case .reference(let reference):
-                    ArticleView(reference: reference)
-                case .technology(let technology):
-                    TechnologyRootView(frameworkSection: technology)
                 }
             }
         }
@@ -199,7 +208,7 @@ struct ContentView: View {
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(platformColor: .systemBackground))
         .searchable(text: $searchText)
     }
     

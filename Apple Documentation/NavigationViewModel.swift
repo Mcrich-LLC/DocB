@@ -42,7 +42,11 @@ class NavigationViewModel: ObservableObject, Equatable {
     @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     @Published var horizontalSizeClass: UserInterfaceSizeClass? = .regular
     var isUsingSplitView: Bool {
+        #if os(macOS)
+        true
+        #else
         UIDevice.current.userInterfaceIdiom != .phone && horizontalSizeClass == .regular
+        #endif
     }
     
     func handleIsUsingSplitViewChanged() {

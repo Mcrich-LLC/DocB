@@ -41,7 +41,7 @@ struct WebEndpointRestEndPoint: View {
                         .highlightLanguage(.javaScript)
                         .codeTextColors(.theme(.xcode))
                         .textSelection(.enabled)
-                        .tint(Color(uiColor: .systemBlue))
+                        .tint(Color(platformColor: .systemBlue))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

@@ -29,7 +29,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
             if navigationViewModel.isUsingSplitView {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .padding(-10)
-                    .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                    .foregroundStyle(Color(platformColor: .tertiarySystemFill))
                     .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
             }
         }
@@ -94,12 +94,14 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
                 if navigationViewModel.isUsingSplitView {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
                         .opacity((isSelected && shouldShowBackground) ? 1 : 0)
                 }
             }
         }
+#if !os(macOS)
         .hoverEffect()
+#endif
     }
     
     func showBackground(_ bool: Bool) -> Self {
@@ -144,11 +146,13 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                 if navigationViewModel.isUsingSplitView {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .padding(-10)
-                        .foregroundStyle(Color(uiColor: .tertiarySystemFill))
+                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
                         .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
                 }
             }
         }
+#if !os(macOS)
         .hoverEffect()
+#endif
     }
 }

@@ -15,7 +15,12 @@ struct CodeCopyOverlayButton: View {
 #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
         GroupBox {
             MacOSAgnosticButton {
+                #if os(macOS)
+                NSPasteboard.general.setString(string, forType: .string)
+                #else
                 UIPasteboard.general.string = string
+                #endif
+                
                 withAnimation {
                     hasCoppied = true
                 }

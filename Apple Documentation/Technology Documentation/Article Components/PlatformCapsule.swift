@@ -44,6 +44,6 @@ struct PlatformCapsule: View {
         .fixedSize(horizontal: true, vertical: false)
         .padding(.vertical, hasBadge ? 2: 6)
         .padding(.horizontal)
-        .background(Capsule().fill(Color(UIColor.tertiarySystemFill)))
+        .background(Capsule().fill(Color(PlatformColor.tertiarySystemFill)))
     }
 }

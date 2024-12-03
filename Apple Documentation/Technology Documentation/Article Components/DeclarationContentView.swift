@@ -33,7 +33,7 @@ struct DeclarationContentView: View {
                 .highlightLanguage(.swift)
                 .codeTextColors(.theme(.xcode))
                 .textSelection(.enabled)
-                .tint(Color(uiColor: .systemBlue))
+                .tint(Color(platformColor: .systemBlue))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
 #if os(visionOS)

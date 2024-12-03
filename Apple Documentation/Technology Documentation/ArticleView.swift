@@ -186,7 +186,7 @@ struct ArticleView: View {
             }
             .id(reference)
             .scrollContentBackground(.hidden)
-            .background(Color(uiColor: .systemBackground)
+            .background(Color(platformColor: .systemBackground)
                 .ignoresSafeArea()
             )
         }

@@ -74,14 +74,17 @@ class DocumentationViewModel: ObservableObject {
     
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
+    private let npaUrl = URL(string: "https://notprivateapis.com/index/index.json")!
     
     @Published var technologies: AppleTechnologies?
     
     func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
+            let (npaData, _) = try await URLSession.shared.data(from: npaUrl)
             
-            let technologies = try JSONDecoder().decode(Technologies.self, from: data)
+            let technologies = try JSONDecoder().decode(AppleTechnologies.self, from: data)
+            let npa = try JSONDecoder().decode(DocCIndex.self, from: npaData)
             await MainActor.run {
                 self.technologies = technologies
             }

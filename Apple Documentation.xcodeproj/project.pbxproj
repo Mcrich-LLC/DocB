@@ -14,7 +14,6 @@
 		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
-		225AE0062D2865C1007B993D /* CodableIgnored.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0052D2865C1007B993D /* CodableIgnored.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
 		2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A42CBF6A8500090C9F /* Fastfile */; };
@@ -75,7 +74,6 @@
 		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
-		225AE0052D2865C1007B993D /* CodableIgnored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableIgnored.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
 		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
@@ -147,7 +145,6 @@
 			isa = PBXGroup;
 			children = (
 				2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */,
-				225AE0052D2865C1007B993D /* CodableIgnored.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -404,7 +401,6 @@
 				2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */,
 				22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */,
 				2287E3E22CBF6A8500090C9F /* TechnologiesParser.swift in Sources */,
-				225AE0062D2865C1007B993D /* CodableIgnored.swift in Sources */,
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
 				2287E3E42CBF6A8500090C9F /* ArticleBadges.swift in Sources */,
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,

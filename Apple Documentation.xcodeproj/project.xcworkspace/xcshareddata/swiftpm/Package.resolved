@@ -1,5 +1,5 @@
 {
-  "originHash" : "8f82f308660b9d31ba9c0bb70b61cf936431577bc05743a8b1c947a4fa4ec630",
+  "originHash" : "b944a17e2d1c7df6967d7925559b3d009d750c2a2da05376b11ef24816ef6a27",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/Mcrich23/EnhancedCodable",
       "state" : {
         "branch" : "main",
-        "revision" : "e45676788fecdb01541c4be5e9466fbaee8e52a7"
+        "revision" : "5458d0c1d95b98ed352af2148480484ea475d4c7"
       }
     },
     {

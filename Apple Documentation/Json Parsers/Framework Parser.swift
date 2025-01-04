@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import EnhancedCodable
 
 struct Framework: Codable, AppleDocumentation {
     let topicSections: [TopicSection]?
@@ -14,6 +15,7 @@ struct Framework: Codable, AppleDocumentation {
     let legalNotices: LegalNotices?
     let variants: [Variant]?
     
+    @CodableIgnoreInitializedProperties
     struct TopicSection: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
@@ -26,22 +28,6 @@ struct Framework: Codable, AppleDocumentation {
             case title
             case anchor
             case identifiers
-        }
-        
-        init(from decoder: any Decoder) throws {
-            let container: KeyedDecodingContainer<Framework.TopicSection.CodingKeys> = try decoder.container(keyedBy: Framework.TopicSection.CodingKeys.self)
-            self.title = try container.decodeIfPresent(String.self, forKey: Framework.TopicSection.CodingKeys.title)
-            self.anchor = try container.decodeIfPresent(String.self, forKey: Framework.TopicSection.CodingKeys.anchor)
-            let identifiers = try container.decode([String].self, forKey: Framework.TopicSection.CodingKeys.identifiers)
-            
-            // Filter to remove ids with #
-            self.identifiers = identifiers.filter({ !$0.contains("#") })
-        }
-        
-        init(title: String, anchor: String, identifiers: [String]) {
-            self.title = title
-            self.anchor = anchor
-            self.identifiers = identifiers
         }
     }
 

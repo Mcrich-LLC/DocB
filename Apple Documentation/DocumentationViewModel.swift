@@ -81,10 +81,8 @@ class DocumentationViewModel: ObservableObject {
     func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
-            let (npaData, _) = try await URLSession.shared.data(from: npaUrl)
             
             let technologies = try JSONDecoder().decode(AppleTechnologies.self, from: data)
-            let npa = try JSONDecoder().decode(DocCIndex.self, from: npaData)
             await MainActor.run {
                 self.technologies = technologies
             }

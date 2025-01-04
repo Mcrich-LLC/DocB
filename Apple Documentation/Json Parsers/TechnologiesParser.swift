@@ -7,7 +7,12 @@
 
 import Foundation
 
-struct Technologies: Decodable, AppleDocumentation {
+enum TechnologyTypes {
+    case apple(AppleTechnologies)
+    case docC(DocCIndex)
+}
+
+struct AppleTechnologies: Decodable, AppleDocumentation {
     let header: Header?
     let groups: [Technology]?
     let references: [String : Reference]

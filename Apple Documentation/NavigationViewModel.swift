@@ -14,7 +14,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
     
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
-    @Published private(set) var technology: Technologies.FrameworkSection? {
+    @Published private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -22,7 +22,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    func setTechnology(_ technology: Technologies.FrameworkSection?) {
+    func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
         if self.technology != technology {
             self.technology = technology
         }
@@ -243,7 +243,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         history[currentIndex].reference == reference
     }
     
-    func shouldRemoveTechnologyFromPath(_ technology: Technologies.FrameworkSection?) -> Bool {
+    func shouldRemoveTechnologyFromPath(_ technology: AppleTechnologies.FrameworkSection?) -> Bool {
         history[currentIndex].technology == technology && history[currentIndex].reference == nil
     }
     
@@ -273,7 +273,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         })
     }
     
-    func getHistoryTechnology(at index: Int) -> Technologies.FrameworkSection? {
+    func getHistoryTechnology(at index: Int) -> AppleTechnologies.FrameworkSection? {
         if index < history.count - 1 && index >= 0 {
             return history[index].technology
         } else {
@@ -329,14 +329,14 @@ extension Dictionary {
 private struct History: Identifiable, Hashable {
     let id = UUID()
     
-    var technology: Technologies.FrameworkSection?
+    var technology: AppleTechnologies.FrameworkSection?
     var reference: Reference?
     let isHomepage: Bool
 }
 
 enum PathElement: Hashable {
     case reference(Reference)
-    case technology(Technologies.FrameworkSection)
+    case technology(AppleTechnologies.FrameworkSection)
     case homepage
 }
 

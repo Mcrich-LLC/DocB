@@ -11,7 +11,7 @@ struct TechnologyRootView: View {
     
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    let frameworkSection: Technologies.FrameworkSection
+    let frameworkSection: AppleTechnologies.FrameworkSection
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -71,13 +71,17 @@ struct TechnologyRootView: View {
                 }
                 
                 ForEach(framework.topicSections ?? []) { section in
-                    Section(section.title) {
+                    Section {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
                                 FrameworkListItem(reference: reference, title: title)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                             }
+                        }
+                    } header: {
+                        if let title = section.title {
+                            Text(title)
                         }
                     }
                     .headerProminence(.increased)
@@ -250,8 +254,10 @@ private struct FrameworkDisclosureGroup: View {
                             }
                         }
                     } header: {
-                        Text(section.title)
-                            .foregroundStyle(.secondary)
+                        if let title = section.title {
+                            Text(title)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

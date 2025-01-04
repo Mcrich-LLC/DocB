@@ -20,8 +20,12 @@ struct RelationshipsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 ForEach(relationshipsSections) { section in
-                    Section(header: Text(section.title)) {
+                    Section {
                         LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references, navigationViewModel: navigationViewModel)
+                    } header: {
+                        if let title = section.title {
+                            Text(title)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

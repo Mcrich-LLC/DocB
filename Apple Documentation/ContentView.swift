@@ -177,7 +177,7 @@ struct ContentView: View {
         }
     }
     
-    func techView(_ technology: Technologies) -> some View {
+    func techView(_ technology: AppleTechnologies) -> some View {
         List {
             Section {
                 HomepageNavigationLinkButton {
@@ -248,14 +248,14 @@ struct ContentView: View {
         .searchable(text: $searchText)
     }
     
-    func isVisibleForSearch(_ technology: Technologies.FrameworkSection) -> Bool {
+    func isVisibleForSearch(_ technology: AppleTechnologies.FrameworkSection) -> Bool {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
     }
     
     private struct ListItemLabel: View {
-        let framework: Technologies.FrameworkSection
+        let framework: AppleTechnologies.FrameworkSection
         let references: [String: Reference]
         
         @EnvironmentObject var navigationViewModel: NavigationViewModel

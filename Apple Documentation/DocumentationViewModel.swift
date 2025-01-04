@@ -75,7 +75,7 @@ class DocumentationViewModel: ObservableObject {
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
-    @Published var technologies: Technologies?
+    @Published var technologies: AppleTechnologies?
     
     func fetchTechnologies() async {
         do {

@@ -121,7 +121,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 
 struct TechnologyNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
-    let technology: Technologies.FrameworkSection
+    let technology: AppleTechnologies.FrameworkSection
     
     @ViewBuilder
     let label: Content

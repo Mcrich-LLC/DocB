@@ -17,7 +17,7 @@ struct Framework: Codable, AppleDocumentation {
     struct TopicSection: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
-        let title: String
+        let title: String?
         let anchor: String?
         let identifiers: [String]
         
@@ -30,7 +30,7 @@ struct Framework: Codable, AppleDocumentation {
         
         init(from decoder: any Decoder) throws {
             let container: KeyedDecodingContainer<Framework.TopicSection.CodingKeys> = try decoder.container(keyedBy: Framework.TopicSection.CodingKeys.self)
-            self.title = try container.decode(String.self, forKey: Framework.TopicSection.CodingKeys.title)
+            self.title = try container.decodeIfPresent(String.self, forKey: Framework.TopicSection.CodingKeys.title)
             self.anchor = try container.decodeIfPresent(String.self, forKey: Framework.TopicSection.CodingKeys.anchor)
             let identifiers = try container.decode([String].self, forKey: Framework.TopicSection.CodingKeys.identifiers)
             

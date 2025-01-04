@@ -7,11 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		22002BBF2D28F65400B0B7AD /* EnhancedCodable in Frameworks */ = {isa = PBXBuildFile; productRef = 22002BBE2D28F65400B0B7AD /* EnhancedCodable */; };
 		2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */; };
 		2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */; };
 		2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */; };
 		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
+		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
+		225AE0062D2865C1007B993D /* CodableIgnored.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0052D2865C1007B993D /* CodableIgnored.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
 		2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A42CBF6A8500090C9F /* Fastfile */; };
@@ -71,6 +74,8 @@
 		2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCopyOverlayButton.swift; sourceTree = "<group>"; };
 		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
+		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
+		225AE0052D2865C1007B993D /* CodableIgnored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableIgnored.swift; sourceTree = "<group>"; };
 		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
 		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
 		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
@@ -131,6 +136,7 @@
 				22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */,
 				22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */,
 				227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */,
+				22002BBF2D28F65400B0B7AD /* EnhancedCodable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */,
+				225AE0052D2865C1007B993D /* CodableIgnored.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -166,6 +173,7 @@
 				2287E3B42CBF6A8500090C9F /* Framework Parser.swift */,
 				2287E3B52CBF6A8500090C9F /* HomepageParser.swift */,
 				2287E3B62CBF6A8500090C9F /* TechnologiesParser.swift */,
+				225AE0032D2862DF007B993D /* DocC Index Parser.swift */,
 			);
 			path = "Json Parsers";
 			sourceTree = "<group>";
@@ -299,6 +307,7 @@
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
 				22E7F4E12CB5048400FD6B2C /* HighlightSwift */,
+				22002BBE2D28F65400B0B7AD /* EnhancedCodable */,
 			);
 			productName = "Apple Documentation";
 			productReference = 22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */;
@@ -332,6 +341,7 @@
 				2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				22BE0E1F2CB4D5EB00075074 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 				22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */,
+				22002BBD2D28F65400B0B7AD /* XCRemoteSwiftPackageReference "EnhancedCodable" */,
 			);
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
 			projectDirPath = "";
@@ -394,6 +404,7 @@
 				2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */,
 				22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */,
 				2287E3E22CBF6A8500090C9F /* TechnologiesParser.swift in Sources */,
+				225AE0062D2865C1007B993D /* CodableIgnored.swift in Sources */,
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
 				2287E3E42CBF6A8500090C9F /* ArticleBadges.swift in Sources */,
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,
@@ -407,6 +418,7 @@
 				2287E3EC2CBF6A8500090C9F /* MultiLine Picker.swift in Sources */,
 				2287E3ED2CBF6A8500090C9F /* PlatformCapsule.swift in Sources */,
 				2209FBBB2CC98C0900372F9E /* LegalNoticesView.swift in Sources */,
+				225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */,
 				222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */,
 				2287E3EE2CBF6A8500090C9F /* RelationshipsView.swift in Sources */,
 				2287E3EF2CBF6A8500090C9F /* SeeAlsoView.swift in Sources */,
@@ -658,6 +670,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		22002BBD2D28F65400B0B7AD /* XCRemoteSwiftPackageReference "EnhancedCodable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Mcrich23/EnhancedCodable";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -685,6 +705,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		22002BBE2D28F65400B0B7AD /* EnhancedCodable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22002BBD2D28F65400B0B7AD /* XCRemoteSwiftPackageReference "EnhancedCodable" */;
+			productName = EnhancedCodable;
+		};
 		2274642F2CB4D4E900BE0863 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */;

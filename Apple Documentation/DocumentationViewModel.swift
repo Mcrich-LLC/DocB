@@ -31,10 +31,10 @@ class DocumentationViewModel: ObservableObject {
     // MARK: URL Functions
     func jsonUrl(for identifier: String, site: DocCSite?) -> URL? {
         if let site {
-            let identifier = identifier
-                .replacingOccurrences(of: "doc://\(site.title)", with: "")
-                .replacingOccurrences(of: "doc://", with: "")
-                .lowercased()
+            var identifier: String = identifier.lowercased()
+            if let index = identifier.firstRange(of: "/documentation") {
+                identifier = identifier.suffix(from: index.lowerBound).lowercased()
+            }
             
             let url = site.url
                 .appending(path: "data")

@@ -55,10 +55,12 @@ struct ArticleContentView: View {
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
         
-        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme),
-              url.host() == nil
-        else {
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme) else {
             return nil
+        }
+        
+        guard url.host() == nil else {
+            return url
         }
         
         let fullUrl = docCSite?.url.appending(path: url.path())

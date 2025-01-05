@@ -96,6 +96,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func removeLastPath(_ k: Int = 1) {
+        guard path.count >= k else { return }
+        
         path.removeLast(k)
         backupPath.removeLast(k)
     }

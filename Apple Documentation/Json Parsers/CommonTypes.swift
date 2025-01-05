@@ -552,7 +552,7 @@ enum ContentType: String, Codable, Equatable, Hashable {
 struct Platform: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
-    let introducedAt: String
+    let introducedAt: String?
     let unavailable: Bool?
     let beta: Bool?
     let name: String

@@ -37,7 +37,7 @@ struct Article: Codable, AppleDocumentation {
     }
     
     struct SampleCodeDownload: Codable, Equatable, Hashable {
-        let kind: String
+        let kind: String?
         let action: Action
         
         struct Action: Codable, Equatable, Hashable {

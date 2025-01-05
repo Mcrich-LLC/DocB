@@ -13,10 +13,14 @@ struct PlatformCapsule: View {
     var text: String {
         let version: String
         
-        if let deprecatedAt = platform.deprecatedAt {
-            version = "\(platform.introducedAt)-\(deprecatedAt)"
+        if let introducedAt = platform.introducedAt {
+            if let deprecatedAt = platform.deprecatedAt {
+                version = "\(introducedAt)-\(deprecatedAt)"
+            } else {
+                version = "\(introducedAt)+"
+            }
         } else {
-            version = "\(platform.introducedAt)+"
+            version = ""
         }
         
         return "\(platform.name) \(version)"

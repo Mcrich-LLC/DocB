@@ -191,6 +191,7 @@ struct ArticleView: View {
                 .ignoresSafeArea()
             )
         }
+        .environment(\.docCSite, reference.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
                 self.article = nil

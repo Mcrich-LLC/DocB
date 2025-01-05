@@ -16,6 +16,7 @@ struct ArticleContentView: View {
     let references: [String : Reference]
     let type: ContentType?
     let alignment: Alignment
+    @Environment(\.docCSite) var docCSite
     @State var orderedListIndex: Int
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     
@@ -53,7 +54,16 @@ struct ArticleContentView: View {
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        return Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme)
+        
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme),
+              url.host() == nil
+        else {
+            return nil
+        }
+        
+        let fullUrl = docCSite?.url.appending(path: url.path())
+        
+        return fullUrl
     }
     
     func getReferenceText(for identifier: String) -> Text? {

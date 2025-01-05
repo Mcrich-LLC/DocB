@@ -7,6 +7,7 @@
 
 import Foundation
 import EnhancedCodable
+import SwiftUI
 
 @CodableIgnoreInitializedProperties
 struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
@@ -66,4 +67,9 @@ struct DocCSite: Identifiable, Codable, Equatable, Hashable {
         
         return AppleTechnologies.FrameworkSection(languages: languages, title: title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: self)
     }
+}
+
+// Make Environment Value
+extension EnvironmentValues {
+    @Entry var docCSite: DocCSite?
 }

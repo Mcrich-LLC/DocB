@@ -9,16 +9,61 @@ import Foundation
 import EnhancedCodable
 
 @CodableIgnoreInitializedProperties
-struct DocCIndex: Codable, Identifiable {
+struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let interfaceLanguages: [String : [InterfaceLanguage]]
     
-    struct InterfaceLanguage: Codable {
+    @CodableIgnoreInitializedProperties
+    struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable {
+        let id = UUID()
+        
         let title: String
         let path: String?
         let type: String
         
         let children: [InterfaceLanguage]?
+        
+        func allFrameworkSections(for site: DocCSite) -> [AppleTechnologies.FrameworkSection] {
+            children?.compactMap{ frameworkSection(for: $0, site: site) } ?? []
+        }
+        
+        func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSite) -> AppleTechnologies.FrameworkSection? {
+//            let languages = self.index.interfaceLanguages.filter({
+//                $0.value.contains(where: { $0.path == interfaceLanguage.path ?? "" }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
+//            }).map(\.key)
+            
+            guard let path = interfaceLanguage.path else { return nil }
+            let url = site.url.appending(path: "data\(path).json")
+            
+            return AppleTechnologies.FrameworkSection(languages: [], title: interfaceLanguage.title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: site)
+        }
+    }
+}
+
+@CodableIgnoreInitializedProperties
+struct DocCSite: Identifiable, Codable, Equatable, Hashable {
+    let id: UUID = UUID()
+    let title: String
+    let url: URL
+    let index: DocCIndex
+    
+    var groups: [DocCIndex.InterfaceLanguage] {
+        index.interfaceLanguages.flatMap({ $0.value })
+    }
+    
+    var allFrameworkSections: [AppleTechnologies.FrameworkSection] {
+        groups.compactMap(frameworkSection)
+    }
+    
+    func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage) -> AppleTechnologies.FrameworkSection? {
+        let languages = self.index.interfaceLanguages.filter({
+            $0.value.contains(where: { $0.path == interfaceLanguage.path ?? "" }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
+        }).map(\.key)
+        
+        guard let path = interfaceLanguage.path else { return nil }
+        let url = url.appending(path: "data\(path).json")
+        
+        return AppleTechnologies.FrameworkSection(languages: languages, title: title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: self)
     }
 }

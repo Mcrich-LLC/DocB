@@ -273,7 +273,7 @@ struct ArticleView: View {
     
     func loadArticle() async {
         do {
-            let article = try await documentationViewModel.fetchArticle(for: reference.identifier)
+            let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: reference.docCSite)
             
             self.article = article
         } catch {

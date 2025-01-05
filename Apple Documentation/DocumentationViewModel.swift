@@ -29,7 +29,16 @@ class DocumentationViewModel: ObservableObject {
     @AppStorage("preferedProgrammingLanguage") var preferedProgrammingLanguage = PreferedProgrammingLanguage.swift
     
     // MARK: URL Functions
-    func jsonUrl(for identifier: String) -> URL? {
+    func jsonUrl(for identifier: String, site: DocCSite?) -> URL? {
+        if let site {
+            let url = site.url
+                .appending(path: "data")
+                .appending(path: identifier)
+                .appendingPathExtension("json")
+            
+            return url
+        }
+        
         guard let identifier = URL(string: identifier) else {
             return nil
         }
@@ -76,15 +85,21 @@ class DocumentationViewModel: ObservableObject {
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     private let npaUrl = URL(string: "https://notprivateapis.com/index/index.json")!
     
-    @Published var technologies: AppleTechnologies?
+    @Published var technologies: [TechnologyTypes] = []
     
     func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
+            let (npaData, _) = try await URLSession.shared.data(from: npaUrl)
             
             let technologies = try JSONDecoder().decode(AppleTechnologies.self, from: data)
+            let npaIndex = try JSONDecoder().decode(DocCIndex.self, from: npaData)
+            
+            let npa = DocCSite(title: "NotPrivateAPIs", url: URL(string: "https://notprivateapis.com")!, index: npaIndex)
+            
             await MainActor.run {
-                self.technologies = technologies
+                self.technologies.append(.docC(npa))
+                self.technologies.append(.apple(technologies))
             }
         } catch {
             print(error)
@@ -95,16 +110,16 @@ class DocumentationViewModel: ObservableObject {
     
     @Published var frameworks: [String : Framework] = [:]
     
-    func fetchFramework(for identifier: String, completion: @escaping () -> Void) {
+    func fetchFramework(for identifier: String, site: DocCSite?, completion: @escaping () -> Void) {
         Task {
-            await fetchFramework(for: identifier)
+            await fetchFramework(for: identifier, site: site)
             completion()
         }
     }
     
-    func fetchFramework(for identifier: String) async {
+    func fetchFramework(for identifier: String, site: DocCSite?) async {
         do {
-            guard let url = jsonUrl(for: identifier) else { return }
+            guard let url = jsonUrl(for: identifier, site: site) else { return }
             
             let (data, _) = try await URLSession.shared.data(from: url)
             
@@ -120,10 +135,10 @@ class DocumentationViewModel: ObservableObject {
     
     // MARK: Articles
     
-    func fetchArticle(for identifier: String, completion: @escaping (Article) -> Void) {
+    func fetchArticle(for identifier: String, site: DocCSite?, completion: @escaping (Article) -> Void) {
         Task {
             do {
-                let article = try await fetchArticle(for: identifier)
+                let article = try await fetchArticle(for: identifier, site: site)
                 completion(article)
             } catch {
                 print(error)
@@ -131,9 +146,9 @@ class DocumentationViewModel: ObservableObject {
         }
     }
     
-    func fetchArticle(for identifier: String) async throws -> Article {
+    func fetchArticle(for identifier: String, site: DocCSite?) async throws -> Article {
 //        do {
-        guard let url = jsonUrl(for: identifier) else { throw URLError(.badURL) }
+        guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }
             
             let (data, response) = try await URLSession.shared.data(from: url)
             

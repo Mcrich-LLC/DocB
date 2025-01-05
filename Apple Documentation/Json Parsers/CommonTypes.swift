@@ -379,6 +379,7 @@ struct Reference: Codable, Hashable, Identifiable {
     let beta: Bool?
     let variants: [Variant]?
     let images: [ImageStruct]?
+    let docCSite: DocCSite?
     
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),
@@ -398,7 +399,7 @@ struct Reference: Codable, Hashable, Identifiable {
         return URL(string: shareUrlString)
     }
     
-    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?) {
+    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSite?) {
         self.title = title
         self.abstract = abstract
         self.identifier = identifier
@@ -411,6 +412,7 @@ struct Reference: Codable, Hashable, Identifiable {
         self.beta = beta
         self.variants = variants
         self.images = images
+        self.docCSite = docCSite
     }
     
     enum CodingKeys: CodingKey {
@@ -448,6 +450,7 @@ struct Reference: Codable, Hashable, Identifiable {
         self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta)
         self.variants = try container.decodeIfPresent([Reference.Variant].self, forKey: .variants)
         self.images = try container.decodeIfPresent([ImageStruct].self, forKey: .images)
+        self.docCSite = nil
     }
     
     struct Variant: Codable, Hashable {

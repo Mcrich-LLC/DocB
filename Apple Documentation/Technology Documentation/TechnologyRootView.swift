@@ -107,7 +107,7 @@ struct TechnologyRootView: View {
     
     func loadFramework() async {
         if framework == nil {
-            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
+            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier, site: frameworkSection.docCSite)
         }
     }
 }
@@ -275,7 +275,7 @@ private struct FrameworkDisclosureGroup: View {
         }
         .task {
             if framework == nil {
-                await documentationViewModel.fetchFramework(for: identifier)
+                await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
             }
         }
     }

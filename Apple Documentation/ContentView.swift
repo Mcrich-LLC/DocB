@@ -117,8 +117,8 @@ struct ContentView: View {
                             }
                         }
                 } else {
-                    if let technologies = documentationViewModel.technologies {
-                        techView(technologies)
+                    if !documentationViewModel.technologies.isEmpty {
+                        techView
 #if !os(macOS)
                             .navigationTitle("Documentation")
                             .navigationBarTitleDisplayMode(.large)
@@ -149,8 +149,8 @@ struct ContentView: View {
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             Group {
-                if let technologies = documentationViewModel.technologies {
-                    techView(technologies)
+                if !documentationViewModel.technologies.isEmpty {
+                    techView
 #if !os(macOS)
                         .navigationTitle("Documentation")
                         .navigationBarTitleDisplayMode(.large)
@@ -177,60 +177,50 @@ struct ContentView: View {
         }
     }
     
-    func techView(_ technology: AppleTechnologies) -> some View {
+    var techView: some View {
         List {
-            Section {
-                HomepageNavigationLinkButton {
-                    HStack {
-                        Text("Discover")
-                        
-                        if !navigationViewModel.isUsingSplitView {
-                            Spacer()
-                            ChevronView()
-                        }
-                    }
+            ForEach(documentationViewModel.technologies) { technology in
+                switch technology {
+                case .apple(let technologies):
+                    appleTechView(technologies)
+                case .docC(let site):
+                    doccTechView(site) // TODO: Add DocC navigator UI
                 }
-                .foregroundStyle(Color.primary)
-                .listRowBackground(Color.clear)
             }
-            
-            if let groups = technology.groups {
-                
-                let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
+        }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(Color(platformColor: .systemBackground))
+    }
+    
+    @ViewBuilder
+    func doccTechView(_ technology: DocCSite) -> some View {
+                let filtered = technology.allFrameworkSections.filter(isVisibleForSearch)
                 
                 if !filtered.isEmpty {
-                    ForEach(groups) { group in
-                        
-                        let filtered = group.technologies.filter(isVisibleForSearch)
-                        
+                    ForEach(technology.groups) { group in
+                        let filtered = group.allFrameworkSections(for: technology).filter(isVisibleForSearch)
                         if !filtered.isEmpty {
-                            Section(group.name) {
+                            Section(group.title) {
                                 
-                                ForEach(filtered) { framework in
-                                    if framework.destination.isActive {
-                                        Group {
-                                            if framework.destination.identifier.lowercased().contains("/documentation") {
-                                                TechnologyNavigationLinkButton(technology: framework) {
-                                                    ListItemLabel(framework: framework, references: technology.references)
-                                                }
-                                            } else if let url = URL(string: framework.destination.identifier) {
-                                                MacOSAgnosticLink(destination: url) {
-                                                    ListItemLabel(framework: framework, references: technology.references)
-                                                }
+                                ForEach(group.children ?? []) { framework in
+                                    Group {
+                                        if let path = framework.path, path.lowercased().contains("/documentation"),
+                                            let frameworkSection = group.frameworkSection(for: framework, site: technology) {
+                                            TechnologyNavigationLinkButton(technology: frameworkSection) {
+                                                ListItemLabel(framework: frameworkSection, references: [:])
+                                            }
+                                        } else if let path = framework.path, let url = URL(string: path), let frameworkSection = group.frameworkSection(for: framework, site: technology) {
+                                            MacOSAgnosticLink(destination: url) {
+                                                ListItemLabel(framework: frameworkSection, references: [:])
                                             }
                                         }
-                                        .foregroundStyle(Color.primary)
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
                                     }
+                                    .foregroundStyle(Color.primary)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                                 }
                             }
-                        }
-                    }
-                    Section {} footer: {
-                        if let legalNotices = technology.legalNotices {
-                            LegalNoticesView(legalNotices: legalNotices)
-                                .padding(.bottom)
                         }
                     }
                 } else {
@@ -238,14 +228,71 @@ struct ContentView: View {
                         Label("No Results", systemSymbol: .magnifyingglass)
                     }
                 }
-                
+    }
+    
+    @ViewBuilder
+    func appleTechView(_ technology: AppleTechnologies) -> some View {
+        Section {
+            HomepageNavigationLinkButton {
+                HStack {
+                    Text("Discover")
+                    
+                    if !navigationViewModel.isUsingSplitView {
+                        Spacer()
+                        ChevronView()
+                    }
+                }
+            }
+            .foregroundStyle(Color.primary)
+            .listRowBackground(Color.clear)
+        }
+        
+        if let groups = technology.groups {
+            
+            let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
+            
+            if !filtered.isEmpty {
+                ForEach(groups) { group in
+                    
+                    let filtered = group.technologies.filter(isVisibleForSearch)
+                    
+                    if !filtered.isEmpty {
+                        Section(group.name) {
+                            
+                            ForEach(filtered) { framework in
+                                if framework.destination.isActive {
+                                    Group {
+                                        if framework.destination.identifier.lowercased().contains("/documentation") {
+                                            TechnologyNavigationLinkButton(technology: framework) {
+                                                ListItemLabel(framework: framework, references: technology.references)
+                                            }
+                                        } else if let url = URL(string: framework.destination.identifier) {
+                                            MacOSAgnosticLink(destination: url) {
+                                                ListItemLabel(framework: framework, references: technology.references)
+                                            }
+                                        }
+                                    }
+                                    .foregroundStyle(Color.primary)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                }
+                            }
+                        }
+                    }
+                }
+                Section {} footer: {
+                    if let legalNotices = technology.legalNotices {
+                        LegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("No Results", systemSymbol: .magnifyingglass)
+                }
             }
             
         }
-        .listStyle(.inset)
-        .scrollContentBackground(.hidden)
-        .background(Color(platformColor: .systemBackground))
-        .searchable(text: $searchText)
     }
     
     func isVisibleForSearch(_ technology: AppleTechnologies.FrameworkSection) -> Bool {

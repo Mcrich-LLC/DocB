@@ -8,12 +8,23 @@
 import Foundation
 import EnhancedCodable
 
-enum TechnologyTypes {
+enum TechnologyTypes: Identifiable {
     case apple(AppleTechnologies)
-    case docC(DocCIndex)
+    case docC(DocCSite)
+    
+    var id: UUID {
+        switch self {
+        case .apple(let apple):
+            return apple.id
+        case .docC(let docC):
+            return docC.id
+        }
+    }
 }
 
-struct AppleTechnologies: Decodable, AppleDocumentation {
+struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
+    let id = UUID()
+    
     let header: Header?
     let groups: [Technology]?
     let references: [String : Reference]
@@ -79,6 +90,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation {
         let tags: [String]
         let destination: Destination
         let legalNotices: LegalNotices?
+        let docCSite: DocCSite?
         
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
@@ -97,7 +109,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation {
         }
         
         var frameworkReference: Reference {
-            Reference(title: title, abstract: nil, identifier: destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+            Reference(title: title, abstract: nil, identifier: destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: docCSite)
         }
     }
 }

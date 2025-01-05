@@ -23,7 +23,7 @@ struct ContentView: View {
         switch lastNavigationItem {
         case .reference(let ref):
             return ref.role?.accentColor
-        case .technology(let tech):
+        case .technology(_):
             return nil
         case .homepage:
             return nil
@@ -337,33 +337,33 @@ struct ContentView: View {
         let filteredTech = mappedTech.filter({ isVisibleForSearch($0) })
         return !filteredTech.isEmpty
     }
+}
+
+private struct ListItemLabel: View {
+    let framework: AppleTechnologies.FrameworkSection
+    let references: [String: Reference]
     
-    private struct ListItemLabel: View {
-        let framework: AppleTechnologies.FrameworkSection
-        let references: [String: Reference]
-        
-        @EnvironmentObject var navigationViewModel: NavigationViewModel
-        
-        var body: some View {
-            HStack {
-                Text(framework.title)
-                
-                if let reference = references[framework.destination.identifier] {
-                    if reference.beta == true {
-                        ArticleBadge(badge: .beta)
-                    }
-                    
-                    if reference.deprecated == true {
-                        ArticleBadge(badge: .deprecated)
-                    }
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    
+    var body: some View {
+        HStack {
+            Text(framework.title)
+            
+            if let reference = references[framework.destination.identifier] {
+                if reference.beta == true {
+                    ArticleBadge(badge: .beta)
                 }
                 
-                if !navigationViewModel.isUsingSplitView {
-                    Spacer()
-                    ChevronView()
+                if reference.deprecated == true {
+                    ArticleBadge(badge: .deprecated)
                 }
             }
-            .contentShape(Rectangle())
+            
+            if !navigationViewModel.isUsingSplitView {
+                Spacer()
+                ChevronView()
+            }
         }
+        .contentShape(Rectangle())
     }
 }

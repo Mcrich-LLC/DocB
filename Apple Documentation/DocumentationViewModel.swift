@@ -88,23 +88,33 @@ class DocumentationViewModel: ObservableObject {
     
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
-    private let npaUrl = URL(string: "https://notprivateapis.com/index/index.json")!
     
     @Published var technologies: [TechnologyTypes] = []
     
     func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
-            let (npaData, _) = try await URLSession.shared.data(from: npaUrl)
             
             let technologies = try JSONDecoder().decode(AppleTechnologies.self, from: data)
-            let npaIndex = try JSONDecoder().decode(DocCIndex.self, from: npaData)
-            
-            let npa = DocCSite(title: "NotPrivateAPIs", url: URL(string: "https://notprivateapis.com")!, index: npaIndex)
-            
             await MainActor.run {
-                self.technologies.append(.docC(npa))
                 self.technologies.append(.apple(technologies))
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
+    func addTechnology(named name: String, baseUrl: URL) async {
+        do {
+            let indexUrl = baseUrl.appending(path: "index/index.json")
+            let (data, _) = try await URLSession.shared.data(from: indexUrl)
+            
+            let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+            let site = DocCSite(title: name, url: baseUrl, index: index)
+            await MainActor.run {
+                withAnimation {
+                    self.technologies.insert(.docC(site), at: self.technologies.count-1)
+                }
             }
         } catch {
             print(error)

@@ -3,4 +3,52 @@
    uuid = "8DA728FB-DF98-4028-AA1B-760E1C8C606E"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1DB1ECEE-43EE-47CC-B736-5E7D96DB0EA9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../../var/folders/_8/4y_d7rv566s4tpd8q3h_w4y80000gq/T/swift-generated-sources/@__swiftmacro_23Developer_Documentation14ContentSectionV11Declaration34CodableIgnoreInitializedPropertiesfMm_.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1"
+            endingLineNumber = "1"
+            landmarkName = "unknown"
+            landmarkType = "0">
+            <Locations>
+               <Location
+                  uuid = "1DB1ECEE-43EE-47CC-B736-5E7D96DB0EA9 - 11bc3cd068d284aa"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Developer_Documentation.ContentSection.Declaration.init(tokens: Swift.Array&lt;Developer_Documentation.ContentSection.Token&gt;, languages: Swift.Array&lt;Swift.String&gt;, platforms: Swift.Array&lt;Swift.String&gt;) -&gt; Developer_Documentation.ContentSection.Declaration"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Json%20Parsers/CommonTypes.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "143"
+                  endingLineNumber = "143">
+               </Location>
+               <Location
+                  uuid = "1DB1ECEE-43EE-47CC-B736-5E7D96DB0EA9 - cfaedafffdd1b9cd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Developer_Documentation.ContentSection.Declaration.init(tokens: Swift.Array&lt;Developer_Documentation.ContentSection.Token&gt;, languages: Swift.Array&lt;Swift.String&gt;, platforms: Swift.Optional&lt;Swift.Array&lt;Swift.String&gt;&gt;) -&gt; Developer_Documentation.ContentSection.Declaration"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Json%20Parsers/CommonTypes.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "143"
+                  endingLineNumber = "143">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

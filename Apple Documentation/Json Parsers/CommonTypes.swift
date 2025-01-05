@@ -143,7 +143,15 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         let tokens: [Token]
         let languages: [String]
-        let platforms: [String]
+        let platforms: [String]?
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            tokens = try container.decode([Token].self, forKey: .tokens)
+            languages = try container.decode([String].self, forKey: .languages)
+            platforms = try container.decodeIfPresent([String].self, forKey: .languages)
+        }
     }
     
     struct Token: Codable, Equatable, Hashable {

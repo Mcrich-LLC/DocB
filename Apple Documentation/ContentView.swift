@@ -17,6 +17,11 @@ struct ContentView: View {
     
     @State var searchText = ""
     
+    // Add Documentation Alert
+    @State var showAddDocumentationAlert = false
+    @State var addDocumentationName: String = ""
+    @State var addDocumentationUrl: String = ""
+    
     var navigationTint: Color? {
         guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
         
@@ -213,6 +218,54 @@ struct ContentView: View {
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
         .searchable(text: $searchText)
+        .toolbar {
+            Button {
+                showAddDocumentationAlert.toggle()
+            } label: {
+                Image(systemSymbol: .plus)
+            }
+
+        }
+        .alert("Add Documentation", isPresented: $showAddDocumentationAlert) {
+            TextField("Name", text: $addDocumentationName)
+            TextField("URL", text: $addDocumentationUrl)
+            Button("Add") {
+                Task {
+                    defer {
+                        self.addDocumentationName = ""
+                        self.addDocumentationUrl = ""
+                    }
+                    var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
+                    
+                    if !addDocumentationUrl.contains("://") {
+                        addDocumentationUrl = "https://\(addDocumentationUrl)"
+                    }
+                    
+                    guard let url = URL(string: addDocumentationUrl),
+                          let scheme = url.scheme,
+                          let host = url.host
+                    else {
+                        return
+                    }
+                    
+                    let limitedPath: String
+                    
+                    if let indexRange = url.path().firstRange(of: "/documentation") {
+                        limitedPath = String(url.path().prefix(upTo: indexRange.lowerBound))
+                    } else {
+                        limitedPath = url.path()
+                    }
+                    
+                    guard let baseUrl = URL(string: "\(scheme)://\(host)\(limitedPath)") else {
+                        return
+                    }
+                    
+                    await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
+                }
+            }
+            Button("Cancel") {}
+        }
+
     }
     
     @ViewBuilder

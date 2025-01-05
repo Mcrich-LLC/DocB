@@ -26,7 +26,7 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
         let children: [InterfaceLanguage]?
         
         func allFrameworkSections(for site: DocCSite) -> [AppleTechnologies.FrameworkSection] {
-            children?.compactMap{ frameworkSection(for: $0, site: site) } ?? []
+            children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
         }
         
         func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSite) -> AppleTechnologies.FrameworkSection? {
@@ -58,14 +58,14 @@ struct DocCSite: Identifiable, Codable, Equatable, Hashable {
     }
     
     func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage) -> AppleTechnologies.FrameworkSection? {
-        let languages = self.index.interfaceLanguages.filter({
-            $0.value.contains(where: { $0.path == interfaceLanguage.path ?? "" }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
-        }).map(\.key)
-        
         guard let path = interfaceLanguage.path else { return nil }
         let url = url.appending(path: "data\(path).json")
         
-        return AppleTechnologies.FrameworkSection(languages: languages, title: title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: self)
+        let languages = self.index.interfaceLanguages.filter({
+            $0.value.contains(where: { $0.path == path }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
+        }).map(\.key)
+        
+        return AppleTechnologies.FrameworkSection(languages: languages, title: interfaceLanguage.title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: self)
     }
 }
 

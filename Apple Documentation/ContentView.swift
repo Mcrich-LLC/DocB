@@ -283,6 +283,7 @@ struct ContentView: View {
                                         if framework.type == "groupMarker" {
                                             Text(framework.title)
                                                 .font(.subheadline)
+                                                .fontWeight(.semibold)
                                                 .foregroundStyle(.secondary)
                                         } else if let path = framework.path, path.lowercased().contains("/documentation"),
                                             let frameworkSection = group.frameworkSection(for: framework, site: technology) {

@@ -179,18 +179,25 @@ struct ContentView: View {
     
     var techView: some View {
         List {
-            ForEach(documentationViewModel.technologies) { technology in
-                switch technology {
-                case .apple(let technologies):
-                    appleTechView(technologies)
-                case .docC(let site):
-                    doccTechView(site) // TODO: Add DocC navigator UI
+            if searchHasResults {
+                ForEach(documentationViewModel.technologies) { technology in
+                    switch technology {
+                    case .apple(let technologies):
+                        appleTechView(technologies)
+                    case .docC(let site):
+                        doccTechView(site)
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("No Results", systemSymbol: .magnifyingglass)
                 }
             }
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
+        .searchable(text: $searchText)
     }
     
     @ViewBuilder
@@ -205,7 +212,11 @@ struct ContentView: View {
                                 
                                 ForEach(group.children ?? []) { framework in
                                     Group {
-                                        if let path = framework.path, path.lowercased().contains("/documentation"),
+                                        if framework.type == "groupMarker" {
+                                            Text(framework.title)
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        } else if let path = framework.path, path.lowercased().contains("/documentation"),
                                             let frameworkSection = group.frameworkSection(for: framework, site: technology) {
                                             TechnologyNavigationLinkButton(technology: frameworkSection) {
                                                 ListItemLabel(framework: frameworkSection, references: [:])
@@ -223,28 +234,27 @@ struct ContentView: View {
                             }
                         }
                     }
-                } else {
-                    ContentUnavailableView {
-                        Label("No Results", systemSymbol: .magnifyingglass)
-                    }
                 }
     }
     
     @ViewBuilder
     func appleTechView(_ technology: AppleTechnologies) -> some View {
-        Section {
-            HomepageNavigationLinkButton {
-                HStack {
-                    Text("Discover")
-                    
-                    if !navigationViewModel.isUsingSplitView {
-                        Spacer()
-                        ChevronView()
+        if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
+            Section("Apple Documentation") {
+                HomepageNavigationLinkButton {
+                    HStack {
+                        Text("Discover")
+                        
+                        if !navigationViewModel.isUsingSplitView {
+                            Spacer()
+                            ChevronView()
+                        }
                     }
                 }
+                .foregroundStyle(Color.primary)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
-            .foregroundStyle(Color.primary)
-            .listRowBackground(Color.clear)
         }
         
         if let groups = technology.groups {
@@ -286,10 +296,6 @@ struct ContentView: View {
                             .padding(.bottom)
                     }
                 }
-            } else {
-                ContentUnavailableView {
-                    Label("No Results", systemSymbol: .magnifyingglass)
-                }
             }
             
         }
@@ -299,6 +305,22 @@ struct ContentView: View {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
+    }
+    
+    var searchHasResults: Bool {
+        guard !searchText.isEmpty else { return true }
+        
+        let mappedTech = documentationViewModel.technologies.flatMap { tech in
+            switch tech {
+            case .apple(let technologies):
+                (technologies.groups ?? []).flatMap(\.technologies)
+            case .docC(let site):
+                site.allFrameworkSections
+            }
+        }
+        
+        let filteredTech = mappedTech.filter({ isVisibleForSearch($0) })
+        return !filteredTech.isEmpty
     }
     
     private struct ListItemLabel: View {

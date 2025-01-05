@@ -60,6 +60,9 @@ struct ContentView: View {
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.fetchTechnologies()
         }
+        .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
+            self.navigationViewModel.isShowingTechnology = newValue != nil
+        })
         .environment(\.openURL, urlActionHandler)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
@@ -121,14 +124,14 @@ struct ContentView: View {
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             Group {
-                if let selectedTechnology = navigationViewModel.technology {
+                if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("Back", systemImage: "chevron.left") {
                                     withAnimation(.snappy) {
-                                        navigationViewModel.setTechnology(nil)
+                                        navigationViewModel.isShowingTechnology = false
                                     }
                                 }
                                 .labelStyle(.titleAndIcon)
@@ -147,6 +150,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .animation(.default, value: navigationViewModel.isShowingTechnology)
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)

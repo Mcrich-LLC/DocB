@@ -14,6 +14,7 @@ class NavigationViewModel: ObservableObject, Equatable {
     @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
     
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
+    @Published var isShowingTechnology = false
     @Published private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -26,6 +27,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         if self.technology != technology {
             self.technology = technology
         }
+        self.isShowingTechnology = true
     }
     
     @Published private(set) var reference: Reference? {

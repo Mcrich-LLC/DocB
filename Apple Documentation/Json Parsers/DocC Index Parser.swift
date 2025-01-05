@@ -35,7 +35,6 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
 //            }).map(\.key)
             
             guard let path = interfaceLanguage.path else { return nil }
-            let url = site.url.appending(path: "data\(path).json")
             
             return AppleTechnologies.FrameworkSection(languages: [], title: interfaceLanguage.title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: site)
         }
@@ -59,7 +58,6 @@ struct DocCSite: Identifiable, Codable, Equatable, Hashable {
     
     func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage) -> AppleTechnologies.FrameworkSection? {
         guard let path = interfaceLanguage.path else { return nil }
-        let url = url.appending(path: "data\(path).json")
         
         let languages = self.index.interfaceLanguages.filter({
             $0.value.contains(where: { $0.path == path }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })

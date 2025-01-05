@@ -109,7 +109,21 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
         }
         
         var frameworkReference: Reference {
-            Reference(title: title, abstract: nil, identifier: destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: docCSite)
+            Reference(
+                title: title,
+                abstract: nil,
+                identifier: destination.identifier,
+                kind: nil,
+                type: "",
+                url: nil,
+                role: nil,
+                fragments: nil,
+                deprecated: nil,
+                beta: nil,
+                variants: nil,
+                images: nil,
+                docCSite: docCSite
+            )
         }
     }
 }

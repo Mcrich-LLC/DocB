@@ -28,7 +28,7 @@ struct ContentView: View {
         switch lastNavigationItem {
         case .reference(let ref):
             return ref.role?.accentColor
-        case .technology(_):
+        case .technology:
             return nil
         case .homepage:
             return nil
@@ -271,7 +271,6 @@ struct ContentView: View {
     @ViewBuilder
     func doccTechView(_ technology: DocCSite) -> some View {
         ForEach(technology.groups) { group in
-            // TODO: Fix Filtering
             let filtered = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) } ?? []
             if !filtered.isEmpty {
                 Section(group.title) {

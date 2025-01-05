@@ -4,7 +4,7 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length file_length type_body_length
+// swiftlint:disable line_length
 
 import Foundation
 import SwiftUI
@@ -568,4 +568,4 @@ struct Platform: Codable, Identifiable, Equatable, Hashable {
     let deprecatedAt: String?
 }
 
-// swiftlint:enable line_length file_length type_body_length
+// swiftlint:enable line_length

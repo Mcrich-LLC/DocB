@@ -396,10 +396,6 @@ extension NavigationViewModel {
     @discardableResult
     private func handleDocCFrameworkURL(_ url: URL, for site: DocCSite, documentationViewModel: DocumentationViewModel) async -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
-        
-        guard let moduleString = Array(url.pathComponents.dropFirst(2)).first else {
-            return false
-        }
         let identifier = url.path()
         
         guard let technologyGroup = groups.first(where: { $0.children?.contains(where: { $0.path?.lowercased() == identifier.lowercased() }) ?? false }),

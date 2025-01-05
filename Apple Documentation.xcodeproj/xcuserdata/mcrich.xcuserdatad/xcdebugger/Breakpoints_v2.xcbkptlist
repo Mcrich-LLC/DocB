@@ -162,36 +162,54 @@
             endingLineNumber = "26"
             landmarkName = "fetchPhotoVideoURL(for:references:colorScheme:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "7D153C87-B104-4D91-B660-48F1CE24FF02 - f71e2f94bc5678a4"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "static Developer_Documentation.Constants.fetchPhotoVideoURL(for: Swift.String, references: Swift.Dictionary&lt;Swift.String, Developer_Documentation.Reference&gt;, colorScheme: SwiftUI.ColorScheme) -&gt; Swift.Optional&lt;Foundation.URL&gt;"
-                  moduleName = "Developer Documentation.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Constants.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "26"
-                  endingLineNumber = "26">
-               </Location>
-               <Location
-                  uuid = "7D153C87-B104-4D91-B660-48F1CE24FF02 - f71e2f94bc5678a4"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "static Developer_Documentation.Constants.fetchPhotoVideoURL(for: Swift.String, references: Swift.Dictionary&lt;Swift.String, Developer_Documentation.Reference&gt;, colorScheme: SwiftUI.ColorScheme) -&gt; Swift.Optional&lt;Foundation.URL&gt;"
-                  moduleName = "Developer Documentation.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Constants.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "26"
-                  endingLineNumber = "26">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D0C00A8F-85E2-4DE6-9B59-EA33244F927E"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/ContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "23"
+            endingLineNumber = "23"
+            landmarkName = "navigationTint"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B8ABC7A6-8AA7-428A-80A6-F2948BBE5B16"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/ContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "navigationTint"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "26B7E9B2-DB2E-4E03-8318-7E4D38E7D92A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/ContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "25"
+            endingLineNumber = "25"
+            landmarkName = "navigationTint"
+            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

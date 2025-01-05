@@ -17,6 +17,19 @@ struct ContentView: View {
     
     @State var searchText = ""
     
+    var navigationTint: Color? {
+        guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
+        
+        switch lastNavigationItem {
+        case .reference(let ref):
+            return ref.role?.accentColor
+        case .technology(let tech):
+            return nil
+        case .homepage:
+            return nil
+        }
+    }
+    
     var body: some View {
         Group {
             if navigationViewModel.isUsingSplitView {
@@ -143,6 +156,7 @@ struct ContentView: View {
             }
             .frame(minWidth: 150, minHeight: 150)
         }
+        .accentColor(navigationTint)
     }
     
     @ViewBuilder
@@ -175,6 +189,7 @@ struct ContentView: View {
                 }
             }
         }
+        .accentColor(navigationTint)
     }
     
     var techView: some View {

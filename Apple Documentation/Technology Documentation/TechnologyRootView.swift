@@ -19,6 +19,13 @@ struct TechnologyRootView: View {
         documentationViewModel.frameworks[frameworkSection.destination.identifier]
     }
     
+    func getReference(from reference: Reference) -> Reference {
+        var reference = reference
+        reference.docCSite = self.frameworkSection.docCSite
+        
+        return reference
+    }
+    
     var body: some View {
         VStack {
             if let framework {
@@ -74,7 +81,7 @@ struct TechnologyRootView: View {
                     Section {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
-                                FrameworkListItem(reference: reference, title: title)
+                                FrameworkListItem(reference: getReference(from: reference), title: title)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                             }
@@ -239,7 +246,16 @@ private struct FrameworkDisclosureGroup: View {
     let title: String
     let reference: Reference
     
-    var framework: Framework? { documentationViewModel.frameworks[identifier] }
+    var framework: Framework? {
+        documentationViewModel.frameworks[identifier]
+    }
+    
+    func getReference(from reference: Reference) -> Reference {
+        var reference = reference
+        reference.docCSite = self.reference.docCSite
+        
+        return reference
+    }
     
     var body: some View {
         DisclosureGroup {
@@ -248,7 +264,7 @@ private struct FrameworkDisclosureGroup: View {
                     Section {
                         ForEach(section.identifiers, id: \.self) { subidentifier in
                             if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
-                                FrameworkListItem(reference: subreference, title: subtitle)
+                                FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                             }

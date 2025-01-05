@@ -379,7 +379,7 @@ struct Reference: Codable, Hashable, Identifiable {
     let beta: Bool?
     let variants: [Variant]?
     let images: [ImageStruct]?
-    let docCSite: DocCSite?
+    var docCSite: DocCSite?
     
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),

@@ -19,6 +19,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     var body: some View {
         MacOSAgnosticButton {
             navigationViewModel.setReference(nil)
+            navigationViewModel.setTechnology(nil)
             navigationViewModel.removeLastPath(navigationViewModel.path.count)
             
             navigationViewModel.appendPath(.homepage)

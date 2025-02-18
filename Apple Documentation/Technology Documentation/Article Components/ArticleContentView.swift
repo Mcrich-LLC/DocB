@@ -68,7 +68,7 @@ struct ArticleContentView: View {
         return fullUrl
     }
     
-    func getReferenceText(for identifier: String) -> Text? {
+    func getReferenceText(for identifier: String) -> AttributedString? {
         guard let reference = references[identifier], let title = reference.title else {
             return nil
         }
@@ -98,7 +98,7 @@ struct ArticleContentView: View {
         
         let attributedString = NSAttributedString(string: title, attributes: attributes)
         
-        return Text(AttributedString(attributedString))
+        return AttributedString(attributedString)
     }
     
     func getEmphasisString(_ content: ContentStruct) -> String {
@@ -274,7 +274,7 @@ struct ArticleContentView: View {
             }
         case .reference:
             if let identifier = content.identifier, let referenceText = getReferenceText(for: identifier) {
-                referenceText
+                Text(referenceText)
             }
         case .table:
             if let rows = content.rows {
@@ -380,11 +380,11 @@ struct ArticleContentView: View {
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
-        var text: Text = Text(specialStyleString(""))
+        var text: AttributedString = AttributedString(specialStyleString(""))
         
         func appendText() {
-            views.append(.init(text.textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
-            text = Text(specialStyleString(""))
+            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
+            text = AttributedString(specialStyleString(""))
         }
         
         // swiftlint:disable shorthand_operator
@@ -392,20 +392,24 @@ struct ArticleContentView: View {
             switch inline.type {
             case .text:
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    text = text + Text(inline.text ?? "")
+                    text = text + AttributedString(inline.text ?? "")
                 }
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)
                 
-                text = text + Text(attributedString)
+                text = text + attributedString
             case .emphasis:
                 let string = getEmphasisString(inline)
+                var attributedString = AttributedString(string)
+                attributedString.font = .body.italic()
                 
-                text = text + Text(string).italic()
+                text = text + attributedString
             case .strong:
                 let string = getEmphasisString(inline)
+                var attributedString = AttributedString(string)
+                attributedString.font = .body.bold()
                 
-                text = text + Text(string).bold()
+                text = text + attributedString
             case .reference:
                 if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
                     text = text + referenceText
@@ -445,7 +449,7 @@ struct ArticleContentView: View {
         }
         // swiftlint:enable shorthand_operator
         
-        if text != Text("") {
+        if text != AttributedString("") {
             appendText()
         }
         

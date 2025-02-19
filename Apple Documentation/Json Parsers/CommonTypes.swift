@@ -331,16 +331,33 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         }
         
         func inlineContentFromOrderedListItems() -> [ContentStruct] {
-            (orderedListItems ?? []).flatMap({ item in
+            let flattenedItems: [ContentStruct] = (orderedListItems ?? []).flatMap({ item in
                 (item.content ?? []).flatMap { c in
-                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromUnorderedListItems() }
+                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromOrderedListItems() }
                     inlineContentFirstItem.type = .orderedList
                     
-                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromUnorderedListItems()
+                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromOrderedListItems()
                 }
-            }).enumerated().flatMap { n, content in
-                return (n > 0 && content.type == .orderedList) ? [ContentStruct.doubleLineBreak, content] : [content]
+            })
+            var orderedListInt = 0
+            var items: [ContentStruct] = []
+            
+            for item in flattenedItems {
+                guard item.type == .orderedList else {
+                    items.append(item)
+                    continue
+                }
+                var item = item
+                item.orderedListInt = orderedListInt+1
+                orderedListInt += 1
+                
+                if !items.isEmpty {
+                    items.append(.doubleLineBreak)
+                }
+                items.append(item)
             }
+            
+            return items
         }
         
         // Tab

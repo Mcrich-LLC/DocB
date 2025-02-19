@@ -40,6 +40,7 @@ private struct Links: View {
                 Text(title)
                     .font(.title)
                     .bold()
+                    .multilineTextAlignment(.center)
             }
             
             if let sectionContent = section.content {
@@ -62,6 +63,7 @@ private struct Cards: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     var body: some View {
         VStack {
@@ -69,6 +71,7 @@ private struct Cards: View {
                 Text(title)
                     .font(.title)
                     .bold()
+                    .multilineTextAlignment(.center)
             }
             
             if let sectionContent = section.content {
@@ -77,7 +80,7 @@ private struct Cards: View {
                 }
             }
             
-            WrappingHStack(alignment: .center, horizontalSpacing: 10) {
+            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: navigationViewModel.isUsingSplitView ? nil : 60) {
                 if let outerCards = section.body?.cards {
                     ForEach(outerCards) { outerCard in
                         ForEach(outerCard.cards) { card in

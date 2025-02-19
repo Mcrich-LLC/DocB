@@ -44,6 +44,7 @@ struct HomepageHero: View {
                     }
                 }
             }
+            .multilineTextAlignment(.center)
         }
     }
 }

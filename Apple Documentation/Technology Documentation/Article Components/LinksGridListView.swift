@@ -12,10 +12,10 @@ struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style
     let references: [String : Reference]
-    var alignment: Alignment
-    var textAlignment: TextAlignment = .leading
-    
-    var textFrameAlignment: HorizontalAlignment {
+    private var alignment: Alignment
+    private var textAlignment: TextAlignment = .leading
+     
+    private var textFrameAlignment: HorizontalAlignment {
         switch textAlignment {
         case .leading:
                 .leading

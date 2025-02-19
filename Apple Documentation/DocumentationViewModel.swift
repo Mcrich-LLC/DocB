@@ -113,7 +113,7 @@ class DocumentationViewModel: ObservableObject {
             let site = DocCSite(title: name, url: baseUrl, index: index)
             await MainActor.run {
                 withAnimation {
-                    self.technologies.append(.docC(site))
+                    self.technologies.insert(.docC(site), at: self.technologies.count-1)
                 }
             }
         } catch {

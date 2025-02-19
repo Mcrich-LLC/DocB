@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     
@@ -14,6 +15,8 @@ struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.modelContext) var modelContext
+    @Query var docCSites: [DocCSite]
     
     @State var searchText = ""
     
@@ -58,6 +61,7 @@ struct ContentView: View {
         .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
             await documentationViewModel.fetchHomepage()
+            await documentationViewModel.loadTechnologies(docCSites)
             await documentationViewModel.fetchTechnologies()
         }
         .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
@@ -265,6 +269,16 @@ struct ContentView: View {
                     }
                     
                     await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
+                    
+                    if let technology = documentationViewModel.technologies.last {
+                        switch technology {
+                        case .apple(let appleTechnologies):
+                            break
+                        case .docC(let docCSite):
+                            modelContext.insert(docCSite)
+                            print(docCSites)
+                        }
+                    }
                 }
             }
             Button("Cancel") {}
@@ -277,7 +291,7 @@ struct ContentView: View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) } ?? []
             if !filtered.isEmpty {
-                Section(group.title) {
+                Section {
 //                    let filteredChildren = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) }
                     
                     ForEach(filtered) { framework in
@@ -302,6 +316,14 @@ struct ContentView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
+                } header: {
+                    Text(group.title)
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                modelContext.delete(technology)
+                                documentationViewModel.deleteTechnology(technology)
+                            }
+                        }
                 }
             }
         }

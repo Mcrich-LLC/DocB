@@ -7,6 +7,7 @@
 
 import SwiftUI
 @_exported import SFSafeSymbols
+import SwiftData
 
 @main
 struct Apple_DocumentationApp: App {
@@ -14,6 +15,7 @@ struct Apple_DocumentationApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
         
         #if os(macOS)
         Settings {

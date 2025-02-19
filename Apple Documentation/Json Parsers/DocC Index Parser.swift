@@ -8,6 +8,7 @@
 import Foundation
 import EnhancedCodable
 import SwiftUI
+import SwiftData
 
 @CodableIgnoreInitializedProperties
 struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
@@ -50,12 +51,43 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-@CodableIgnoreInitializedProperties
-struct DocCSite: Identifiable, Codable, Equatable, Hashable {
-    let id: UUID = UUID()
-    let title: String
-    let url: URL
-    let index: DocCIndex
+@Model
+class DocCSite: Identifiable, Codable, Equatable, Hashable {
+    @Attribute(.unique)
+    var id: UUID = UUID()
+    var title: String
+    var url: URL
+    
+//    @Attribute(.externalStorage)
+    var index: DocCIndex
+    
+    init(title: String, url: URL, index: DocCIndex) {
+        self.title = title
+        self.url = url
+        self.index = index
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case title
+        case url
+        case index
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        title = try container.decode(String.self, forKey: .title)
+        url = try container.decode(URL.self, forKey: .url)
+        index = try container.decode(DocCIndex.self, forKey: .index)
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(title, forKey: .title)
+        try container.encode(url, forKey: .url)
+        try container.encode(index, forKey: .index)
+    }
     
     var groups: [DocCIndex.InterfaceLanguage] {
         index.interfaceLanguages.flatMap({ $0.value })

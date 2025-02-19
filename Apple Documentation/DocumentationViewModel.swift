@@ -89,7 +89,7 @@ class DocumentationViewModel: ObservableObject {
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
-    @Published var technologies: [TechnologyTypes] = []
+    @Published private(set) var technologies: [TechnologyTypes] = []
     
     func fetchTechnologies() async {
         do {
@@ -113,12 +113,35 @@ class DocumentationViewModel: ObservableObject {
             let site = DocCSite(title: name, url: baseUrl, index: index)
             await MainActor.run {
                 withAnimation {
-                    self.technologies.insert(.docC(site), at: self.technologies.count-1)
+                    self.technologies.append(.docC(site))
                 }
             }
         } catch {
             print(error)
         }
+    }
+    
+    func loadTechnologies(_ sites: [DocCSite]) async {
+        for site in sites {
+            do {
+                let indexUrl = site.url.appending(path: "index/index.json")
+                let (data, _) = try await URLSession.shared.data(from: indexUrl)
+                
+                let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+                site.index = index
+                await MainActor.run {
+                    withAnimation {
+                        self.technologies.append(.docC(site))
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    func deleteTechnology(_ site: DocCSite) {
+        technologies.removeAll { $0.id == site.id }
     }
     
     // MARK: Frameworks

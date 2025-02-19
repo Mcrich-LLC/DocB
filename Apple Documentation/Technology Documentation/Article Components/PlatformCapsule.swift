@@ -44,6 +44,7 @@ struct PlatformCapsule: View {
                     .padding(.vertical, 4)
             }
         }
+        .textSelection(.enabled)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: false)
         .padding(.vertical, hasBadge ? 2: 6)

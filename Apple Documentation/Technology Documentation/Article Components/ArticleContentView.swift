@@ -395,7 +395,19 @@ struct ArticleContentView: View {
             switch inline.type {
             case .text, .orderedList, .unorderedList, .paragraph:
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    text = text + AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
+                    var attributedString = AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
+                    
+                    if let font = inline.font?.font {
+                        if let weight = inline.fontWeight?.fontWeight {
+                            attributedString.font = font.weight(weight)
+                        } else {
+                            attributedString.font = font
+                        }
+                    } else if let weight = inline.fontWeight?.fontWeight {
+                        attributedString.font = .body.weight(weight)
+                    }
+                    
+                    text = text + attributedString
                 }
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)

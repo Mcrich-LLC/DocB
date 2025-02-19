@@ -29,6 +29,64 @@ struct LegalNotices: Codable, Equatable, Hashable {
     let privacyPolicy: String
 }
 
+enum CodableFont: String, CaseIterable, Codable {
+    case body, callout, caption, caption2, footnote, headline, subheadline, largeTitle, title, title2, title3
+    
+    var font: Font {
+        switch self {
+        case .body:
+                .body
+        case .callout:
+                .callout
+        case .caption:
+                .caption
+        case .caption2:
+                .caption2
+        case .footnote:
+                .footnote
+        case .headline:
+                .headline
+        case .subheadline:
+                .subheadline
+        case .largeTitle:
+                .largeTitle
+        case .title:
+                .title
+        case .title2:
+                .title2
+        case .title3:
+                .title3
+        }
+    }
+}
+
+enum CodableFontWeight: String, CaseIterable, Codable {
+    case ultraLight, thin, light, regular, medium, semibold, bold, heavy, black
+    
+    var fontWeight: Font.Weight {
+        switch self {
+        case .ultraLight:
+                .ultraLight
+        case .thin:
+                .thin
+        case .light:
+                .light
+        case .regular:
+                .regular
+        case .medium:
+                .medium
+        case .semibold:
+                .semibold
+        case .bold:
+                .bold
+        case .heavy:
+                .heavy
+        case .black:
+                .black
+        }
+    }
+}
+
 @CodableIgnoreInitializedProperties
 struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     let id = UUID()
@@ -37,11 +95,13 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     let code: String?
     let identifier: String?
     let inlineContent: [ContentStruct]?
+    fileprivate(set) var font: CodableFont?
+    fileprivate(set) var fontWeight: CodableFontWeight?
     fileprivate(set) var type: ContentType
     fileprivate(set) var orderedListInt: Int?
     
-    static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, type: .text, orderedListInt: nil)
-    static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, type: .text, orderedListInt: nil)
+    static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
 }
 
 struct Fragment: Codable, Hashable {
@@ -66,6 +126,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             
             newInlineContent.append(contentsOf: fragment.inlineContentFromOrderedListItems())
             newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
+            newInlineContent.append(contentsOf: fragment.inlineContentFromTermListItems())
             
             guard newContent.last?.inlineContent != nil && !newInlineContent.isEmpty else {
                 var fragment = fragment
@@ -222,6 +283,20 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let termListItems: [TermListItem]?
         let unorderedListItems: [UnorderedListItem]?
         let orderedListItems: [UnorderedListItem]?
+        
+        func inlineContentFromTermListItems() -> [ContentStruct] {
+            (termListItems ?? []).enumerated().flatMap({ n, item in
+                let termContent = item.term.inlineContent.map { content in
+                    var content = content
+                    content.fontWeight = .semibold
+                    return content
+                }
+                let definitionContent = ContentSection.getCondensedContent(item.definition.content).flatMap { $0.inlineContent ?? [] }
+                
+                let content = termContent + [ContentStruct.lineBreak] + definitionContent
+                return (n > 0 ? [ContentStruct.doubleLineBreak] : []) + content
+            })
+        }
         
         func inlineContentFromUnorderedListItems() -> [ContentStruct] {
             (unorderedListItems ?? []).flatMap({ item in

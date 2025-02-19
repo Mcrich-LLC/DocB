@@ -11,16 +11,19 @@ import SwiftData
 
 @main
 struct Apple_DocumentationApp: App {
+    @ObservedObject var documentationViewModel = DocumentationViewModel()
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
+        .environmentObject(documentationViewModel)
         
         #if os(macOS)
         Settings {
             SettingsView()
         }
+        .environmentObject(documentationViewModel)
         #endif
     }
 }

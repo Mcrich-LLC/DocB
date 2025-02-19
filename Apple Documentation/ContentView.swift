@@ -10,8 +10,8 @@ import SwiftData
 
 struct ContentView: View {
     
+    @EnvironmentObject var documentationViewModel: DocumentationViewModel
     @StateObject var navigationViewModel = NavigationViewModel()
-    @StateObject var documentationViewModel = DocumentationViewModel()
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -40,7 +40,6 @@ struct ContentView: View {
             }
         }
         .background(Color(platformColor: .systemBackground))
-        .environmentObject(documentationViewModel)
         .environmentObject(navigationViewModel)
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass

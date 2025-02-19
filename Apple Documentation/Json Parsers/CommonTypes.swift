@@ -144,7 +144,11 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
             newInlineContent.append(contentsOf: fragment.inlineContentFromTermListItems())
             
-            guard newContent.last?.inlineContent != nil && !newInlineContent.isEmpty else {
+            guard let inlineContent = newContent.last?.inlineContent,
+                    !newInlineContent.isEmpty,
+                    !(Array(Set(newInlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(newInlineContent.map(\.type))) == [.image] || Array(Set(newInlineContent.map(\.type))) == [.video]),
+                    !(Array(Set(inlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(inlineContent.map(\.type))) == [.image] || Array(Set(inlineContent.map(\.type))) == [.video])
+            else {
                 var fragment = fragment
                 
                 if !newInlineContent.isEmpty {
@@ -154,7 +158,6 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
                 newContent.append(fragment)
                 continue
             }
-            
             newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
         }
         

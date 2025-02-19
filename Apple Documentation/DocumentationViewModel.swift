@@ -165,7 +165,7 @@ class DocumentationViewModel: ObservableObject {
 //        do {
         guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }
             
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, _) = try await URLSession.shared.data(from: url)
             
             let article = try JSONDecoder().decode(Article.self, from: data)
             

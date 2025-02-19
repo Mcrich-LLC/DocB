@@ -36,7 +36,16 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
             
             guard let path = interfaceLanguage.path else { return nil }
             
-            return AppleTechnologies.FrameworkSection(languages: [], title: interfaceLanguage.title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: site)
+            return AppleTechnologies.FrameworkSection(
+                languages: [],
+                title: interfaceLanguage.title,
+                tags: [],
+                destination: .init(type: "",
+                isActive: true,
+                identifier: path),
+                legalNotices: nil,
+                docCSite: site
+            )
         }
     }
 }
@@ -63,7 +72,16 @@ struct DocCSite: Identifiable, Codable, Equatable, Hashable {
             $0.value.contains(where: { $0.path == path }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
         }).map(\.key)
         
-        return AppleTechnologies.FrameworkSection(languages: languages, title: interfaceLanguage.title, tags: [], destination: .init(type: "", isActive: true, identifier: path), legalNotices: nil, docCSite: self)
+        return AppleTechnologies.FrameworkSection(
+            languages: languages,
+            title: interfaceLanguage.title,
+            tags: [],
+            destination: .init(type: "",
+            isActive: true,
+            identifier: path),
+            legalNotices: nil,
+            docCSite: self
+        )
     }
 }
 

@@ -4,11 +4,58 @@
 //
 //  Created by Morris Richman on 10/6/24.
 //
-// swiftlint:disable line_length
+// swiftlint:disable line_length file_length
 
 import Foundation
 import SwiftUI
 import EnhancedCodable
+
+private func getCondensedContent(_ content: [ContentSection.Content]) -> [ContentSection.Content] {
+    var newContent: [ContentSection.Content] = []
+    
+    for fragment in content {
+        
+        var newInlineContent = fragment.inlineContent ?? []
+        
+        if let text = fragment.text {
+            let font: (CodableFont?, CodableFontWeight?) = switch fragment.level {
+            case 3:
+                (.title3, .bold)
+            case 2:
+                (.title2, .bold)
+            case 1:
+                (.title, .bold)
+            default:
+                (nil, nil)
+            }
+            
+            let priorText: ContentStruct = .init(text: text, code: nil, identifier: nil, inlineContent: nil, font: font.0, fontWeight: font.1, type: fragment.type ?? .text, orderedListInt: nil)
+            newInlineContent.insert(priorText, at: 0)
+        }
+        
+        newInlineContent.append(contentsOf: fragment.inlineContentFromOrderedListItems())
+        newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
+        newInlineContent.append(contentsOf: fragment.inlineContentFromTermListItems())
+        
+        guard let inlineContent = newContent.last?.inlineContent,
+                !newInlineContent.isEmpty,
+                !(Array(Set(newInlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(newInlineContent.map(\.type))) == [.image] || Array(Set(newInlineContent.map(\.type))) == [.video]),
+                !(Array(Set(inlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(inlineContent.map(\.type))) == [.image] || Array(Set(inlineContent.map(\.type))) == [.video])
+        else {
+            var fragment = fragment
+            
+            if !newInlineContent.isEmpty {
+                fragment.inlineContent = newInlineContent
+            }
+            
+            newContent.append(fragment)
+            continue
+        }
+        newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+    }
+    
+    return newContent
+}
 
 @CodableIgnoreInitializedProperties
 struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
@@ -115,54 +162,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     
     let kind: Kind
     let content: [Content]?
-    var condensedContent: [Content] { Self.getCondensedContent(content ?? []) }
-    
-    static func getCondensedContent(_ content: [Content]) -> [Content] {
-        var newContent: [Content] = []
-        
-        for fragment in content {
-            
-            var newInlineContent = fragment.inlineContent ?? []
-            
-            if let text = fragment.text {
-                let font: (CodableFont?, CodableFontWeight?) = switch fragment.level {
-                case 3:
-                    (.title3, .bold)
-                case 2:
-                    (.title2, .bold)
-                case 1:
-                    (.title, .bold)
-                default:
-                    (nil, nil)
-                }
-                
-                let priorText: ContentStruct = .init(text: text, code: nil, identifier: nil, inlineContent: nil, font: font.0, fontWeight: font.1, type: fragment.type ?? .text, orderedListInt: nil)
-                newInlineContent.insert(priorText, at: 0)
-            }
-            
-            newInlineContent.append(contentsOf: fragment.inlineContentFromOrderedListItems())
-            newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
-            newInlineContent.append(contentsOf: fragment.inlineContentFromTermListItems())
-            
-            guard let inlineContent = newContent.last?.inlineContent,
-                    !newInlineContent.isEmpty,
-                    !(Array(Set(newInlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(newInlineContent.map(\.type))) == [.image] || Array(Set(newInlineContent.map(\.type))) == [.video]),
-                    !(Array(Set(inlineContent.map(\.type))).sorted(by: { $0.rawValue > $1.rawValue }) == [.image, .video] || Array(Set(inlineContent.map(\.type))) == [.image] || Array(Set(inlineContent.map(\.type))) == [.video])
-            else {
-                var fragment = fragment
-                
-                if !newInlineContent.isEmpty {
-                    fragment.inlineContent = newInlineContent
-                }
-                
-                newContent.append(fragment)
-                continue
-            }
-            newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
-        }
-        
-        return newContent
-    }
+    var condensedContent: [Content] { getCondensedContent(content ?? []) }
     
     let declarations: [Declaration]?
     let mentions: [String]?
@@ -310,7 +310,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
                     content.fontWeight = .semibold
                     return content
                 }
-                let definitionContent = ContentSection.getCondensedContent(item.definition.content).flatMap { $0.inlineContent ?? [] }
+                let definitionContent = getCondensedContent(item.definition.content).flatMap { $0.inlineContent ?? [] }
                 
                 let content = termContent + [ContentStruct.lineBreak] + definitionContent
                 return (n > 0 ? [ContentStruct.doubleLineBreak] : []) + content
@@ -483,7 +483,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             
             let content: [Content]
             var condensedContent: [Content] {
-                ContentSection.getCondensedContent(content)
+                getCondensedContent(content)
             }
             
             let title: String
@@ -725,4 +725,4 @@ struct Platform: Codable, Identifiable, Equatable, Hashable {
     let deprecatedAt: String?
 }
 
-// swiftlint:enable line_length
+// swiftlint:enable line_length file_length

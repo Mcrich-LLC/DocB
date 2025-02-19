@@ -18,6 +18,7 @@ struct ArticleContentView: View {
     let alignment: Alignment
     @Environment(\.docCSite) var docCSite
     @State var orderedListIndex: Int
+    @State private var enlargedImageSheetIdentifier: EnlargedImageSheetIdentifier?
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     
     init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
@@ -41,6 +42,9 @@ struct ArticleContentView: View {
                 typeBody
             }
         }
+        .sheet(item: $enlargedImageSheetIdentifier, content: { identifier in
+            EnlargedImageView(identifier: identifier)
+        })
         .onAppear {
             if content.type == .video, let identifier = content.identifier, let url = fetchPhotoVideoURL(for: identifier) {
                 self.player = AVPlayer(url: url)
@@ -194,6 +198,12 @@ struct ArticleContentView: View {
                     })
                     .resizable()
                     .scaledToFit()
+                    .frame(maxHeight: 250)
+                    .onTapGesture {
+                        if let url = fetchPhotoVideoURL(for: identifier) {
+                            self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                        }
+                    }
             }
         case .video:
             VideoPlayer(player: player)
@@ -445,7 +455,13 @@ struct ArticleContentView: View {
                         })
                         .resizable()
                         .scaledToFit()
+                        .frame(maxHeight: 250)
                         .padding(.bottom)
+                        .onTapGesture {
+                            if let url = fetchPhotoVideoURL(for: identifier) {
+                                self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                            }
+                        }
                     
                     views.append(.init(image))
                 }

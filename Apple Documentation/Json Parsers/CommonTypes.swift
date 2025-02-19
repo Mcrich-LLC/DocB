@@ -37,7 +37,11 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     let code: String?
     let identifier: String?
     let inlineContent: [ContentStruct]?
-    let type: ContentType
+    fileprivate(set) var type: ContentType
+    fileprivate(set) var orderedListInt: Int?
+    
+    static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, type: .text, orderedListInt: nil)
+    static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, type: .text, orderedListInt: nil)
 }
 
 struct Fragment: Codable, Hashable {
@@ -51,6 +55,35 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     
     let kind: Kind
     let content: [Content]?
+    var condensedContent: [Content] { Self.getCondensedContent(content ?? []) }
+    
+    static func getCondensedContent(_ content: [Content]) -> [Content] {
+        var newContent: [Content] = []
+        
+        for fragment in content {
+            
+            var newInlineContent = fragment.inlineContent ?? []
+            
+            newInlineContent.append(contentsOf: fragment.inlineContentFromOrderedListItems())
+            newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
+            
+            guard newContent.last?.inlineContent != nil && !newInlineContent.isEmpty else {
+                var fragment = fragment
+                
+                if !newInlineContent.isEmpty {
+                    fragment.inlineContent = newInlineContent
+                }
+                
+                newContent.append(fragment)
+                continue
+            }
+            
+            newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+        }
+        
+        return newContent
+    }
+    
     let declarations: [Declaration]?
     let mentions: [String]?
     let details: Details?
@@ -180,7 +213,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let linkItems: [String]?
         
         // Inline Content
-        let inlineContent: [ContentStruct]?
+        var inlineContent: [ContentStruct]?
         
         // Subcontent
         let content: [Content]?
@@ -189,6 +222,32 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let termListItems: [TermListItem]?
         let unorderedListItems: [UnorderedListItem]?
         let orderedListItems: [UnorderedListItem]?
+        
+        func inlineContentFromUnorderedListItems() -> [ContentStruct] {
+            (unorderedListItems ?? []).flatMap({ item in
+                (item.content ?? []).flatMap { c in
+                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromUnorderedListItems() }
+                    inlineContentFirstItem.type = .unorderedList
+                    
+                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromUnorderedListItems()
+                }
+            }).enumerated().flatMap { n, content in
+                return (n > 0 && content.type == .unorderedList) ? [ContentStruct.doubleLineBreak, content] : [content]
+            }
+        }
+        
+        func inlineContentFromOrderedListItems() -> [ContentStruct] {
+            (orderedListItems ?? []).flatMap({ item in
+                (item.content ?? []).flatMap { c in
+                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromUnorderedListItems() }
+                    inlineContentFirstItem.type = .orderedList
+                    
+                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromUnorderedListItems()
+                }
+            }).enumerated().flatMap { n, content in
+                return (n > 0 && content.type == .orderedList) ? [ContentStruct.doubleLineBreak, content] : [content]
+            }
+        }
         
         // Tab
         let tabs: [Tab]?
@@ -329,6 +388,10 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
             let content: [Content]
+            var condensedContent: [Content] {
+                ContentSection.getCondensedContent(content)
+            }
+            
             let title: String
             
             @CodableIgnoreInitializedProperties

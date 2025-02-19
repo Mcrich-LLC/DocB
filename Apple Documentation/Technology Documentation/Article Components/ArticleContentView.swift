@@ -268,7 +268,7 @@ struct ArticleContentView: View {
                     .padding(.horizontal, -25)
                 }
                 
-                ForEach(tabSelection.content) { tabContents in
+                ForEach(tabSelection.condensedContent) { tabContents in
                     ArticleContentView(content: tabContents, references: references)
                 }
             }
@@ -365,7 +365,10 @@ struct ArticleContentView: View {
         }
     }
     
-    func specialStyleString(_ string: String) -> String {
+    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> String {
+        let type = type ?? self.type
+        let orderedListIndex = orderedListIndex ?? self.orderedListIndex
+        
         switch type {
         case .unorderedList:
             return " • \(string)"
@@ -380,19 +383,19 @@ struct ArticleContentView: View {
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
-        var text: AttributedString = AttributedString(specialStyleString(""))
+        var text: AttributedString = AttributedString(specialStyleString("", type: .text))
         
         func appendText() {
             views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
-            text = AttributedString(specialStyleString(""))
+            text = AttributedString(specialStyleString("", type: .text))
         }
         
         // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
-            case .text:
+            case .text, .orderedList, .unorderedList, .paragraph:
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    text = text + AttributedString(inline.text ?? "")
+                    text = text + AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
                 }
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)

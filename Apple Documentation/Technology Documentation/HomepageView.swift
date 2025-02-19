@@ -12,24 +12,36 @@ struct HomepageView: View {
     
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     
+    @ViewBuilder
+    private func verticalStacker(spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {
+        if navigationViewModel.isUsingSplitView {
+            LazyVStack(spacing: spacing, content: content)
+        } else {
+            VStack(spacing: spacing, content: content)
+        }
+    }
+    
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 60) {
+            verticalStacker(spacing: 60) {
                 ForEach(homepage.sections) { section in
                     switch section.kind {
                     case .hero:
                         HomepageHero(section: section, homepage: homepage)
                     case .homepageResources:
                         HomepageResources(section: section, homepage: homepage)
+                            .padding(.horizontal, 25)
                     case .section:
                         HomepageSection(section: section, homepage: homepage)
+                            .padding(.horizontal, 25)
                     }
                 }
                 if let legalNotices = homepage.legalNotices {
                     LegalNoticesView(legalNotices: legalNotices)
+                        .padding(.horizontal, 25)
                 }
             }
-            .padding([.horizontal, .bottom], 25)
+            .padding([.bottom], 25)
         }
         .toolbar(content: {
             if navigationViewModel.isUsingSplitView {

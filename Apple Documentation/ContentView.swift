@@ -31,24 +31,6 @@ struct ContentView: View {
         }
     }
     
-    // Add Documentation Alert
-    @State var showAddDocumentationAlert = false
-    @State var addDocumentationName: String = ""
-    @State var addDocumentationUrl: String = ""
-    
-    var navigationTint: Color? {
-        guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
-        
-        switch lastNavigationItem {
-        case .reference(let ref):
-            return ref.role?.accentColor
-        case .technology:
-            return nil
-        case .homepage:
-            return nil
-        }
-    }
-    
     var body: some View {
         Group {
             if navigationViewModel.isUsingSplitView {

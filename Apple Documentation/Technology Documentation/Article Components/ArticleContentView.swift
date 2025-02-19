@@ -393,7 +393,7 @@ struct ArticleContentView: View {
         // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
-            case .text, .orderedList, .unorderedList, .paragraph:
+            case .text, .orderedList, .unorderedList, .paragraph, .heading:
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
                     var attributedString = AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
                     

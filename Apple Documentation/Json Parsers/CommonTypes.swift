@@ -124,6 +124,22 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             
             var newInlineContent = fragment.inlineContent ?? []
             
+            if let text = fragment.text {
+                let font: (CodableFont?, CodableFontWeight?) = switch fragment.level {
+                case 3:
+                    (.title3, .bold)
+                case 2:
+                    (.title2, .bold)
+                case 1:
+                    (.title, .bold)
+                default:
+                    (nil, nil)
+                }
+                
+                let priorText: ContentStruct = .init(text: text, code: nil, identifier: nil, inlineContent: nil, font: font.0, fontWeight: font.1, type: fragment.type ?? .text, orderedListInt: nil)
+                newInlineContent.insert(priorText, at: 0)
+            }
+            
             newInlineContent.append(contentsOf: fragment.inlineContentFromOrderedListItems())
             newInlineContent.append(contentsOf: fragment.inlineContentFromUnorderedListItems())
             newInlineContent.append(contentsOf: fragment.inlineContentFromTermListItems())

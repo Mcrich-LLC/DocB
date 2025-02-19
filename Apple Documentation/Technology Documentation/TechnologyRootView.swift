@@ -11,12 +11,19 @@ struct TechnologyRootView: View {
     
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    let frameworkSection: Technologies.FrameworkSection
+    let frameworkSection: AppleTechnologies.FrameworkSection
     
     @Environment(\.colorScheme) var colorScheme
     
     var framework: Framework? {
         documentationViewModel.frameworks[frameworkSection.destination.identifier]
+    }
+    
+    func getReference(from reference: Reference) -> Reference {
+        var reference = reference
+        reference.docCSite = self.frameworkSection.docCSite
+        
+        return reference
     }
     
     var body: some View {
@@ -71,13 +78,17 @@ struct TechnologyRootView: View {
                 }
                 
                 ForEach(framework.topicSections ?? []) { section in
-                    Section(section.title) {
+                    Section {
                         ForEach(section.identifiers, id: \.self) { identifier in
                             if let reference = framework.references[identifier], let title = reference.title {
-                                FrameworkListItem(reference: reference, title: title)
+                                FrameworkListItem(reference: getReference(from: reference), title: title)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                             }
+                        }
+                    } header: {
+                        if let title = section.title {
+                            Text(title)
                         }
                     }
                     .headerProminence(.increased)
@@ -103,7 +114,7 @@ struct TechnologyRootView: View {
     
     func loadFramework() async {
         if framework == nil {
-            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier)
+            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier, site: frameworkSection.docCSite)
         }
     }
 }
@@ -235,7 +246,16 @@ private struct FrameworkDisclosureGroup: View {
     let title: String
     let reference: Reference
     
-    var framework: Framework? { documentationViewModel.frameworks[identifier] }
+    var framework: Framework? {
+        documentationViewModel.frameworks[identifier]
+    }
+    
+    func getReference(from reference: Reference) -> Reference {
+        var reference = reference
+        reference.docCSite = self.reference.docCSite
+        
+        return reference
+    }
     
     var body: some View {
         DisclosureGroup {
@@ -244,14 +264,16 @@ private struct FrameworkDisclosureGroup: View {
                     Section {
                         ForEach(section.identifiers, id: \.self) { subidentifier in
                             if let subreference = framework.references[subidentifier], let subtitle = subreference.title {
-                                FrameworkListItem(reference: subreference, title: subtitle)
+                                FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                             }
                         }
                     } header: {
-                        Text(section.title)
-                            .foregroundStyle(.secondary)
+                        if let title = section.title {
+                            Text(title)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -269,7 +291,7 @@ private struct FrameworkDisclosureGroup: View {
         }
         .task {
             if framework == nil {
-                await documentationViewModel.fetchFramework(for: identifier)
+                await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
             }
         }
     }

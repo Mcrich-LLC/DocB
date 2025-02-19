@@ -58,7 +58,7 @@ extension View {
 }
 
 #else
-typealias PlatformColor = PlatformColor
+typealias PlatformColor = UIColor
 
 extension Color {
     init(platformColor: PlatformColor) {
@@ -66,5 +66,5 @@ extension Color {
     }
 }
 
-typealias PlatformFont = PlatformFont
+typealias PlatformFont = UIFont
 #endif

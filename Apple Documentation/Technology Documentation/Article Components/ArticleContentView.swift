@@ -16,6 +16,7 @@ struct ArticleContentView: View {
     let references: [String : Reference]
     let type: ContentType?
     let alignment: Alignment
+    @Environment(\.docCSite) var docCSite
     @State var orderedListIndex: Int
     @EnvironmentObject var navigationViewModel: NavigationViewModel
     
@@ -53,10 +54,21 @@ struct ArticleContentView: View {
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        return Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme)
+        
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme) else {
+            return nil
+        }
+        
+        guard url.host() == nil else {
+            return url
+        }
+        
+        let fullUrl = docCSite?.url.appending(path: url.path())
+        
+        return fullUrl
     }
     
-    func getReferenceText(for identifier: String) -> Text? {
+    func getReferenceText(for identifier: String) -> AttributedString? {
         guard let reference = references[identifier], let title = reference.title else {
             return nil
         }
@@ -86,7 +98,7 @@ struct ArticleContentView: View {
         
         let attributedString = NSAttributedString(string: title, attributes: attributes)
         
-        return Text(AttributedString(attributedString))
+        return AttributedString(attributedString)
     }
     
     func getEmphasisString(_ content: ContentStruct) -> String {
@@ -256,13 +268,13 @@ struct ArticleContentView: View {
                     .padding(.horizontal, -25)
                 }
                 
-                ForEach(tabSelection.content) { tabContents in
+                ForEach(tabSelection.condensedContent) { tabContents in
                     ArticleContentView(content: tabContents, references: references)
                 }
             }
         case .reference:
             if let identifier = content.identifier, let referenceText = getReferenceText(for: identifier) {
-                referenceText
+                Text(referenceText)
             }
         case .table:
             if let rows = content.rows {
@@ -353,7 +365,10 @@ struct ArticleContentView: View {
         }
     }
     
-    func specialStyleString(_ string: String) -> String {
+    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> String {
+        let type = type ?? self.type
+        let orderedListIndex = orderedListIndex ?? self.orderedListIndex
+        
         switch type {
         case .unorderedList:
             return " • \(string)"
@@ -368,32 +383,48 @@ struct ArticleContentView: View {
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
-        var text: Text = Text(specialStyleString(""))
+        var text: AttributedString = AttributedString(specialStyleString("", type: .text))
         
         func appendText() {
-            views.append(.init(text.textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
-            text = Text(specialStyleString(""))
+            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
+            text = AttributedString(specialStyleString("", type: .text))
         }
         
         // swiftlint:disable shorthand_operator
         for inline in content {
             switch inline.type {
-            case .text:
+            case .text, .orderedList, .unorderedList, .paragraph, .heading:
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    text = text + Text(inline.text ?? "")
+                    var attributedString = AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
+                    
+                    if let font = inline.font?.font {
+                        if let weight = inline.fontWeight?.fontWeight {
+                            attributedString.font = font.weight(weight)
+                        } else {
+                            attributedString.font = font
+                        }
+                    } else if let weight = inline.fontWeight?.fontWeight {
+                        attributedString.font = .body.weight(weight)
+                    }
+                    
+                    text = text + attributedString
                 }
             case .codeVoice:
                 let attributedString = self.getCodeString(inline)
                 
-                text = text + Text(attributedString)
+                text = text + attributedString
             case .emphasis:
                 let string = getEmphasisString(inline)
+                var attributedString = AttributedString(string)
+                attributedString.font = .body.italic()
                 
-                text = text + Text(string).italic()
+                text = text + attributedString
             case .strong:
                 let string = getEmphasisString(inline)
+                var attributedString = AttributedString(string)
+                attributedString.font = .body.bold()
                 
-                text = text + Text(string).bold()
+                text = text + attributedString
             case .reference:
                 if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
                     text = text + referenceText
@@ -433,7 +464,7 @@ struct ArticleContentView: View {
         }
         // swiftlint:enable shorthand_operator
         
-        if text != Text("") {
+        if text != AttributedString("") {
             appendText()
         }
         

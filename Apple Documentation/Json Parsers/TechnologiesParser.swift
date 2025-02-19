@@ -6,8 +6,25 @@
 //
 
 import Foundation
+import EnhancedCodable
 
-struct Technologies: Decodable, AppleDocumentation {
+enum TechnologyTypes: Identifiable {
+    case apple(AppleTechnologies)
+    case docC(DocCSite)
+    
+    var id: UUID {
+        switch self {
+        case .apple(let apple):
+            return apple.id
+        case .docC(let docC):
+            return docC.id
+        }
+    }
+}
+
+struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
+    let id = UUID()
+    
     let header: Header?
     let groups: [Technology]?
     let references: [String : Reference]
@@ -56,30 +73,15 @@ struct Technologies: Decodable, AppleDocumentation {
         let kind: String
     }
     
+    @CodableIgnoreInitializedProperties
     struct Technology: Codable, Identifiable, Hashable, Equatable {
         let id = UUID()
         
         let name: String
         let technologies: [FrameworkSection]
-        
-        enum CodingKeys: CodingKey {
-            case id
-            case name
-            case technologies
-        }
-        
-        init(from decoder: any Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self, forKey: .name)
-            self.technologies = try container.decode([FrameworkSection].self, forKey: .technologies)
-        }
-        
-        init(name: String, technologies: [FrameworkSection]) {
-            self.name = name
-            self.technologies = technologies
-        }
     }
     
+    @CodableIgnoreInitializedProperties
     struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
         let id = UUID()
         
@@ -88,6 +90,7 @@ struct Technologies: Decodable, AppleDocumentation {
         let tags: [String]
         let destination: Destination
         let legalNotices: LegalNotices?
+        let docCSite: DocCSite?
         
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
@@ -99,32 +102,6 @@ struct Technologies: Decodable, AppleDocumentation {
             return currentUrl.path().lowercased() == url.path().lowercased()
         }
         
-        enum CodingKeys: CodingKey {
-            case id
-            case languages
-            case title
-            case tags
-            case destination
-            case legalNotices
-        }
-        
-        init(from decoder: any Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.languages = try container.decode([String].self, forKey: .languages)
-            self.title = try container.decode(String.self, forKey: .title)
-            self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
-            self.tags = try container.decode([String].self, forKey: .tags)
-            self.destination = try container.decode(Destination.self, forKey: .destination)
-        }
-        
-        init(languages: [String], title: String, tags: [String], destination: Destination, legalNotices: LegalNotices) {
-            self.languages = languages
-            self.title = title
-            self.tags = tags
-            self.destination = destination
-            self.legalNotices = legalNotices
-        }
-        
         struct Destination: Codable, Hashable {
             let type: String
             let isActive: Bool
@@ -132,7 +109,21 @@ struct Technologies: Decodable, AppleDocumentation {
         }
         
         var frameworkReference: Reference {
-            Reference(title: title, abstract: nil, identifier: destination.identifier, kind: nil, type: "", url: nil, role: nil, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+            Reference(
+                title: title,
+                abstract: nil,
+                identifier: destination.identifier,
+                kind: nil,
+                type: "",
+                url: nil,
+                role: nil,
+                fragments: nil,
+                deprecated: nil,
+                beta: nil,
+                variants: nil,
+                images: nil,
+                docCSite: docCSite
+            )
         }
     }
 }

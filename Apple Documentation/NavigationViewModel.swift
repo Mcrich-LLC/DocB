@@ -14,7 +14,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
     
     @Published var technologyHistoryUpdatingIsEnabled: Bool = false
-    @Published private(set) var technology: Technologies.FrameworkSection? {
+    @Published var isShowingTechnology = false
+    @Published private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -22,10 +23,11 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    func setTechnology(_ technology: Technologies.FrameworkSection?) {
+    func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
         if self.technology != technology {
             self.technology = technology
         }
+        self.isShowingTechnology = true
     }
     
     @Published private(set) var reference: Reference? {
@@ -96,6 +98,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     }
     
     func removeLastPath(_ k: Int = 1) {
+        guard path.count >= k else { return }
+        
         path.removeLast(k)
         backupPath.removeLast(k)
     }
@@ -243,7 +247,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         history[currentIndex].reference == reference
     }
     
-    func shouldRemoveTechnologyFromPath(_ technology: Technologies.FrameworkSection?) -> Bool {
+    func shouldRemoveTechnologyFromPath(_ technology: AppleTechnologies.FrameworkSection?) -> Bool {
         history[currentIndex].technology == technology && history[currentIndex].reference == nil
     }
     
@@ -273,7 +277,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         })
     }
     
-    func getHistoryTechnology(at index: Int) -> Technologies.FrameworkSection? {
+    func getHistoryTechnology(at index: Int) -> AppleTechnologies.FrameworkSection? {
         if index < history.count - 1 && index >= 0 {
             return history[index].technology
         } else {
@@ -329,14 +333,14 @@ extension Dictionary {
 private struct History: Identifiable, Hashable {
     let id = UUID()
     
-    var technology: Technologies.FrameworkSection?
+    var technology: AppleTechnologies.FrameworkSection?
     var reference: Reference?
     let isHomepage: Bool
 }
 
 enum PathElement: Hashable {
     case reference(Reference)
-    case technology(Technologies.FrameworkSection)
+    case technology(AppleTechnologies.FrameworkSection)
     case homepage
 }
 
@@ -375,11 +379,56 @@ extension NavigationViewModel {
     }
     
     private func handleFrameworkURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
+        for technology in documentationViewModel.technologies {
+            switch technology {
+            case .apple(let technologies):
+                let didHandle = await handleAppleFrameworkURL(url, for: technologies, documentationViewModel: documentationViewModel)
+                if didHandle {
+                    break
+                }
+            case .docC(let site):
+                let didHandle = await handleDocCFrameworkURL(url, for: site, documentationViewModel: documentationViewModel)
+                if didHandle {
+                    break
+                }
+            }
+        }
+    }
+    
+    @discardableResult
+    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSite, documentationViewModel: DocumentationViewModel) async -> Bool {
+        let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
+        let identifier = url.path()
+        
+        guard let technologyGroup = groups.first(where: { $0.children?.contains(where: { $0.path?.lowercased() == identifier.lowercased() }) ?? false }),
+              let technology = technologyGroup.children?.first(where: { $0.path == identifier })
+        else {
+            return false
+        }
+        
+        await MainActor.run {
+            withAnimation(.snappy) {
+                self.setTechnology(site.frameworkSection(for: technology))
+            } completion: {
+#if (os(macOS) || targetEnvironment(macCatalyst))
+                self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
+#endif
+            }
+            
+#if !(os(macOS) || targetEnvironment(macCatalyst))
+            self.splitViewColumnVisibility = .all // Better experience
+#endif
+        }
+        
+        return true
+    }
+    
+    @discardableResult
+    private func handleAppleFrameworkURL(_ url: URL, for technologies: AppleTechnologies, documentationViewModel: DocumentationViewModel) async -> Bool {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
-              let technologies = documentationViewModel.technologies,
               let groups = technologies.groups
         else {
-            return
+            return false
         }
         let identifier = "doc://com.apple.documentation/documentation/\(moduleString)".lowercased()
         
@@ -387,27 +436,48 @@ extension NavigationViewModel {
               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier.lowercased() == identifier })
         else {
             print("\(identifier) Not Found")
-            return
+            return false
         }
         
-        if self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() {
-            await MainActor.run {
-                withAnimation(.snappy) {
-                    self.setTechnology(technology)
-                } completion: {
+        guard self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() else {
+            return false
+        }
+        await MainActor.run {
+            withAnimation(.snappy) {
+                self.setTechnology(technology)
+            } completion: {
 #if (os(macOS) || targetEnvironment(macCatalyst))
-                    self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
+                self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
 #endif
-                }
-                
+            }
+            
 #if !(os(macOS) || targetEnvironment(macCatalyst))
-                self.splitViewColumnVisibility = .all // Better experience
+            self.splitViewColumnVisibility = .all // Better experience
 #endif
+        }
+        
+        return true
+    }
+    
+    private func handleArticleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
+        for technology in documentationViewModel.technologies {
+            switch technology {
+            case .apple(let technologies):
+                let didHandle = await handleAppleArticleURL(url, for: technologies, documentationViewModel: documentationViewModel)
+                if didHandle {
+                    break
+                }
+            case .docC(let site):
+                let didHandle = await handleDocCArticleURL(url, for: site, documentationViewModel: documentationViewModel)
+                if didHandle {
+                    break
+                }
             }
         }
     }
     
-    private func handleArticleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
+    @discardableResult
+    private func handleDocCArticleURL(_ url: URL, for site: DocCSite, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
         var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
         
@@ -419,12 +489,12 @@ extension NavigationViewModel {
             if let framework = documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
-                await documentationViewModel.fetchFramework(for: articleIdentifier)
+                await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
                 if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 
-                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier) {
+                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: site) {
                     references.merge(dict: article.references)
                 }
             }
@@ -438,10 +508,10 @@ extension NavigationViewModel {
             article = referece
         } else {
             do {
-                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier)
+                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: site)
                 
                 // swiftlint:disable line_length
-                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil)
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: site)
                 // swiftlint:enable line_length
                 
                 article = reference
@@ -452,11 +522,69 @@ extension NavigationViewModel {
         
         guard let article else {
             print("\(articleIdentifier) Not Found")
-            return
+            return false
         }
         
         await MainActor.run {
             self.setReference(article)
         }
+        
+        return true
+    }
+    
+    @discardableResult
+    private func handleAppleArticleURL(_ url: URL, for technologies: AppleTechnologies, documentationViewModel: DocumentationViewModel) async -> Bool {
+        let articlePath = Array(url.pathComponents.dropFirst(2))
+        var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
+        
+        var references: [String : Reference] = [:]
+        
+        for article in articlePath {
+            articleIdentifier.append("/\(article)")
+            
+            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                references.merge(dict: framework.references)
+            } else {
+                await documentationViewModel.fetchFramework(for: articleIdentifier, site: nil)
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                    references.merge(dict: framework.references)
+                }
+                
+                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: nil) {
+                    references.merge(dict: article.references)
+                }
+            }
+        }
+        
+        let article: Reference?
+        
+        if let reference = references[articleIdentifier] {
+            article = reference
+        } else if let referece = references.values.first(where: { URL(string: $0.identifier)?.path() == URL(string: articleIdentifier)?.path() }) {
+            article = referece
+        } else {
+            do {
+                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: nil)
+                
+                // swiftlint:disable line_length
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: nil)
+                // swiftlint:enable line_length
+                
+                article = reference
+            } catch {
+                article = nil
+            }
+        }
+        
+        guard let article else {
+            print("\(articleIdentifier) Not Found")
+            return false
+        }
+        
+        await MainActor.run {
+            self.setReference(article)
+        }
+        
+        return true
     }
 }

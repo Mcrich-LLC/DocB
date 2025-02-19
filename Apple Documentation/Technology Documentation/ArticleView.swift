@@ -57,7 +57,7 @@ struct ArticleView: View {
                                 switch section.kind {
                                 case .content:
                                     VStack(spacing: 15) {
-                                        ForEach(section.content ?? []) { content in
+                                        ForEach(section.condensedContent) { content in
                                             ArticleContentView(content: content, references: article.references)
                                                 .padding(.top, content.type == .heading ? nil : 0)
                                         }
@@ -191,6 +191,7 @@ struct ArticleView: View {
                 .ignoresSafeArea()
             )
         }
+        .environment(\.docCSite, reference.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
                 self.article = nil
@@ -273,7 +274,7 @@ struct ArticleView: View {
     
     func loadArticle() async {
         do {
-            let article = try await documentationViewModel.fetchArticle(for: reference.identifier)
+            let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: reference.docCSite)
             
             self.article = article
         } catch {

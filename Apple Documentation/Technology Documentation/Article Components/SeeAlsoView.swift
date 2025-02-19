@@ -22,9 +22,11 @@ struct SeeAlsoView: View {
                     Section {
                         LinksGridListView(identifiers: section.identifiers, style: .list, references: article.references, navigationViewModel: navigationViewModel)
                     } header: {
-                        Text(section.title)
-                            .font(.title3)
-                            .bold()
+                        if let title = section.title {
+                            Text(title)
+                                .font(.title3)
+                                .bold()
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

@@ -13,10 +13,14 @@ struct PlatformCapsule: View {
     var text: String {
         let version: String
         
-        if let deprecatedAt = platform.deprecatedAt {
-            version = "\(platform.introducedAt)-\(deprecatedAt)"
+        if let introducedAt = platform.introducedAt {
+            if let deprecatedAt = platform.deprecatedAt {
+                version = "\(introducedAt)-\(deprecatedAt)"
+            } else {
+                version = "\(introducedAt)+"
+            }
         } else {
-            version = "\(platform.introducedAt)+"
+            version = ""
         }
         
         return "\(platform.name) \(version)"
@@ -40,6 +44,7 @@ struct PlatformCapsule: View {
                     .padding(.vertical, 4)
             }
         }
+        .textSelection(.enabled)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: false)
         .padding(.vertical, hasBadge ? 2: 6)

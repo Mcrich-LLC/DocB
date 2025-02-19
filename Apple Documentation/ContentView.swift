@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     
@@ -14,8 +15,28 @@ struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.modelContext) var modelContext
+    @Query var docCSites: [DocCSite]
     
     @State var searchText = ""
+    
+    // Add Documentation Alert
+    @State var showAddDocumentationAlert = false
+    @State var addDocumentationName: String = ""
+    @State var addDocumentationUrl: String = ""
+    
+    var navigationTint: Color? {
+        guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
+        
+        switch lastNavigationItem {
+        case .reference(let ref):
+            return ref.role?.accentColor
+        case .technology:
+            return nil
+        case .homepage:
+            return nil
+        }
+    }
     
     var body: some View {
         Group {
@@ -40,8 +61,12 @@ struct ContentView: View {
         .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
             await documentationViewModel.fetchHomepage()
+            await documentationViewModel.loadTechnologies(docCSites)
             await documentationViewModel.fetchTechnologies()
         }
+        .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
+            self.navigationViewModel.isShowingTechnology = newValue != nil
+        })
         .environment(\.openURL, urlActionHandler)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
@@ -103,22 +128,22 @@ struct ContentView: View {
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             Group {
-                if let selectedTechnology = navigationViewModel.technology {
+                if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
                         .transition(.move(edge: .trailing))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("Back", systemImage: "chevron.left") {
                                     withAnimation(.snappy) {
-                                        navigationViewModel.setTechnology(nil)
+                                        navigationViewModel.isShowingTechnology = false
                                     }
                                 }
                                 .labelStyle(.titleAndIcon)
                             }
                         }
                 } else {
-                    if let technologies = documentationViewModel.technologies {
-                        techView(technologies)
+                    if !documentationViewModel.technologies.isEmpty {
+                        techView
 #if !os(macOS)
                             .navigationTitle("Documentation")
                             .navigationBarTitleDisplayMode(.large)
@@ -129,6 +154,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .animation(.default, value: navigationViewModel.isShowingTechnology)
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -143,14 +169,15 @@ struct ContentView: View {
             }
             .frame(minWidth: 150, minHeight: 150)
         }
+        .accentColor(navigationTint)
     }
     
     @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             Group {
-                if let technologies = documentationViewModel.technologies {
-                    techView(technologies)
+                if !documentationViewModel.technologies.isEmpty {
+                    techView
 #if !os(macOS)
                         .navigationTitle("Documentation")
                         .navigationBarTitleDisplayMode(.large)
@@ -175,11 +202,137 @@ struct ContentView: View {
                 }
             }
         }
+        .accentColor(navigationTint)
     }
     
-    func techView(_ technology: Technologies) -> some View {
+    var techView: some View {
         List {
-            Section {
+            if searchHasResults {
+                ForEach(documentationViewModel.technologies) { technology in
+                    switch technology {
+                    case .apple(let technologies):
+                        appleTechView(technologies)
+                    case .docC(let site):
+                        doccTechView(site)
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("No Results", systemSymbol: .magnifyingglass)
+                }
+            }
+        }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(Color(platformColor: .systemBackground))
+        .searchable(text: $searchText)
+        .toolbar {
+            Button {
+                showAddDocumentationAlert.toggle()
+            } label: {
+                Image(systemSymbol: .plus)
+            }
+
+        }
+        .alert("Add Documentation", isPresented: $showAddDocumentationAlert) {
+            TextField("Name", text: $addDocumentationName)
+            TextField("URL", text: $addDocumentationUrl)
+            Button("Add") {
+                Task {
+                    defer {
+                        self.addDocumentationName = ""
+                        self.addDocumentationUrl = ""
+                    }
+                    var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
+                    
+                    if !addDocumentationUrl.contains("://") {
+                        addDocumentationUrl = "https://\(addDocumentationUrl)"
+                    }
+                    
+                    guard let url = URL(string: addDocumentationUrl),
+                          let scheme = url.scheme,
+                          let host = url.host
+                    else {
+                        return
+                    }
+                    
+                    let limitedPath: String
+                    
+                    if let indexRange = url.path().firstRange(of: "/documentation") {
+                        limitedPath = String(url.path().prefix(upTo: indexRange.lowerBound))
+                    } else {
+                        limitedPath = url.path()
+                    }
+                    
+                    guard let baseUrl = URL(string: "\(scheme)://\(host)\(limitedPath)") else {
+                        return
+                    }
+                    
+                    await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
+                    
+                    if let technology = documentationViewModel.technologies.last {
+                        switch technology {
+                        case .apple(let appleTechnologies):
+                            break
+                        case .docC(let docCSite):
+                            modelContext.insert(docCSite)
+                            print(docCSites)
+                        }
+                    }
+                }
+            }
+            Button("Cancel") {}
+        }
+
+    }
+    
+    @ViewBuilder
+    func doccTechView(_ technology: DocCSite) -> some View {
+        ForEach(technology.groups) { group in
+            let filtered = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) } ?? []
+            if !filtered.isEmpty {
+                Section {
+//                    let filteredChildren = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) }
+                    
+                    ForEach(filtered) { framework in
+                        Group {
+                            if framework.type == "groupMarker" {
+                                Text(framework.title)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.secondary)
+                            } else if let path = framework.path, path.lowercased().contains("/documentation"),
+                                      let frameworkSection = group.frameworkSection(for: framework, site: technology) {
+                                TechnologyNavigationLinkButton(technology: frameworkSection) {
+                                    ListItemLabel(framework: frameworkSection, references: [:])
+                                }
+                            } else if let path = framework.path, let url = URL(string: path), let frameworkSection = group.frameworkSection(for: framework, site: technology) {
+                                MacOSAgnosticLink(destination: url) {
+                                    ListItemLabel(framework: frameworkSection, references: [:])
+                                }
+                            }
+                        }
+                        .foregroundStyle(Color.primary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
+                } header: {
+                    Text(group.title)
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                modelContext.delete(technology)
+                                documentationViewModel.deleteTechnology(technology)
+                            }
+                        }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func appleTechView(_ technology: AppleTechnologies) -> some View {
+        if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
+            Section("Apple Documentation") {
                 HomepageNavigationLinkButton {
                     HStack {
                         Text("Discover")
@@ -192,94 +345,110 @@ struct ContentView: View {
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
+        }
+        
+        if let groups = technology.groups {
             
-            if let groups = technology.groups {
-                
-                let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
-                
-                if !filtered.isEmpty {
-                    ForEach(groups) { group in
-                        
-                        let filtered = group.technologies.filter(isVisibleForSearch)
-                        
-                        if !filtered.isEmpty {
-                            Section(group.name) {
-                                
-                                ForEach(filtered) { framework in
-                                    if framework.destination.isActive {
-                                        Group {
-                                            if framework.destination.identifier.lowercased().contains("/documentation") {
-                                                TechnologyNavigationLinkButton(technology: framework) {
-                                                    ListItemLabel(framework: framework, references: technology.references)
-                                                }
-                                            } else if let url = URL(string: framework.destination.identifier) {
-                                                MacOSAgnosticLink(destination: url) {
-                                                    ListItemLabel(framework: framework, references: technology.references)
-                                                }
+            let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
+            
+            if !filtered.isEmpty {
+                ForEach(groups) { group in
+                    
+                    let filtered = group.technologies.filter(isVisibleForSearch)
+                    
+                    if !filtered.isEmpty {
+                        Section(group.name) {
+                            
+                            ForEach(filtered) { framework in
+                                if framework.destination.isActive {
+                                    Group {
+                                        if framework.destination.identifier.lowercased().contains("/documentation") {
+                                            TechnologyNavigationLinkButton(technology: framework) {
+                                                ListItemLabel(framework: framework, references: technology.references)
+                                            }
+                                        } else if let url = URL(string: framework.destination.identifier) {
+                                            MacOSAgnosticLink(destination: url) {
+                                                ListItemLabel(framework: framework, references: technology.references)
                                             }
                                         }
-                                        .foregroundStyle(Color.primary)
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
                                     }
+                                    .foregroundStyle(Color.primary)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                                 }
                             }
                         }
                     }
-                    Section {} footer: {
-                        if let legalNotices = technology.legalNotices {
-                            LegalNoticesView(legalNotices: legalNotices)
-                                .padding(.bottom)
-                        }
-                    }
-                } else {
-                    ContentUnavailableView {
-                        Label("No Results", systemSymbol: .magnifyingglass)
+                }
+                Section {} footer: {
+                    if let legalNotices = technology.legalNotices {
+                        LegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
                     }
                 }
-                
             }
             
         }
-        .listStyle(.inset)
-        .scrollContentBackground(.hidden)
-        .background(Color(platformColor: .systemBackground))
-        .searchable(text: $searchText)
     }
     
-    func isVisibleForSearch(_ technology: Technologies.FrameworkSection) -> Bool {
+    func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSite, group: DocCIndex.InterfaceLanguage) -> Bool {
+        guard let frameworkSection = group.frameworkSection(for: interfaceLanguage, site: site) else {
+            return false
+        }
+        
+        return isVisibleForSearch(frameworkSection)
+    }
+    
+    func isVisibleForSearch(_ technology: AppleTechnologies.FrameworkSection) -> Bool {
         guard !searchText.isEmpty else { return true }
         
-        return technology.title.localizedCaseInsensitiveContains(searchText) || technology.tags.contains(searchText)
+        return technology.title.lowercased().contains(searchText.lowercased()) || technology.tags.contains(searchText)
     }
     
-    private struct ListItemLabel: View {
-        let framework: Technologies.FrameworkSection
-        let references: [String: Reference]
+    var searchHasResults: Bool {
+        guard !searchText.isEmpty else { return true }
         
-        @EnvironmentObject var navigationViewModel: NavigationViewModel
+        let mappedTech = documentationViewModel.technologies.flatMap { tech in
+            switch tech {
+            case .apple(let technologies):
+                return (technologies.groups ?? []).flatMap(\.technologies)
+            case .docC(let site):
+                return site.groups.flatMap({ $0.allFrameworkSections(for: site) })
+            }
+        }
         
-        var body: some View {
-            HStack {
-                Text(framework.title)
-                
-                if let reference = references[framework.destination.identifier] {
-                    if reference.beta == true {
-                        ArticleBadge(badge: .beta)
-                    }
-                    
-                    if reference.deprecated == true {
-                        ArticleBadge(badge: .deprecated)
-                    }
+        let filteredTech = mappedTech.filter({ isVisibleForSearch($0) })
+        return !filteredTech.isEmpty
+    }
+}
+
+private struct ListItemLabel: View {
+    let framework: AppleTechnologies.FrameworkSection
+    let references: [String: Reference]
+    
+    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    
+    var body: some View {
+        HStack {
+            Text(framework.title)
+            
+            if let reference = references[framework.destination.identifier] {
+                if reference.beta == true {
+                    ArticleBadge(badge: .beta)
                 }
                 
-                if !navigationViewModel.isUsingSplitView {
-                    Spacer()
-                    ChevronView()
+                if reference.deprecated == true {
+                    ArticleBadge(badge: .deprecated)
                 }
             }
-            .contentShape(Rectangle())
+            
+            if !navigationViewModel.isUsingSplitView {
+                Spacer()
+                ChevronView()
+            }
         }
+        .contentShape(Rectangle())
     }
 }

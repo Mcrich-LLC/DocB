@@ -51,12 +51,23 @@ struct LinksGridListView: View {
         return view
     }
     
+    @Environment(\.docCSite) var docCSite
+    func conditionReference(_ reference: Reference?) -> Reference? {
+        guard var reference = reference else { return nil }
+        
+        if reference.docCSite == nil {
+            reference.docCSite = self.docCSite
+        }
+        
+        return reference
+    }
+    
     var body: some View {
         switch style {
         case .compactGrid, .detailedGrid:
             WrappingHStack(alignment: alignment, horizontalSpacing: 20, verticalSpacing: 20) {
                 ForEach(identifiers, id: \.self) { identifier in
-                    if let reference = references[identifier],
+                    if let reference = conditionReference(references[identifier]),
                         let title = reference.title,
                        let imageId = reference.images?.first(where: { $0.type == .card })?.identifier,
                        let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
@@ -101,7 +112,7 @@ struct LinksGridListView: View {
             }
         case .list:
             ForEach(identifiers, id: \.self) { identifier in
-                if let reference = references[identifier], reference.title != nil {
+                if let reference = conditionReference(references[identifier]), reference.title != nil {
                     ReferenceNavigationLinkButton(reference: reference) {
                         HStack(spacing: 15) {
                             Image(systemSymbol: reference.role?.labelIcon ?? .docText)

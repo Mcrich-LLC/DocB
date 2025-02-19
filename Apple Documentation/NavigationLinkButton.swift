@@ -19,6 +19,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     var body: some View {
         MacOSAgnosticButton {
             navigationViewModel.setReference(nil)
+            navigationViewModel.setTechnology(nil)
             navigationViewModel.removeLastPath(navigationViewModel.path.count)
             
             navigationViewModel.appendPath(.homepage)
@@ -58,6 +59,45 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
     
+    private func _actionHandleTechnologies(_ technologies: AppleTechnologies) {
+        if let url = URL(string: reference.identifier),
+           let moduleString = Array(url.pathComponents.dropFirst(2)).first,
+           let groups = technologies.groups {
+            let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+            
+            if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
+               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
+                withAnimation(.snappy) {
+                    navigationViewModel.setTechnology(technology)
+                }
+                return
+            }
+        }
+    }
+    
+    private func _actionHandleSite(_ site: DocCSite) {
+        let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
+        if let url = URL(string: reference.identifier) {
+            let identifier = url.path()
+            
+            for group in groups {
+                let technologyGroup = group.children?.first(where: {
+                    ($0.children ?? []).contains(where: { tech in
+                        tech.path?.lowercased() == identifier.lowercased()
+                    })
+                })
+                
+                if let technologyGroup,
+                   let technology = technologyGroup.children?.first(where: { $0.path == identifier }) {
+                    withAnimation(.snappy) {
+                        navigationViewModel.setTechnology(site.frameworkSection(for: technology))
+                    }
+                    return
+                }
+            }
+        }
+    }
+    
     func action() {
         switch navigationViewModel.path.last {
         case .reference:
@@ -68,17 +108,12 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             break
         }
         
-        if let url = URL(string: reference.identifier),
-           let moduleString = Array(url.pathComponents.dropFirst(2)).first,
-           let technologies = documentationViewModel.technologies,
-           let groups = technologies.groups {
-            let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
-            
-            if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
-               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
-                withAnimation(.snappy) {
-                    navigationViewModel.setTechnology(technology)
-                }
+        for technology in documentationViewModel.technologies {
+            switch technology {
+            case .apple(let technologies):
+                _actionHandleTechnologies(technologies)
+            case .docC(let site):
+                _actionHandleSite(site)
             }
         }
         
@@ -121,7 +156,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 
 struct TechnologyNavigationLinkButton<Content: View>: View {
     @EnvironmentObject var navigationViewModel: NavigationViewModel
-    let technology: Technologies.FrameworkSection
+    let technology: AppleTechnologies.FrameworkSection
     
     @ViewBuilder
     let label: Content

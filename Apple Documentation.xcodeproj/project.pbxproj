@@ -15,12 +15,6 @@
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
-		2287E3AB2CBF6A8500090C9F /* Appfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A32CBF6A8500090C9F /* Appfile */; };
-		2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A42CBF6A8500090C9F /* Fastfile */; };
-		2287E3AD2CBF6A8500090C9F /* Matchfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A52CBF6A8500090C9F /* Matchfile */; };
-		2287E3AE2CBF6A8500090C9F /* Precheckfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A62CBF6A8500090C9F /* Precheckfile */; };
-		2287E3AF2CBF6A8500090C9F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A72CBF6A8500090C9F /* README.md */; };
-		2287E3B12CBF6A8500090C9F /* Snapfile in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3A92CBF6A8500090C9F /* Snapfile */; };
 		2287E3DE2CBF6A8500090C9F /* Article Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B22CBF6A8500090C9F /* Article Parser.swift */; };
 		2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B32CBF6A8500090C9F /* CommonTypes.swift */; };
 		2287E3E02CBF6A8500090C9F /* Framework Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B42CBF6A8500090C9F /* Framework Parser.swift */; };
@@ -74,12 +68,6 @@
 		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
-		2287E3A32CBF6A8500090C9F /* Appfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Appfile; sourceTree = "<group>"; };
-		2287E3A42CBF6A8500090C9F /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
-		2287E3A52CBF6A8500090C9F /* Matchfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Matchfile; sourceTree = "<group>"; };
-		2287E3A62CBF6A8500090C9F /* Precheckfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Precheckfile; sourceTree = "<group>"; };
-		2287E3A72CBF6A8500090C9F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		2287E3A92CBF6A8500090C9F /* Snapfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Snapfile; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
 		2287E3B32CBF6A8500090C9F /* CommonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTypes.swift; sourceTree = "<group>"; };
 		2287E3B42CBF6A8500090C9F /* Framework Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Framework Parser.swift"; sourceTree = "<group>"; };
@@ -147,19 +135,6 @@
 				2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */,
 			);
 			path = Protocols;
-			sourceTree = "<group>";
-		};
-		2287E3AA2CBF6A8500090C9F /* fastlane */ = {
-			isa = PBXGroup;
-			children = (
-				2287E3A32CBF6A8500090C9F /* Appfile */,
-				2287E3A42CBF6A8500090C9F /* Fastfile */,
-				2287E3A52CBF6A8500090C9F /* Matchfile */,
-				2287E3A62CBF6A8500090C9F /* Precheckfile */,
-				2287E3A72CBF6A8500090C9F /* README.md */,
-				2287E3A92CBF6A8500090C9F /* Snapfile */,
-			);
-			path = fastlane;
 			sourceTree = "<group>";
 		};
 		2287E3B72CBF6A8500090C9F /* Json Parsers */ = {
@@ -268,7 +243,6 @@
 		22F8CD5D2CB23D6C0081BB0A = {
 			isa = PBXGroup;
 			children = (
-				2287E3AA2CBF6A8500090C9F /* fastlane */,
 				2287E3DD2CBF6A8500090C9F /* Apple Documentation */,
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
@@ -355,15 +329,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2287E3AB2CBF6A8500090C9F /* Appfile in Resources */,
-				2287E3AC2CBF6A8500090C9F /* Fastfile in Resources */,
-				2287E3AD2CBF6A8500090C9F /* Matchfile in Resources */,
-				2287E3AE2CBF6A8500090C9F /* Precheckfile in Resources */,
-				2287E3AF2CBF6A8500090C9F /* README.md in Resources */,
 				2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */,
 				2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */,
 				2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */,
-				2287E3B12CBF6A8500090C9F /* Snapfile in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

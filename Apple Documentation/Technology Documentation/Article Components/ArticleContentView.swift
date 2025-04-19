@@ -404,8 +404,18 @@ struct ArticleContentView: View {
         for inline in content {
             switch inline.type {
             case .text, .orderedList, .unorderedList, .paragraph, .heading:
+                let inlineText: String
+                
+                if let text = inline.text {
+                    inlineText = text
+                } else if let identifier = inline.identifier {
+                    inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                } else {
+                    inlineText = ""
+                }
+                
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    var attributedString = AttributedString(specialStyleString(inline.text ?? "", type: inline.type, orderedListIndex: inline.orderedListInt))
+                    var attributedString = AttributedString(specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt))
                     
                     if let font = inline.font?.font {
                         if let weight = inline.fontWeight?.fontWeight {
@@ -415,6 +425,10 @@ struct ArticleContentView: View {
                         }
                     } else if let weight = inline.fontWeight?.fontWeight {
                         attributedString.font = .body.weight(weight)
+                    }
+                    
+                    if let identifier = inline.identifier {
+                        attributedString.link = URL(string: identifier)
                     }
                     
                     text = text + attributedString

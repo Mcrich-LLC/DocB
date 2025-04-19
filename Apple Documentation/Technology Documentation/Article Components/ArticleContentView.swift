@@ -375,17 +375,23 @@ struct ArticleContentView: View {
         }
     }
     
-    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> String {
+    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> AttributedString {
         let type = type ?? self.type
         let orderedListIndex = orderedListIndex ?? self.orderedListIndex
         
         switch type {
         case .unorderedList:
-            return " • \(string)"
+            var bulletString = AttributedString(" • ")
+            bulletString.foregroundColor = Color.primary
+            
+            return bulletString + AttributedString(string)
         case .orderedList:
-            return " \(orderedListIndex). \(string)"
+            var numberString = AttributedString(" \(orderedListIndex). ")
+            numberString.foregroundColor = Color.primary
+            
+            return numberString + AttributedString(string)
         default:
-            return string
+            return AttributedString(string)
         }
     }
     
@@ -393,11 +399,11 @@ struct ArticleContentView: View {
     func inlineContent(for content: [ContentStruct]) -> some View {
         var views: [InlineContent] = []
         
-        var text: AttributedString = AttributedString(specialStyleString("", type: .text))
+        var text: AttributedString = specialStyleString("", type: .text)
         
         func appendText() {
             views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
-            text = AttributedString(specialStyleString("", type: .text))
+            text = specialStyleString("", type: .text)
         }
         
         // swiftlint:disable shorthand_operator
@@ -415,7 +421,7 @@ struct ArticleContentView: View {
                 }
                 
                 if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    var attributedString = AttributedString(specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt))
+                    var attributedString = specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
                     
                     if let font = inline.font?.font {
                         if let weight = inline.fontWeight?.fontWeight {

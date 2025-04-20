@@ -7,32 +7,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "253E7C02-EA68-4D01-B168-7BDCBF97EF73"
+            uuid = "A36BFC50-17A2-4FF7-96C9-0FB3438DF6AF"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Apple Documentation/Json Parsers/TechnologiesParser.swift"
+            filePath = "Apple Documentation/Json Parsers/CommonTypes.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "23"
-            endingLineNumber = "23"
-            landmarkName = "init(from:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "16BC0EDA-6C4E-4AF2-A1BB-2D2AFDCD9CF2"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Apple Documentation/Json Parsers/TechnologiesParser.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
-            landmarkName = "init(from:)"
+            startingLineNumber = "329"
+            endingLineNumber = "329"
+            landmarkName = "inlineContentFromUnorderedListItems()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

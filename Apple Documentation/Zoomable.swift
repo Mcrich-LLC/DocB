@@ -10,14 +10,11 @@ struct ZoomableModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(alignment: .topLeading) {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear {
-                            contentSize = proxy.size
-                        }
-                }
-            }
+            .onGeometryChange(for: CGSize.self, of: { proxy in
+                proxy.size
+            }, action: { newValue in
+                contentSize = newValue
+            })
             .animatableTransformEffect(transform)
             .gesture(dragGesture, including: transform == .identity ? .none : .all)
             .modify { view in
@@ -106,9 +103,7 @@ struct ZoomableModifier: ViewModifier {
         let scaleX = transform.scaleX
         let scaleY = transform.scaleY
 
-        if scaleX < minZoomScale
-            || scaleY < minZoomScale
-        {
+        if scaleX < minZoomScale || scaleY < minZoomScale {
             return .identity
         }
 
@@ -118,8 +113,7 @@ struct ZoomableModifier: ViewModifier {
         if transform.tx > 0
             || transform.tx < -maxX
             || transform.ty > 0
-            || transform.ty < -maxY
-        {
+            || transform.ty < -maxY {
             let tx = min(max(transform.tx, -maxX), 0)
             let ty = min(max(transform.ty, -maxY), 0)
             var transform = transform
@@ -150,15 +144,14 @@ public extension View {
         doubleTapZoomScale: CGFloat = 3,
         outOfBoundsColor: Color = .clear
     ) -> some View {
-        GeometryReader { proxy in
-            ZStack {
-                outOfBoundsColor
-                self.zoomable(
-                    minZoomScale: minZoomScale,
-                    doubleTapZoomScale: doubleTapZoomScale
-                )
-            }
+        ZStack {
+            outOfBoundsColor
+            self.zoomable(
+                minZoomScale: minZoomScale,
+                doubleTapZoomScale: doubleTapZoomScale
+            )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

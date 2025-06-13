@@ -22,6 +22,91 @@ struct HomepageSection: View {
                     Cards(section: section, homepage: homepage)
                 case .homepageLinks:
                     HomepageLinks(section: section, homepage: homepage)
+                case .highlightedLinks:
+                    HighlightedLinks(section: section, homepage: homepage)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Highlighted Links
+private struct HighlightedLinks: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.docCSite) var docCSite
+    
+    var body: some View {
+        if let highlightedLinks = section.body?.highlightedLinks {
+            VStack {
+                if let title = section.title {
+                    Text(title)
+                        .font(.largeTitle)
+                        .bold()
+                        .multilineTextAlignment(.center)
+                }
+                
+                HStack {
+                    VStack {
+                        ForEach(highlightedLinks) { link in
+                            HighlightedLinksCell(homepage: homepage, link: link)
+                        }
+                    }
+                    .frame(maxWidth: 500)
+                    .padding(.horizontal)
+                    
+                    if let image = section.body?.image {
+                        KFImage(fetchPhotoVideoURL(for: image))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color(platformColor: .systemBackground))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 25))
+                .frame(maxWidth: 800)
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    func fetchPhotoVideoURL(for identifier: String) -> URL? {
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme) else {
+            return nil
+        }
+        
+        return url
+    }
+}
+
+private struct HighlightedLinksCell: View {
+    let homepage: HomepageParser
+    let link: HomepageParser.Body.HighlightedLinks
+        
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(link.title)
+                .font(.title2)
+                .bold()
+            
+            ForEach(link.content) { content in
+                ArticleContentView(content: content, references: homepage.references)
+            }
+            
+            if let callToActionText = link.callToActionText, let url = link.destination {
+                Link(destination: url) {
+                    Label {
+                        Text(callToActionText)
+                    } icon: {
+                        Image(systemSymbol: .chevronRight)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .labelStyle(.iconTrailing)
                 }
             }
         }
@@ -38,7 +123,7 @@ private struct Links: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .bold()
                     .multilineTextAlignment(.center)
             }
@@ -69,7 +154,7 @@ private struct Cards: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .bold()
                     .multilineTextAlignment(.center)
             }
@@ -161,7 +246,7 @@ private struct HomepageLinks: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .foregroundStyle(Color.purple)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)

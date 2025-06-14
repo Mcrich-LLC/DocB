@@ -14,10 +14,23 @@ struct HomepageHero: View {
     
     @Environment(\.colorScheme) var colorScheme
     
+    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    func fetchPhotoVideoURL() -> URL? {
+        let identifier = if let video = section.video { video } else { section.image }
+        
+        guard let identifier,
+              let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme)
+        else {
+            return nil
+        }
+        
+        return url
+    }
+    
     var body: some View {
         ZStack {
-            if let imageString = section.video, let imageReferenceURL = Constants.fetchPhotoVideoURL(for: imageString, references: homepage.references, colorScheme: colorScheme) {
-                KFImage(imageReferenceURL)
+            if let heroContentURL = fetchPhotoVideoURL() {
+                KFImage(heroContentURL)
                     .placeholder({
                         RoundedRectangle(cornerRadius: 25)
                             .fill(Color.clear)

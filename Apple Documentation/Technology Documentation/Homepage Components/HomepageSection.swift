@@ -22,6 +22,125 @@ struct HomepageSection: View {
                     Cards(section: section, homepage: homepage)
                 case .homepageLinks:
                     HomepageLinks(section: section, homepage: homepage)
+                case .highlightedLinks:
+                    HighlightedLinks(section: section, homepage: homepage)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Highlighted Links
+private struct HighlightedLinks: View {
+    let section: HomepageParser.Section
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.docCSite) var docCSite
+    @State var cardFrame: CGSize?
+    
+    var isVertical: Bool {
+        guard let cardFrame else { return false }
+        
+        return cardFrame.width < 800
+    }
+    
+    var body: some View {
+        if let highlightedLinks = section.body?.highlightedLinks {
+            VStack {
+                if let title = section.title {
+                    Text(title)
+                        .font(.largeTitle)
+                        .bold()
+                        .multilineTextAlignment(.center)
+                }
+                
+                VHStack {
+                    if isVertical {
+                        image
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                    
+                    VStack {
+                        ForEach(highlightedLinks) { link in
+                            HighlightedLinksCell(homepage: homepage, link: link)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: isVertical ? 400 : 500)
+                    
+                    if !isVertical {
+                        image
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color(platformColor: .systemBackground))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 25))
+                .frame(maxWidth: 800)
+                .onGeometryChange(for: CGSize.self, of: { proxy in
+                    proxy.size
+                }, action: { newValue in
+                    self.cardFrame = newValue
+                })
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    var image: some View {
+        if let image = section.body?.image {
+            KFImage(fetchPhotoVideoURL(for: image))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        }
+    }
+    
+    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    func fetchPhotoVideoURL(for identifier: String) -> URL? {
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme) else {
+            return nil
+        }
+        
+        return url
+    }
+    
+    @ViewBuilder
+    func VHStack<Content: View>(spacing: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
+        switch isVertical {
+        case false:
+            HStack(spacing: spacing, content: content)
+        case true:
+            VStack(spacing: spacing, content: content)
+        }
+    }
+}
+
+private struct HighlightedLinksCell: View {
+    let homepage: HomepageParser
+    let link: HomepageParser.Body.HighlightedLinks
+        
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(link.title)
+                .font(.title2)
+                .bold()
+            
+            ForEach(link.content) { content in
+                ArticleContentView(content: content, references: homepage.references)
+            }
+            
+            if let callToActionText = link.callToActionText, let url = link.destination {
+                Link(destination: url) {
+                    Label {
+                        Text(callToActionText)
+                    } icon: {
+                        Image(systemSymbol: .chevronRight)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .labelStyle(.iconTrailing)
                 }
             }
         }
@@ -38,7 +157,7 @@ private struct Links: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .bold()
                     .multilineTextAlignment(.center)
             }
@@ -69,7 +188,7 @@ private struct Cards: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .bold()
                     .multilineTextAlignment(.center)
             }
@@ -116,12 +235,11 @@ private struct Cards: View {
                             )
                     }
                     
-                    VStack {
+                    VStack(alignment: .leading) {
                         if let eyebrow = content.eyebrow {
                             Text(eyebrow)
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         
                         Text(content.title)
@@ -129,12 +247,22 @@ private struct Cards: View {
                             .bold()
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                            .frame(maxWidth: .infinity, alignment: .leading)
                         
                         ForEach(content.content) { con in
                             ArticleContentView(content: con, references: homepage.references)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .lineLimit(2)
+                        }
+                        
+                        if let callToAction = content.saferCallToAction?.web {
+                            Label {
+                                Text(callToAction)
+                                    .foregroundStyle(Color.accentColor)
+                            } icon: {
+                                Image(systemSymbol: .chevronRight)
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .labelStyle(.iconTrailing)
+                            .padding(.vertical, 2)
                         }
                     }
                     .multilineTextAlignment(.leading)
@@ -161,7 +289,7 @@ private struct HomepageLinks: View {
         VStack {
             if let title = section.title {
                 Text(title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .foregroundStyle(Color.purple)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)

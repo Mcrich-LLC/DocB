@@ -206,7 +206,7 @@ struct ArticleView: View {
     @ViewBuilder
     func Heading(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            if article.metadata.roleHeading != nil || article.metadata.platforms != nil {
+            if (article.metadata.roleHeading != nil || article.metadata.platforms != nil) && article.topicSectionsStyle != .hidden {
                 HStack(spacing: 15) {
                     if let roleHeading = article.metadata.roleHeading {
                         Text(roleHeading)

@@ -25,6 +25,7 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
         let body: Body?
         let title: String?
         let video: String?
+        let image: String?
         
         enum Kind: String, Codable {
             case hero, section, homepageResources
@@ -49,8 +50,10 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
     struct Body: Codable, Hashable {
         let links: [LinkItem]?
         let cards: [Card]?
+        let highlightedLinks: [HighlightedLinks]?
         let homepageLinks: [Reference]?
         let kind: Kind
+        let image: String?
         
         @CodableIgnoreInitializedProperties
         struct LinkItem: Codable, Hashable, Identifiable {
@@ -62,7 +65,17 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
         }
         
         enum Kind: String, Codable {
-            case links, homepageLinks, cards
+            case links, homepageLinks, cards, highlightedLinks
+        }
+        
+        @CodableIgnoreInitializedProperties
+        struct HighlightedLinks: Codable, Hashable, Identifiable {
+            let id = UUID()
+            
+            let content: [ContentSection.Content]
+            let title: String
+            let callToActionText: String?
+            let destination: URL?
         }
         
         @CodableIgnoreInitializedProperties
@@ -87,6 +100,11 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
                 let title: String
                 let image: String?
                 let callToAction: CallToAction?
+                let callToActionText: CallToAction?
+                
+                var saferCallToAction: CallToAction? {
+                    callToAction ?? callToActionText
+                }
             }
         }
     }

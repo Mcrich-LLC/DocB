@@ -13,6 +13,7 @@
 		2229BFF12CCA12E200E7AD3F /* CodeCopyOverlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */; };
 		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
+		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3DE2CBF6A8500090C9F /* Article Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B22CBF6A8500090C9F /* Article Parser.swift */; };
@@ -69,6 +70,7 @@
 		2229BFF02CCA12E200E7AD3F /* CodeCopyOverlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCopyOverlayButton.swift; sourceTree = "<group>"; };
 		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
+		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
 		2287E3B32CBF6A8500090C9F /* CommonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTypes.swift; sourceTree = "<group>"; };
@@ -139,6 +141,14 @@
 				2209FBB72CC9885300372F9E /* AppleDocumentation Protocol.swift */,
 			);
 			path = Protocols;
+			sourceTree = "<group>";
+		};
+		22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */ = {
+			isa = PBXGroup;
+			children = (
+				22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */,
+			);
+			path = "SwiftUI Styles";
 			sourceTree = "<group>";
 		};
 		2287E3B72CBF6A8500090C9F /* Json Parsers */ = {
@@ -235,6 +245,7 @@
 				2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */,
 				2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */,
 				22E72B4C2D66637000552DE0 /* Zoomable.swift */,
+				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
 			);
 			path = "Apple Documentation";
 			sourceTree = "<group>";
@@ -396,6 +407,7 @@
 				22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */,
 				2287E3F02CBF6A8500090C9F /* TopicsView.swift in Sources */,
 				2287E3F12CBF6A8500090C9F /* WrappingHStack.swift in Sources */,
+				22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */,
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
 				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
@@ -548,7 +560,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -589,7 +601,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;

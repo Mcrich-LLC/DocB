@@ -25,6 +25,7 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
         let body: Body?
         let title: String?
         let video: String?
+        let image: String?
         
         enum Kind: String, Codable {
             case hero, section, homepageResources

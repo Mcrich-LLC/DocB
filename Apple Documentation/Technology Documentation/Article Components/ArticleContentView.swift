@@ -317,6 +317,8 @@ struct ArticleContentView: View {
 #if os(visionOS)
             .backgroundStyle(colorScheme == .dark ? .black : .white)
 #endif
+        case .thematicBreak:
+            Divider()
         case .aside:
             if let style = content.style {
                 AsideView(style: style, content: content.content ?? [], references: references)
@@ -335,7 +337,9 @@ struct ArticleContentView: View {
             if let linkItems = content.linkItems, let Style = content.style {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
-        default:
+        case .row:
+            EmptyView()
+        case .none:
             EmptyView()
         }
     }

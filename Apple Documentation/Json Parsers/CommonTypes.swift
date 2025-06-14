@@ -478,6 +478,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
             case compactGrid
             case detailedGrid
             case value
+            case hidden
             
             // Asides
             case list
@@ -727,6 +728,7 @@ enum ContentType: String, Codable, Equatable, Hashable {
     case code
     case codeVoice
     case strong
+    case thematicBreak
 }
 
 // MARK: Platforms

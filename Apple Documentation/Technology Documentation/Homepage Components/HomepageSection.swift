@@ -235,12 +235,11 @@ private struct Cards: View {
                             )
                     }
                     
-                    VStack {
+                    VStack(alignment: .leading) {
                         if let eyebrow = content.eyebrow {
                             Text(eyebrow)
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         
                         Text(content.title)
@@ -248,12 +247,22 @@ private struct Cards: View {
                             .bold()
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                            .frame(maxWidth: .infinity, alignment: .leading)
                         
                         ForEach(content.content) { con in
                             ArticleContentView(content: con, references: homepage.references)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .lineLimit(2)
+                        }
+                        
+                        if let callToAction = content.saferCallToAction?.web {
+                            Label {
+                                Text(callToAction)
+                                    .foregroundStyle(Color.accentColor)
+                            } icon: {
+                                Image(systemSymbol: .chevronRight)
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .labelStyle(.iconTrailing)
+                            .padding(.vertical, 2)
                         }
                     }
                     .multilineTextAlignment(.leading)

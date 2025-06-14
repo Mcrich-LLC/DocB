@@ -100,6 +100,11 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
                 let title: String
                 let image: String?
                 let callToAction: CallToAction?
+                let callToActionText: CallToAction?
+                
+                var saferCallToAction: CallToAction? {
+                    callToAction ?? callToActionText
+                }
             }
         }
     }

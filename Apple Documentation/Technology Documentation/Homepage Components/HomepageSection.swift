@@ -36,6 +36,13 @@ private struct HighlightedLinks: View {
     let homepage: HomepageParser
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.docCSite) var docCSite
+    @State var cardFrame: CGSize?
+    
+    var isVertical: Bool {
+        guard let cardFrame else { return false }
+        
+        return cardFrame.width < 800
+    }
     
     var body: some View {
         if let highlightedLinks = section.body?.highlightedLinks {
@@ -47,19 +54,22 @@ private struct HighlightedLinks: View {
                         .multilineTextAlignment(.center)
                 }
                 
-                HStack {
+                VHStack {
+                    if isVertical {
+                        image
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                    
                     VStack {
                         ForEach(highlightedLinks) { link in
                             HighlightedLinksCell(homepage: homepage, link: link)
                         }
                     }
-                    .frame(maxWidth: 500)
-                    .padding(.horizontal)
+                    .padding()
+                    .frame(maxWidth: isVertical ? 400 : 500)
                     
-                    if let image = section.body?.image {
-                        KFImage(fetchPhotoVideoURL(for: image))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
+                    if !isVertical {
+                        image
                             .frame(maxWidth: 400, maxHeight: .infinity)
                     }
                 }
@@ -69,8 +79,22 @@ private struct HighlightedLinks: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 25))
                 .frame(maxWidth: 800)
+                .onGeometryChange(for: CGSize.self, of: { proxy in
+                    proxy.size
+                }, action: { newValue in
+                    self.cardFrame = newValue
+                })
                 .padding(.horizontal)
             }
+        }
+    }
+    
+    @ViewBuilder
+    var image: some View {
+        if let image = section.body?.image {
+            KFImage(fetchPhotoVideoURL(for: image))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
         }
     }
     
@@ -81,6 +105,16 @@ private struct HighlightedLinks: View {
         }
         
         return url
+    }
+    
+    @ViewBuilder
+    func VHStack<Content: View>(spacing: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
+        switch isVertical {
+        case false:
+            HStack(spacing: spacing, content: content)
+        case true:
+            VStack(spacing: spacing, content: content)
+        }
     }
 }
 

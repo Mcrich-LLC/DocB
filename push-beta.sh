@@ -68,6 +68,65 @@ increment_build_number() {
     agvtool new-version -all $build_number
 }
 
+# Function to copy non-git files to temporary directory
+copy_files_to_temp() {
+    temp_dir="$1"
+    echo "Creating temporary directory: $temp_dir"
+    mkdir -p "$temp_dir"
+    
+    echo "Copying non-git files to temporary directory..."
+    # Use rsync to copy all files except .git directory
+    rsync -aq --exclude='.git' --exclude='.gitmodules' ./ "$temp_dir/"
+    
+    if [ $? -eq 0 ]; then
+        echo "Successfully copied files to $temp_dir"
+    else
+        echo "Error: Failed to copy files to temporary directory"
+        exit 1
+    fi
+}
+
+# Function to clean non-git files from working directory
+clean_working_directory() {
+    echo "Cleaning non-git files from working directory..."
+    
+    # Find all files and directories except .git and remove them
+    find . -mindepth 1 -maxdepth 1 -name ".git" -prune -o -print0 | xargs -0 rm -rf
+    
+    if [ $? -eq 0 ]; then
+        echo "Successfully cleaned working directory"
+    else
+        echo "Error: Failed to clean working directory"
+        exit 1
+    fi
+}
+
+# Function to copy files back from temporary directory
+copy_files_from_temp() {
+    temp_dir="$1"
+    echo "Copying files back from temporary directory..."
+    
+    # Copy everything except .git from temp directory back to current directory
+    rsync -aq --exclude='.git' "$temp_dir/" ./
+    
+    if [ $? -eq 0 ]; then
+        echo "Successfully copied files back from $temp_dir"
+    else
+        echo "Error: Failed to copy files back from temporary directory"
+        exit 1
+    fi
+}
+
+# Function to cleanup temporary directory
+cleanup_temp_directory() {
+    temp_dir="$1"
+    if [ -d "$temp_dir" ]; then
+        echo "Cleaning up temporary directory: $temp_dir"
+        rm -rf "$temp_dir"
+        echo "Temporary directory cleaned up"
+    fi
+}
+
 # Parse command-line arguments
 while getopts "b:v:d-:" opt; do
     case "${opt}" in
@@ -158,16 +217,32 @@ else
     # Get the original branch
     original_branch=$(git rev-parse --abbrev-ref HEAD)
 
+    # Create temporary directory for file storage based on current folder name
+    folder_name=$(basename "$(pwd)")
+    temp_dir="/tmp/${folder_name}_files_$(date +%s)"
+    
+    # Copy all non-git files to temporary directory
+    copy_files_to_temp "$temp_dir"
+    
     # Switch to the target branch (using the value from --branch or -b flag)
     git switch $branch
     git pull
-
-    # Merge changes from the main branch
-    git merge --squash -X theirs $original_branch
-    git commit -a -m "$commit_message" -m "$commit_description"
+    
+    # Clean all non-git files from working directory
+    clean_working_directory
+    
+    # Copy files back from temporary directory
+    copy_files_from_temp "$temp_dir"
+    
+    # Stage all files and commit
+    git add .
+    git commit -m "$commit_message" -m "$commit_description"
 
     # Push the changes
     git push
+    
+    # Clean up temporary directory
+    cleanup_temp_directory "$temp_dir"
 
     # Switch back to the original branch
     git checkout "$original_branch"

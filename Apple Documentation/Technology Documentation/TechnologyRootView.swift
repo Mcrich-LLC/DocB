@@ -41,31 +41,31 @@ struct TechnologyRootView: View {
     
     var body: some View {
         VStack {
-            if isLoading {
-                ProgressView("Loading")
-            } else if let framework {
+            if let framework {
                 frameworkView(framework)
                     .toolbar {
                         HStack {
-                            Menu {
-                                ForEach(TagFilters.allCases, id: \.self) { filter in
-                                    Button {
-                                        if activeFilters.contains(filter) {
-                                            activeFilters.remove(filter)
-                                        } else {
-                                            activeFilters.insert(filter)
-                                        }
-                                    } label: {
-                                        if activeFilters.contains(filter) {
-                                            Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
-                                        } else {
-                                            Text(filter.rawValue.capitalized)
+                            if self.frameworkSection.docCSite == nil {
+                                Menu {
+                                    ForEach(TagFilters.allCases, id: \.self) { filter in
+                                        Button {
+                                            if activeFilters.contains(filter) {
+                                                activeFilters.remove(filter)
+                                            } else {
+                                                activeFilters.insert(filter)
+                                            }
+                                        } label: {
+                                            if activeFilters.contains(filter) {
+                                                Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
+                                            } else {
+                                                Text(filter.rawValue.capitalized)
+                                            }
                                         }
                                     }
+                                } label: {
+                                    Label("Filter", systemSymbol: .line3HorizontalDecrease)
+                                        .labelStyle(.iconOnly)
                                 }
-                            } label: {
-                                Label("Filter", systemSymbol: .line3HorizontalDecrease)
-                                    .labelStyle(.iconOnly)
                             }
 
                             if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
@@ -77,6 +77,12 @@ struct TechnologyRootView: View {
                 ProgressView("Loading")
             }
         }
+        .opacity(isLoading ? 0 : 1)
+        .overlay(content: {
+            if isLoading {
+                ProgressView("Loading")
+            }
+        })
 #if !os(macOS)
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
@@ -173,7 +179,10 @@ struct TechnologyRootView: View {
     
     @MainActor
     func getShownReferences() async {
-        guard !activeFilters.isEmpty, !isLoading else { return }
+        guard !activeFilters.isEmpty else {
+            shownReferences.removeAll()
+            return
+        }
         
         isLoading = true
         for section in framework?.topicSections ?? [] {
@@ -343,24 +352,30 @@ private struct FrameworkDisclosureGroup: View {
     
     var body: some View {
         DisclosureGroup {
-            if isLoading {
-                ProgressView("Loading")
-            } else if let framework {
-                ForEach(topicSections) { section in
-                    Section {
-                        ForEach(section.identifiers, id: \.self) { subidentifier in
-                            if let subreference = framework.references[subidentifier], let subtitle = subreference.title, isReferenceShown(subreference) {
-                                FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
+            Group {
+                if let framework {
+                    ForEach(topicSections) { section in
+                        Section {
+                            ForEach(section.identifiers, id: \.self) { subidentifier in
+                                if let subreference = framework.references[subidentifier], let subtitle = subreference.title, isReferenceShown(subreference) {
+                                    FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                }
+                            }
+                        } header: {
+                            if let title = section.title {
+                                Text(title)
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                    } header: {
-                        if let title = section.title {
-                            Text(title)
-                                .foregroundStyle(.secondary)
-                        }
                     }
+                }
+            }
+            .opacity(isLoading ? 0 : 1)
+            .overlay {
+                if isLoading {
+                    ProgressView("Loading")
                 }
             }
         } label: {
@@ -398,7 +413,10 @@ private struct FrameworkDisclosureGroup: View {
     
     @MainActor
     func getShownReferences() async {
-        guard !tagFilters.isEmpty else { return }
+        guard !tagFilters.isEmpty else {
+            shownReferences.removeAll()
+            return
+        }
         
         isLoading = true
         for section in framework?.topicSections ?? [] {

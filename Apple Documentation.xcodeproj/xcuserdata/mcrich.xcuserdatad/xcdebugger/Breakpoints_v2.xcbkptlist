@@ -3,4 +3,52 @@
    uuid = "8DA728FB-DF98-4028-AA1B-760E1C8C606E"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "381D34C2-0E66-4AD5-94C3-EBCD267796C2"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/Technology Documentation/TechnologyRootView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "392"
+            endingLineNumber = "392"
+            landmarkName = "getShownReferences()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "381D34C2-0E66-4AD5-94C3-EBCD267796C2 - ae596632d8010419"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for Developer_Documentation.FrameworkDisclosureGroup.getShownReferences() async -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/TechnologyRootView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "392"
+                  endingLineNumber = "392">
+               </Location>
+               <Location
+                  uuid = "381D34C2-0E66-4AD5-94C3-EBCD267796C2 - 1d54309e79ebc807"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.FrameworkDisclosureGroup.getShownReferences() async -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/Technology%20Documentation/TechnologyRootView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "392"
+                  endingLineNumber = "392">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

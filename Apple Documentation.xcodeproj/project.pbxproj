@@ -58,6 +58,7 @@
 		22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */; };
 		22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */; };
 		22A299FA2CC01902008EE3E5 /* WebEndpointRestAttributesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */; };
+		22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22BC5F4E2E50CEA400271120 /* TagFilters.swift */; };
 		22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22C450B02CB4D61B00376AA5 /* SFSafeSymbols */; };
 		22E72B482D66627700552DE0 /* EnlargedImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E72B472D66627700552DE0 /* EnlargedImageView.swift */; };
 		22E72B4D2D66637000552DE0 /* Zoomable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E72B4C2D66637000552DE0 /* Zoomable.swift */; };
@@ -115,6 +116,7 @@
 		22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestResponse.swift; sourceTree = "<group>"; };
 		22A299F72CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestPropertiesView.swift; sourceTree = "<group>"; };
 		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
+		22BC5F4E2E50CEA400271120 /* TagFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagFilters.swift; sourceTree = "<group>"; };
 		22E72B472D66627700552DE0 /* EnlargedImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnlargedImageView.swift; sourceTree = "<group>"; };
 		22E72B4C2D66637000552DE0 /* Zoomable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zoomable.swift; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Developer Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -220,6 +222,7 @@
 				2287E3CF2CBF6A8500090C9F /* HomepageView.swift */,
 				2287E3D02CBF6A8500090C9F /* LanguagePicker.swift */,
 				2287E3D12CBF6A8500090C9F /* TechnologyRootView.swift */,
+				22BC5F4E2E50CEA400271120 /* TagFilters.swift */,
 			);
 			path = "Technology Documentation";
 			sourceTree = "<group>";
@@ -412,6 +415,7 @@
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
 				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
 				22E72B4D2D66637000552DE0 /* Zoomable.swift in Sources */,
+				22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */,
 				22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */,
 				2287E3F42CBF6A8500090C9F /* HomepageSection.swift in Sources */,
 				2287E3F52CBF6A8500090C9F /* ArticleView.swift in Sources */,
@@ -560,7 +564,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;
@@ -601,7 +605,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_PREVIEWS = YES;

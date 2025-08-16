@@ -16,6 +16,7 @@ struct TechnologyRootView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var activeFilters: Set<TagFilters> = []
     @State var shownReferences: [String : Bool] = [:]
+    @State var isLoading = false
     
     var framework: Framework? {
         documentationViewModel.frameworks[frameworkSection.destination.identifier]
@@ -40,7 +41,9 @@ struct TechnologyRootView: View {
     
     var body: some View {
         VStack {
-            if let framework {
+            if isLoading {
+                ProgressView("Loading")
+            } else if let framework {
                 frameworkView(framework)
                     .toolbar {
                         HStack {
@@ -71,7 +74,7 @@ struct TechnologyRootView: View {
                         }
                     }
             } else {
-                Text("Loading...")
+                ProgressView("Loading")
             }
         }
 #if !os(macOS)
@@ -80,10 +83,17 @@ struct TechnologyRootView: View {
 #endif
         .task {
             await loadFramework()
+            await getShownReferences()
         }
         .onChange(of: navigationViewModel.technology) {
             Task {
                 await loadFramework()
+                await getShownReferences()
+            }
+        }
+        .onChange(of: activeFilters) {
+            Task {
+                await getShownReferences()
             }
         }
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
@@ -136,14 +146,6 @@ struct TechnologyRootView: View {
                     }
                 }
             }
-            .task {
-                await getShownReferences()
-            }
-            .onChange(of: activeFilters) {
-                Task {
-                    await getShownReferences()
-                }
-            }
             .listStyle(.inset)
             .scrollContentBackground(.hidden)
             .background(Color(platformColor: .systemBackground))
@@ -169,7 +171,11 @@ struct TechnologyRootView: View {
         return shownReference
     }
     
+    @MainActor
     func getShownReferences() async {
+        guard !activeFilters.isEmpty, !isLoading else { return }
+        
+        isLoading = true
         for section in framework?.topicSections ?? [] {
             for identifier in section.identifiers {
                 if let reference = framework?.references[identifier] {
@@ -177,6 +183,8 @@ struct TechnologyRootView: View {
                 }
             }
         }
+        
+        isLoading = false
     }
 }
 
@@ -310,6 +318,7 @@ private struct FrameworkDisclosureGroup: View {
     
     @Environment(\.tagFilters) var tagFilters
     @State var shownReferences: [String : Bool] = [:]
+    @State var isLoading = false
     
     var framework: Framework? {
         documentationViewModel.frameworks[identifier]
@@ -334,7 +343,9 @@ private struct FrameworkDisclosureGroup: View {
     
     var body: some View {
         DisclosureGroup {
-            if let framework {
+            if isLoading {
+                ProgressView("Loading")
+            } else if let framework {
                 ForEach(topicSections) { section in
                     Section {
                         ForEach(section.identifiers, id: \.self) { subidentifier in
@@ -385,7 +396,11 @@ private struct FrameworkDisclosureGroup: View {
         return shownReference
     }
     
+    @MainActor
     func getShownReferences() async {
+        guard !tagFilters.isEmpty else { return }
+        
+        isLoading = true
         for section in framework?.topicSections ?? [] {
             for identifier in section.identifiers {
                 if let reference = framework?.references[identifier] {
@@ -393,6 +408,8 @@ private struct FrameworkDisclosureGroup: View {
                 }
             }
         }
+        
+        isLoading = false
     }
 }
 

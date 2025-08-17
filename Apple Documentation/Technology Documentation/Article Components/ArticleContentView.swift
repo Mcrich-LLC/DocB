@@ -198,7 +198,7 @@ struct ArticleContentView: View {
                     })
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 250)
+                    .frame(maxWidth: 700, maxHeight: 700)
                     .onTapGesture {
                         if let url = fetchPhotoVideoURL(for: identifier) {
                             self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
@@ -487,7 +487,7 @@ struct ArticleContentView: View {
                             })
                             .resizable()
                             .scaledToFit()
-                            .frame(maxHeight: 250)
+                            .frame(maxWidth: 700, maxHeight: 700)
                             .padding(.bottom)
                             .onTapGesture {
                                 if let url = fetchPhotoVideoURL(for: identifier) {

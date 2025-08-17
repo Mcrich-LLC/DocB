@@ -51,7 +51,12 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
             newContent.append(fragment)
             continue
         }
-        newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+        
+        guard fragment.type != .heading else {
+            newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+            continue
+        }
+        newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.oneAndAHalfLineBreak] + newInlineContent)
     }
     
     return newContent
@@ -314,7 +319,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
                 let definitionContent = getCondensedContent(item.definition.content).flatMap { $0.inlineContent ?? [] }
                 
                 let content = termContent + [ContentStruct.lineBreak] + definitionContent
-                return (n > 0 ? [ContentStruct.doubleLineBreak] : []) + content
+                return (n > 0 ? [ContentStruct.oneAndAHalfLineBreak] : []) + content
             })
         }
         

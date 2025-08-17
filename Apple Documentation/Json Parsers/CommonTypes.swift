@@ -51,7 +51,12 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
             newContent.append(fragment)
             continue
         }
-        newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+        
+        guard fragment.type != .heading else {
+            newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.doubleLineBreak] + newInlineContent)
+            continue
+        }
+        newContent[newContent.count - 1].inlineContent?.append(contentsOf: [ContentStruct.oneAndAHalfLineBreak] + newInlineContent)
     }
     
     return newContent
@@ -141,13 +146,14 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     let text: String?
     let code: String?
     let identifier: String?
-    let inlineContent: [ContentStruct]?
+    var inlineContent: [ContentStruct]?
     fileprivate(set) var font: CodableFont?
     fileprivate(set) var fontWeight: CodableFontWeight?
     fileprivate(set) var type: ContentType
     fileprivate(set) var orderedListInt: Int?
     
     static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
 }
 
@@ -313,30 +319,61 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
                 let definitionContent = getCondensedContent(item.definition.content).flatMap { $0.inlineContent ?? [] }
                 
                 let content = termContent + [ContentStruct.lineBreak] + definitionContent
-                return (n > 0 ? [ContentStruct.doubleLineBreak] : []) + content
+                return (n > 0 ? [ContentStruct.oneAndAHalfLineBreak] : []) + content
             })
         }
         
         func inlineContentFromUnorderedListItems() -> [ContentStruct] {
             (unorderedListItems ?? []).flatMap({ item in
                 (item.content ?? []).flatMap { c in
-                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromUnorderedListItems() }
+                    let inlineContent: [ContentStruct] = (c.inlineContent ?? []).flatMap { content in
+                        let inline = (content.inlineContent ?? []).map { i in
+                            var i = i
+                            if i.type == .text {
+                                i.type = content.type
+                            }
+                            
+                            return i
+                        }
+                        
+                        var content = content
+                        content.inlineContent = []
+                        
+                        return [content] + inline
+                    }
+                    
+                    guard var inlineContentFirstItem = inlineContent.first else { return c.inlineContentFromUnorderedListItems() }
                     inlineContentFirstItem.type = .unorderedList
                     
-                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromUnorderedListItems()
+                    return [inlineContentFirstItem] + inlineContent.dropFirst() + c.inlineContentFromUnorderedListItems()
                 }
             }).enumerated().flatMap { n, content in
-                return (n > 0 && content.type == .unorderedList) ? [ContentStruct.doubleLineBreak, content] : [content]
+                return (n > 0 && content.type == .unorderedList) ? [ContentStruct.oneAndAHalfLineBreak, content] : [content]
             }
         }
         
         func inlineContentFromOrderedListItems() -> [ContentStruct] {
             let flattenedItems: [ContentStruct] = (orderedListItems ?? []).flatMap({ item in
                 (item.content ?? []).flatMap { c in
-                    guard var inlineContentFirstItem = c.inlineContent?.first else { return c.inlineContentFromOrderedListItems() }
+                    let inlineContent: [ContentStruct] = (c.inlineContent ?? []).flatMap { content in
+                        let inline = (content.inlineContent ?? []).map { i in
+                            var i = i
+                            if i.type == .text {
+                                i.type = content.type
+                            }
+                            
+                            return i
+                        }
+                        
+                        var content = content
+                        content.inlineContent = []
+                        
+                        return [content] + inline
+                    }
+                    guard var inlineContentFirstItem = inlineContent.first else { return c.inlineContentFromOrderedListItems() }
                     inlineContentFirstItem.type = .orderedList
                     
-                    return [inlineContentFirstItem] + (c.inlineContent ?? []).dropFirst() + c.inlineContentFromOrderedListItems()
+                    return [inlineContentFirstItem] + inlineContent.dropFirst() + c.inlineContentFromOrderedListItems()
                 }
             })
             var orderedListInt = 0
@@ -352,7 +389,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
                 orderedListInt += 1
                 
                 if !items.isEmpty {
-                    items.append(.doubleLineBreak)
+                    items.append(.oneAndAHalfLineBreak)
                 }
                 items.append(item)
             }

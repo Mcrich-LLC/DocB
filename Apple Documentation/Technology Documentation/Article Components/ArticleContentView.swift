@@ -108,7 +108,7 @@ struct ArticleContentView: View {
     func getEmphasisString(_ content: ContentStruct) -> String {
         var string = ""
         
-        for inContent in content.inlineContent ?? [] {
+        for inContent in [content] + (content.inlineContent ?? []) {
             switch inContent.type {
             case .text:
                 if let text = inContent.text {
@@ -198,7 +198,7 @@ struct ArticleContentView: View {
                     })
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 250)
+                    .frame(maxWidth: 700, maxHeight: 700)
                     .onTapGesture {
                         if let url = fetchPhotoVideoURL(for: identifier) {
                             self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
@@ -411,97 +411,111 @@ struct ArticleContentView: View {
         }
         
         // swiftlint:disable shorthand_operator
-        for inline in content {
-            switch inline.type {
-            case .text, .orderedList, .unorderedList, .paragraph, .heading:
-                let inlineText: String
-                
-                if let text = inline.text {
-                    inlineText = text
-                } else if let identifier = inline.identifier {
-                    inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
-                } else {
-                    inlineText = ""
-                }
-                
-                if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                    var attributedString = specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
+        func appendContent(_ content: [ContentStruct]) {
+            for inline in content {
+                switch inline.type {
+                case .text, .orderedList, .unorderedList, .paragraph, .heading:
+                    let inlineText: String
                     
-                    if let font = inline.font?.font {
-                        if let weight = inline.fontWeight?.fontWeight {
-                            attributedString.font = font.weight(weight)
-                        } else {
-                            attributedString.font = font
+                    if let text = inline.text {
+                        inlineText = text
+                    } else if let text = inline.code {
+                        inlineText = text
+                    } else if let identifier = inline.identifier {
+                        inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                    } else {
+                        inlineText = ""
+                    }
+                    
+                    if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
+                        var attributedString = specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
+                        
+                        if let font = inline.font?.font {
+                            if let weight = inline.fontWeight?.fontWeight {
+                                attributedString.font = font.weight(weight)
+                            } else {
+                                attributedString.font = font
+                            }
+                        } else if let weight = inline.fontWeight?.fontWeight {
+                            attributedString.font = .body.weight(weight)
                         }
-                    } else if let weight = inline.fontWeight?.fontWeight {
-                        attributedString.font = .body.weight(weight)
+                        
+                        if let identifier = inline.identifier {
+                            attributedString.link = URL(string: identifier)
+                        }
+                        
+                        if inlineText == "/%1.5_break_/%" {
+                            attributedString = AttributedString("\n\n")
+                            attributedString.font = .system(size: 2)
+                        }
+                        
+                        text = text + attributedString
                     }
-                    
-                    if let identifier = inline.identifier {
-                        attributedString.link = URL(string: identifier)
-                    }
+                case .codeVoice:
+                    let attributedString = self.getCodeString(inline)
                     
                     text = text + attributedString
-                }
-            case .codeVoice:
-                let attributedString = self.getCodeString(inline)
-                
-                text = text + attributedString
-            case .emphasis:
-                let string = getEmphasisString(inline)
-                var attributedString = AttributedString(string)
-                attributedString.font = .body.italic()
-                
-                text = text + attributedString
-            case .strong:
-                let string = getEmphasisString(inline)
-                var attributedString = AttributedString(string)
-                attributedString.font = .body.bold()
-                
-                text = text + attributedString
-            case .reference:
-                if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
-                    text = text + referenceText
-                }
-            case .image:
-                appendText()
-                
-                if let identifier = inline.identifier {
-                    let image = KFImage(fetchPhotoVideoURL(for: identifier))
-                        .placeholder({
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.clear)
-                                .stroke(Color.primary, lineWidth: 2)
-                                .scaledToFit()
-                                .overlay {
-                                    ProgressView()
+                case .emphasis:
+                    let string = getEmphasisString(inline)
+                    var attributedString = AttributedString(string)
+                    attributedString.font = .body.italic()
+                    
+                    text = text + attributedString
+                case .strong:
+                    let string = getEmphasisString(inline)
+                    var attributedString = AttributedString(string)
+                    attributedString.font = .body.bold()
+                    
+                    text = text + attributedString
+                case .reference:
+                    if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
+                        text = text + referenceText
+                    }
+                case .image:
+                    appendText()
+                    
+                    if let identifier = inline.identifier {
+                        let image = KFImage(fetchPhotoVideoURL(for: identifier))
+                            .placeholder({
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color.clear)
+                                    .stroke(Color.primary, lineWidth: 2)
+                                    .scaledToFit()
+                                    .overlay {
+                                        ProgressView()
+                                    }
+                            })
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 700, maxHeight: 700)
+                            .padding(.bottom)
+                            .onTapGesture {
+                                if let url = fetchPhotoVideoURL(for: identifier) {
+                                    self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
                                 }
-                        })
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 250)
-                        .padding(.bottom)
-                        .onTapGesture {
-                            if let url = fetchPhotoVideoURL(for: identifier) {
-                                self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
                             }
-                        }
+                        
+                        views.append(.init(image))
+                    }
+                case .video:
+                    appendText()
                     
-                    views.append(.init(image))
+                    if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
+                        let player = AVPlayer(url: url)
+                        let playerView = VideoPlayer(player: player)
+                            .scaledToFit()
+                        
+                        views.append(.init(playerView))
+                    }
+                default: break
                 }
-            case .video:
-                appendText()
                 
-                if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
-                    let player = AVPlayer(url: url)
-                    let playerView = VideoPlayer(player: player)
-                        .scaledToFit()
-                    
-                    views.append(.init(playerView))
+                if let inlineContent = inline.inlineContent {
+                    appendContent(inlineContent)
                 }
-            default: break
             }
         }
+        appendContent(content)
         // swiftlint:enable shorthand_operator
         
         if text != AttributedString("") {

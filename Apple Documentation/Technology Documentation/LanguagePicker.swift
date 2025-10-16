@@ -37,6 +37,7 @@ struct LanguagePicker: View {
                     }
                 }
             }
+            .labelsHidden()
         }
     }
 }

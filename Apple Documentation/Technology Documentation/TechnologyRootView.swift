@@ -87,9 +87,11 @@ struct TechnologyRootView: View {
         .navigationTitle(frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
 #endif
-        .task {
-            await loadFramework()
-            await getShownReferences()
+        .onAppear {
+            Task {
+                await loadFramework()
+                await getShownReferences()
+            }
         }
         .onChange(of: navigationViewModel.technology) {
             Task {
@@ -130,8 +132,8 @@ struct TechnologyRootView: View {
                 
                 ForEach(topicSections) { section in
                     Section {
-                        ForEach(section.identifiers, id: \.self) { identifier in
-                            if let reference = framework.references[identifier], let title = reference.title, isReferenceShown(reference) {
+                        ForEach(section.identifiersWithIDs) { identifier in
+                            if let reference = framework.references[identifier.identifier], let title = reference.title, isReferenceShown(reference) {
                                 FrameworkListItem(reference: getReference(from: reference), title: title)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
@@ -356,8 +358,8 @@ private struct FrameworkDisclosureGroup: View {
                 if let framework {
                     ForEach(topicSections) { section in
                         Section {
-                            ForEach(section.identifiers, id: \.self) { subidentifier in
-                                if let subreference = framework.references[subidentifier], let subtitle = subreference.title, isReferenceShown(subreference) {
+                            ForEach(section.identifiersWithIDs) { subidentifier in
+                                if let subreference = framework.references[subidentifier.identifier], let subtitle = subreference.title, isReferenceShown(subreference) {
                                     FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
                                         .listRowBackground(Color.clear)
                                         .listRowSeparator(.hidden)
@@ -390,11 +392,13 @@ private struct FrameworkDisclosureGroup: View {
                         .opacity((navigationViewModel.reference == reference) ? 1 : 0)
                 }
         }
-        .task {
-            if framework == nil {
-                await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
+        .onAppear {
+            Task {
+                if framework == nil {
+                    await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
+                }
+                await getShownReferences()
             }
-            await getShownReferences()
         }
         .onChange(of: tagFilters) {
             Task {

@@ -12,12 +12,9 @@ import SwiftUI
 class NavigationViewModel: Equatable {
     
     // MARK: Settings
-    var openInAppDeeplinksInNewWindow: Bool {
-        get {
-            UserDefaults.standard.bool(forKey: "openInAppDeeplinksInNewWindow")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "openInAppDeeplinksInNewWindow")
+    var openInAppDeeplinksInNewWindow: Bool = UserDefaults.standard.bool(forKey: "openInAppDeeplinksInNewWindow") {
+        didSet {
+            UserDefaults.standard.set(openInAppDeeplinksInNewWindow, forKey: "openInAppDeeplinksInNewWindow")
         }
     }
     

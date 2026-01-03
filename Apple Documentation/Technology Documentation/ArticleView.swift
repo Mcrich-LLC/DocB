@@ -10,8 +10,8 @@ import SwiftUI
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
     
     @State var article: Article?

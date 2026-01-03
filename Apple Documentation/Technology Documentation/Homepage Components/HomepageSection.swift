@@ -151,7 +151,7 @@ private struct HighlightedLinksCell: View {
 private struct Links: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         VStack {
@@ -182,7 +182,7 @@ private struct Cards: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         VStack {
@@ -283,7 +283,7 @@ private struct Cards: View {
 private struct HomepageLinks: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         VStack {
@@ -332,7 +332,7 @@ private struct LinkCapsule: View {
     @Environment(\.colorScheme) var colorScheme
     let reference: Reference
     let references: [String : Reference]
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var title: String? {
         if let title = reference.title {

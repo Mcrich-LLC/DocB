@@ -20,7 +20,7 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsView: View {
-    @StateObject var navigationViewModel: NavigationViewModel = .init()
+    @State var navigationViewModel: NavigationViewModel = .init()
     
     var body: some View {
         VStack {

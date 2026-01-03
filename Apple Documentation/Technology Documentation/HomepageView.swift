@@ -10,7 +10,7 @@ import SwiftUI
 struct HomepageView: View {
     let homepage: HomepageParser
     
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     @ViewBuilder
     private func verticalStacker(spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {

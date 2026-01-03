@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LanguagePicker: View {
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     let variants: [Variant]
     
     var filteredLanguages: [PreferedProgrammingLanguage] {
@@ -22,6 +22,7 @@ struct LanguagePicker: View {
         if filteredLanguages.count == 1 && filteredLanguages[0].humanReadable == nil {
             EmptyView()
         } else {
+            @Bindable var documentationViewModel = documentationViewModel
             Picker("Language: ", selection: $documentationViewModel.preferedProgrammingLanguage) {
                 if filteredLanguages.count == 1 {
                     if let humanReadable = filteredLanguages[0].humanReadable {

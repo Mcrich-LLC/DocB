@@ -19,7 +19,7 @@ struct ArticleContentView: View {
     @Environment(\.docCSite) var docCSite
     @State var orderedListIndex: Int
     @State private var enlargedImageSheetIdentifier: EnlargedImageSheetIdentifier?
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
         self.content = content

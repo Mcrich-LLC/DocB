@@ -7,20 +7,17 @@
 
 import SwiftUI
 
-struct TechnologyRootView: View {
-    
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+@Observable
+private final class TechnologyRootManager {
     let frameworkSection: AppleTechnologies.FrameworkSection
     
-    @Environment(\.colorScheme) var colorScheme
-    @State private var activeFilters: Set<TagFilters> = []
-    @State var shownReferences: [String : Bool] = [:]
-    @State var isLoading = false
-    
-    var framework: Framework? {
-        documentationViewModel.frameworks[frameworkSection.destination.identifier]
+    init(frameworkSection: AppleTechnologies.FrameworkSection) {
+        self.frameworkSection = frameworkSection
     }
+    
+    var activeFilters: Set<TagFilters> = []
+    var shownReferences: [String : Bool] = [:]
+    
     
     func getReference(from reference: Reference) -> Reference {
         var reference = reference
@@ -29,12 +26,38 @@ struct TechnologyRootView: View {
         return reference
     }
     
+    func isReferenceShown(_ reference: Reference) -> Bool {
+        guard let shownReference = shownReferences[reference.identifier] else {
+            return Developer_Documentation.isTopReferencePartOfFilter(reference, with: activeFilters)
+        }
+        
+        return shownReference
+    }
+}
+
+struct TechnologyRootView: View {
+    
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    
+    init(frameworkSection: AppleTechnologies.FrameworkSection) {
+        self.manager = TechnologyRootManager(frameworkSection: frameworkSection)
+    }
+    
+    @Environment(\.colorScheme) var colorScheme
+    @State private var manager: TechnologyRootManager
+    @State var isLoading = false
+    
+    var framework: Framework? {
+        documentationViewModel.frameworks[manager.frameworkSection.destination.identifier]
+    }
+    
     var topicSections: [Framework.TopicSection] {
         (framework?.topicSections ?? []).filter { section in
             section.identifiers.contains { identifier in
                 guard let reference = framework?.references[identifier] else { return false }
                 
-                return isReferenceShown(reference)
+                return manager.isReferenceShown(reference)
             }
         }
     }
@@ -42,20 +65,26 @@ struct TechnologyRootView: View {
     var body: some View {
         VStack {
             if let framework {
-                frameworkView(framework)
+                let _ = print(Self._printChanges())
+                FrameworkView(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
+                #if os(macOS) || targetEnvironment(macCatalyst)
+                .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)
+                #else
+                .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
+                #endif
                     .toolbar {
                         HStack {
-                            if self.frameworkSection.docCSite == nil {
+                            if self.manager.frameworkSection.docCSite == nil {
                                 Menu {
                                     ForEach(TagFilters.allCases, id: \.self) { filter in
                                         Button {
-                                            if activeFilters.contains(filter) {
-                                                activeFilters.remove(filter)
+                                            if manager.activeFilters.contains(filter) {
+                                                manager.activeFilters.remove(filter)
                                             } else {
-                                                activeFilters.insert(filter)
+                                                manager.activeFilters.insert(filter)
                                             }
                                         } label: {
-                                            if activeFilters.contains(filter) {
+                                            if manager.activeFilters.contains(filter) {
                                                 Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
                                             } else {
                                                 Text(filter.rawValue.capitalized)
@@ -99,90 +128,84 @@ struct TechnologyRootView: View {
                 await getShownReferences()
             }
         }
-        .onChange(of: activeFilters) {
+        .onChange(of: manager.activeFilters) {
             Task {
                 await getShownReferences()
             }
         }
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
-                documentationViewModel.frameworks[frameworkSection.destination.identifier] = nil
+                documentationViewModel.frameworks[manager.frameworkSection.destination.identifier] = nil
                 await loadFramework()
             }
         })
         .onDisappear {
-            if navigationViewModel.shouldRemoveTechnologyFromPath(frameworkSection) && navigationViewModel.reference == nil && !navigationViewModel.isUsingSplitView {
+            if navigationViewModel.shouldRemoveTechnologyFromPath(manager.frameworkSection) && navigationViewModel.reference == nil && !navigationViewModel.isUsingSplitView {
                 navigationViewModel.goBackward(updatePath: false)
             }
         }
-        .environment(\.tagFilters, activeFilters)
+        .environment(\.tagFilters, manager.activeFilters)
+        .environment(manager)
     }
     
-    @ViewBuilder
-    func frameworkView(_ framework: Framework) -> some View {
-        if framework.topicSections?.isEmpty == true {
-            Text("No documentation available for \(framework.metadata.title)")
-        } else {
-            List {
-                Section {
-                    FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
-                
-                ForEach(topicSections) { section in
+    private struct FrameworkView: View {
+        let framework: Framework
+        let frameworkSection: AppleTechnologies.FrameworkSection
+        let topicSections: [Framework.TopicSection]
+        @Environment(TechnologyRootManager.self) private var manager
+        
+        var body: some View {
+            if framework.topicSections?.isEmpty == true {
+                Text("No documentation available for \(framework.metadata.title)")
+            } else {
+                List {
                     Section {
-                        ForEach(section.identifiersWithIDs) { identifier in
-                            if let reference = framework.references[identifier.identifier], let title = reference.title, isReferenceShown(reference) {
-                                FrameworkListItem(reference: getReference(from: reference), title: title)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
+                        FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+                    
+                    ForEach(topicSections) { section in
+                        Section {
+                            ForEach(section.identifiersWithIDs) { identifier in
+                                if let reference = framework.references[identifier.identifier], manager.isReferenceShown(reference), let title = reference.title {
+                                    FrameworkListItem(reference: manager.getReference(from: reference), title: title)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                }
+                            }
+                        } header: {
+                            if let title = section.title {
+                                Text(title)
                             }
                         }
-                    } header: {
-                        if let title = section.title {
-                            Text(title)
+                        .headerProminence(.increased)
+                    }
+                    
+                    Section {} footer: {
+                        if let legalNotices = framework.legalNotices {
+                            LegalNoticesView(legalNotices: legalNotices)
+                                .padding(.bottom)
                         }
                     }
-                    .headerProminence(.increased)
                 }
-                
-                Section {} footer: {
-                    if let legalNotices = framework.legalNotices {
-                        LegalNoticesView(legalNotices: legalNotices)
-                            .padding(.bottom)
-                    }
-                }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color(platformColor: .systemBackground))
             }
-            .listStyle(.inset)
-            .scrollContentBackground(.hidden)
-            .background(Color(platformColor: .systemBackground))
-#if os(macOS) || targetEnvironment(macCatalyst)
-            .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)
-            #else
-            .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
-            #endif
         }
     }
     
     func loadFramework() async {
         if framework == nil {
-            await documentationViewModel.fetchFramework(for: frameworkSection.destination.identifier, site: frameworkSection.docCSite)
+            await documentationViewModel.fetchFramework(for: manager.frameworkSection.destination.identifier, site: manager.frameworkSection.docCSite)
         }
-    }
-    
-    func isReferenceShown(_ reference: Reference) -> Bool {
-        guard let shownReference = shownReferences[reference.identifier] else {
-            return Developer_Documentation.isTopReferencePartOfFilter(reference, with: activeFilters)
-        }
-        
-        return shownReference
     }
     
     @MainActor
     func getShownReferences() async {
-        guard !activeFilters.isEmpty else {
-            shownReferences.removeAll()
+        guard !manager.activeFilters.isEmpty else {
+            manager.shownReferences.removeAll()
             return
         }
         
@@ -190,7 +213,7 @@ struct TechnologyRootView: View {
         for section in framework?.topicSections ?? [] {
             for identifier in section.identifiers {
                 if let reference = framework?.references[identifier] {
-                    self.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: activeFilters, documentationViewModel: documentationViewModel)
+                    self.manager.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: manager.activeFilters, documentationViewModel: documentationViewModel)
                 }
             }
         }
@@ -200,12 +223,11 @@ struct TechnologyRootView: View {
 }
 
 private struct FrameworkListItem: View {
-    
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
     @Environment(\.tagFilters) var tagFilters
     
     let reference: Reference
     let title: String
+    var willHideDisclosureGroups: Bool = false
     var isShowingChevron: Bool = true
     
     var hasSubParts: Bool {
@@ -224,7 +246,7 @@ private struct FrameworkListItem: View {
     }
     
     var body: some View {
-        if hasSubParts {
+        if hasSubParts && !willHideDisclosureGroups {
             FrameworkDisclosureGroup(identifier: reference.identifier, title: title, reference: reference)
         } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
             MacOSAgnosticLink(destination: url) {
@@ -250,6 +272,13 @@ private struct FrameworkListItem: View {
         }
     }
     
+    func hideDisclosureGroups() -> Self {
+        var view = self
+        view.willHideDisclosureGroups = true
+        
+        return view
+    }
+    
     func showChevron(_ bool: Bool) -> Self {
         var view = self
         view.isShowingChevron = bool
@@ -259,7 +288,7 @@ private struct FrameworkListItem: View {
 }
 
 private struct DefaultListItem: View {
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     let reference: Reference
     let title: String
     
@@ -320,8 +349,8 @@ private struct DefaultListItem: View {
 
 private struct FrameworkDisclosureGroup: View {
     
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     
     let identifier: String
     let title: String
@@ -335,13 +364,6 @@ private struct FrameworkDisclosureGroup: View {
         documentationViewModel.frameworks[identifier]
     }
     
-    func getReference(from reference: Reference) -> Reference {
-        var reference = reference
-        reference.docCSite = self.reference.docCSite
-        
-        return reference
-    }
-    
     var topicSections: [Framework.TopicSection] {
         (framework?.topicSections ?? []).filter { section in
             section.identifiers.contains { identifier in
@@ -352,25 +374,44 @@ private struct FrameworkDisclosureGroup: View {
         }
     }
     
+    struct TopicSectionIdentifierWithID: View {
+        let section: Framework.TopicSection
+        let framework: Framework
+        let reference: Reference
+        let isReferenceShown: (Reference) -> Bool
+        
+        func getReference(from reference: Reference) -> Reference {
+            var reference = reference
+            reference.docCSite = self.reference.docCSite
+            
+            return reference
+        }
+        
+        var body: some View {
+            Section {
+                ForEach(section.identifiersWithIDs) { subidentifier in
+                    if let subreference = framework.references[subidentifier.identifier], let subtitle = subreference.title, isReferenceShown(subreference) {
+                        FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
+                            .hideDisclosureGroups()
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+                }
+            } header: {
+                if let title = section.title {
+                    Text(title)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    
     var body: some View {
         DisclosureGroup {
             Group {
                 if let framework {
                     ForEach(topicSections) { section in
-                        Section {
-                            ForEach(section.identifiersWithIDs) { subidentifier in
-                                if let subreference = framework.references[subidentifier.identifier], let subtitle = subreference.title, isReferenceShown(subreference) {
-                                    FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
-                                }
-                            }
-                        } header: {
-                            if let title = section.title {
-                                Text(title)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                        TopicSectionIdentifierWithID(section: section, framework: framework, reference: reference, isReferenceShown: isReferenceShown)
                     }
                 }
             }
@@ -459,11 +500,11 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     guard referenceHasSubParts(reference) else { return false }
     
     // Fetch framework if needed
-    if documentationViewModel.frameworks[reference.identifier] == nil {
+    if await documentationViewModel.frameworks[reference.identifier] == nil {
         await documentationViewModel.fetchFramework(for: reference.identifier, site: reference.docCSite)
     }
     
-    guard let framework = documentationViewModel.frameworks[reference.identifier] else { return false }
+    guard let framework = await documentationViewModel.frameworks[reference.identifier] else { return false }
     
     for section in (framework.topicSections ?? []) {
         for subidentifier in section.identifiers {

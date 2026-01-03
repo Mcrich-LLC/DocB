@@ -26,7 +26,7 @@ struct LinksGridListView: View {
         }
     }
     
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], navigationViewModel: NavigationViewModel) {
         self.identifiers = identifiers

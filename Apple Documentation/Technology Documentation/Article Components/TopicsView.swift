@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TopicsView: View {
     let article: Article
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         if let topicSections = article.topicSections {

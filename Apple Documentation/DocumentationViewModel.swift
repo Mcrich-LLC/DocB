@@ -47,8 +47,16 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     }
 }
 
-class DocumentationViewModel: ObservableObject {
-    @AppStorage("preferedProgrammingLanguage") var preferedProgrammingLanguage = PreferedProgrammingLanguage.swift
+@Observable
+@MainActor
+class DocumentationViewModel {
+    var preferedProgrammingLanguage: PreferedProgrammingLanguage {
+        get {
+            UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift
+        } set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: "preferedProgrammingLanguage")
+        }
+    }
     
     // MARK: URL Functions
     func jsonUrl(for identifier: String, site: DocCSite?) -> URL? {
@@ -93,7 +101,7 @@ class DocumentationViewModel: ObservableObject {
     
     // MARK: Homepage
     private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
-    @Published var homepage: HomepageParser?
+    var homepage: HomepageParser?
     
     func fetchHomepage() async {
         do {
@@ -111,7 +119,7 @@ class DocumentationViewModel: ObservableObject {
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
-    @Published private(set) var technologies: [TechnologyTypes] = []
+    private(set) var technologies: [TechnologyTypes] = []
     
     func fetchTechnologies() async {
         do {
@@ -168,7 +176,7 @@ class DocumentationViewModel: ObservableObject {
     
     // MARK: Frameworks
     
-    @Published var frameworks: [String : Framework] = [:]
+    var frameworks: [String : Framework] = [:]
     
     func fetchFramework(for identifier: String, site: DocCSite?, completion: @escaping () -> Void) {
         Task {

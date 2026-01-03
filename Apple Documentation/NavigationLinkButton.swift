@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct HomepageNavigationLinkButton<Content: View>: View {
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     
     @ViewBuilder
     let label: Content
@@ -45,8 +45,8 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 }
 
 struct ReferenceNavigationLinkButton<Content: View>: View {
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
     
     @ViewBuilder
@@ -155,7 +155,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 }
 
 struct TechnologyNavigationLinkButton<Content: View>: View {
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     let technology: AppleTechnologies.FrameworkSection
     
     @ViewBuilder

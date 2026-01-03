@@ -11,7 +11,7 @@ import SwiftData
 
 @main
 struct Apple_DocumentationApp: App {
-    @ObservedObject var documentationViewModel = DocumentationViewModel()
+    @State var documentationViewModel = DocumentationViewModel()
     
     init() {
         loadRocketSimConnect()
@@ -22,13 +22,13 @@ struct Apple_DocumentationApp: App {
             ContentView()
         }
         .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
-        .environmentObject(documentationViewModel)
+        .environment(documentationViewModel)
         
         #if os(macOS)
         Settings {
             SettingsView()
         }
-        .environmentObject(documentationViewModel)
+        .environment(documentationViewModel)
         #endif
     }
     

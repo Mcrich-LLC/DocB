@@ -16,6 +16,7 @@ struct ArticleView: View {
     
     @State var article: Article?
     @State var showToolbarBG: Bool = false
+    @State var scrollOffset: CGFloat = 0
     
     enum ScrollIdentifier: CaseIterable {
         case header
@@ -23,6 +24,10 @@ struct ArticleView: View {
         case topics
         case relationships
         case seeAlso
+    }
+    
+    var topColorGradient: [Color] {
+        article?.metadata.color?.gradientColors ?? article?.metadata.role.gradientColors ?? []
     }
     
     var body: some View {
@@ -35,8 +40,8 @@ struct ArticleView: View {
                             .id(ScrollIdentifier.header)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(alignment: .top) {
-                                LinearGradient(colors: article.metadata.color?.gradientColors ?? article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
-                                    .padding(.top, -120)
+                                LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
+                                    .padding(.top, -120+min(0, scrollOffset))
                                     .padding(.bottom, -50)
                                     .padding(.horizontal, -200)
                                     .ignoresSafeArea()
@@ -179,6 +184,11 @@ struct ArticleView: View {
             .task {
                 await loadArticle()
             }
+            .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
+                proxy.contentOffset.y
+            }, action: { _, newValue in
+                self.scrollOffset = newValue
+            })
             .onChange(of: navigationViewModel.reference) {
                 proxy.scrollTo(ScrollIdentifier.header)
                 Task {

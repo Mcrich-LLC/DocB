@@ -181,7 +181,7 @@ struct ArticleView: View {
             }
             .scrollTargetLayout()
             .lineSpacing(4)
-            .task {
+            .task(id: navigationViewModel.reference) {
                 await loadArticle()
             }
             .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
@@ -189,12 +189,6 @@ struct ArticleView: View {
             }, action: { _, newValue in
                 self.scrollOffset = newValue
             })
-            .onChange(of: navigationViewModel.reference) {
-                proxy.scrollTo(ScrollIdentifier.header)
-                Task {
-                    await loadArticle()
-                }
-            }
             .id(reference)
             .scrollContentBackground(.hidden)
             .background(Color(platformColor: .systemBackground)

@@ -65,7 +65,6 @@ struct TechnologyRootView: View {
     var body: some View {
         VStack {
             if let framework {
-                let _ = print(Self._printChanges())
                 FrameworkView(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
                 #if os(macOS) || targetEnvironment(macCatalyst)
                 .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)

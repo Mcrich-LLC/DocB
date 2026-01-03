@@ -222,16 +222,28 @@ private struct TechView: View {
         return !filteredTech.isEmpty
     }
     
+    @ViewBuilder
+    func technologyView(for technology: TechnologyTypes) -> some View {
+        switch technology {
+        case .apple(let technologies):
+            AppleTechView(technology: technologies, isVisibleForSearch: isVisibleForSearch, searchText: searchText)
+        case .docC(let site):
+            DocCTechView(technology: site, isVisibleForSearch: isVisibleForSearch)
+        }
+    }
+    
     var body: some View {
         List {
             if searchHasResults {
-                ForEach(documentationViewModel.technologies) { technology in
-                    switch technology {
-                    case .apple(let technologies):
-                        AppleTechView(technology: technologies, isVisibleForSearch: isVisibleForSearch, searchText: searchText)
-                    case .docC(let site):
-                        DocCTechView(technology: site, isVisibleForSearch: isVisibleForSearch)
+                Section {
+                    ForEach(documentationViewModel.technologies.filter({ $0.isDocC })) { technology in
+                        technologyView(for: technology)
                     }
+                } header: {
+                    Text("Custom Documentation")
+                }
+                ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+                    technologyView(for: technology)
                 }
             } else {
                 ContentUnavailableView {
@@ -320,42 +332,20 @@ private struct DocCTechView: View {
     var body: some View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, technology, group) } ?? []
-            if !filtered.isEmpty {
-                Section {
-                    //                    let filteredChildren = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) }
-                    
-                    ForEach(filtered) { framework in
-                        Group {
-                            if framework.type == "groupMarker" {
-                                Text(framework.title)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.secondary)
-                            } else if let path = framework.path, path.lowercased().contains("/documentation"),
-                                      let frameworkSection = group.frameworkSection(for: framework, site: technology) {
-                                TechnologyNavigationLinkButton(technology: frameworkSection) {
-                                    ListItemLabel(framework: frameworkSection, references: [:])
-                                }
-                            } else if let path = framework.path, let url = URL(string: path), let frameworkSection = group.frameworkSection(for: framework, site: technology) {
-                                MacOSAgnosticLink(destination: url) {
-                                    ListItemLabel(framework: frameworkSection, references: [:])
-                                }
-                            }
-                        }
-                        .foregroundStyle(Color.primary)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+            if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
+                    TechnologyNavigationLinkButton(technology: frameworkSection) {
+                        ListItemLabel(framework: frameworkSection, references: [:])
                     }
-                } header: {
-                    Text(group.title)
-                        .contextMenu {
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                modelContext.delete(technology)
-                                documentationViewModel.deleteTechnology(technology)
-                            }
+                    .contextMenu {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            modelContext.delete(technology)
+                            documentationViewModel.deleteTechnology(technology)
                         }
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-            }
         }
     }
 }

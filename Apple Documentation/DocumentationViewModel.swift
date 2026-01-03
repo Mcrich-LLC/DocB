@@ -50,11 +50,9 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
 @Observable
 @MainActor
 class DocumentationViewModel {
-    var preferedProgrammingLanguage: PreferedProgrammingLanguage {
-        get {
-            UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift
-        } set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "preferedProgrammingLanguage")
+    var preferedProgrammingLanguage: PreferedProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift {
+        didSet {
+            UserDefaults.standard.set(preferedProgrammingLanguage.rawValue, forKey: "preferedProgrammingLanguage")
         }
     }
     

@@ -295,9 +295,9 @@ private struct TechView: View {
                     
                     await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
                     
-                    if let technology = documentationViewModel.technologies.last {
+                    if let technology = documentationViewModel.technologies.first {
                         switch technology {
-                        case .apple(let appleTechnologies):
+                        case .apple:
                             break
                         case .docC(let docCSite):
                             modelContext.insert(docCSite)

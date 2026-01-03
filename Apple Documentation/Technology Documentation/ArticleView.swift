@@ -129,7 +129,7 @@ struct ArticleView: View {
                         let color: Color = role.accentColor
                         
                         if navigationViewModel.isUsingSplitView {
-                            ToolbarItemGroup(placement: .topBarLeading) {
+                            ToolbarItemGroup(placement: .navigation) {
                                 Group {
                                     Button("Backward", systemImage: "chevron.left") {
                                         navigationViewModel.goBackward()
@@ -145,7 +145,7 @@ struct ArticleView: View {
                             }
                         }
                         
-                        ToolbarItemGroup(placement: .topBarTrailing) {
+                        ToolbarItemGroup(placement: .primaryAction) {
                             
                             Group {
                                 if let url = reference.shareUrl {

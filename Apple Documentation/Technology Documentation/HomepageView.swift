@@ -45,7 +45,7 @@ struct HomepageView: View {
         }
         .toolbar(content: {
             if navigationViewModel.isUsingSplitView {
-                ToolbarItemGroup(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .navigation) {
                     Group {
                         Button("Backward", systemImage: "chevron.left") {
                             navigationViewModel.goBackward()

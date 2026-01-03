@@ -392,7 +392,7 @@ private struct FrameworkDisclosureGroup: View {
                 ForEach(section.identifiersWithIDs) { subidentifier in
                     if let subreference = framework.references[subidentifier.identifier], let subtitle = subreference.title, isReferenceShown(subreference) {
                         FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
-                            .hideDisclosureGroups()
+//                            .hideDisclosureGroups()
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                     }

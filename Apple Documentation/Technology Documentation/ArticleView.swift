@@ -35,7 +35,7 @@ struct ArticleView: View {
                             .id(ScrollIdentifier.header)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(alignment: .top) {
-                                LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
+                                LinearGradient(colors: article.metadata.color?.gradientColors ?? article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
                                     .padding(.top, -120)
                                     .padding(.bottom, -50)
                                     .padding(.horizontal, -200)

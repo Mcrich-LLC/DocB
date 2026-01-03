@@ -27,6 +27,7 @@ struct Article: Codable, AppleDocumentation {
         // Role
         let role: Role
         let roleHeading: String?
+        let color: Color?
         
         // Other Data
         let images: [ImageStruct]?
@@ -34,6 +35,30 @@ struct Article: Codable, AppleDocumentation {
         
         // Platforms
         let platforms: [Platform]?
+        
+        struct Color: Codable, Equatable, Hashable {
+            let standardColorIdentifier: Colors
+            
+            enum Colors: String, Codable {
+                case blue, gray, green, orange, purple, red, yellow
+                
+                var swiftUIColor: SwiftUI.Color {
+                    switch self {
+                    case .blue: return .blue
+                    case .gray: return .gray
+                    case .green: return .green
+                    case .orange: return .orange
+                    case .purple: return .purple
+                    case .red: return .red
+                    case .yellow: return .yellow
+                    }
+                }
+            }
+            
+            var gradientColors: [SwiftUI.Color] {
+                return [standardColorIdentifier.swiftUIColor.opacity(0.4), standardColorIdentifier.swiftUIColor.opacity(0.0)]
+            }
+        }
     }
     
     struct SampleCodeDownload: Codable, Equatable, Hashable {

@@ -78,7 +78,6 @@ class DocumentationViewModel: ObservableObject {
             .appendingPathExtension("json")
             .appending(queryItems: queryItems)
         
-        print(url.absoluteString)
         return url
     }
     

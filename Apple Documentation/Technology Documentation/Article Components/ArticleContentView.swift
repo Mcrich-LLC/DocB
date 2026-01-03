@@ -456,12 +456,22 @@ struct ArticleContentView: View {
                     
                     text = text + attributedString
                 case .emphasis:
+                    if inline.inlineContent?.isAllSomeFormOfText == true {
+                        text += inline.getFlattenedAttributedString()
+                        continue
+                    }
+                    
                     let string = getEmphasisString(inline)
                     var attributedString = AttributedString(string)
                     attributedString.font = .body.italic()
                     
                     text = text + attributedString
                 case .strong:
+                    if inline.inlineContent?.isAllSomeFormOfText == true {
+                        text += inline.getFlattenedAttributedString()
+                        continue
+                    }
+                    
                     let string = getEmphasisString(inline)
                     var attributedString = AttributedString(string)
                     attributedString.font = .body.bold()

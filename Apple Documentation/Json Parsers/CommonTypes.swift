@@ -155,6 +155,49 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
     static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    
+    func getFlattenedAttributedString() -> AttributedString {
+        var attributedString = AttributedString(text ?? "")
+        
+        attributedString = applyAttributedStringFontAttributes(attributedString)
+        
+        for inline in (inlineContent ?? []) {
+            let substring = applyAttributedStringFontAttributes(inline.getFlattenedAttributedString())
+            attributedString += substring
+        }
+        
+        return attributedString
+    }
+    
+    private func applyAttributedStringFontAttributes(_ attributedString: AttributedString) -> AttributedString {
+        var attributedString = attributedString
+        
+        if attributedString.font == nil {
+            attributedString.font = font?.font ?? .body
+        }
+        
+        switch type {
+        case .emphasis:
+            attributedString.font = attributedString.font?.italic()
+        case .strong:
+            attributedString.font = attributedString.font?.bold()
+        default:
+            break
+        }
+        
+        return attributedString
+    }
+}
+
+extension [ContentStruct] {
+    var isAllSomeFormOfText: Bool {
+        let allowableTypes: [ContentType] = [.text, .emphasis, .strong]
+        return !contains(where: { content in
+            guard let innerContent = content.inlineContent else { return !allowableTypes.contains(content.type) }
+            
+            return innerContent.isAllSomeFormOfText && !allowableTypes.contains(content.type)
+        })
+    }
 }
 
 struct Fragment: Codable, Hashable {

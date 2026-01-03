@@ -112,7 +112,7 @@ struct TechnologyRootView: View {
             }
         })
 #if !os(macOS)
-        .navigationTitle(frameworkSection.title)
+        .navigationTitle(manager.frameworkSection.title)
         .navigationBarTitleDisplayMode(.large)
 #endif
         .onAppear {

@@ -12,6 +12,11 @@ import SwiftData
 @main
 struct Apple_DocumentationApp: App {
     @ObservedObject var documentationViewModel = DocumentationViewModel()
+    
+    init() {
+        loadRocketSimConnect()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -24,6 +29,16 @@ struct Apple_DocumentationApp: App {
             SettingsView()
         }
         .environmentObject(documentationViewModel)
+        #endif
+    }
+    
+    private func loadRocketSimConnect() {
+        #if DEBUG
+        guard (Bundle(path: "/Applications/RocketSim.app/Contents/Frameworks/RocketSimConnectLinker.nocache.framework")?.load() == true) else {
+            print("Failed to load linker framework")
+            return
+        }
+        print("RocketSim Connect successfully linked")
         #endif
     }
 }

@@ -68,5 +68,217 @@
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "CFA8DFE5-0879-43AD-AA90-90A152F925B5"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/DocumentationViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "226"
+            endingLineNumber = "226"
+            landmarkName = "fetchArticle(for:site:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "CFA8DFE5-0879-43AD-AA90-90A152F925B5 - 283c81bd665047dd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "226"
+                  endingLineNumber = "226">
+               </Location>
+               <Location
+                  uuid = "CFA8DFE5-0879-43AD-AA90-90A152F925B5 - 283c81bd665047dd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "226"
+                  endingLineNumber = "226">
+               </Location>
+               <Location
+                  uuid = "CFA8DFE5-0879-43AD-AA90-90A152F925B5 - fb5f400172b88a17"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 (Swift.Substring) -&gt; Swift.Bool in Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "226"
+                  endingLineNumber = "226">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1BAD5B95-E1F5-4769-BDCD-1F43CF50850B"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/DocumentationViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "218"
+            endingLineNumber = "218"
+            landmarkName = "fetchArticle(for:site:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "1BAD5B95-E1F5-4769-BDCD-1F43CF50850B - 283c81bd665040e5"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "218"
+                  endingLineNumber = "218">
+               </Location>
+               <Location
+                  uuid = "1BAD5B95-E1F5-4769-BDCD-1F43CF50850B - 283c81bd665040e5"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "218"
+                  endingLineNumber = "218">
+               </Location>
+               <Location
+                  uuid = "1BAD5B95-E1F5-4769-BDCD-1F43CF50850B - 137d039d297c44e1"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Developer_Documentation.VariantOverride.Patch) -&gt; Swift.Bool in Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "219"
+                  endingLineNumber = "219">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "00DB1B4E-239A-45DE-8CE5-59F7AB17AF69"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/DocumentationViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "223"
+            endingLineNumber = "223"
+            landmarkName = "fetchArticle(for:site:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "00DB1B4E-239A-45DE-8CE5-59F7AB17AF69 - 283c81bd665047be"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "223"
+                  endingLineNumber = "223">
+               </Location>
+               <Location
+                  uuid = "00DB1B4E-239A-45DE-8CE5-59F7AB17AF69 - 283c81bd665047be"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "223"
+                  endingLineNumber = "223">
+               </Location>
+               <Location
+                  uuid = "00DB1B4E-239A-45DE-8CE5-59F7AB17AF69 - ff262c0865b6433b"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 (Developer_Documentation.ContentSection.Declaration) -&gt; Swift.Bool in Developer_Documentation.DocumentationViewModel.fetchArticle(for: Swift.String, site: Swift.Optional&lt;Developer_Documentation.DocCSite&gt;) async throws -&gt; Developer_Documentation.Article"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/DocumentationViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "223"
+                  endingLineNumber = "223">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "27E68574-EAE5-4F6F-9681-32251D104328"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/DocumentationViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "224"
+            endingLineNumber = "224"
+            landmarkName = "fetchArticle(for:site:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8533507F-893D-462F-BFF9-47B57138A7B8"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/Json Parsers/CommonTypes.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "645"
+            endingLineNumber = "645"
+            landmarkName = "init(from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

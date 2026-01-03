@@ -12,7 +12,7 @@ struct Article: Codable, AppleDocumentation {
     let metadata: Metadata
     let topicSectionsStyle: ContentSection.Content.Style?
     let abstract: [ContentStruct]?
-    let primaryContentSections: [ContentSection]?
+    var primaryContentSections: [ContentSection]?
     let references: [String : Reference]
     let legalNotices: LegalNotices?
     let seeAlsoSections: [Framework.TopicSection]?
@@ -22,6 +22,7 @@ struct Article: Codable, AppleDocumentation {
     let deprecationSummary: [ContentSection.Content]?
     let betaSummary: [ContentSection.Content]?
     let variants: [Variant]?
+    let variantOverrides: [VariantOverride]?
     
     struct Metadata: Codable, Equatable, Hashable {
         // Role

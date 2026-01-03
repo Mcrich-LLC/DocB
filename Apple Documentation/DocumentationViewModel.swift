@@ -10,7 +10,7 @@ import SwiftUI
 
 enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     case swift
-    case objectivec = "occ"
+    case objectivec = "objc"
     case data
     
     var humanReadable: String? {
@@ -21,6 +21,28 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
             "Objective-C"
         case .data:
             nil
+        }
+    }
+    
+    var jsonCodingValue: String {
+        switch self {
+        case .swift:
+            "swift"
+        case .objectivec:
+            "occ"
+        case .data:
+            "data"
+        }
+    }
+    
+    init?(rawValue: String) {
+        switch rawValue.lowercased() {
+        case "swift":
+            self = .swift
+        case "objc", "occ":
+            self = .objectivec
+        default:
+            return nil
         }
     }
 }
@@ -56,6 +78,7 @@ class DocumentationViewModel: ObservableObject {
             .appendingPathExtension("json")
             .appending(queryItems: queryItems)
         
+        print(url.absoluteString)
         return url
     }
     
@@ -187,12 +210,26 @@ class DocumentationViewModel: ObservableObject {
     func fetchArticle(for identifier: String, site: DocCSite?) async throws -> Article {
 //        do {
         guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }
-            
-            let (data, _) = try await URLSession.shared.data(from: url)
-            
-            let article = try JSONDecoder().decode(Article.self, from: data)
-            
-            return article
+        
+        let (data, _) = try await URLSession.shared.data(from: url)
+        
+        var article = try JSONDecoder().decode(Article.self, from: data)
+        
+        for variant in (article.variantOverrides ?? []) where variant.patch.contains(where: {
+            ($0.value?.declarations ?? []).contains(where: {
+                $0.languages.contains(preferedProgrammingLanguage.jsonCodingValue)
+            })
+        }) {
+            for patch in variant.patch where (patch.value?.declarations ?? []).contains(where: { $0.languages.contains(preferedProgrammingLanguage.jsonCodingValue) }) {
+                let pathComponents = patch.path.split(separator: "/")
+                // Handle primaryContentSections
+                if pathComponents.contains(where: { $0 == "primaryContentSections" }), let indexString = pathComponents.last, let index = Int(indexString) {
+                    article.primaryContentSections?[index].declarations = patch.value?.declarations
+                }
+            }
+        }
+        
+        return article
 //        } catch {
 //            print(error)
 //        }

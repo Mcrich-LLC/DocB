@@ -213,7 +213,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let content: [Content]?
     var condensedContent: [Content] { getCondensedContent(content ?? []) }
     
-    let declarations: [Declaration]?
+    var declarations: [Declaration]?
     let mentions: [String]?
     let details: Details?
     
@@ -624,6 +624,29 @@ struct Variant: Codable, Equatable, Hashable {
     
     struct Trait: Codable, Equatable, Hashable {
         let interfaceLanguage: PreferedProgrammingLanguage
+    }
+}
+
+struct VariantOverride: Codable, Equatable, Hashable {
+    let traits: [Variant.Trait]
+    let patch: [Patch]
+    
+    struct Patch: Codable, Equatable, Hashable {
+        let op: String
+        let path: String
+        let value: AltDeclarationsWrapper?
+        
+        struct AltDeclarationsWrapper: Codable, Equatable, Hashable {
+            let declarations: [ContentSection.Declaration]
+            let kind: String
+        }
+        
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            op = try container.decode(String.self, forKey: .op)
+            path = try container.decode(String.self, forKey: .path)
+            value = try? container.decodeIfPresent(AltDeclarationsWrapper.self, forKey: .value)
+        }
     }
 }
 

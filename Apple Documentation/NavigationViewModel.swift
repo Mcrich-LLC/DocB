@@ -8,14 +8,22 @@
 import Foundation
 import SwiftUI
 
-class NavigationViewModel: ObservableObject, Equatable {
+@Observable
+class NavigationViewModel: Equatable {
     
     // MARK: Settings
-    @AppStorage("openInAppDeeplinksInNewWindow") var openInAppDeeplinksInNewWindow: Bool = false
+    var openInAppDeeplinksInNewWindow: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "openInAppDeeplinksInNewWindow")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "openInAppDeeplinksInNewWindow")
+        }
+    }
     
-    @Published var technologyHistoryUpdatingIsEnabled: Bool = false
-    @Published var isShowingTechnology = false
-    @Published private(set) var technology: AppleTechnologies.FrameworkSection? {
+    var technologyHistoryUpdatingIsEnabled: Bool = false
+    var isShowingTechnology = false
+    private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -30,7 +38,7 @@ class NavigationViewModel: ObservableObject, Equatable {
         self.isShowingTechnology = true
     }
     
-    @Published private(set) var reference: Reference? {
+    private(set) var reference: Reference? {
         didSet {
             if !isNavigating {
                 addToHistory()
@@ -44,8 +52,8 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
         
-    @Published var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
-    @Published var horizontalSizeClass: UserInterfaceSizeClass? = .regular
+    var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
+    var horizontalSizeClass: UserInterfaceSizeClass? = .regular
     var isUsingSplitView: Bool {
         #if os(macOS)
         true
@@ -75,8 +83,8 @@ class NavigationViewModel: ObservableObject, Equatable {
         }
     }
     
-    @Published var isStartingHistory: Bool = false
-    @Published private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
+    var isStartingHistory: Bool = false
+    private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
     var previousHistoryExists: Bool { currentIndex > 0 }
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
@@ -89,8 +97,8 @@ class NavigationViewModel: ObservableObject, Equatable {
     private var previousIndex = 0
     private var isNavigating = false
     
-    @Published var path: [PathElement] = []
-    @Published private var backupPath: [PathElement] = []
+    var path: [PathElement] = []
+    private var backupPath: [PathElement] = []
     
     func appendPath(_ element: PathElement) {
         path.append(element)
@@ -379,7 +387,7 @@ extension NavigationViewModel {
     }
     
     private func handleFrameworkURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
-        for technology in documentationViewModel.technologies {
+        for technology in await documentationViewModel.technologies {
             switch technology {
             case .apple(let technologies):
                 let didHandle = await handleAppleFrameworkURL(url, for: technologies, documentationViewModel: documentationViewModel)
@@ -460,7 +468,7 @@ extension NavigationViewModel {
     }
     
     private func handleArticleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
-        for technology in documentationViewModel.technologies {
+        for technology in await documentationViewModel.technologies {
             switch technology {
             case .apple(let technologies):
                 let didHandle = await handleAppleArticleURL(url, for: technologies, documentationViewModel: documentationViewModel)
@@ -486,11 +494,11 @@ extension NavigationViewModel {
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = await documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
-                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = await documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 
@@ -542,11 +550,11 @@ extension NavigationViewModel {
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = await documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: nil)
-                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = await documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 

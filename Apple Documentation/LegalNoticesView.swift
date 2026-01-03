@@ -9,27 +9,8 @@ import SwiftUI
 
 struct LegalNoticesView: View {
     let legalNotices: LegalNotices
+    @State private var text: AttributedString?
     
-    var text: AttributedString? {
-        guard let data = legalNotices.copyright.data(using: .utf8) else {
-            return nil
-        }
-        
-        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
-            .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
-        ]
-        
-        guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
-            return nil
-        }
-        attributedString.addAttributes([
-            .font: PlatformFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: PlatformColor(Color.primary)
-        ], range: NSRange(location: 0, length: attributedString.length))
-        
-        return AttributedString(attributedString)
-    }
     
     var body: some View {
         GroupBox {
@@ -56,5 +37,26 @@ struct LegalNoticesView: View {
             .frame(maxWidth: .infinity)
         }
         .listRowBackground(Color.clear)
+        .onAppear {
+            guard let data = legalNotices.copyright.data(using: .utf8) else {
+                return
+            }
+            
+            let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+                .documentType: NSAttributedString.DocumentType.html,
+                .characterEncoding: String.Encoding.utf8.rawValue
+            ]
+            
+            guard let attributedString = try? NSMutableAttributedString(data: data, options: options, documentAttributes: nil) else {
+                return
+            }
+            
+            attributedString.addAttributes([
+                .font: PlatformFont.preferredFont(forTextStyle: .body),
+                .foregroundColor: PlatformColor(Color.primary)
+            ], range: NSRange(location: 0, length: attributedString.length))
+            
+            text = AttributedString(attributedString)
+        }
     }
 }

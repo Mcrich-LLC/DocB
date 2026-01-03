@@ -19,7 +19,7 @@ struct ArticleContentView: View {
     @Environment(\.docCSite) var docCSite
     @State var orderedListIndex: Int
     @State private var enlargedImageSheetIdentifier: EnlargedImageSheetIdentifier?
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
         self.content = content
@@ -456,12 +456,22 @@ struct ArticleContentView: View {
                     
                     text = text + attributedString
                 case .emphasis:
+                    if inline.inlineContent?.isAllSomeFormOfText == true {
+                        text += inline.getFlattenedAttributedString()
+                        continue
+                    }
+                    
                     let string = getEmphasisString(inline)
                     var attributedString = AttributedString(string)
                     attributedString.font = .body.italic()
                     
                     text = text + attributedString
                 case .strong:
+                    if inline.inlineContent?.isAllSomeFormOfText == true {
+                        text += inline.getFlattenedAttributedString()
+                        continue
+                    }
+                    
                     let string = getEmphasisString(inline)
                     var attributedString = AttributedString(string)
                     attributedString.font = .body.bold()

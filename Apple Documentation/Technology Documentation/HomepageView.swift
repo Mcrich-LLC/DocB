@@ -10,7 +10,7 @@ import SwiftUI
 struct HomepageView: View {
     let homepage: HomepageParser
     
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     @ViewBuilder
     private func verticalStacker(spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {
@@ -45,7 +45,7 @@ struct HomepageView: View {
         }
         .toolbar(content: {
             if navigationViewModel.isUsingSplitView {
-                ToolbarItemGroup(placement: .topBarLeading) {
+                ToolbarItemGroup(placement: .navigation) {
                     Group {
                         Button("Backward", systemImage: "chevron.left") {
                             navigationViewModel.goBackward()

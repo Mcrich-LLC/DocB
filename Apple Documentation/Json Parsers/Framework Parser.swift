@@ -23,6 +23,25 @@ struct Framework: Codable, AppleDocumentation {
         let anchor: String?
         let identifiers: [String]
         
+        var identifiersWithIDs: [IdentifiableIdentifier] {
+            identifiers.map { IdentifiableIdentifier($0) }
+        }
+        
+        struct IdentifiableIdentifier: Identifiable, Equatable, Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
+            let id = UUID()
+            let identifier: String
+            
+            var description: String { identifier }
+            
+            init(_ identifier: String) {
+                self.identifier = identifier
+            }
+            
+            init(stringLiteral value: StringLiteralType) {
+                self.identifier = String(describing: value)
+            }
+        }
+        
         enum CodingKeys: CodingKey {
             case id
             case title

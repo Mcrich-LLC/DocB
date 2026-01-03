@@ -10,12 +10,13 @@ import SwiftUI
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
     
     @State var article: Article?
     @State var showToolbarBG: Bool = false
+    @State var scrollOffset: CGFloat = 0
     
     enum ScrollIdentifier: CaseIterable {
         case header
@@ -25,172 +26,173 @@ struct ArticleView: View {
         case seeAlso
     }
     
+    var topColorGradient: [Color] {
+        article?.metadata.color?.gradientColors ?? article?.metadata.role.gradientColors ?? []
+    }
+    
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.vertical) {
-                if let article {
+        ScrollView(.vertical) {
+            if let article {
+                LazyVStack(alignment: .leading) {
+                    Heading(article)
+                        .padding(.bottom, 15)
+                        .id(ScrollIdentifier.header)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(alignment: .top) {
+                            LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
+                                .padding(.top, -120+min(0, scrollOffset))
+                                .padding(.bottom, -50)
+                                .padding(.horizontal, -200)
+                                .ignoresSafeArea()
+                                .zIndex(10)
+                        }
+                    
+                    if let betaSummary = article.betaSummary {
+                        AsideView(style: .experiment, content: betaSummary, references: article.references)
+                    }
+                    
+                    if let deprecationSummary = article.deprecationSummary {
+                        AsideView(style: .deprecated, content: deprecationSummary, references: article.references)
+                    }
+                    
                     LazyVStack(alignment: .leading) {
-                        Heading(article)
-                            .padding(.bottom, 15)
-                            .id(ScrollIdentifier.header)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(alignment: .top) {
-                                LinearGradient(colors: article.metadata.role.gradientColors, startPoint: .top, endPoint: .bottom)
-                                    .padding(.top, -120)
-                                    .padding(.bottom, -50)
-                                    .padding(.horizontal, -200)
-                                    .ignoresSafeArea()
-                                    .zIndex(10)
-                            }
-                        
-                        if let betaSummary = article.betaSummary {
-                            AsideView(style: .experiment, content: betaSummary, references: article.references)
-                        }
-                        
-                        if let deprecationSummary = article.deprecationSummary {
-                            AsideView(style: .deprecated, content: deprecationSummary, references: article.references)
-                        }
-
-                        LazyVStack(alignment: .leading) {
-                            // Main Content
-                            ForEach(article.primaryContentSections ?? []) { section in
-                                switch section.kind {
-                                case .content:
-                                    VStack(spacing: 15) {
-                                        ForEach(section.condensedContent) { content in
-                                            ArticleContentView(content: content, references: article.references)
-                                                .padding(.top, content.type == .heading ? nil : 0)
-                                        }
+                        // Main Content
+                        ForEach(article.primaryContentSections ?? []) { section in
+                            switch section.kind {
+                            case .content:
+                                VStack(spacing: 15) {
+                                    ForEach(section.condensedContent) { content in
+                                        ArticleContentView(content: content, references: article.references)
+                                            .padding(.top, content.type == .heading ? nil : 0)
                                     }
-                                case .declarations:
-                                    ForEach(section.declarations ?? []) { declaration in
-                                        DeclarationContentView(content: declaration, article: article)
-                                    }
-                                case .mentions:
-                                    MentionsView(mentions: section.mentions ?? [], article: article)
-                                case .details:
-                                    if let details = section.details {
-                                        DetailsView(details: details)
-                                    }
-                                case .restBody:
-                                    WebEndpointRestBody(contentSection: section, references: article.references)
-                                case .restEndpoint:
-                                    WebEndpointRestEndPoint(contentSection: section, references: article.references)
-                                case .restResponses:
-                                    WebEndpointRestResponse(contentSection: section, references: article.references)
-                                case .properties, .restParameters:
-                                    WebEndpointRestPropertiesView(contentSection: section, references: article.references)
-                                case .attributes:
-                                    WebEndpointRestAttributesView(contentSection: section, references: article.references)
-                                default:
-                                    VStack {
-                                        ForEach(section.content ?? []) { content in
-                                            ArticleContentView(content: content, references: article.references)
-                                                .padding(.top, content.type == .heading ? nil : 0)
-                                        }
+                                }
+                            case .declarations:
+                                ForEach(section.declarations ?? []) { declaration in
+                                    DeclarationContentView(content: declaration, article: article)
+                                }
+                            case .mentions:
+                                MentionsView(mentions: section.mentions ?? [], article: article)
+                            case .details:
+                                if let details = section.details {
+                                    DetailsView(details: details)
+                                }
+                            case .restBody:
+                                WebEndpointRestBody(contentSection: section, references: article.references)
+                            case .restEndpoint:
+                                WebEndpointRestEndPoint(contentSection: section, references: article.references)
+                            case .restResponses:
+                                WebEndpointRestResponse(contentSection: section, references: article.references)
+                            case .properties, .restParameters:
+                                WebEndpointRestPropertiesView(contentSection: section, references: article.references)
+                            case .attributes:
+                                WebEndpointRestAttributesView(contentSection: section, references: article.references)
+                            default:
+                                VStack {
+                                    ForEach(section.content ?? []) { content in
+                                        ArticleContentView(content: content, references: article.references)
+                                            .padding(.top, content.type == .heading ? nil : 0)
                                     }
                                 }
                             }
-                        }
-                        .id(ScrollIdentifier.primaryContent)
-                        .textSelection(.enabled)
-                        
-                        if article.topicSections != nil {
-                            Divider()
-                                .padding(.vertical)
-                            TopicsView(article: article)
-                                .id(ScrollIdentifier.topics)
-                        }
-                        
-                        if article.relationshipsSections != nil {
-                            Divider()
-                                .padding(.vertical)
-                            RelationshipsView(article: article)
-                                .id(ScrollIdentifier.relationships)
-                        }
-                        
-                        if article.seeAlsoSections != nil {
-                            Divider()
-                                .padding(.vertical)
-                            SeeAlsoView(article: article)
-                                .id(ScrollIdentifier.seeAlso)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 15)
-                    .padding([.horizontal, .bottom], 30)
-                    .toolbar {
-                        let role = article.metadata.role
-                        let color: Color = role.accentColor
-                        
-                        if navigationViewModel.isUsingSplitView {
-                            ToolbarItemGroup(placement: .topBarLeading) {
-                                Group {
-                                    Button("Backward", systemImage: "chevron.left") {
-                                        navigationViewModel.goBackward()
-                                    }
-                                    .disabled(!navigationViewModel.previousHistoryExists)
-                                    
-                                    Button("Forward", systemImage: "chevron.right") {
-                                        navigationViewModel.goForward()
-                                    }
-                                    .disabled(!navigationViewModel.futureHistoryExists)
-                                }
-                                .tint(color)
-                            }
-                        }
-                        
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            
+                    .id(ScrollIdentifier.primaryContent)
+                    .textSelection(.enabled)
+                    
+                    if article.topicSections != nil {
+                        Divider()
+                            .padding(.vertical)
+                        TopicsView(article: article)
+                            .id(ScrollIdentifier.topics)
+                    }
+                    
+                    if article.relationshipsSections != nil {
+                        Divider()
+                            .padding(.vertical)
+                        RelationshipsView(article: article)
+                            .id(ScrollIdentifier.relationships)
+                    }
+                    
+                    if article.seeAlsoSections != nil {
+                        Divider()
+                            .padding(.vertical)
+                        SeeAlsoView(article: article)
+                            .id(ScrollIdentifier.seeAlso)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 15)
+                .padding([.horizontal, .bottom], 30)
+                .toolbar {
+                    let role = article.metadata.role
+                    let color: Color = role.accentColor
+                    
+                    if navigationViewModel.isUsingSplitView {
+                        ToolbarItemGroup(placement: .navigation) {
                             Group {
-                                if let url = reference.shareUrl {
-                                    ShareLink(item: url) {
-                                        Label("Share", systemImage: "square.and.arrow.up")
-                                    }
+                                Button("Backward", systemImage: "chevron.left") {
+                                    navigationViewModel.goBackward()
                                 }
+                                .disabled(!navigationViewModel.previousHistoryExists)
                                 
-//                                Button("Download", systemImage: "arrow.down.circle") {
-//                                    // TODO: Implement Downloading
-//                                }
-                                
-                                Button("Save", systemImage: "bookmark") {
-                                    // TODO: Implement Bookmarks
+                                Button("Forward", systemImage: "chevron.right") {
+                                    navigationViewModel.goForward()
                                 }
-                                
-                                if let variants = article.variants {
-                                    LanguagePicker(variants: variants)
-                                }
+                                .disabled(!navigationViewModel.futureHistoryExists)
                             }
                             .tint(color)
                         }
                     }
-                    .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
                     
-                    if let legalNotices = article.legalNotices {
-                        LegalNoticesView(legalNotices: legalNotices)
-                            .padding([.horizontal, .bottom])
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        
+                        Group {
+                            if let url = reference.shareUrl {
+                                ShareLink(item: url) {
+                                    Label("Share", systemImage: "square.and.arrow.up")
+                                }
+                            }
+                            
+                            //                                Button("Download", systemImage: "arrow.down.circle") {
+                            //                                    // TODO: Implement Downloading
+                            //                                }
+                            
+                            Button("Save", systemImage: "bookmark") {
+                                // TODO: Implement Bookmarks
+                            }
+                            
+                            if let variants = article.variants {
+                                LanguagePicker(variants: variants)
+                            }
+                        }
+                        .tint(color)
                     }
-                } else {
-                    ProgressView("Loading")
                 }
-            }
-            .scrollTargetLayout()
-            .lineSpacing(4)
-            .task {
-                await loadArticle()
-            }
-            .onChange(of: navigationViewModel.reference) {
-                proxy.scrollTo(ScrollIdentifier.header)
-                Task {
-                    await loadArticle()
+                .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
+                
+                if let legalNotices = article.legalNotices {
+                    LegalNoticesView(legalNotices: legalNotices)
+                        .padding([.horizontal, .bottom])
                 }
+            } else {
+                ProgressView("Loading")
             }
-            .id(reference)
-            .scrollContentBackground(.hidden)
-            .background(Color(platformColor: .systemBackground)
-                .ignoresSafeArea()
-            )
         }
+        .scrollTargetLayout()
+        .lineSpacing(4)
+        .task(id: navigationViewModel.reference) {
+            await loadArticle()
+        }
+        .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
+            proxy.contentOffset.y
+        }, action: { _, newValue in
+            self.scrollOffset = newValue
+        })
+        .id(reference)
+        .scrollContentBackground(.hidden)
+        .background(Color(platformColor: .systemBackground)
+            .ignoresSafeArea()
+        )
         .environment(\.docCSite, reference.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {

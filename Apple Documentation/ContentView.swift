@@ -10,8 +10,8 @@ import SwiftData
 
 struct ContentView: View {
     
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
-    @StateObject var navigationViewModel = NavigationViewModel()
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    @State var navigationViewModel = NavigationViewModel()
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -40,7 +40,7 @@ struct ContentView: View {
             }
         }
         .background(Color(platformColor: .systemBackground))
-        .environmentObject(navigationViewModel)
+        .environment(navigationViewModel)
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
             if navigationViewModel.isUsingSplitView {
@@ -184,7 +184,7 @@ struct ContentView: View {
     
 private struct TechView: View {
     @State var searchText = ""
-    @EnvironmentObject private var documentationViewModel: DocumentationViewModel
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.modelContext) private var modelContext
     
     // Add Documentation Alert
@@ -222,16 +222,30 @@ private struct TechView: View {
         return !filteredTech.isEmpty
     }
     
+    @ViewBuilder
+    func technologyView(for technology: TechnologyTypes) -> some View {
+        switch technology {
+        case .apple(let technologies):
+            AppleTechView(technology: technologies, isVisibleForSearch: isVisibleForSearch, searchText: searchText)
+        case .docC(let site):
+            DocCTechView(technology: site, isVisibleForSearch: isVisibleForSearch)
+        }
+    }
+    
     var body: some View {
         List {
             if searchHasResults {
-                ForEach(documentationViewModel.technologies) { technology in
-                    switch technology {
-                    case .apple(let technologies):
-                        AppleTechView(technology: technologies, isVisibleForSearch: isVisibleForSearch, searchText: searchText)
-                    case .docC(let site):
-                        DocCTechView(technology: site, isVisibleForSearch: isVisibleForSearch)
+                if !documentationViewModel.technologies.filter({ $0.isDocC }).isEmpty {
+                    Section {
+                        ForEach(documentationViewModel.technologies.filter({ $0.isDocC })) { technology in
+                            technologyView(for: technology)
+                        }
+                    } header: {
+                        Text("Custom Documentation")
                     }
+                }
+                ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+                    technologyView(for: technology)
                 }
             } else {
                 ContentUnavailableView {
@@ -295,9 +309,9 @@ private struct TechView: View {
                     
                     await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
                     
-                    if let technology = documentationViewModel.technologies.last {
+                    if let technology = documentationViewModel.technologies.first {
                         switch technology {
-                        case .apple(let appleTechnologies):
+                        case .apple:
                             break
                         case .docC(let docCSite):
                             modelContext.insert(docCSite)
@@ -314,48 +328,26 @@ private struct TechView: View {
 private struct DocCTechView: View {
     let technology: DocCSite
     let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSite, _ group: DocCIndex.InterfaceLanguage) -> Bool
-    @EnvironmentObject var documentationViewModel: DocumentationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, technology, group) } ?? []
-            if !filtered.isEmpty {
-                Section {
-                    //                    let filteredChildren = group.children?.filter { isVisibleForSearch($0, site: technology, group: group) }
-                    
-                    ForEach(filtered) { framework in
-                        Group {
-                            if framework.type == "groupMarker" {
-                                Text(framework.title)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.secondary)
-                            } else if let path = framework.path, path.lowercased().contains("/documentation"),
-                                      let frameworkSection = group.frameworkSection(for: framework, site: technology) {
-                                TechnologyNavigationLinkButton(technology: frameworkSection) {
-                                    ListItemLabel(framework: frameworkSection, references: [:])
-                                }
-                            } else if let path = framework.path, let url = URL(string: path), let frameworkSection = group.frameworkSection(for: framework, site: technology) {
-                                MacOSAgnosticLink(destination: url) {
-                                    ListItemLabel(framework: frameworkSection, references: [:])
-                                }
-                            }
-                        }
-                        .foregroundStyle(Color.primary)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+            if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
+                    TechnologyNavigationLinkButton(technology: frameworkSection) {
+                        ListItemLabel(framework: frameworkSection, references: [:])
                     }
-                } header: {
-                    Text(group.title)
-                        .contextMenu {
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                modelContext.delete(technology)
-                                documentationViewModel.deleteTechnology(technology)
-                            }
+                    .contextMenu {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            modelContext.delete(technology)
+                            documentationViewModel.deleteTechnology(technology)
                         }
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-            }
         }
     }
 }
@@ -364,7 +356,7 @@ private struct AppleTechView: View {
     let technology: AppleTechnologies
     let isVisibleForSearch: (_ technology: AppleTechnologies.FrameworkSection) -> Bool
     let searchText: String
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
@@ -434,7 +426,7 @@ private struct ListItemLabel: View {
     let framework: AppleTechnologies.FrameworkSection
     let references: [String: Reference]
     
-    @EnvironmentObject var navigationViewModel: NavigationViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
         HStack {

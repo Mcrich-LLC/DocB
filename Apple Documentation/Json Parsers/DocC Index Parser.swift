@@ -52,7 +52,7 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
 }
 
 @Model
-class DocCSite: Identifiable, Codable, Equatable, Hashable {
+final class DocCSite: Identifiable, Codable, Equatable, Hashable, Sendable {
     @Attribute(.unique)
     var id: UUID = UUID()
     var title: String

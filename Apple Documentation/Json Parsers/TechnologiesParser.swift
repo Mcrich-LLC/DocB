@@ -8,7 +8,7 @@
 import Foundation
 import EnhancedCodable
 
-enum TechnologyTypes: Identifiable {
+enum TechnologyTypes: Identifiable, Equatable {
     case apple(AppleTechnologies)
     case docC(DocCSite)
     
@@ -18,6 +18,15 @@ enum TechnologyTypes: Identifiable {
             return apple.id
         case .docC(let docC):
             return docC.id
+        }
+    }
+    
+    var isDocC: Bool {
+        switch self {
+        case .apple:
+            return false
+        case .docC:
+            return true
         }
     }
 }

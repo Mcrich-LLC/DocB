@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -61,7 +61,6 @@
 		22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22BC5F4E2E50CEA400271120 /* TagFilters.swift */; };
 		22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22C450B02CB4D61B00376AA5 /* SFSafeSymbols */; };
 		22E72B482D66627700552DE0 /* EnlargedImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E72B472D66627700552DE0 /* EnlargedImageView.swift */; };
-		22E72B4D2D66637000552DE0 /* Zoomable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E72B4C2D66637000552DE0 /* Zoomable.swift */; };
 		22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 22E7F4E12CB5048400FD6B2C /* HighlightSwift */; };
 /* End PBXBuildFile section */
 
@@ -118,9 +117,12 @@
 		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
 		22BC5F4E2E50CEA400271120 /* TagFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagFilters.swift; sourceTree = "<group>"; };
 		22E72B472D66627700552DE0 /* EnlargedImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnlargedImageView.swift; sourceTree = "<group>"; };
-		22E72B4C2D66637000552DE0 /* Zoomable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zoomable.swift; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Developer Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		22BD11292F09079C00D238BC /* SwiftUI Modifiers */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftUI Modifiers"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		22F8CD632CB23D6C0081BB0A /* Frameworks */ = {
@@ -247,7 +249,7 @@
 				2287E3DA2CBF6A8500090C9F /* MacOSAgnosticButton.swift */,
 				2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */,
 				2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */,
-				22E72B4C2D66637000552DE0 /* Zoomable.swift */,
+				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
 			);
 			path = "Apple Documentation";
@@ -293,6 +295,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
+			);
 			name = "Developer Documentation";
 			packageProductDependencies = (
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
@@ -312,7 +317,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					22F8CD652CB23D6C0081BB0A = {
 						CreatedOnToolsVersion = 16.0;
@@ -414,7 +419,6 @@
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
 				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
-				22E72B4D2D66637000552DE0 /* Zoomable.swift in Sources */,
 				22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */,
 				22A299F82CBF9A5F008EE3E5 /* WebEndpointRestPropertiesView.swift in Sources */,
 				2287E3F42CBF6A8500090C9F /* HomepageSection.swift in Sources */,
@@ -473,6 +477,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -496,6 +501,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -536,6 +542,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L7JQRVXU2V;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -552,6 +559,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -564,9 +572,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
-				DEVELOPMENT_TEAM = L7JQRVXU2V;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -605,9 +614,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
-				DEVELOPMENT_TEAM = L7JQRVXU2V;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;

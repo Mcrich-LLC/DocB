@@ -235,12 +235,14 @@ private struct TechView: View {
     var body: some View {
         List {
             if searchHasResults {
-                Section {
-                    ForEach(documentationViewModel.technologies.filter({ $0.isDocC })) { technology in
-                        technologyView(for: technology)
+                if !documentationViewModel.technologies.filter({ $0.isDocC }).isEmpty {
+                    Section {
+                        ForEach(documentationViewModel.technologies.filter({ $0.isDocC })) { technology in
+                            technologyView(for: technology)
+                        }
+                    } header: {
+                        Text("Custom Documentation")
                     }
-                } header: {
-                    Text("Custom Documentation")
                 }
                 ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
                     technologyView(for: technology)

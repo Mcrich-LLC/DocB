@@ -238,13 +238,14 @@ private struct FrameworkListItem: View {
                $0.text.lowercased() == "struct" ||
                $0.text.lowercased() == "class" ||
                $0.text.lowercased() == "protocol" ||
+               $0.text.lowercased() == "module" ||
                $0.text.lowercased() == "actor" ||
                $0.text.lowercased() == "enum"
            }) {
             return true
         }
         
-        return reference.role == .collectionGroup
+        return reference.role == .collectionGroup || reference.role == .collection
     }
     
     var body: some View {

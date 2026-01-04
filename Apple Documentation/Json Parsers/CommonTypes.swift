@@ -667,6 +667,10 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
     let images: [ImageStruct]?
     var docCSite: DocCSiteDTO?
     
+    var isExternalReference: Bool {
+        url?.lowercased().contains("/documentation") == false
+    }
+    
     var externalURL: URL? {
         guard let urlString = url else {
             return nil
@@ -687,14 +691,6 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         }
         
         return currentUrl.path().lowercased() == url.path().lowercased()
-    }
-    
-    var shareUrl: URL? {
-        guard let identifierUrl = URL(string: identifier) else { return nil }
-        
-        let shareUrlString = "https://developer.apple.com\(identifierUrl.path())"
-        
-        return URL(string: shareUrlString)
     }
     
     init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSiteDTO?) {

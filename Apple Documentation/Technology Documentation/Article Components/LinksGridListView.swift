@@ -62,6 +62,14 @@ struct LinksGridListView: View {
         return reference
     }
     
+    func referenceOpenURL(_ reference: Reference) -> URL? {
+        if let urlString = reference.url, !urlString.contains("/documentation") {
+            return reference.externalURL
+        }
+        
+        return URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme))
+    }
+    
     var body: some View {
         switch style {
         case .compactGrid, .detailedGrid:
@@ -70,7 +78,7 @@ struct LinksGridListView: View {
                     if let reference = conditionReference(references[identifier]),
                         let title = reference.title,
                        let imageId = reference.images?.first(where: { $0.type == .card })?.identifier,
-                       let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+                       let openUrl = referenceOpenURL(reference) {
                         
                         let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)
                         
@@ -122,12 +130,12 @@ struct LinksGridListView: View {
                                 .frame(width: 20, height: 20)
                             
                             VStack(alignment: textFrameAlignment) {
-                                Text(getFullTitle(reference))
-                                    .foregroundStyle(.primary)
+                                (Text(getFullTitle(reference)) + (reference.isExternalReference ? Text(" \(Image(systemSymbol: .arrowUpRight))") : Text("")))
+                                    .foregroundStyle(.tint)
                                 
                                 if let abstract = reference.abstract {
                                     AbstractView(abstract: abstract)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(Color.primary)
                                 }
                             }
                             .multilineTextAlignment(textAlignment)

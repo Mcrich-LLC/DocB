@@ -147,7 +147,7 @@ struct ArticleView: View {
                     ToolbarItemGroup(placement: .primaryAction) {
                         
                         Group {
-                            if let url = reference.shareUrl {
+                            if let url = reference.externalURL {
                                 ShareLink(item: url) {
                                     Label("Share", systemImage: "square.and.arrow.up")
                                 }

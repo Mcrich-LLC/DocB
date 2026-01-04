@@ -42,13 +42,8 @@ extension Color {
 
 typealias PlatformFont = NSFont
 
-extension ToolbarItemPlacement {
-    static let topBarLeading: ToolbarItemPlacement = .navigation
-    static let topBarTrailing: ToolbarItemPlacement = .navigation
-}
-
 extension ToolbarPlacement {
-    static let navigationBar = ToolbarPlacement.windowToolbar
+    @MainActor static let navigationBar = ToolbarPlacement.windowToolbar
 }
 
 extension View {

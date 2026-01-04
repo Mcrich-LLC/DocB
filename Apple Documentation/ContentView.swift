@@ -53,7 +53,7 @@ struct ContentView: View {
         .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
             await documentationViewModel.fetchHomepage()
-            await documentationViewModel.loadTechnologies(docCSites)
+            await documentationViewModel.loadTechnologies(docCSites.asDTOs)
             await documentationViewModel.fetchTechnologies()
         }
         .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
@@ -186,13 +186,14 @@ private struct TechView: View {
     @State var searchText = ""
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \DocCSite.title) var docCSites: [DocCSite]
     
     // Add Documentation Alert
     @State var showAddDocumentationAlert = false
     @State var addDocumentationName: String = ""
     @State var addDocumentationUrl: String = ""
     
-    func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSite, group: DocCIndex.InterfaceLanguage) -> Bool {
+    func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO, group: DocCIndex.InterfaceLanguage) -> Bool {
         guard let frameworkSection = group.frameworkSection(for: interfaceLanguage, site: site) else {
             return false
         }
@@ -235,10 +236,10 @@ private struct TechView: View {
     var body: some View {
         List {
             if searchHasResults {
-                if !documentationViewModel.technologies.filter({ $0.isDocC }).isEmpty {
+                if !docCSites.isEmpty {
                     Section {
-                        ForEach(documentationViewModel.technologies.filter({ $0.isDocC })) { technology in
-                            technologyView(for: technology)
+                        ForEach(docCSites.asDTOs) { technology in
+                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                         }
                     } header: {
                         Text("Custom Documentation")
@@ -307,16 +308,7 @@ private struct TechView: View {
                         return
                     }
                     
-                    await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl)
-                    
-                    if let technology = documentationViewModel.technologies.first {
-                        switch technology {
-                        case .apple:
-                            break
-                        case .docC(let docCSite):
-                            modelContext.insert(docCSite)
-                        }
-                    }
+                    await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl, modelContext: modelContext)
                 }
             }
             Button("Cancel") {}
@@ -326,8 +318,8 @@ private struct TechView: View {
 }
 
 private struct DocCTechView: View {
-    let technology: DocCSite
-    let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSite, _ group: DocCIndex.InterfaceLanguage) -> Bool
+    let technology: DocCSiteDTO
+    let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSiteDTO, _ group: DocCIndex.InterfaceLanguage) -> Bool
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
     
@@ -340,8 +332,7 @@ private struct DocCTechView: View {
                     }
                     .contextMenu {
                         Button("Delete", systemImage: "trash", role: .destructive) {
-                            modelContext.delete(technology)
-                            documentationViewModel.deleteTechnology(technology)
+                            documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
                         }
                     }
                     .foregroundStyle(Color.primary)

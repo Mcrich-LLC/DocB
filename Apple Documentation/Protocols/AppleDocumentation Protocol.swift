@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol AppleDocumentation: Decodable, Equatable, Hashable {
+protocol AppleDocumentation: Decodable, Equatable, Hashable, Sendable {
     var legalNotices: LegalNotices? { get }
 }

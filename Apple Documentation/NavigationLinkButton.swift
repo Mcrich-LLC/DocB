@@ -75,7 +75,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
-    private func _actionHandleSite(_ site: DocCSite) {
+    private func _actionHandleSite(_ site: DocCSiteDTO) {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         if let url = URL(string: reference.identifier) {
             let identifier = url.path()

@@ -16,7 +16,7 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
     let legalNotices: LegalNotices?
     
     @CodableIgnoreInitializedProperties
-    struct Section: Codable, Identifiable, Hashable {
+    struct Section: Codable, Identifiable, Hashable, Sendable {
         let id = UUID()
         
         let kind: Kind
@@ -38,7 +38,7 @@ struct HomepageParser: Codable, Hashable, AppleDocumentation {
     }
     
     @CodableIgnoreInitializedProperties
-    struct Resource: Codable, Hashable, Identifiable {
+    struct Resource: Codable, Hashable, Identifiable, Sendable {
         let id = UUID()
         
         let title: String

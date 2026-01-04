@@ -9,7 +9,8 @@ import Foundation
 import SwiftUI
 
 @Observable
-class NavigationViewModel: Equatable {
+@MainActor
+class NavigationViewModel: @MainActor Equatable {
     
     // MARK: Settings
     var openInAppDeeplinksInNewWindow: Bool = UserDefaults.standard.bool(forKey: "openInAppDeeplinksInNewWindow") {
@@ -401,7 +402,7 @@ extension NavigationViewModel {
     }
     
     @discardableResult
-    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSite, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         let identifier = url.path()
         
@@ -482,7 +483,7 @@ extension NavigationViewModel {
     }
     
     @discardableResult
-    private func handleDocCArticleURL(_ url: URL, for site: DocCSite, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCArticleURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
         var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
         

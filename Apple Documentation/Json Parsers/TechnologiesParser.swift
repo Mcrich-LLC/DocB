@@ -8,9 +8,9 @@
 import Foundation
 import EnhancedCodable
 
-enum TechnologyTypes: Identifiable, Equatable {
+enum TechnologyTypes: Identifiable, Equatable, Sendable {
     case apple(AppleTechnologies)
-    case docC(DocCSite)
+    case docC(DocCSiteDTO)
     
     var id: UUID {
         switch self {
@@ -31,7 +31,7 @@ enum TechnologyTypes: Identifiable, Equatable {
     }
 }
 
-struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
+struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
     let id = UUID()
     
     let header: Header?
@@ -83,7 +83,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
     }
     
     @CodableIgnoreInitializedProperties
-    struct Technology: Codable, Identifiable, Hashable, Equatable {
+    struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
         let id = UUID()
         
         let name: String
@@ -99,7 +99,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable {
         let tags: [String]
         let destination: Destination
         let legalNotices: LegalNotices?
-        let docCSite: DocCSite?
+        let docCSite: DocCSiteDTO?
         
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),

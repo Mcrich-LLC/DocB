@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     case swift
@@ -59,7 +60,7 @@ class DocumentationViewModel {
     }
     
     // MARK: URL Functions
-    func jsonUrl(for identifier: String, site: DocCSite?) -> URL? {
+    func jsonUrl(for identifier: String, site: DocCSiteDTO?) -> URL? {
         if let site {
             var identifier: String = identifier.lowercased()
             if let index = identifier.firstRange(of: "/documentation") {
@@ -134,16 +135,17 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(named name: String, baseUrl: URL) async {
+    func addTechnology(named name: String, baseUrl: URL, modelContext: ModelContext) async {
         do {
             let indexUrl = baseUrl.appending(path: "index/index.json")
             let (data, _) = try await URLSession.shared.data(from: indexUrl)
             
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
             let site = DocCSite(title: name, url: baseUrl, index: index)
+            modelContext.insert(site)
             await MainActor.run {
                 withAnimation {
-                    self.technologies.insert(.docC(site), at: self.technologies.count-1)
+                    self.technologies.insert(.docC(site.dto), at: self.technologies.count-1)
                 }
             }
         } catch {
@@ -151,14 +153,14 @@ class DocumentationViewModel {
         }
     }
     
-    func loadTechnologies(_ sites: [DocCSite]) async {
+    func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
             do {
                 let indexUrl = site.url.appending(path: "index/index.json")
                 let (data, _) = try await URLSession.shared.data(from: indexUrl)
                 
                 let index = try JSONDecoder().decode(DocCIndex.self, from: data)
-                site.index = index
+                site.setIndex(index)
                 await MainActor.run {
                     withAnimation {
                         self.technologies.append(.docC(site))
@@ -170,22 +172,23 @@ class DocumentationViewModel {
         }
     }
     
-    func deleteTechnology(_ site: DocCSite) {
+    func deleteTechnology(_ site: DocCSiteDTO, modelContext: ModelContext) {
         technologies.removeAll { $0.id == site.id }
+        site.deleteSite(modelContext: modelContext)
     }
     
     // MARK: Frameworks
     
     var frameworks: [String : Framework] = [:]
     
-    func fetchFramework(for identifier: String, site: DocCSite?, completion: @escaping () -> Void) {
+    func fetchFramework(for identifier: String, site: DocCSiteDTO?, completion: @escaping () -> Void) {
         Task {
             await fetchFramework(for: identifier, site: site)
             completion()
         }
     }
     
-    func fetchFramework(for identifier: String, site: DocCSite?) async {
+    func fetchFramework(for identifier: String, site: DocCSiteDTO?) async {
         do {
             guard let url = jsonUrl(for: identifier, site: site) else { return }
             
@@ -203,7 +206,7 @@ class DocumentationViewModel {
     
     // MARK: Articles
     
-    func fetchArticle(for identifier: String, site: DocCSite?, completion: @escaping (Article) -> Void) {
+    func fetchArticle(for identifier: String, site: DocCSiteDTO?, completion: @escaping (Article) -> Void) {
         Task {
             do {
                 let article = try await fetchArticle(for: identifier, site: site)
@@ -214,7 +217,7 @@ class DocumentationViewModel {
         }
     }
     
-    func fetchArticle(for identifier: String, site: DocCSite?) async throws -> Article {
+    func fetchArticle(for identifier: String, site: DocCSiteDTO?) async throws -> Article {
 //        do {
         guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }
         

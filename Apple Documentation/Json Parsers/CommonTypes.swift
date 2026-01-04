@@ -140,7 +140,7 @@ enum CodableFontWeight: String, CaseIterable, Codable {
 }
 
 @CodableIgnoreInitializedProperties
-struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
+struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     let id = UUID()
     
     let text: String?
@@ -322,7 +322,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let code: String?
     }
     
-    struct Content: Codable, Identifiable, Equatable, Hashable {
+    struct Content: Codable, Identifiable, Equatable, Hashable, Sendable {
         let id = UUID()
         let type: ContentType?
         
@@ -650,7 +650,7 @@ struct VariantOverride: Codable, Equatable, Hashable {
     }
 }
 
-struct Reference: Codable, Hashable, Identifiable {
+struct Reference: Codable, Hashable, Identifiable, Sendable {
     let id = UUID()
     
     let title: String?
@@ -665,7 +665,7 @@ struct Reference: Codable, Hashable, Identifiable {
     let beta: Bool?
     let variants: [Variant]?
     let images: [ImageStruct]?
-    var docCSite: DocCSite?
+    var docCSite: DocCSiteDTO?
     
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),
@@ -685,7 +685,7 @@ struct Reference: Codable, Hashable, Identifiable {
         return URL(string: shareUrlString)
     }
     
-    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSite?) {
+    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSiteDTO?) {
         self.title = title
         self.abstract = abstract
         self.identifier = identifier

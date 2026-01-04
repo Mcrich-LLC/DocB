@@ -250,7 +250,7 @@ private struct FrameworkListItem: View {
     var body: some View {
         if hasSubParts && !willHideDisclosureGroups {
             FrameworkDisclosureGroup(identifier: reference.identifier, title: title, reference: reference)
-        } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = URL(string: "https://developer.apple.com\(urlString)") {
+        } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = reference.externalURL {
             MacOSAgnosticLink(destination: url) {
                 HStack {
                     Label {

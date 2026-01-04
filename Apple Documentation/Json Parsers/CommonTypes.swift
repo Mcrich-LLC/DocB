@@ -667,6 +667,18 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
     let images: [ImageStruct]?
     var docCSite: DocCSiteDTO?
     
+    var externalURL: URL? {
+        guard let urlString = url else {
+            return nil
+        }
+        
+        guard let docCSite = docCSite else {
+            return URL(string: "https://developer.apple.com\(urlString)")
+        }
+        
+        return docCSite.url.appending(path: urlString)
+    }
+    
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),
               let url = URL(string: reference.identifier)

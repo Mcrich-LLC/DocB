@@ -9,7 +9,7 @@ import SwiftUI
 
 @Observable
 private final class TechnologyRootManager {
-    let frameworkSection: AppleTechnologies.FrameworkSection
+    var frameworkSection: AppleTechnologies.FrameworkSection
     
     init(frameworkSection: AppleTechnologies.FrameworkSection) {
         self.frameworkSection = frameworkSection
@@ -17,7 +17,6 @@ private final class TechnologyRootManager {
     
     var activeFilters: Set<TagFilters> = []
     var shownReferences: [String : Bool] = [:]
-    
     
     func getReference(from reference: Reference) -> Reference {
         var reference = reference
@@ -121,7 +120,10 @@ struct TechnologyRootView: View {
                 await getShownReferences()
             }
         }
-        .onChange(of: navigationViewModel.technology) {
+        .onChange(of: navigationViewModel.technology) { _, newValue in
+            if let newValue {
+                manager.frameworkSection = newValue
+            }
             Task {
                 await loadFramework()
                 await getShownReferences()
@@ -152,6 +154,7 @@ struct TechnologyRootView: View {
         let frameworkSection: AppleTechnologies.FrameworkSection
         let topicSections: [Framework.TopicSection]
         @Environment(TechnologyRootManager.self) private var manager
+        @Environment(DocumentationViewModel.self) var documentationViewModel
         
         var body: some View {
             if framework.topicSections?.isEmpty == true {

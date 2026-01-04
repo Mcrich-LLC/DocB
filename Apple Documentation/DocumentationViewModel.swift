@@ -41,6 +41,8 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
             self = .swift
         case "objc", "occ":
             self = .objectivec
+        case "data":
+            self = .data
         default:
             return nil
         }

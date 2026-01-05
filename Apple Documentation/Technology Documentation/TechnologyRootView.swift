@@ -70,36 +70,36 @@ struct TechnologyRootView: View {
                 #else
                 .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
                 #endif
-                    .toolbar {
-                        HStack {
-                            if self.manager.frameworkSection.docCSite == nil {
-                                Menu {
-                                    ForEach(TagFilters.allCases, id: \.self) { filter in
-                                        Button {
-                                            if manager.activeFilters.contains(filter) {
-                                                manager.activeFilters.remove(filter)
-                                            } else {
-                                                manager.activeFilters.insert(filter)
-                                            }
-                                        } label: {
-                                            if manager.activeFilters.contains(filter) {
-                                                Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
-                                            } else {
-                                                Text(filter.rawValue.capitalized)
-                                            }
+                .toolbar {
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        if self.manager.frameworkSection.docCSite == nil {
+                            Menu {
+                                ForEach(TagFilters.allCases, id: \.self) { filter in
+                                    Button {
+                                        if manager.activeFilters.contains(filter) {
+                                            manager.activeFilters.remove(filter)
+                                        } else {
+                                            manager.activeFilters.insert(filter)
+                                        }
+                                    } label: {
+                                        if manager.activeFilters.contains(filter) {
+                                            Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
+                                        } else {
+                                            Text(filter.rawValue.capitalized)
                                         }
                                     }
-                                } label: {
-                                    Label("Filter", systemSymbol: .line3HorizontalDecrease)
-                                        .labelStyle(.iconOnly)
                                 }
-                            }
-
-                            if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
-                                LanguagePicker(variants: variants)
+                            } label: {
+                                Label("Filter", systemSymbol: .line3HorizontalDecrease)
+                                    .labelStyle(.iconOnly)
                             }
                         }
+                        
+                        if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
+                            LanguagePicker(variants: variants)
+                        }
                     }
+                }
             } else {
                 ProgressView("Loading")
             }

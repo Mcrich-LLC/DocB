@@ -528,7 +528,7 @@ extension NavigationViewModel {
         
         article?.docCSite = site
         
-        guard article?.identifier.contains("com.apple.documentation") != true, article?.identifier.lowercased().contains(site.title.lowercased()) == true else {
+        guard article?.identifier.contains("com.apple") != true, article?.identifier.lowercased().contains(site.title.lowercased()) == true else {
             // Actually Apple Article
             return false
         }
@@ -589,7 +589,7 @@ extension NavigationViewModel {
             }
         }
         
-        guard article?.identifier.contains("com.apple.documentation") == true || article?.identifier.contains("developer.apple.com") == true else {
+        guard article?.identifier.contains("com.apple") == true || article?.identifier.contains("apple.com") == true else {
             // Not Apple Article
             return false
         }

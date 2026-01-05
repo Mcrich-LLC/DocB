@@ -30,9 +30,7 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
-        if self.technology != technology {
-            self.technology = technology
-        }
+        self.technology = technology
         self.isShowingTechnology = true
     }
     
@@ -45,9 +43,7 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     func setReference(_ reference: Reference?) {
-        if self.reference != reference {
-            self.reference = reference
-        }
+        self.reference = reference
     }
         
     var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
@@ -412,9 +408,15 @@ extension NavigationViewModel {
             return false
         }
         
+        let technologyDTO = site.frameworkSection(for: technology)
+        
         await MainActor.run {
             withAnimation(.snappy) {
-                self.setTechnology(site.frameworkSection(for: technology))
+                guard let technologyDTO, self.technology?.isEqual(to: technologyDTO) != true else {
+                    return
+                }
+                
+                self.setTechnology(technologyDTO)
             } completion: {
 #if (os(macOS) || targetEnvironment(macCatalyst))
                 self.splitViewColumnVisibility = .all // Mac crashes from error otherwise
@@ -448,8 +450,12 @@ extension NavigationViewModel {
         guard self.technology?.destination.identifier.lowercased() != technology.destination.identifier.lowercased() else {
             return false
         }
+        
         await MainActor.run {
             withAnimation(.snappy) {
+                guard self.technology?.isEqual(to: technology) != true else {
+                    return
+                }
                 self.setTechnology(technology)
             } completion: {
 #if (os(macOS) || targetEnvironment(macCatalyst))
@@ -541,6 +547,10 @@ extension NavigationViewModel {
         }
         
         await MainActor.run {
+            guard self.reference?.isEqual(to: article) != true else {
+                return
+            }
+            
             self.setReference(article)
         }
         
@@ -602,6 +612,10 @@ extension NavigationViewModel {
         }
         
         await MainActor.run {
+            guard self.reference?.isEqual(to: article) != true else {
+                return
+            }
+            
             self.setReference(article)
         }
         

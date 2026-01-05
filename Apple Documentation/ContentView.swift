@@ -202,6 +202,10 @@ private struct TechView: View {
         return isVisibleForSearch(frameworkSection)
     }
     
+    func isVisibleForSearch(_ site: DocCSiteDTO) -> Bool {
+        return !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
+    }
+    
     func isVisibleForSearch(_ technology: AppleTechnologies.FrameworkSection) -> Bool {
         guard !searchText.isEmpty else { return true }
         
@@ -237,7 +241,7 @@ private struct TechView: View {
     var body: some View {
         List {
             if searchHasResults {
-                if !docCSites.isEmpty {
+                if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
                     Section {
                         ForEach(docCSites.asDTOs) { technology in
                             DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)

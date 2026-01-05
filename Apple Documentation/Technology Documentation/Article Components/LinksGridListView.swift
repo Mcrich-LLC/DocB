@@ -77,7 +77,7 @@ struct LinksGridListView: View {
                 ForEach(identifiers, id: \.self) { identifier in
                     if let reference = conditionReference(references[identifier]),
                         let title = reference.title,
-                       let imageId = reference.images?.first(where: { $0.type == .card })?.identifier,
+                       let imageId = reference.images?.first(where: { $0.type == .card || $0.type == .icon })?.identifier,
                        let openUrl = referenceOpenURL(reference) {
                         
                         let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)

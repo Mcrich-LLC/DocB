@@ -390,12 +390,12 @@ extension NavigationViewModel {
             case .apple(let technologies):
                 let didHandle = await handleAppleFrameworkURL(url, for: technologies, documentationViewModel: documentationViewModel)
                 if didHandle {
-                    break
+                    return
                 }
             case .docC(let site):
                 let didHandle = await handleDocCFrameworkURL(url, for: site, documentationViewModel: documentationViewModel)
                 if didHandle {
-                    break
+                    return
                 }
             }
         }
@@ -407,7 +407,7 @@ extension NavigationViewModel {
         let identifier = url.path()
         
         guard let technologyGroup = groups.first(where: { $0.children?.contains(where: { $0.path?.lowercased() == identifier.lowercased() }) ?? false }),
-              let technology = technologyGroup.children?.first(where: { $0.path == identifier })
+              let technology = technologyGroup.children?.first(where: { $0.path?.lowercased() == identifier.lowercased() })
         else {
             return false
         }
@@ -471,12 +471,12 @@ extension NavigationViewModel {
             case .apple(let technologies):
                 let didHandle = await handleAppleArticleURL(url, for: technologies, documentationViewModel: documentationViewModel)
                 if didHandle {
-                    break
+                    return
                 }
             case .docC(let site):
                 let didHandle = await handleDocCArticleURL(url, for: site, documentationViewModel: documentationViewModel)
                 if didHandle {
-                    break
+                    return
                 }
             }
         }
@@ -506,7 +506,7 @@ extension NavigationViewModel {
             }
         }
         
-        let article: Reference?
+        var article: Reference?
         
         if let reference = references[articleIdentifier] {
             article = reference
@@ -524,6 +524,13 @@ extension NavigationViewModel {
             } catch {
                 article = nil
             }
+        }
+        
+        article?.docCSite = site
+        
+        guard article?.identifier.contains("com.apple.documentation") != true, article?.identifier.lowercased().contains(site.title.lowercased()) == true else {
+            // Actually Apple Article
+            return false
         }
         
         guard let article else {
@@ -580,6 +587,11 @@ extension NavigationViewModel {
             } catch {
                 article = nil
             }
+        }
+        
+        guard article?.identifier.contains("com.apple.documentation") == true || article?.identifier.contains("developer.apple.com") == true else {
+            // Not Apple Article
+            return false
         }
         
         guard let article else {

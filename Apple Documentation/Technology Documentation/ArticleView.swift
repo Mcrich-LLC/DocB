@@ -203,6 +203,7 @@ struct ArticleView: View {
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }
+        .accentColor(Color.accentColor)
     }
     
     @ViewBuilder

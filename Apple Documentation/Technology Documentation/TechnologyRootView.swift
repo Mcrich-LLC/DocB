@@ -121,7 +121,7 @@ struct TechnologyRootView: View {
             }
         }
         .onChange(of: navigationViewModel.technology) { _, newValue in
-            if let newValue {
+            if let newValue, navigationViewModel.isUsingSplitView {
                 manager.frameworkSection = newValue
             }
             Task {

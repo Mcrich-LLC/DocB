@@ -135,13 +135,13 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(named name: String, baseUrl: URL, modelContext: ModelContext) async {
+    func addTechnology(baseUrl: URL, modelContext: ModelContext) async {
         do {
             let indexUrl = baseUrl.appending(path: "index/index.json")
             let (data, _) = try await URLSession.shared.data(from: indexUrl)
             
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
-            let site = DocCSite(title: name, url: baseUrl, index: index)
+            let site = DocCSite(url: baseUrl, index: index)
             modelContext.insert(site)
             await MainActor.run {
                 withAnimation {

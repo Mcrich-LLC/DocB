@@ -186,11 +186,10 @@ private struct TechView: View {
     @State var searchText = ""
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \DocCSite.title) var docCSites: [DocCSite]
+    @Query(sort: \DocCSite.timestamp) var docCSites: [DocCSite]
     
     // Add Documentation Alert
     @State var showAddDocumentationAlert = false
-    @State var addDocumentationName: String = ""
     @State var addDocumentationUrl: String = ""
     
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO, group: DocCIndex.InterfaceLanguage) -> Bool {
@@ -275,12 +274,10 @@ private struct TechView: View {
             
         }
         .alert("Add Documentation", isPresented: $showAddDocumentationAlert) {
-            TextField("Name", text: $addDocumentationName)
             TextField("URL", text: $addDocumentationUrl)
             Button("Add") {
                 Task {
                     defer {
-                        self.addDocumentationName = ""
                         self.addDocumentationUrl = ""
                     }
                     var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
@@ -308,7 +305,7 @@ private struct TechView: View {
                         return
                     }
                     
-                    await documentationViewModel.addTechnology(named: addDocumentationName, baseUrl: baseUrl, modelContext: modelContext)
+                    await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext)
                 }
             }
             Button("Cancel") {}

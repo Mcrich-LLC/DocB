@@ -59,20 +59,20 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(title)
+        hasher.combine(timestamp)
         hasher.combine(url)
         hasher.combine(index)
     }
     
     let id: UUID
-    let title: String
+    let timestamp: Date
     let url: URL
     private(set) var index: DocCIndex
     fileprivate var persistentModelID: PersistentIdentifier?
     
-    init(title: String, url: URL, index: DocCIndex) {
+    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
         self.id = UUID()
-        self.title = title
+        self.timestamp = timestamp
         self.url = url
         self.index = index
         self.persistentModelID = nil
@@ -80,7 +80,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     init(_ model: DocCSite) {
         self.id = model.id
-        self.title = model.title
+        self.timestamp = model.timestamp
         self.url = model.url
         self.index = model.index
         self.persistentModelID = model.persistentModelID
@@ -89,7 +89,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
-        self.title = try container.decode(String.self, forKey: .title)
+        self.timestamp = try container.decode(Date.self, forKey: .timestamp)
         self.url = try container.decode(URL.self, forKey: .url)
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
@@ -99,7 +99,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     enum CodingKeys: String, CodingKey {
-        case title
+        case timestamp
         case url
         case index
     }
@@ -142,20 +142,20 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
 final class DocCSite: Identifiable {
     @Attribute(.unique)
     var id: UUID = UUID()
-    var title: String
+    var timestamp: Date
     var url: URL
     
 //    @Attribute(.externalStorage)
     var index: DocCIndex
     
-    init(title: String, url: URL, index: DocCIndex) {
-        self.title = title
+    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+        self.timestamp = timestamp
         self.url = url
         self.index = index
     }
     
     init(_ dto: DocCSiteDTO) async {
-        self.title = dto.title
+        self.timestamp = dto.timestamp
         self.url = dto.url
         self.index = await dto.index
     }

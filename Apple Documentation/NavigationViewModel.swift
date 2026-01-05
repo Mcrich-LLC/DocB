@@ -528,7 +528,9 @@ extension NavigationViewModel {
         
         article?.docCSite = site
         
-        guard article?.identifier.contains("com.apple") != true, article?.identifier.lowercased().contains(site.title.lowercased()) == true else {
+        guard article?.identifier.contains("com.apple") != true, site.groups.flatMap({ [$0] + ($0.children ?? []) }).contains(where: {
+            $0.path?.lowercased() == "/\(Array(url.pathComponents.dropFirst()).joined(separator: "/"))".lowercased()
+        }) == true else {
             // Actually Apple Article
             return false
         }

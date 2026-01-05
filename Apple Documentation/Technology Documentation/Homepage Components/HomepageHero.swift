@@ -19,7 +19,7 @@ struct HomepageHero: View {
         let identifier = if let video = section.video { video } else { section.image }
         
         guard let identifier,
-              let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme)
+              let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme, docCSite: nil)
         else {
             return nil
         }

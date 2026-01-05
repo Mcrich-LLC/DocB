@@ -27,7 +27,7 @@ struct HomepageResources: View {
     @ViewBuilder
     func item(_ item: HomepageParser.Resource) -> some View {
         VStack {
-            if let imageId = item.image, let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: homepage.references, colorScheme: colorScheme) {
+            if let imageId = item.image, let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: homepage.references, colorScheme: colorScheme, docCSite: nil) {
                 KFImage(imageUrl)
                     .placeholder({
                         RoundedRectangle(cornerRadius: 25)

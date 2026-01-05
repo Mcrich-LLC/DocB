@@ -26,11 +26,11 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
         
         let children: [InterfaceLanguage]?
         
-        func allFrameworkSections(for site: DocCSite) -> [AppleTechnologies.FrameworkSection] {
+        func allFrameworkSections(for site: DocCSiteDTO) -> [AppleTechnologies.FrameworkSection] {
             children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
         }
         
-        func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSite) -> AppleTechnologies.FrameworkSection? {
+        func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO) -> AppleTechnologies.FrameworkSection? {
 //            let languages = self.index.interfaceLanguages.filter({
 //                $0.value.contains(where: { $0.path == interfaceLanguage.path ?? "" }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
 //            }).map(\.key)
@@ -51,42 +51,57 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-@Model
-final class DocCSite: Identifiable, Codable, Equatable, Hashable, Sendable {
-    @Attribute(.unique)
-    var id: UUID = UUID()
-    var title: String
-    var url: URL
+@MainActor
+final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable, Sendable {
+    nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
+        lhs.id == rhs.id
+    }
     
-//    @Attribute(.externalStorage)
-    var index: DocCIndex
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(timestamp)
+        hasher.combine(url)
+        hasher.combine(index)
+    }
     
-    init(title: String, url: URL, index: DocCIndex) {
-        self.title = title
+    let id: UUID
+    let timestamp: Date
+    let url: URL
+    private(set) var index: DocCIndex
+    fileprivate var persistentModelID: PersistentIdentifier?
+    
+    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+        self.id = UUID()
+        self.timestamp = timestamp
         self.url = url
+        self.index = index
+        self.persistentModelID = nil
+    }
+    
+    init(_ model: DocCSite) {
+        self.id = model.id
+        self.timestamp = model.timestamp
+        self.url = model.url
+        self.index = model.index
+        self.persistentModelID = model.persistentModelID
+    }
+    
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = UUID()
+        self.timestamp = try container.decode(Date.self, forKey: .timestamp)
+        self.url = try container.decode(URL.self, forKey: .url)
+        self.index = try container.decode(DocCIndex.self, forKey: .index)
+    }
+    
+    func setIndex(_ index: DocCIndex) {
         self.index = index
     }
     
     enum CodingKeys: String, CodingKey {
-        case title
+        case timestamp
         case url
         case index
-    }
-    
-    required init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        title = try container.decode(String.self, forKey: .title)
-        url = try container.decode(URL.self, forKey: .url)
-        index = try container.decode(DocCIndex.self, forKey: .index)
-    }
-    
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(title, forKey: .title)
-        try container.encode(url, forKey: .url)
-        try container.encode(index, forKey: .index)
     }
     
     var groups: [DocCIndex.InterfaceLanguage] {
@@ -115,9 +130,48 @@ final class DocCSite: Identifiable, Codable, Equatable, Hashable, Sendable {
             docCSite: self
         )
     }
+    
+    func deleteSite(modelContext: ModelContext) {
+        guard let persistentModelID else { return }
+        let model = modelContext.model(for: persistentModelID)
+        modelContext.delete(model)
+    }
+}
+
+@Model
+final class DocCSite: Identifiable {
+    @Attribute(.unique)
+    var id: UUID = UUID()
+    var timestamp: Date
+    var url: URL
+    
+//    @Attribute(.externalStorage)
+    var index: DocCIndex
+    
+    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+        self.timestamp = timestamp
+        self.url = url
+        self.index = index
+    }
+    
+    init(_ dto: DocCSiteDTO) async {
+        self.timestamp = dto.timestamp
+        self.url = dto.url
+        self.index = await dto.index
+    }
+    
+    @MainActor var dto: DocCSiteDTO {
+        .init(self)
+    }
+}
+
+extension [DocCSite] {
+    @MainActor var asDTOs: [DocCSiteDTO] {
+        map({ DocCSiteDTO($0) })
+    }
 }
 
 // Make Environment Value
 extension EnvironmentValues {
-    @Entry var docCSite: DocCSite?
+    @Entry var docCSite: DocCSiteDTO?
 }

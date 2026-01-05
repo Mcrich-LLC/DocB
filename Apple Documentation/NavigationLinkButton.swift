@@ -47,6 +47,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(\.openURL) private var openURL
     let reference: Reference
     
     @ViewBuilder
@@ -75,7 +76,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
-    private func _actionHandleSite(_ site: DocCSite) {
+    private func _actionHandleSite(_ site: DocCSiteDTO) {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         if let url = URL(string: reference.identifier) {
             let identifier = url.path()
@@ -99,6 +100,10 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     func action() {
+        if let url = reference.externalURL, reference.isExternalReference {
+            openURL(url)
+            return
+        }
         switch navigationViewModel.path.last {
         case .reference:
             if removeLastPathComponentFirst {

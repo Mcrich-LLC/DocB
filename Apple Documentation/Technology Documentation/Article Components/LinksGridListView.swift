@@ -62,6 +62,14 @@ struct LinksGridListView: View {
         return reference
     }
     
+    func referenceOpenURL(_ reference: Reference) -> URL? {
+        if let urlString = reference.url, !urlString.contains("/documentation") {
+            return reference.externalURL
+        }
+        
+        return URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme))
+    }
+    
     var body: some View {
         switch style {
         case .compactGrid, .detailedGrid:
@@ -69,26 +77,36 @@ struct LinksGridListView: View {
                 ForEach(identifiers, id: \.self) { identifier in
                     if let reference = conditionReference(references[identifier]),
                         let title = reference.title,
-                       let imageId = reference.images?.first(where: { $0.type == .card })?.identifier,
-                       let openUrl = URL(string: reference.identifier.replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
-                        
-                        let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)
+                       let openUrl = referenceOpenURL(reference) {
                         
                         MacOSAgnosticLink(destination: openUrl) {
                             VStack(alignment: textFrameAlignment) {
-                                KFImage(imageUrl)
-                                    .placeholder({
-                                        RoundedRectangle(cornerRadius: 25)
-                                            .fill(Color.clear)
-                                            .stroke(Color.primary, lineWidth: 2)
-                                            .scaledToFit()
-                                            .overlay {
-                                                ProgressView()
-                                            }
-                                    })
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 25))
+                                if let imageId = reference.images?.first(where: { $0.type == .card || $0.type == .icon })?.identifier,
+                                   let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme, docCSite: docCSite) {
+                                    KFImage(imageUrl)
+                                        .placeholder({
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .fill(Color.clear)
+                                                .stroke(Color.primary, lineWidth: 2)
+                                                .scaledToFit()
+                                                .overlay {
+                                                    ProgressView()
+                                                }
+                                        })
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                                } else {
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(.background.secondary)
+                                        .scaledToFit()
+                                        .overlay {
+                                            Image(systemSymbol: reference.role?.labelIcon ?? .docText)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .scaleEffect(0.3)
+                                        }
+                                }
                                 
                                 Text(title)
                                     .foregroundStyle(Color.primary)
@@ -122,12 +140,12 @@ struct LinksGridListView: View {
                                 .frame(width: 20, height: 20)
                             
                             VStack(alignment: textFrameAlignment) {
-                                Text(getFullTitle(reference))
-                                    .foregroundStyle(.primary)
+                                (Text(getFullTitle(reference)) + (reference.isExternalReference ? Text(" \(Image(systemSymbol: .arrowUpRight))") : Text("")))
+                                    .foregroundStyle(.tint)
                                 
                                 if let abstract = reference.abstract {
                                     AbstractView(abstract: abstract)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(Color.primary)
                                 }
                             }
                             .multilineTextAlignment(textAlignment)
@@ -176,14 +194,14 @@ struct LinksGridListView: View {
             nsAttributedString.append(fragmentAttributedString)
             
             if !nsAttributedString.string.contains(reference.title ?? "") {
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [:]
                 let titleAttributedString = NSAttributedString(string: reference.title ?? "", attributes: titleAttributes)
                 nsAttributedString.append(titleAttributedString)
             } else {
                 let string = nsAttributedString.string
                 let range: NSRange = string.range(of: reference.title ?? "")!.nsRange(in: string)
                 
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [:]
                 nsAttributedString.addAttributes(titleAttributes, range: range)
             }
             

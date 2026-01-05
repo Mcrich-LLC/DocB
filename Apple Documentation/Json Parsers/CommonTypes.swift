@@ -140,7 +140,7 @@ enum CodableFontWeight: String, CaseIterable, Codable {
 }
 
 @CodableIgnoreInitializedProperties
-struct ContentStruct: Codable, Hashable, Identifiable, Equatable {
+struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     let id = UUID()
     
     let text: String?
@@ -322,7 +322,7 @@ struct ContentSection: Codable, Identifiable, Equatable, Hashable {
         let code: String?
     }
     
-    struct Content: Codable, Identifiable, Equatable, Hashable {
+    struct Content: Codable, Identifiable, Equatable, Hashable, Sendable {
         let id = UUID()
         let type: ContentType?
         
@@ -650,7 +650,7 @@ struct VariantOverride: Codable, Equatable, Hashable {
     }
 }
 
-struct Reference: Codable, Hashable, Identifiable {
+struct Reference: Codable, Hashable, Identifiable, Sendable {
     let id = UUID()
     
     let title: String?
@@ -665,7 +665,23 @@ struct Reference: Codable, Hashable, Identifiable {
     let beta: Bool?
     let variants: [Variant]?
     let images: [ImageStruct]?
-    var docCSite: DocCSite?
+    var docCSite: DocCSiteDTO?
+    
+    var isExternalReference: Bool {
+        url?.lowercased().contains("/documentation") == false
+    }
+    
+    var externalURL: URL? {
+        guard let urlString = url else {
+            return nil
+        }
+        
+        guard let docCSite = docCSite else {
+            return URL(string: "https://developer.apple.com\(urlString)")
+        }
+        
+        return docCSite.url.appending(path: urlString)
+    }
     
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),
@@ -677,15 +693,7 @@ struct Reference: Codable, Hashable, Identifiable {
         return currentUrl.path().lowercased() == url.path().lowercased()
     }
     
-    var shareUrl: URL? {
-        guard let identifierUrl = URL(string: identifier) else { return nil }
-        
-        let shareUrlString = "https://developer.apple.com\(identifierUrl.path())"
-        
-        return URL(string: shareUrlString)
-    }
-    
-    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSite?) {
+    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSiteDTO?) {
         self.title = title
         self.abstract = abstract
         self.identifier = identifier
@@ -803,6 +811,8 @@ enum Role: String, Codable, Equatable, Hashable {
                 .listBullet
         case .sampleCode, .symbol:
                 .curlybraces
+        case .overview:
+                .pointBottomleftFilledForwardToPointToprightScurvepath
         default:
                 .docText
         }

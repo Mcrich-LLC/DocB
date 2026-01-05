@@ -194,14 +194,14 @@ struct LinksGridListView: View {
             nsAttributedString.append(fragmentAttributedString)
             
             if !nsAttributedString.string.contains(reference.title ?? "") {
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [:]
                 let titleAttributedString = NSAttributedString(string: reference.title ?? "", attributes: titleAttributes)
                 nsAttributedString.append(titleAttributedString)
             } else {
                 let string = nsAttributedString.string
                 let range: NSRange = string.range(of: reference.title ?? "")!.nsRange(in: string)
                 
-                let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.accent]
+                let titleAttributes: [NSAttributedString.Key: Any] = [:]
                 nsAttributedString.addAttributes(titleAttributes, range: range)
             }
             

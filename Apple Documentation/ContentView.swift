@@ -143,6 +143,7 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .environment(\.horizontalSizeClass, horizontalSizeClass)
+            .accentColor(Color.accentColor)
         } detail: {
             Group {
                 if let reference = navigationViewModel.reference {
@@ -152,6 +153,7 @@ struct ContentView: View {
                 }
             }
             .frame(minWidth: 150, minHeight: 150)
+            .accentColor(Color.accentColor)
         }
         .accentColor(navigationTint)
     }

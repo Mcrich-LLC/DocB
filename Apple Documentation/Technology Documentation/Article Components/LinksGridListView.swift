@@ -77,26 +77,36 @@ struct LinksGridListView: View {
                 ForEach(identifiers, id: \.self) { identifier in
                     if let reference = conditionReference(references[identifier]),
                         let title = reference.title,
-                       let imageId = reference.images?.first(where: { $0.type == .card || $0.type == .icon })?.identifier,
                        let openUrl = referenceOpenURL(reference) {
-                        
-                        let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme)
                         
                         MacOSAgnosticLink(destination: openUrl) {
                             VStack(alignment: textFrameAlignment) {
-                                KFImage(imageUrl)
-                                    .placeholder({
-                                        RoundedRectangle(cornerRadius: 25)
-                                            .fill(Color.clear)
-                                            .stroke(Color.primary, lineWidth: 2)
-                                            .scaledToFit()
-                                            .overlay {
-                                                ProgressView()
-                                            }
-                                    })
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: 25))
+                                if let imageId = reference.images?.first(where: { $0.type == .card || $0.type == .icon })?.identifier,
+                                   let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme, docCSite: docCSite) {
+                                    KFImage(imageUrl)
+                                        .placeholder({
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .fill(Color.clear)
+                                                .stroke(Color.primary, lineWidth: 2)
+                                                .scaledToFit()
+                                                .overlay {
+                                                    ProgressView()
+                                                }
+                                        })
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                                } else {
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(.background.secondary)
+                                        .scaledToFit()
+                                        .overlay {
+                                            Image(systemSymbol: reference.role?.labelIcon ?? .docText)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .scaleEffect(0.3)
+                                        }
+                                }
                                 
                                 Text(title)
                                     .foregroundStyle(Color.primary)

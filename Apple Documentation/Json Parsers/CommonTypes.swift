@@ -811,6 +811,8 @@ enum Role: String, Codable, Equatable, Hashable {
                 .listBullet
         case .sampleCode, .symbol:
                 .curlybraces
+        case .overview:
+                .pointBottomleftFilledForwardToPointToprightScurvepath
         default:
                 .docText
         }

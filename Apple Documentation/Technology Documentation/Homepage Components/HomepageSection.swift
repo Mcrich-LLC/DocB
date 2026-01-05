@@ -100,7 +100,7 @@ private struct HighlightedLinks: View {
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
     func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme) else {
+        guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme, docCSite: docCSite) else {
             return nil
         }
         
@@ -217,7 +217,7 @@ private struct Cards: View {
         if let url = URL(string: content.destination.identifier) {
             MacOSAgnosticLink(destination: url) {
                 VStack {
-                    if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme) {
+                    if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme, docCSite: nil) {
                         KFImage(imageUrl)
                             .placeholder({
                                 UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)

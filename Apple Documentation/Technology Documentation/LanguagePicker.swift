@@ -39,6 +39,7 @@ struct LanguagePicker: View {
                 }
             }
             .labelsHidden()
+            .pickerStyle(.menu)
         }
     }
 }

@@ -422,7 +422,13 @@ struct ArticleContentView: View {
                     } else if let text = inline.code {
                         inlineText = text
                     } else if let identifier = inline.identifier {
-                        inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                        // Get reference if possible
+                        if let reference = references[identifier], let title = reference.title {
+                            inlineText = title
+                        } else {
+                            // Fallback to parsing identifier for text if not possible
+                            inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                        }
                     } else {
                         inlineText = ""
                     }
@@ -441,7 +447,13 @@ struct ArticleContentView: View {
                         }
                         
                         if let identifier = inline.identifier {
-                            attributedString.link = URL(string: identifier)
+                            // Get official link if possible
+                            if let reference = references[identifier], let url = reference.externalURL {
+                                attributedString.link = url
+                            } else {
+                                // Fall back to parsing identifier if not possible
+                                attributedString.link = URL(string: identifier)
+                            }
                         }
                         
                         if inlineText == "/%1.5_break_/%" {

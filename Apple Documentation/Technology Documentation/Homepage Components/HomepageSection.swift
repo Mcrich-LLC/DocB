@@ -184,6 +184,8 @@ private struct Cards: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    @State var cardHeights: [UUID : CGFloat] = [:]
+    
     var body: some View {
         VStack {
             if let title = section.title {
@@ -223,13 +225,13 @@ private struct Cards: View {
                                 UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
                                     .fill(Color.clear)
                                     .stroke(Color.primary, lineWidth: 2)
-                                    .scaledToFill()
+                                    .scaledToFit()
                                     .overlay {
                                         ProgressView()
                                     }
                             })
                             .resizable()
-                            .scaledToFill()
+                            .scaledToFit()
                             .clipShape(
                                 UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
                             )
@@ -267,8 +269,14 @@ private struct Cards: View {
                     }
                     .multilineTextAlignment(.leading)
                     .padding()
+                    .frame(height: Set(cardHeights.values).sorted(by: >).first)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { newValue in
+                        cardHeights[content.id] = newValue
+                    }
                 }
-                .frame(maxHeight: .infinity)
+                .frame(maxHeight: .infinity, alignment: .top)
                 .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color(platformColor: .systemBackground))

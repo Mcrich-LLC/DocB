@@ -59,5 +59,6 @@ struct HomepageHero: View {
             }
             .multilineTextAlignment(.center)
         }
+        .frame(maxHeight: 500)
     }
 }

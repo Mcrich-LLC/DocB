@@ -373,7 +373,7 @@ extension NavigationViewModel {
     }
     
     private func handleFrameworkURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
-        for technology in await documentationViewModel.technologies {
+        for technology in documentationViewModel.technologies {
             switch technology {
             case .apple(let technologies):
                 let didHandle = await handleAppleFrameworkURL(url, for: technologies, documentationViewModel: documentationViewModel)
@@ -464,7 +464,7 @@ extension NavigationViewModel {
     }
     
     private func handleArticleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
-        for technology in await documentationViewModel.technologies {
+        for technology in documentationViewModel.technologies {
             switch technology {
             case .apple(let technologies):
                 let didHandle = await handleAppleArticleURL(url, for: technologies, documentationViewModel: documentationViewModel)
@@ -483,18 +483,18 @@ extension NavigationViewModel {
     @discardableResult
     private func handleDocCArticleURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
-        var articleIdentifier = "doc://\(url.host() ?? "com.apple.documentation")/documentation"
+        var articleIdentifier = "doc://\(url.host() ?? "com.docc.documentation")/documentation"
         
         var references: [String : Reference] = [:]
         
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = await documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
-                if let framework = await documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 
@@ -559,11 +559,11 @@ extension NavigationViewModel {
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = await documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: nil)
-                if let framework = await documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 

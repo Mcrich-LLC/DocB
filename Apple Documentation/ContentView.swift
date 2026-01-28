@@ -12,6 +12,7 @@ struct ContentView: View {
     let url: URL?
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(AppSettings.self) var appSettings
     @State var navigationViewModel = NavigationViewModel()
     
     @Environment(\.colorScheme) var colorScheme
@@ -87,7 +88,7 @@ struct ContentView: View {
         
         if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
                 openWindow(value: url)
                 return .handled
@@ -100,7 +101,7 @@ struct ContentView: View {
                     .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
                     .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
                 openWindow(value: url)
                 return .handled
@@ -112,7 +113,7 @@ struct ContentView: View {
                   let url = URL(string: url.absoluteString
                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
                 openWindow(value: url)
                 return .handled

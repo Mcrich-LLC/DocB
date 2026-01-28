@@ -11,14 +11,6 @@ import SwiftUI
 @Observable
 @MainActor
 class NavigationViewModel: @MainActor Equatable {
-    
-    // MARK: Settings
-    var openInAppDeeplinksInNewWindow: Bool = UserDefaults.standard.bool(forKey: "openInAppDeeplinksInNewWindow") {
-        didSet {
-            UserDefaults.standard.set(openInAppDeeplinksInNewWindow, forKey: "openInAppDeeplinksInNewWindow")
-        }
-    }
-    
     var technologyHistoryUpdatingIsEnabled: Bool = false
     var isShowingTechnology = false
     private(set) var technology: AppleTechnologies.FrameworkSection? {

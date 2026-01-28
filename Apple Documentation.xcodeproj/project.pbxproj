@@ -14,6 +14,7 @@
 		2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2229DBB02CFEEF35009EB389 /* SettingsView.swift */; };
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		2239F66B2F29905E00A3201C /* SelectedLineBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */; };
+		2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F74D2F2AA3BD00A3201C /* AppSettings.swift */; };
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
@@ -72,6 +73,7 @@
 		2229DBB02CFEEF35009EB389 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedLineBackground.swift; sourceTree = "<group>"; };
+		2239F74D2F2AA3BD00A3201C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 				2287E3DB2CBF6A8500090C9F /* NavigationLinkButton.swift */,
 				2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */,
 				2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */,
+				2239F74D2F2AA3BD00A3201C /* AppSettings.swift */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
 			);
@@ -440,6 +443,7 @@
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
 				2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */,
 				2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */,
+				2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

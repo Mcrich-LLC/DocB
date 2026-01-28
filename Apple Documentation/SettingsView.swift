@@ -20,11 +20,12 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsView: View {
-    @State var navigationViewModel: NavigationViewModel = .init()
+    @Environment(AppSettings.self) var appSettings
     
     var body: some View {
+        @Bindable var appSettings = appSettings
         VStack {
-            Toggle("Open Article in New Window", isOn: $navigationViewModel.openInAppDeeplinksInNewWindow)
+            Toggle("Open Article in New Window", isOn: $appSettings.openInAppDeeplinksInNewWindow)
         }
     }
 }

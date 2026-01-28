@@ -429,11 +429,8 @@ private struct FrameworkDisclosureGroup: View {
                 .showBackground(false)
                 .showChevron(false)
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
+                    SelectedLineBackground(isSelected: navigationViewModel.reference == reference)
                         .padding(.trailing, -25)
-                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
-                        .opacity((navigationViewModel.reference == reference) ? 1 : 0)
                 }
         }
         .onAppear {

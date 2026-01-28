@@ -338,7 +338,18 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            EmptyView()
+            HStack(alignment: .top) {
+                ForEach(content.columns ?? [], id: \.self) { column in
+                    VStack(alignment: .center) {
+                        ForEach(column.content) { content in
+                            ArticleContentView(content: content, references: references)
+                        }
+                    }
+                    if column != content.columns?.last {
+                        Spacer()
+                    }
+                }
+            }
         case .none:
             EmptyView()
         }
@@ -400,13 +411,13 @@ struct ArticleContentView: View {
     }
     
     // swiftlint:disable cyclomatic_complexity function_body_length
-    func inlineContent(for content: [ContentStruct]) -> some View {
+    func inlineContent(for content: [ContentStruct], alignment: Alignment? = nil) -> some View {
         var views: [InlineContent] = []
         
         var text: AttributedString = specialStyleString("", type: .text)
         
         func appendText() {
-            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
+            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: alignment ?? self.alignment)))
             text = specialStyleString("", type: .text)
         }
         
@@ -516,8 +527,11 @@ struct ArticleContentView: View {
                                     self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
                                 }
                             }
-                        
-                        views.append(.init(image))
+
+                        views.append(image)
+                        for ref in inline.metadata?.abstract ?? [] {
+                            views.append(inlineContent(for: [ref], alignment: .top).multilineTextAlignment(.center))
+                        }
                     }
                 case .video:
                     appendText()
@@ -553,7 +567,7 @@ struct ArticleContentView: View {
     }
     // swiftlint:enable cyclomatic_complexity function_body_length
     
-    private struct InlineContent: Identifiable {
+    fileprivate struct InlineContent: Identifiable {
         let id = UUID()
         
         let view: AnyView
@@ -561,6 +575,12 @@ struct ArticleContentView: View {
         init(_ view: any View) {
             self.view = AnyView(view)
         }
+    }
+}
+
+private extension [ArticleContentView.InlineContent] {
+    mutating func append(_ view: any View) {
+        self.append(.init(view))
     }
 }
 

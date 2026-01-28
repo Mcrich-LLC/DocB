@@ -52,7 +52,7 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
 }
 
 @MainActor
-final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable, Sendable {
+final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
     }

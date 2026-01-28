@@ -215,6 +215,17 @@ private struct Cards: View {
     }
     
     @ViewBuilder
+    var cardImagePlaceholder: some View {
+        UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+            .fill(Color.clear)
+            .stroke(Color.primary, lineWidth: 2)
+            .scaledToFit()
+            .overlay {
+                ProgressView()
+            }
+    }
+    
+    @ViewBuilder
     func card(_ content: HomepageParser.Body.Card.Content) -> some View {
         if let url = URL(string: content.destination.identifier) {
             MacOSAgnosticLink(destination: url) {
@@ -222,13 +233,7 @@ private struct Cards: View {
                     if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme, docCSite: nil) {
                         KFImage(imageUrl)
                             .placeholder({
-                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
-                                    .fill(Color.clear)
-                                    .stroke(Color.primary, lineWidth: 2)
-                                    .scaledToFit()
-                                    .overlay {
-                                        ProgressView()
-                                    }
+                                cardImagePlaceholder
                             })
                             .resizable()
                             .scaledToFit()

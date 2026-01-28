@@ -213,8 +213,8 @@ struct Fragment: Codable, Hashable {
     let kind: String
 }
 
-@CodableIgnoreInitializedProperties
-struct ContentSection: Codable, Identifiable, Equatable, Hashable {
+// swiftlint:disable:next type_body_length
+@CodableIgnoreInitializedProperties struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let kind: Kind

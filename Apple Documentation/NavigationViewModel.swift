@@ -4,6 +4,7 @@
 //
 //  Created by Franco Miguel Guevarra on 10/7/24.
 //
+// swiftlint:disable file_length
 
 import Foundation
 import SwiftUI

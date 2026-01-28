@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    let url: URL?
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @State var navigationViewModel = NavigationViewModel()
@@ -16,6 +17,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.modelContext) var modelContext
+    @Environment(\.openWindow) var openWindow
     @Query var docCSites: [DocCSite]
     
     var navigationTint: Color? {
@@ -52,6 +54,10 @@ struct ContentView: View {
         })
         .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
+            guard url == nil || url == URL(string: "doc://") else {
+                await navigationViewModel.handleURL(url!, documentationViewModel: documentationViewModel)
+                return
+            }
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.loadTechnologies(docCSites.asDTOs)
             await documentationViewModel.fetchTechnologies()
@@ -83,7 +89,8 @@ struct ContentView: View {
             
             switch navigationViewModel.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled
@@ -95,7 +102,8 @@ struct ContentView: View {
             
             switch navigationViewModel.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled
@@ -106,7 +114,8 @@ struct ContentView: View {
             
             switch navigationViewModel.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled

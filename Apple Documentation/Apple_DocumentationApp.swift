@@ -18,8 +18,10 @@ struct Apple_DocumentationApp: App {
     }
     
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        WindowGroup(for: URL.self) { url in
+            ContentView(url: url.wrappedValue)
+        } defaultValue: {
+            URL(string: "doc://")!
         }
         .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
         .environment(documentationViewModel)

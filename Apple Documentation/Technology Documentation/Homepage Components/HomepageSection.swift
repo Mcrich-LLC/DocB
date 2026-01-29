@@ -185,6 +185,7 @@ private struct Cards: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     @State var cardHeights: [UUID : CGFloat] = [:]
+    @State var viewSize: CGSize?
     
     var body: some View {
         VStack {
@@ -206,11 +207,16 @@ private struct Cards: View {
                     ForEach(outerCards) { outerCard in
                         ForEach(outerCard.cards) { card in
                             self.card(card)
-                                .frame(maxWidth: 400, maxHeight: 600)
+                                .frame(maxWidth: (viewSize?.width ?? 0) > 1300 ? 400 : 300, maxHeight: 600)
                         }
                     }
                 }
             }
+        }
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { newValue in
+            viewSize = newValue
         }
     }
     

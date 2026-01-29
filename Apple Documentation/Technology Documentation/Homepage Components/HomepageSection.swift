@@ -184,6 +184,8 @@ private struct Cards: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    @State var cardHeights: [UUID : CGFloat] = [:]
+    
     var body: some View {
         VStack {
             if let title = section.title {
@@ -213,6 +215,17 @@ private struct Cards: View {
     }
     
     @ViewBuilder
+    var cardImagePlaceholder: some View {
+        UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+            .fill(Color.clear)
+            .stroke(Color.primary, lineWidth: 2)
+            .scaledToFit()
+            .overlay {
+                ProgressView()
+            }
+    }
+    
+    @ViewBuilder
     func card(_ content: HomepageParser.Body.Card.Content) -> some View {
         if let url = URL(string: content.destination.identifier) {
             MacOSAgnosticLink(destination: url) {
@@ -220,16 +233,10 @@ private struct Cards: View {
                     if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme, docCSite: nil) {
                         KFImage(imageUrl)
                             .placeholder({
-                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
-                                    .fill(Color.clear)
-                                    .stroke(Color.primary, lineWidth: 2)
-                                    .scaledToFill()
-                                    .overlay {
-                                        ProgressView()
-                                    }
+                                cardImagePlaceholder
                             })
                             .resizable()
-                            .scaledToFill()
+                            .scaledToFit()
                             .clipShape(
                                 UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
                             )
@@ -267,8 +274,15 @@ private struct Cards: View {
                     }
                     .multilineTextAlignment(.leading)
                     .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: Set(cardHeights.values).sorted(by: >).first)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { newValue in
+                        cardHeights[content.id] = newValue
+                    }
                 }
-                .frame(maxHeight: .infinity)
+                .frame(maxHeight: .infinity, alignment: .top)
                 .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color(platformColor: .systemBackground))

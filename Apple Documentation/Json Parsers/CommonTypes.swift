@@ -29,7 +29,7 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
                 (nil, nil)
             }
             
-            let priorText: ContentStruct = .init(text: text, code: nil, identifier: nil, inlineContent: nil, font: font.0, fontWeight: font.1, type: fragment.type ?? .text, orderedListInt: nil)
+            let priorText: ContentStruct = .init(text: text, code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: font.0, fontWeight: font.1, type: fragment.type ?? .text, orderedListInt: nil)
             newInlineContent.insert(priorText, at: 0)
         }
         
@@ -146,15 +146,16 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     let text: String?
     let code: String?
     let identifier: String?
+    let metadata: Metadata?
     var inlineContent: [ContentStruct]?
     fileprivate(set) var font: CodableFont?
     fileprivate(set) var fontWeight: CodableFontWeight?
     fileprivate(set) var type: ContentType
     fileprivate(set) var orderedListInt: Int?
     
-    static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
-    static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
-    static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     
     func getFlattenedAttributedString() -> AttributedString {
         var attributedString = AttributedString(text ?? "")
@@ -187,6 +188,13 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
         
         return attributedString
     }
+    
+    @CodableIgnoreInitializedProperties
+    struct Metadata: Codable, Hashable, Equatable {
+        let id: UUID = UUID()
+        
+        let abstract: [ContentStruct]?
+    }
 }
 
 extension [ContentStruct] {
@@ -205,8 +213,8 @@ struct Fragment: Codable, Hashable {
     let kind: String
 }
 
-@CodableIgnoreInitializedProperties
-struct ContentSection: Codable, Identifiable, Equatable, Hashable {
+// swiftlint:disable:next type_body_length
+@CodableIgnoreInitializedProperties struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let kind: Kind

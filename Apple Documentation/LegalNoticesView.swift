@@ -11,7 +11,6 @@ struct LegalNoticesView: View {
     let legalNotices: LegalNotices
     @State private var text: AttributedString?
     
-    
     var body: some View {
         GroupBox {
             VStack(alignment: .center) {

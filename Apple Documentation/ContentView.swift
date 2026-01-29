@@ -9,13 +9,16 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    let url: URL?
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(AppSettings.self) var appSettings
     @State var navigationViewModel = NavigationViewModel()
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.modelContext) var modelContext
+    @Environment(\.openWindow) var openWindow
     @Query var docCSites: [DocCSite]
     
     var navigationTint: Color? {
@@ -52,6 +55,10 @@ struct ContentView: View {
         })
         .onChange(of: navigationViewModel.isUsingSplitView, navigationViewModel.handleIsUsingSplitViewChanged)
         .task {
+            guard url == nil || url == URL(string: "doc://") else {
+                await navigationViewModel.handleURL(url!, documentationViewModel: documentationViewModel)
+                return
+            }
             await documentationViewModel.fetchHomepage()
             await documentationViewModel.loadTechnologies(docCSites.asDTOs)
             await documentationViewModel.fetchTechnologies()
@@ -81,9 +88,10 @@ struct ContentView: View {
         
         if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled
@@ -93,9 +101,10 @@ struct ContentView: View {
                     .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
                     .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled
@@ -104,9 +113,10 @@ struct ContentView: View {
                   let url = URL(string: url.absoluteString
                     .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
             
-            switch navigationViewModel.openInAppDeeplinksInNewWindow {
+            switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
-                return .systemAction(url)
+                openWindow(value: url)
+                return .handled
             case false:
                 navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
                 return .handled

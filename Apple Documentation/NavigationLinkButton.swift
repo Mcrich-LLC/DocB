@@ -26,14 +26,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
         } label: {
             label
         }
-        .background {
-            if navigationViewModel.isUsingSplitView {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .padding(-10)
-                    .foregroundStyle(Color(platformColor: .tertiarySystemFill))
-                    .opacity((navigationViewModel.reference == nil && shouldShowBackground) ? 1 : 0)
-            }
-        }
+        .selectedLineBackground(isSelected: navigationViewModel.reference == nil && shouldShowBackground)
     }
     
     func showBackground(_ bool: Bool) -> Self {
@@ -130,14 +123,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             MacOSAgnosticButton(action: action) {
                 label
             }
-            .background {
-                if navigationViewModel.isUsingSplitView {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
-                        .opacity((isSelected && shouldShowBackground) ? 1 : 0)
-                }
-            }
+            .selectedLineBackground(isSelected: isSelected && shouldShowBackground)
         }
 #if !os(macOS)
         .hoverEffect()
@@ -182,14 +168,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
             } label: {
                 label
             }
-            .background {
-                if navigationViewModel.isUsingSplitView {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .padding(-10)
-                        .foregroundStyle(Color(platformColor: .tertiarySystemFill))
-                        .opacity(navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() ? 1 : 0)
-                }
-            }
+            .selectedLineBackground(isSelected: navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased())
         }
 #if !os(macOS)
         .hoverEffect()

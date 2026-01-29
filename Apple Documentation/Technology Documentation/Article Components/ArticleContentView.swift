@@ -338,7 +338,18 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            EmptyView()
+            HStack(alignment: .top) {
+                ForEach(content.columns ?? [], id: \.self) { column in
+                    VStack(alignment: .center) {
+                        ForEach(column.content) { content in
+                            ArticleContentView(content: content, references: references)
+                        }
+                    }
+                    if column != content.columns?.last {
+                        Spacer()
+                    }
+                }
+            }
         case .none:
             EmptyView()
         }
@@ -400,13 +411,13 @@ struct ArticleContentView: View {
     }
     
     // swiftlint:disable cyclomatic_complexity function_body_length
-    func inlineContent(for content: [ContentStruct]) -> some View {
+    func inlineContent(for content: [ContentStruct], alignment: Alignment? = nil) -> some View {
         var views: [InlineContent] = []
         
         var text: AttributedString = specialStyleString("", type: .text)
         
         func appendText() {
-            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: self.alignment)))
+            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: alignment ?? self.alignment)))
             text = specialStyleString("", type: .text)
         }
         
@@ -422,7 +433,13 @@ struct ArticleContentView: View {
                     } else if let text = inline.code {
                         inlineText = text
                     } else if let identifier = inline.identifier {
-                        inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                        // Get reference if possible
+                        if let reference = references[identifier], let title = reference.title {
+                            inlineText = title
+                        } else {
+                            // Fallback to parsing identifier for text if not possible
+                            inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                        }
                     } else {
                         inlineText = ""
                     }
@@ -441,7 +458,13 @@ struct ArticleContentView: View {
                         }
                         
                         if let identifier = inline.identifier {
-                            attributedString.link = URL(string: identifier)
+                            // Get official link if possible
+                            if let reference = references[identifier], let url = reference.externalURL {
+                                attributedString.link = url
+                            } else {
+                                // Fall back to parsing identifier if not possible
+                                attributedString.link = URL(string: identifier)
+                            }
                         }
                         
                         if inlineText == "/%1.5_break_/%" {
@@ -504,8 +527,11 @@ struct ArticleContentView: View {
                                     self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
                                 }
                             }
-                        
-                        views.append(.init(image))
+
+                        views.append(image)
+                        for ref in inline.metadata?.abstract ?? [] {
+                            views.append(inlineContent(for: [ref], alignment: .top).multilineTextAlignment(.center))
+                        }
                     }
                 case .video:
                     appendText()
@@ -541,7 +567,7 @@ struct ArticleContentView: View {
     }
     // swiftlint:enable cyclomatic_complexity function_body_length
     
-    private struct InlineContent: Identifiable {
+    fileprivate struct InlineContent: Identifiable {
         let id = UUID()
         
         let view: AnyView
@@ -549,6 +575,12 @@ struct ArticleContentView: View {
         init(_ view: any View) {
             self.view = AnyView(view)
         }
+    }
+}
+
+private extension [ArticleContentView.InlineContent] {
+    mutating func append(_ view: any View) {
+        self.append(.init(view))
     }
 }
 

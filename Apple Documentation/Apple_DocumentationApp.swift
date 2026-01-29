@@ -12,23 +12,28 @@ import SwiftData
 @main
 struct Apple_DocumentationApp: App {
     @State var documentationViewModel = DocumentationViewModel()
+    @State var appSettings = AppSettings()
     
     init() {
         loadRocketSimConnect()
     }
     
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        WindowGroup(for: URL.self) { url in
+            ContentView(url: url.wrappedValue)
+        } defaultValue: {
+            URL(string: "doc://")!
         }
         .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
         .environment(documentationViewModel)
+        .environment(appSettings)
         
         #if os(macOS)
         Settings {
             SettingsView()
         }
         .environment(documentationViewModel)
+        .environment(appSettings)
         #endif
     }
     

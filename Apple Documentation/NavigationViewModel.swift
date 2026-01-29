@@ -527,7 +527,11 @@ extension NavigationViewModel {
         
         article?.docCSite = site
         
-        guard article?.identifier.contains("com.apple") != true, site.groups.flatMap({ [$0] + ($0.children ?? []) }).contains(where: {
+        func getAllChildren(for group: [DocCIndex.InterfaceLanguage], descendant: Bool = false) -> [DocCIndex.InterfaceLanguage] {
+            group.flatMap({ (descendant ? [] : [$0]) + ($0.children ?? []) + getAllChildren(for: ($0.children ?? []), descendant: true) })
+        }
+        
+        guard article?.identifier.contains("com.apple") != true, getAllChildren(for: site.groups).contains(where: {
             $0.path?.lowercased() == "/\(Array(url.pathComponents.dropFirst()).joined(separator: "/"))".lowercased()
         }) == true else {
             // Actually Apple Article

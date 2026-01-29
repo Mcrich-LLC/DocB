@@ -275,7 +275,7 @@ private struct Cards: View {
                     .multilineTextAlignment(.leading)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: Set(cardHeights.values).sorted(by: >).first)
+                    .frame(height: Set(cardHeights.values).sorted(by: >).first, alignment: .top)
                     .onGeometryChange(for: CGFloat.self) { proxy in
                         proxy.size.height
                     } action: { newValue in

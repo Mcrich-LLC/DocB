@@ -338,7 +338,7 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            HStack(alignment: .top) {
+            WrappingHStack(alignment: .topLeading) {
                 ForEach(content.columns ?? [], id: \.self) { column in
                     VStack(alignment: .center) {
                         ForEach(column.content) { content in

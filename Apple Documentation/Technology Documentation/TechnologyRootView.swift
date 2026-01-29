@@ -430,7 +430,7 @@ private struct FrameworkDisclosureGroup: View {
                 .showChevron(false)
                 .background {
                     SelectedLineBackground(isSelected: navigationViewModel.reference == reference)
-                        .padding(.trailing, -25)
+                        .padding(.leading, -10)
                 }
         }
         .onAppear {

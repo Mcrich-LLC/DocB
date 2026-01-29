@@ -185,6 +185,7 @@ private struct Cards: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     @State var cardHeights: [UUID : CGFloat] = [:]
+    @State var viewSize: CGSize?
     
     var body: some View {
         VStack {
@@ -201,16 +202,21 @@ private struct Cards: View {
                 }
             }
             
-            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: navigationViewModel.isUsingSplitView ? nil : 60) {
+            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: navigationViewModel.isUsingSplitView ? 20 : 60) {
                 if let outerCards = section.body?.cards {
                     ForEach(outerCards) { outerCard in
                         ForEach(outerCard.cards) { card in
                             self.card(card)
-                                .frame(maxWidth: 400, maxHeight: 600)
+                                .frame(maxWidth: (viewSize?.width ?? 0) > 1300 ? 400 : 300, maxHeight: 600)
                         }
                     }
                 }
             }
+        }
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { newValue in
+            viewSize = newValue
         }
     }
     
@@ -275,7 +281,7 @@ private struct Cards: View {
                     .multilineTextAlignment(.leading)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: Set(cardHeights.values).sorted(by: >).first)
+                    .frame(height: Set(cardHeights.values).sorted(by: >).first, alignment: .top)
                     .onGeometryChange(for: CGFloat.self) { proxy in
                         proxy.size.height
                     } action: { newValue in

@@ -428,10 +428,7 @@ private struct FrameworkDisclosureGroup: View {
             DefaultListItem(reference: reference, title: title)
                 .showBackground(false)
                 .showChevron(false)
-                .background {
-                    SelectedLineBackground(isSelected: navigationViewModel.reference == reference)
-                        .padding(.trailing, -25)
-                }
+                .selectedLineBackground(isSelected: navigationViewModel.reference == reference)
         }
         .onAppear {
             Task {

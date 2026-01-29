@@ -52,6 +52,8 @@ private struct SelectedLineBackgroundModifier: ViewModifier {
         if navigationViewModel.isUsingSplitView {
             content
                 .background(SelectedLineBackground(isSelected: isSelected))
+        } else {
+            content
         }
     }
 }

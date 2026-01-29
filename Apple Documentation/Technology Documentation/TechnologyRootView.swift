@@ -428,7 +428,10 @@ private struct FrameworkDisclosureGroup: View {
             DefaultListItem(reference: reference, title: title)
                 .showBackground(false)
                 .showChevron(false)
-                .selectedLineBackground(isSelected: navigationViewModel.reference == reference)
+                .background {
+                    SelectedLineBackground(isSelected: navigationViewModel.reference == reference)
+                        .padding(.leading, -10)
+                }
         }
         .onAppear {
             Task {

@@ -201,7 +201,7 @@ private struct Cards: View {
                 }
             }
             
-            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: navigationViewModel.isUsingSplitView ? nil : 60) {
+            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: navigationViewModel.isUsingSplitView ? 20 : 60) {
                 if let outerCards = section.body?.cards {
                     ForEach(outerCards) { outerCard in
                         ForEach(outerCard.cards) { card in

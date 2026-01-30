@@ -350,7 +350,7 @@ struct ArticleContentView: View {
             } else {
                 content.columns?.count ?? 1
             }
-            LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: .leading, spacing: 20) {
+            LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.alignment, spacing: 20) {
                 ForEach(content.columns ?? [], id: \.self) { column in
                     HStack {
                         VStack(alignment: .center) {

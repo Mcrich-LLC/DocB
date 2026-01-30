@@ -31,6 +31,7 @@ struct ArticleContentView: View {
     
     @State var player: AVPlayer?
     @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
+    @State private var viewSize: CGSize?
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -54,6 +55,12 @@ struct ArticleContentView: View {
                 self.tabSelection = tab
             }
         }
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { newValue in
+            viewSize = newValue
+        }
+
     }
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
@@ -338,15 +345,19 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            WrappingHStack(alignment: .topLeading) {
+            let widthDeterminedColumns: Int = if let viewSize {
+                max(1, Int(viewSize.width / 350))
+            } else {
+                content.columns?.count ?? 1
+            }
+            LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: .leading, spacing: 20) {
                 ForEach(content.columns ?? [], id: \.self) { column in
-                    VStack(alignment: .center) {
-                        ForEach(column.content) { content in
-                            ArticleContentView(content: content, references: references)
+                    HStack {
+                        VStack(alignment: .center) {
+                            ForEach(column.content) { content in
+                                ArticleContentView(content: content, references: references)
+                            }
                         }
-                    }
-                    if column != content.columns?.last {
-                        Spacer()
                     }
                 }
             }

@@ -10,6 +10,13 @@ import Foundation
 import SwiftUI
 import EnhancedCodable
 
+/// Condenses content by merging adjacent text fragments and processing inline content.
+///
+/// This helper function iterates through the provided content, merging text nodes where appropriate
+/// and handling lists and other inline elements to create a more compact representation.
+///
+/// - Parameter content: The array of `ContentSection.Content` to process.
+/// - Returns: A condensed array of `ContentSection.Content`.
 private func getCondensedContent(_ content: [ContentSection.Content]) -> [ContentSection.Content] {
     var newContent: [ContentSection.Content] = []
     
@@ -62,28 +69,45 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
     return newContent
 }
 
+/// A structure representing an image resource.
+///
+/// `ImageStruct` holds the identifier and type of an image used within the documentation.
 @CodableIgnoreInitializedProperties
 struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
+    /// A unique identifier for the image struct instance.
     let id = UUID()
     
+    /// The string identifier for the image resource.
     let identifier: String
+    /// The type of the image, determining how it should be rendered or categorized.
     let type: ImageType
     
+    /// Enum representing the possible types of images.
     enum ImageType: String, Codable, CaseIterable {
+        /// An icon image.
         case icon
+        /// A card image.
         case card
     }
 }
 
+/// A structure containing legal notice information.
 struct LegalNotices: Codable, Equatable, Hashable {
+    /// The copyright notice text.
     let copyright: String
+    /// The terms of use text.
     let termsOfUse: String
+    /// The privacy policy text.
     let privacyPolicy: String
 }
 
+/// Enum representing supported font styles that can be encoded/decoded.
+///
+/// Matches SwiftUI's `Font` styles.
 enum CodableFont: String, CaseIterable, Codable {
     case body, callout, caption, caption2, footnote, headline, subheadline, largeTitle, title, title2, title3
     
+    /// The corresponding SwiftUI `Font`.
     var font: Font {
         switch self {
         case .body:
@@ -112,9 +136,13 @@ enum CodableFont: String, CaseIterable, Codable {
     }
 }
 
+/// Enum representing supported font weights that can be encoded/decoded.
+///
+/// Matches SwiftUI's `Font.Weight`.
 enum CodableFontWeight: String, CaseIterable, Codable {
     case ultraLight, thin, light, regular, medium, semibold, bold, heavy, black
     
+    /// The corresponding SwiftUI `Font.Weight`.
     var fontWeight: Font.Weight {
         switch self {
         case .ultraLight:
@@ -139,24 +167,42 @@ enum CodableFontWeight: String, CaseIterable, Codable {
     }
 }
 
+/// A structure representing a piece of content.
+///
+/// `ContentStruct` matches the `Content` structure found in the JSON documentation,
+/// but is flattened or adapted for easier consumption in the app.
 @CodableIgnoreInitializedProperties
 struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
+    /// A unique identifier for the content struct instance.
     let id = UUID()
     
+    /// The text content, if available.
     let text: String?
+    /// The code content, if available.
     let code: String?
+    /// The identifier for the content.
     let identifier: String?
+    /// Metadata associated with the content.
     let metadata: Metadata?
+    /// Nested inline content.
     var inlineContent: [ContentStruct]?
+    /// The dictionary-encoded font style.
     fileprivate(set) var font: CodableFont?
+    /// The dictionary-encoded font weight.
     fileprivate(set) var fontWeight: CodableFontWeight?
+    /// The type of content.
     fileprivate(set) var type: ContentType
+    /// The ordered list index, if this item is part of an ordered list.
     fileprivate(set) var orderedListInt: Int?
     
+    // MARK: Static Helpers
     static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     
+    /// Converts the content struct into a flattened `AttributedString`.
+    ///
+    /// - Returns: An `AttributedString` representation of the content.
     func getFlattenedAttributedString() -> AttributedString {
         var attributedString = AttributedString(text ?? "")
         
@@ -208,16 +254,25 @@ extension [ContentStruct] {
     }
 }
 
+/// A text fragment with an associated kind.
 struct Fragment: Codable, Hashable {
+    /// The text content of the fragment.
     let text: String
+    /// The kind of fragment (e.g., "keyword", "identifier").
     let kind: String
 }
 
 // swiftlint:disable:next type_body_length
+/// A section of content within the documentation.
+///
+/// `ContentSection` represents various sections like declarations, details, and parameters.
 @CodableIgnoreInitializedProperties struct ContentSection: Codable, Identifiable, Equatable, Hashable {
+    /// A unique identifier for the content section.
     let id = UUID()
     
+    /// The kind of section.
     let kind: Kind
+    /// The array of content items within this section.
     let content: [Content]?
     var condensedContent: [Content] { getCondensedContent(content ?? []) }
     
@@ -250,20 +305,35 @@ struct Fragment: Codable, Hashable {
         case attributes
     }
     
+    /// Enum representing the kind of content section.
     enum Kind: String, Codable, Equatable, Hashable {
+        /// General content section.
         case content
+        /// Declarations section.
         case declarations
+        /// Mentions section.
         case mentions
+        /// Details section.
         case details
+        /// Kind section (deprecated or specific usage).
         case kind
+        /// Parameters section.
         case parameters
+        /// REST endpoint section.
         case restEndpoint
+        /// REST body section.
         case restBody
+        /// REST responses section.
         case restResponses
+        /// Properties section.
         case properties
+        /// Type identifier section.
         case typeIdentifier
+        /// Text content.
         case text
+        /// Attributes section.
         case attributes
+        /// REST parameters section.
         case restParameters
     }
     
@@ -334,30 +404,42 @@ struct Fragment: Codable, Hashable {
         let id = UUID()
         let type: ContentType?
         
-        // Media
+        // MARK: Media
+        /// The identifier for the media resource.
         let identifier: String?
         
-        // Heading
+        // MARK: Heading
+        /// The anchor for the heading, used for linking.
         let anchor: String?
+        /// The level of the heading (e.g., 1 for main title, 2 for section).
         let level: Int?
         
-        // Text
+        // MARK: Text
+        /// Code content if this fragment represents code.
         let code: [String]?
+        /// Text content.
         let text: String?
         
-        // Links
+        // MARK: Links
+        /// The style of the link or content.
         let style: Style?
+        /// Items used in links.
         let linkItems: [String]?
         
-        // Inline Content
+        // MARK: Inline Content
+        /// Nested inline content elements.
         var inlineContent: [ContentStruct]?
         
-        // Subcontent
+        // MARK: Subcontent
+        /// Nested content array.
         let content: [Content]?
         
-        // List
+        // MARK: List
+        /// Items for a term list.
         let termListItems: [TermListItem]?
+        /// Items for an unordered list.
         let unorderedListItems: [UnorderedListItem]?
+        /// Items for an ordered list.
         let orderedListItems: [UnorderedListItem]?
         
         func inlineContentFromTermListItems() -> [ContentStruct] {
@@ -658,23 +740,39 @@ struct VariantOverride: Codable, Equatable, Hashable {
     }
 }
 
+/// A reference to another documentation topic or external resource.
 struct Reference: Codable, Hashable, Identifiable, Sendable {
+    /// A unique identifier for the reference instance.
     let id = UUID()
     
+    /// The title of the reference.
     let title: String?
+    /// An abstract or summary of the referenced content.
     let abstract: [ContentStruct]?
+    /// The unique identifier string for the reference.
     let identifier: String
+    /// The kind of reference (e.g., "symbol").
     let kind: String?
+    /// The type of reference (e.g., "topic").
     let type: String
+    /// The URL associated with the reference.
     let url: String?
+    /// The role of the reference.
     let role: Role?
+    /// Fragments associated with the reference.
     let fragments: [Fragment]?
+    /// Indicates if the reference is deprecated.
     let deprecated: Bool?
+    /// Indicates if the reference is beta.
     let beta: Bool?
+    /// Variants of the reference (e.g., for different languages).
     let variants: [Variant]?
+    /// Images associated with the reference.
     let images: [ImageStruct]?
+    /// The DocC site information if available.
     var docCSite: DocCSiteDTO?
     
+    /// Determines if the reference points to an external site.
     var isExternalReference: Bool {
         url?.lowercased().contains("/documentation") == false
     }
@@ -762,6 +860,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
 }
 
 // MARK: Role
+/// Enum representing the role of a documentation item.
 enum Role: String, Codable, Equatable, Hashable {
     case collectionGroup
     case collection

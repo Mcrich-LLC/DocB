@@ -7,17 +7,21 @@
 
 import SwiftUI
 
+/// A view that displays the content of an article or documentation topic.
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    
+    /// The reference to the article being displayed.
     let reference: Reference
     
     @State var article: Article?
     @State var showToolbarBG: Bool = false
     @State var scrollOffset: CGFloat = 0
     
+    /// Identifiers for scrolling to specific sections within the article.
     enum ScrollIdentifier: CaseIterable {
         case header
         case primaryContent
@@ -207,6 +211,10 @@ struct ArticleView: View {
     }
     
     @ViewBuilder
+    /// Generates the heading view for the article.
+    ///
+    /// - Parameter article: The article to display the heading for.
+    /// - Returns: A view containing the title, abstract, and other metadata.
     func Heading(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             if (article.metadata.roleHeading != nil || article.metadata.platforms != nil) && article.topicSectionsStyle != .hidden {
@@ -264,6 +272,10 @@ struct ArticleView: View {
     }
     
     @ViewBuilder
+    /// Generates a badge for the article (e.g., Beta, Deprecated).
+    ///
+    /// - Parameter metadata: The article metadata containing platform availability.
+    /// - Returns: A view displaying badges if applicable.
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
             if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true || article?.betaSummary != nil {

@@ -9,11 +9,16 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+/// Enum representing the user's preferred programming language.
 enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
+    /// Swift programming language.
     case swift
+    /// Objective-C programming language.
     case objectivec = "objc"
+    /// Data representation (raw JSON).
     case data
     
+    /// A human-readable string representation of the language.
     var humanReadable: String? {
         switch self {
         case .swift:
@@ -25,6 +30,7 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
         }
     }
     
+    /// The string value used for JSON coding (API requests).
     var jsonCodingValue: String {
         switch self {
         case .swift:
@@ -36,6 +42,7 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
         }
     }
     
+    /// Initializes from a raw string value, handling variations like "occ".
     init?(rawValue: String) {
         switch rawValue.lowercased() {
         case "swift":
@@ -50,9 +57,11 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     }
 }
 
+/// The main view model for managing documentation data and application state.
 @Observable
 @MainActor
 class DocumentationViewModel {
+    /// The user's preferred programming language, persisted in `UserDefaults`.
     var preferedProgrammingLanguage: PreferedProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift {
         didSet {
             UserDefaults.standard.set(preferedProgrammingLanguage.rawValue, forKey: "preferedProgrammingLanguage")
@@ -60,6 +69,12 @@ class DocumentationViewModel {
     }
     
     // MARK: URL Functions
+    /// Constructs the URL for fetching JSON documentation for a given identifier.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the documentation topic.
+    ///   - site: The optional DocC site configuration.
+    /// - Returns: A `URL` pointing to the JSON data, or `nil` if the URL cannot be constructed.
     func jsonUrl(for identifier: String, site: DocCSiteDTO?) -> URL? {
         if let site {
             var identifier: String = identifier.lowercased()
@@ -90,6 +105,11 @@ class DocumentationViewModel {
         return url
     }
     
+    /// Resolves the final redirected URL for a given URL.
+    ///
+    /// - Parameter url: The initial URL to check.
+    /// - Returns: The final URL after following redirects.
+    /// - Throws: `URLError` if the server response is invalid.
     func getRedirectedURL(for url: URL) async throws -> URL {
         let (_, response) = try await URLSession.shared.data(from: url)
         
@@ -102,8 +122,10 @@ class DocumentationViewModel {
     
     // MARK: Homepage
     private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
+    /// The parsed homepage data.
     var homepage: HomepageParser?
     
+    /// Fetches the homepage data from the Apple Developer website.
     func fetchHomepage() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: homepageUrl)
@@ -120,8 +142,10 @@ class DocumentationViewModel {
     // MARK: Technologies
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
+    /// The list of available technologies (e.g., frameworks, libraries).
     private(set) var technologies: [TechnologyTypes] = []
     
+    /// Fetches the list of technologies from the Apple Developer website.
     func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
@@ -135,6 +159,11 @@ class DocumentationViewModel {
         }
     }
     
+    /// Adds a custom technology (DocC site) to the app.
+    ///
+    /// - Parameters:
+    ///   - baseUrl: The base URL of the DocC site.
+    ///   - modelContext: The SwiftData model context for persistence.
     func addTechnology(baseUrl: URL, modelContext: ModelContext) async {
         do {
             let indexUrl = baseUrl.appending(path: "index/index.json")
@@ -153,6 +182,9 @@ class DocumentationViewModel {
         }
     }
     
+    /// Loads existing custom technologies from saved DocC sites.
+    ///
+    /// - Parameter sites: An array of `DocCSiteDTO` representing saved sites.
     func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
             do {
@@ -172,6 +204,11 @@ class DocumentationViewModel {
         }
     }
     
+    /// Deletes a custom technology.
+    ///
+    /// - Parameters:
+    ///   - site: The `DocCSiteDTO` to delete.
+    ///   - modelContext: The SwiftData model context.
     func deleteTechnology(_ site: DocCSiteDTO, modelContext: ModelContext) {
         technologies.removeAll { $0.id == site.id }
         site.deleteSite(modelContext: modelContext)
@@ -179,8 +216,15 @@ class DocumentationViewModel {
     
     // MARK: Frameworks
     
+    /// A cache of fetched frameworks, keyed by their identifier.
     var frameworks: [String : Framework] = [:]
     
+    /// Fetches a framework's documentation asynchronously and executes a completion handler.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the framework.
+    ///   - site: The optional DocC site configuration.
+    ///   - completion: A closure executed when the fetch is complete.
     func fetchFramework(for identifier: String, site: DocCSiteDTO?, completion: @escaping () -> Void) {
         Task {
             await fetchFramework(for: identifier, site: site)
@@ -188,6 +232,13 @@ class DocumentationViewModel {
         }
     }
     
+    /// Fetches a framework's documentation asynchronously.
+    ///
+    /// The fetched framework is stored in the `frameworks` dictionary.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the framework.
+    ///   - site: The optional DocC site configuration.
     func fetchFramework(for identifier: String, site: DocCSiteDTO?) async {
         do {
             guard let url = jsonUrl(for: identifier, site: site) else { return }
@@ -206,6 +257,12 @@ class DocumentationViewModel {
     
     // MARK: Articles
     
+    /// Fetches an article's documentation asynchronously and executes a completion handler.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the article.
+    ///   - site: The optional DocC site configuration.
+    ///   - completion: A closure executed with the fetched `Article`.
     func fetchArticle(for identifier: String, site: DocCSiteDTO?, completion: @escaping (Article) -> Void) {
         Task {
             do {
@@ -217,6 +274,16 @@ class DocumentationViewModel {
         }
     }
     
+    /// Fetches an article's documentation asynchronously.
+    ///
+    /// This method also handles language-specific variants and overrides, updating the article's content
+    /// based on the `preferedProgrammingLanguage`.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the article.
+    ///   - site: The optional DocC site configuration.
+    /// - Returns: The fetched and processed `Article`.
+    /// - Throws: `URLError` or decoding errors.
     func fetchArticle(for identifier: String, site: DocCSiteDTO?) async throws -> Article {
 //        do {
         guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }

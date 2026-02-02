@@ -1,7 +1,10 @@
 import SwiftUI
 
+/// A view modifier that enables zooming and panning capabilities on a view.
 struct ZoomableModifier: ViewModifier {
+    /// The minimum scale factor allowed for zooming.
     let minZoomScale: CGFloat
+    /// The scale factor applied when double-tapping.
     let doubleTapZoomScale: CGFloat
 
     @State private var lastTransform: CGAffineTransform = .identity
@@ -127,6 +130,12 @@ struct ZoomableModifier: ViewModifier {
 }
 
 public extension View {
+    /// Applies a zoomable modification to the view.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: The minimum zoom scale (default is 1).
+    ///   - doubleTapZoomScale: The zoom scale for double-tap gestures (default is 3).
+    /// - Returns: A view with zooming capabilities.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,
@@ -138,6 +147,13 @@ public extension View {
         ))
     }
 
+    /// Applies a zoomable modification to the view with a background color for out-of-bounds areas.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: The minimum zoom scale (default is 1).
+    ///   - doubleTapZoomScale: The zoom scale for double-tap gestures (default is 3).
+    ///   - outOfBoundsColor: The color to fill the background when zoomed out (default is .clear).
+    /// - Returns: A view wrapped in a ZStack with the specified background color.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,

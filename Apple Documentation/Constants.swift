@@ -8,11 +8,23 @@
 import Foundation
 import SwiftUI
 
+/// A collection of shared constants and configuration values for the application.
 struct Constants {
+    /// The base URL for fetching documentation data.
     static let basePath = URL(string: "https://developer.apple.com/tutorials/data")!
+    /// The custom scheme used for deep linking into the application.
     static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
     
-    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    /// Fetches the URL for a photo or video variant based on the current context.
+    ///
+    /// This method resolves the appropriate URL by checking for dark/light mode traits and appending the base URL if necessary.
+    ///
+    /// - Parameters:
+    ///   - identifier: The identifier of the reference containing the variants.
+    ///   - references: A dictionary of available references.
+    ///   - colorScheme: The current color scheme (light or dark).
+    ///   - docCSite: The DocC site configuration, if applicable.
+    /// - Returns: A `URL` pointing to the media resource, or `nil` if not found.
     static func fetchPhotoVideoURL(for identifier: String, references: [String : Reference], colorScheme: ColorScheme, docCSite: DocCSiteDTO?) -> URL? {
         guard let reference = references[identifier], let variants = reference.variants else {
             return nil

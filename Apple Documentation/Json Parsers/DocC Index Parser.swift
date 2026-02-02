@@ -10,12 +10,16 @@ import EnhancedCodable
 import SwiftUI
 import SwiftData
 
+/// A structure representing the index of a DocC documentation site.
 @CodableIgnoreInitializedProperties
 struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
+    /// A unique identifier for the index.
     let id = UUID()
     
+    /// A dictionary mapping languages to their interface languages.
     let interfaceLanguages: [String : [InterfaceLanguage]]
     
+    /// A structure representing an interface language node in the index.
     @CodableIgnoreInitializedProperties
     struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
@@ -51,8 +55,10 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
+/// A Data Transfer Object (DTO) for `DocCSite`, used for app-level logic and state management.
 @MainActor
 final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
+    /// Checks for equality between two `DocCSiteDTO` instances based on their ID.
     nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
     }
@@ -64,12 +70,23 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         hasher.combine(index)
     }
     
+    /// The unique identifier for the site.
     let id: UUID
+    /// The timestamp when the site was added or last updated.
     let timestamp: Date
+    /// The base URL of the DocC site.
     let url: URL
+    /// The parsed index of the DocC site.
     private(set) var index: DocCIndex
+    /// The persistent model ID used for SwiftData integration.
     fileprivate var persistentModelID: PersistentIdentifier?
     
+    /// Initializes a new `DocCSiteDTO`.
+    ///
+    /// - Parameters:
+    ///   - timestamp: The creation timestamp.
+    ///   - url: The base URL of the site.
+    ///   - index: The parsed `DocCIndex`.
     init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
         self.id = UUID()
         self.timestamp = timestamp
@@ -138,16 +155,27 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
 }
 
+/// A SwiftData model representing a stored DocC site.
 @Model
 final class DocCSite: Identifiable {
+    /// The unique identifier for the stored site.
     @Attribute(.unique)
     var id: UUID = UUID()
+    /// The timestamp when the site was stored.
     var timestamp: Date
+    /// The base URL of the stored site.
     var url: URL
     
+    /// The stored index of the site.
 //    @Attribute(.externalStorage)
     var index: DocCIndex
     
+    /// Initializes a new `DocCSite`.
+    ///
+    /// - Parameters:
+    ///   - timestamp: The creation timestamp.
+    ///   - url: The base URL.
+    ///   - index: The `DocCIndex` data.
     init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url

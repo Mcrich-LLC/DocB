@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+/// Manages the state and logic for the technology root view, including filtering and reference visibility.
 private final class TechnologyRootManager {
     var frameworkSection: AppleTechnologies.FrameworkSection
     
@@ -15,9 +16,15 @@ private final class TechnologyRootManager {
         self.frameworkSection = frameworkSection
     }
     
+    /// The active filters applied to the view (e.g., matching the user's selection).
     var activeFilters: Set<TagFilters> = []
+    /// A cache of references that should be shown based on filters.
     var shownReferences: [String : Bool] = [:]
     
+    /// Creates a copy of a reference associated with the current site.
+    ///
+    /// - Parameter reference: The original reference.
+    /// - Returns: A new reference with the site context.
     func getReference(from reference: Reference) -> Reference {
         var reference = reference
         reference.docCSite = self.frameworkSection.docCSite
@@ -25,6 +32,10 @@ private final class TechnologyRootManager {
         return reference
     }
     
+    /// Determines if a reference should be shown based on active filters.
+    ///
+    /// - Parameter reference: The reference to check.
+    /// - Returns: `true` if the reference should be visible, otherwise `false`.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
             return Developer_Documentation.isTopReferencePartOfFilter(reference, with: activeFilters)
@@ -34,6 +45,7 @@ private final class TechnologyRootManager {
     }
 }
 
+/// The root view for displaying a specific technology or framework.
 struct TechnologyRootView: View {
     
     @Environment(NavigationViewModel.self) var navigationViewModel
@@ -149,6 +161,7 @@ struct TechnologyRootView: View {
         .environment(manager)
     }
     
+    /// A view displaying the content of a framework, including its topic sections.
     private struct FrameworkView: View {
         let framework: Framework
         let frameworkSection: AppleTechnologies.FrameworkSection

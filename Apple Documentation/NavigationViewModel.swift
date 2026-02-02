@@ -9,11 +9,15 @@
 import Foundation
 import SwiftUI
 
+/// A view model that manages the application's navigation state, history, and deep linking.
 @Observable
 @MainActor
 class NavigationViewModel: @MainActor Equatable {
+    /// Controls whether updating the technology history is enabled.
     var technologyHistoryUpdatingIsEnabled: Bool = false
+    /// Indicates if a technology is currently being shown.
     var isShowingTechnology = false
+    /// The currently selected technology framework section.
     private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -22,11 +26,15 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Sets the current technology and updates the state.
+    ///
+    /// - Parameter technology: The `AppleTechnologies.FrameworkSection` to set.
     func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
         self.technology = technology
         self.isShowingTechnology = true
     }
     
+    /// The currently selected reference (article or symbol).
     private(set) var reference: Reference? {
         didSet {
             if !isNavigating {
@@ -35,12 +43,18 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Sets the current reference.
+    ///
+    /// - Parameter reference: The `Reference` to set.
     func setReference(_ reference: Reference?) {
         self.reference = reference
     }
         
+    /// The visibility of the split view columns.
     var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
+    /// The horizontal size class of the user interface.
     var horizontalSizeClass: UserInterfaceSizeClass? = .regular
+    /// Determines if the split view layout should be used based on device and orientation.
     var isUsingSplitView: Bool {
         #if os(macOS)
         true
@@ -49,6 +63,7 @@ class NavigationViewModel: @MainActor Equatable {
         #endif
     }
     
+    /// Handles changes to `isUsingSplitView` to adjust navigation state.
     func handleIsUsingSplitViewChanged() {
         toggleHomepageInBeginingOfHistory()
         path = backupPath
@@ -70,9 +85,12 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Indicates if the history is starting (to prevent duplicates or loops).
     var isStartingHistory: Bool = false
     private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
+    /// Checks if there is a previous history state to go back to.
     var previousHistoryExists: Bool { currentIndex > 0 }
+    /// Checks if there is a future history state to go forward to.
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
     private var currentIndex = -1 {
@@ -84,14 +102,19 @@ class NavigationViewModel: @MainActor Equatable {
     private var previousIndex = 0
     private var isNavigating = false
     
+    /// The navigation path for the stack.
     var path: [PathElement] = []
     private var backupPath: [PathElement] = []
     
+    /// Appends an element to the navigation path.
+    /// - Parameter element: The `PathElement` to append.
     func appendPath(_ element: PathElement) {
         path.append(element)
         backupPath.append(element)
     }
     
+    /// Removes the last `k` elements from the navigation path.
+    /// - Parameter k: The number of elements to remove. Default is 1.
     func removeLastPath(_ k: Int = 1) {
         guard path.count >= k else { return }
         
@@ -100,7 +123,9 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // MARK: History
-    // Add current state to history
+    /// Adds the current state to the navigation history.
+    ///
+    /// This method manages the history stack, preventing duplicates and handling forward/backward navigation logic.
     func addToHistory() {
         guard !isNavigating else { return }
         
@@ -171,6 +196,9 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // Navigate backward in history
+    /// Navigates to the previous state in the history stack.
+    ///
+    /// - Parameter updatePath: Whether to update the navigation path (default is `true`).
     func goBackward(updatePath: Bool = true) {
         currentIndex -= 1
         navigateToCurrentHistory()
@@ -188,6 +216,9 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // Navigate forward in history
+    /// Navigates to the next state in the history stack.
+    ///
+    /// - Parameter updatePath: Whether to update the navigation path (default is `true`).
     func goForward(updatePath: Bool = true) {
         guard currentIndex < history.count - 1 else { return }
         currentIndex += 1
@@ -341,6 +372,12 @@ enum PathElement: Hashable {
 
 // MARK: Deeplinking
 extension NavigationViewModel {
+    /// Handles a deep link URL asynchronously.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to handle.
+    ///   - documentationViewModel: The view model used for data fetching.
+    ///   - completion: An optional closure executed after handling the URL.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel, completion: (() -> Void)? = nil) {
         Task {
             await handleURL(url, documentationViewModel: documentationViewModel)
@@ -348,6 +385,13 @@ extension NavigationViewModel {
         }
     }
     
+    /// Handles a deep link URL.
+    ///
+    /// This method parses the URL, resolves redirects, and navigates to the appropriate framework or article.
+    ///
+    /// - Parameters:
+    ///   - url: The URL to handle.
+    ///   - documentationViewModel: The view model used for data fetching.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {        
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {

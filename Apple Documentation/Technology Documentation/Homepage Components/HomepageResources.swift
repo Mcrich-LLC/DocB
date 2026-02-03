@@ -8,8 +8,11 @@
 import SwiftUI
 import Kingfisher
 
+/// A view that displays a grid of resources (e.g., tutorials, downloads) on the homepage.
 struct HomepageResources: View {
+    /// The section data containing the resource items.
     let section: HomepageParser.Section
+    /// The full homepage parser object, used for reference resolution.
     let homepage: HomepageParser
     @Environment(\.colorScheme) var colorScheme
     

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A label style that places the icon trailing the title.
 struct IconTrailingLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {
@@ -17,6 +18,7 @@ struct IconTrailingLabelStyle: LabelStyle {
 }
 
 extension LabelStyle where Self == IconTrailingLabelStyle {
+    /// A label style with the icon trailing the title.
     static var iconTrailing: Self {
         .init()
     }

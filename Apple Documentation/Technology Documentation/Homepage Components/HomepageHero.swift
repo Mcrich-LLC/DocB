@@ -8,8 +8,11 @@
 import SwiftUI
 import Kingfisher
 
+/// A view that displays a hero section on the homepage, typically featuring a large image or video with a title.
 struct HomepageHero: View {
+    /// The section data containing the hero content.
     let section: HomepageParser.Section
+    /// The full homepage parser object, used for reference resolution.
     let homepage: HomepageParser
     
     @Environment(\.colorScheme) var colorScheme

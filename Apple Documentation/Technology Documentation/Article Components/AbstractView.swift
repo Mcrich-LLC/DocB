@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that renders the abstract of an article, concatenating text and code elements.
 struct AbstractView: View {
+    /// The abstract content to display.
     let abstract: [ContentStruct]
     
     var abstractText: Text {

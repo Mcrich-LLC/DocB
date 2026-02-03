@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A view that displays the attributes of a REST endpoint.
 struct WebEndpointRestAttributesView: View {
+    /// The content section containing attributes data.
     let contentSection: ContentSection
+    /// A dictionary of references for resolving links.
     let references: [String : Reference]
     
     var body: some View {

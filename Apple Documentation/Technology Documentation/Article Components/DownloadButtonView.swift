@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A button that facilitates downloading sample code or other resources.
 struct DownloadButtonView: View {
+    /// The sample code download metadata.
     let sampleCodeDownload: Article.SampleCodeDownload
+    /// A dictionary of references for resolving the download URL.
     let references: [String : Reference]
     
     var reference: Reference? {

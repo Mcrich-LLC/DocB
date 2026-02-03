@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A button overlay that allows copying a string to the clipboard.
 struct CodeCopyOverlayButton: View {
+    /// The string to copy.
     let string: String
     @State private var hasCoppied: Bool = false
     

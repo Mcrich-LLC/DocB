@@ -8,13 +8,18 @@
 import SwiftUI
 import Kingfisher
 
+/// An identifier object for presenting an enlarged image sheet.
 struct EnlargedImageSheetIdentifier: Identifiable {
     let id = UUID()
+    /// The image identifier/key.
     let identifier: String
+    /// The resolved URL of the image.
     let url: URL
 }
 
+/// A view that displays an image in an enlarged, zoomable view.
 struct EnlargedImageView: View {
+    /// The identifier and URL for the image to display.
     let identifier: EnlargedImageSheetIdentifier
     @Environment(\.dismiss) var dismiss
     

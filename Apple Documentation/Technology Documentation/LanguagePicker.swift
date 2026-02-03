@@ -7,10 +7,13 @@
 
 import SwiftUI
 
+/// A picker control for selecting the preferred programming language.
 struct LanguagePicker: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// The list of available variants containing language information.
     let variants: [Variant]
     
+    /// Filters the available languages from the variants.
     var filteredLanguages: [PreferedProgrammingLanguage] {
         let traits = variants.flatMap({ $0.traits })
         let languages = traits.compactMap({ $0.interfaceLanguage })

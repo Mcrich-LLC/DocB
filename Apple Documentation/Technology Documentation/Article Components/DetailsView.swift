@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that displays key details about a symbol or type.
 struct DetailsView: View {
+    /// The details metadata.
     let details: ContentSection.Details
     
     var body: some View {

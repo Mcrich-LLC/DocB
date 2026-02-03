@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// Filters available for documentation content.
 enum TagFilters: String, CaseIterable {
+    /// Filters for deprecated content.
     case deprecated
+    /// Filters for beta content.
     case beta
 }
 

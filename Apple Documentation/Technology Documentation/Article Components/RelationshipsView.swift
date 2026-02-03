@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that displays relationships (e.g., conforming types, inheritance) for an article.
 struct RelationshipsView: View {
+    /// The article containing the relationships data.
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel
     

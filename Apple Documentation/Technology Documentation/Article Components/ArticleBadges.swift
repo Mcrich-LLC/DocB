@@ -7,12 +7,18 @@
 
 import SwiftUI
 
+/// A view that displays a stylized badge (e.g., "Beta" or "Deprecated").
 struct ArticleBadge: View {
     @Environment(\.colorScheme) var colorScheme
+    /// The type of badge to display.
     let badge: Badge
     
+    /// The supported badge types.
     enum Badge: String, CaseIterable {
-        case beta, deprecated
+        /// A badge indicating beta status.
+        case beta
+        /// A badge indicating deprecated status.
+        case deprecated
         
         var backgroundColor: Color {
             switch self {

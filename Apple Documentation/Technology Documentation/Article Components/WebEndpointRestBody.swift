@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A view that displays the body details of a REST endpoint.
 struct WebEndpointRestBody: View {
+    /// The content section containing body data.
     let contentSection: ContentSection
+    /// A dictionary of references for resolving links.
     let references: [String : Reference]
     
     var body: some View {

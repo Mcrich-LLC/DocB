@@ -8,8 +8,11 @@
 import SwiftUI
 import HighlightSwift
 
+/// A view that displays a code declaration with syntax highlighting.
 struct DeclarationContentView: View {
+    /// The declaration content.
     let content: ContentSection.Declaration
+    /// The full article, used for context if needed.
     let article: Article
     @Environment(\.colorScheme) var colorScheme
     

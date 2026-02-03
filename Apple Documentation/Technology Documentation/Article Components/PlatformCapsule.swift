@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A capsule view displaying platform availability and version information.
 struct PlatformCapsule: View {
+    /// The platform metadata to display.
     let platform: Platform
     
     var text: String {

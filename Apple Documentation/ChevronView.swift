@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A standard chevron view used for navigation indication.
 struct ChevronView: View {
     @Environment(\.colorScheme) var colorScheme
     

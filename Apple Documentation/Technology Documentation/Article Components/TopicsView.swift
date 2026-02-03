@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that displays the topics sections of an article.
 struct TopicsView: View {
+    /// The article containing the topics to display.
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel
     

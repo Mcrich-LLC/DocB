@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A navigation button designed for navigating back to the homepage.
 struct HomepageNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
@@ -37,6 +38,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     }
 }
 
+/// A navigation button designed for navigating to a specific documentation reference.
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
@@ -145,6 +147,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
 }
 
+/// A navigation button designed for navigating to a specific technology or framework.
 struct TechnologyNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let technology: AppleTechnologies.FrameworkSection

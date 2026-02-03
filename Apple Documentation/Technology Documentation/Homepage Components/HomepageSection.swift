@@ -8,8 +8,11 @@
 import SwiftUI
 import Kingfisher
 
+/// A general-purpose section view for the homepage, supporting various layouts like links, cards, and highlighted content.
 struct HomepageSection: View {
+    /// The section data to display.
     let section: HomepageParser.Section
+    /// The full homepage parser object, used for reference resolution.
     let homepage: HomepageParser
     
     var body: some View {
@@ -31,6 +34,8 @@ struct HomepageSection: View {
 }
 
 // MARK: Highlighted Links
+// MARK: Highlighted Links
+/// A view that displays a list of highlighted links, optionally with an image.
 private struct HighlightedLinks: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
@@ -148,6 +153,8 @@ private struct HighlightedLinksCell: View {
 }
 
 // MARK: Links
+// MARK: Links
+/// A view that displays a list of links, potentially organized by sub-sections.
 private struct Links: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
@@ -178,6 +185,8 @@ private struct Links: View {
 }
 
 // MARK: Cards
+// MARK: Cards
+/// A view that displays a grid of cards, often used for featuring specific topics or articles.
 private struct Cards: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser
@@ -300,6 +309,8 @@ private struct Cards: View {
 }
 
 // MARK: HomepageLinks
+// MARK: HomepageLinks
+/// A view that displays a collection of links specifically designed for homepage navigation.
 private struct HomepageLinks: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser

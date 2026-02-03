@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A view that draws a standard background for selected items in a list or sidebar.
 struct SelectedLineBackground: View {
     let isSelected: Bool
     
@@ -38,6 +39,10 @@ extension View {
         }
     }
     
+    /// Applies a standard selected background style to the view.
+    ///
+    /// - Parameter isSelected: A Boolean value indicating whether the item is selected.
+    /// - Returns: A view with the selected background applied if `isSelected` is true.
     @ViewBuilder
     func selectedLineBackground(isSelected: Bool) -> some View {
         modifier(SelectedLineBackgroundModifier(isSelected: isSelected))

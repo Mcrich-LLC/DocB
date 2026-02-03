@@ -11,8 +11,11 @@ import Kingfisher
 import AVKit
 import HighlightSwift
 
+/// A recursive view that renders various types of article content.
 struct ArticleContentView: View {
+    /// The content to display.
     let content: ContentSection.Content
+    /// A dictionary of references for resolving links and other assets.
     let references: [String : Reference]
     let type: ContentType?
     let alignment: Alignment

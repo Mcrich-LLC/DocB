@@ -8,8 +8,11 @@
 import SwiftUI
 import HighlightSwift
 
+/// A view that displays the endpoint URL and method for a REST API.
 struct WebEndpointRestEndPoint: View {
+    /// The content section containing endpoint data.
     let contentSection: ContentSection
+    /// A dictionary of references for resolving links.
     let references: [String : Reference]
     
     var code: String? {

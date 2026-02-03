@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A view that displays a list of references where the current article is mentioned.
 struct MentionsView: View {
+    /// A list of identifiers for articles that mention this one.
     let mentions: [String]
+    /// The current article, used for context.
     let article: Article
     @Environment(\.docCSite) var docCSite
     func conditionReference(_ reference: Reference?) -> Reference? {

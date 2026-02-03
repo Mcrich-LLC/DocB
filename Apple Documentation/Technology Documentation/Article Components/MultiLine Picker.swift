@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// A custom picker that supports multiline text and custom cell views.
 struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCollection, Data.Element: Identifiable, Data.Element: Equatable {
+    /// The collection of data options.
     let data: Data
+    /// The currently selected item.
     @Binding var selection: Data.Element
     
     @ViewBuilder let cell: (Data.Element) -> Cell

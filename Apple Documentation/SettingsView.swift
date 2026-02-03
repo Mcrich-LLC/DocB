@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// The main settings view for the application.
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -19,6 +20,7 @@ struct SettingsView: View {
     }
 }
 
+/// A view for configuring general application settings.
 struct GeneralSettingsView: View {
     @Environment(AppSettings.self) var appSettings
     

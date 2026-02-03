@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// The main root view of the application, managing navigation and the initial split view layout.
 struct ContentView: View {
     let url: URL?
     
@@ -127,6 +128,9 @@ struct ContentView: View {
     }}
     
     @ViewBuilder
+    /// The primary navigation split view layout.
+    ///
+    /// Handles the sidebars for technology selection and search, and the detail view for displaying content.
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             Group {
@@ -169,6 +173,7 @@ struct ContentView: View {
     }
     
     @ViewBuilder
+    /// The navigation stack view for smaller screens or when split view is disabled.
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             Group {
@@ -194,6 +199,7 @@ struct ContentView: View {
     }
 }
     
+/// A view displaying the list of available technologies and documentation sources.
 private struct TechView: View {
     @State var searchText = ""
     @Environment(DocumentationViewModel.self) private var documentationViewModel

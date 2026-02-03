@@ -8,9 +8,13 @@
 import SwiftUI
 import Kingfisher
 
+/// A view that displays a list of links in either a grid or list layout.
 struct LinksGridListView: View {
+    /// The list of reference identifiers to display.
     let identifiers: [String]
+    /// The display style (e.g., compact grid, detailed grid, list).
     let style: ContentSection.Content.Style
+    /// A dictionary of references for resolving link data.
     let references: [String : Reference]
     private var alignment: Alignment
     private var textAlignment: TextAlignment = .leading

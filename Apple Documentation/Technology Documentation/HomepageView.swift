@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that renders the main homepage content, including hero sections, resources, and sections.
 struct HomepageView: View {
+    /// The parsed homepage data model.
     let homepage: HomepageParser
     
     @Environment(NavigationViewModel.self) var navigationViewModel

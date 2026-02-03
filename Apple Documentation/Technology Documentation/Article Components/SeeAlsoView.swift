@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A view that displays "See Also" links and related documentation.
 struct SeeAlsoView: View {
+    /// The article containing the "See Also" sections.
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel
     

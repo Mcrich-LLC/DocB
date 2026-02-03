@@ -7,9 +7,13 @@
 
 import SwiftUI
 
+/// A view that displays an aside (e.g., note, warning, experiment) with a styled background and title.
 struct AsideView: View {
+    /// The style of the aside (e.g., tip, warning).
     let style: ContentSection.Content.Style
+    /// The content within the aside.
     let content: [ContentSection.Content]
+    /// A dictionary of references for resolving links.
     let references: [String : Reference]
     
     var title: String {

@@ -196,8 +196,18 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     fileprivate(set) var orderedListInt: Int?
     
     // MARK: Static Helpers
+    
+    /// A content struct representing a double line break.
+    ///
+    /// Used for separating paragraphs or sections.
     static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    
+    /// A content struct representing a 1.5 line break (custom marker).
+    ///
+    /// Used for spacing around lists or other block elements.
     static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
+    
+    /// A content struct representing a single line break.
     static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     
     /// Converts the content struct into a flattened `AttributedString`.
@@ -235,10 +245,13 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
         return attributedString
     }
     
+    /// Metadata associated with content, such as an abstract or summary.
     @CodableIgnoreInitializedProperties
     struct Metadata: Codable, Hashable, Equatable {
+        /// A unique identifier for the metadata instance.
         let id: UUID = UUID()
         
+        /// An abstract or summary description.
         let abstract: [ContentStruct]?
     }
 }
@@ -258,7 +271,7 @@ extension [ContentStruct] {
 struct Fragment: Codable, Hashable {
     /// The text content of the fragment.
     let text: String
-    /// The kind of fragment (e.g., "keyword", "identifier").
+    /// The kind of fragment (e.g., "keyword", "identifier", "text").
     let kind: String
 }
 
@@ -276,16 +289,26 @@ struct Fragment: Codable, Hashable {
     let content: [Content]?
     var condensedContent: [Content] { getCondensedContent(content ?? []) }
     
+    /// Declarations within this content section.
     var declarations: [Declaration]?
+    /// A list of identifiers mentioned in this section.
     let mentions: [String]?
+    /// Details associated with the content.
     let details: Details?
     
-    // Web Endpoint
+    // MARK: Web Endpoint Properties
+    
+    /// The REST responses associated with an endpoint.
     let items: [RestResponse]?
+    /// The body content type for a REST endpoint.
     let bodyContentType: [RestResponse.RestResponseType]?
+    /// The MIME type for a REST endpoint.
     let mimeType: String?
+    /// The title of the section.
     let title: String?
+    /// The tokens associated with the section.
     let tokens: [Token]?
+    /// The attributes associated with the section.
     let attributes: [Attribute]?
     
     enum CodingKeys: CodingKey {
@@ -337,52 +360,80 @@ struct Fragment: Codable, Hashable {
         case restParameters
     }
     
+    /// A structure representing an attribute of a REST endpoint.
     @CodableIgnoreInitializedProperties
     struct Attribute: Codable, Identifiable, Equatable, Hashable {
+        /// A unique identifier for the attribute.
         let id = UUID()
         
+        /// The name of the attribute.
         let name: String?
     }
     
+    /// A structure representing a REST API response.
     @CodableIgnoreInitializedProperties
     struct RestResponse: Codable, Identifiable, Equatable, Hashable {
+        /// A unique identifier for the response.
         let id = UUID()
         
+        /// The types of data returned in the response.
         let type: [RestResponseType]
+        /// The HTTP status code of the response.
         let status: Int?
+        /// The MIME type of the response content.
         let mimeContent: String?
+        /// The detailed content description of the response.
         let content: [ContentSection.Content]
+        /// The reason phrase associated with the response status.
         let reason: String?
+        /// The name of the response.
         let name: String?
         
+        /// A structure representing the type definition within a REST response.
         @CodableIgnoreInitializedProperties
         struct RestResponseType: Codable, Identifiable, Equatable, Hashable {
+            /// A unique identifier for the response type.
             let id = UUID()
             
+            /// The text representation of the type.
             let text: String
+            /// The kind of the type (e.g., type identifier).
             let kind: Kind
+            /// The precise identifier for the type.
             let preciseIdentifier: String?
+            /// The identifier for the type.
             let identifier: String?
         }
     }
     
+    /// A structure containing details about a symbol or entity.
     @CodableIgnoreInitializedProperties
     struct Details: Codable, Identifiable, Equatable, Hashable {
+        /// A unique identifier for the details.
         let id = UUID()
         
+        /// The name of the detail.
         let name: String
+        /// The values associated with the detail.
         let value: [Value]
         
+        /// A structure representing a value within details.
         struct Value: Codable, Equatable, Hashable {
+            /// The base type string of the value.
             let baseType: String
         }
     }
     
+    /// A structure representing a declaration in code.
     @CodableIgnoreInitializedProperties
     struct Declaration: Codable, Identifiable, Equatable, Hashable {
+        /// A unique identifier for the declaration.
         let id = UUID()
+        /// The tokens that make up the declaration.
         let tokens: [Token]
+        /// The languages in which this declaration is valid.
         let languages: [String]
+        /// The platforms on which this declaration is available.
         let platforms: [String]?
         
         init(from decoder: Decoder) throws {
@@ -394,9 +445,13 @@ struct Fragment: Codable, Hashable {
         }
     }
     
+    /// A lexical token representing a piece of code or text.
     struct Token: Codable, Equatable, Hashable {
+        /// The text content of the token.
         let text: String?
+        /// The kind of token (e.g., keyword, identifier).
         let kind: String
+        /// The code snippet associated with the token.
         let code: String?
     }
     
@@ -415,7 +470,7 @@ struct Fragment: Codable, Hashable {
         let level: Int?
         
         // MARK: Text
-        /// Code content if this fragment represents code.
+        /// Code content if this fragment represents code, split by lines.
         let code: [String]?
         /// Text content.
         let text: String?
@@ -437,9 +492,9 @@ struct Fragment: Codable, Hashable {
         // MARK: List
         /// Items for a term list.
         let termListItems: [TermListItem]?
-        /// Items for an unordered list.
+        /// Items for an unordered list (bullet points).
         let unorderedListItems: [UnorderedListItem]?
-        /// Items for an ordered list.
+        /// Items for an ordered list (number points).
         let orderedListItems: [UnorderedListItem]?
         
         func inlineContentFromTermListItems() -> [ContentStruct] {
@@ -530,12 +585,18 @@ struct Fragment: Codable, Hashable {
             return items
         }
         
-        // Tab
+        // MARK: Layout
+        
+        /// The tabs within a tab navigator.
         let tabs: [Tab]?
         
-        // Row
+        // MARK: Grid/Table
+        
+        /// The number of columns in a row.
         let numberOfColumns: Int?
+        /// The columns in a row.
         let columns: [Column]?
+        /// The rows in a table.
         let rows: [[[Content]]]?
         
         enum CodingKeys: CodingKey {
@@ -660,74 +721,112 @@ struct Fragment: Codable, Hashable {
             case deprecated
         }
         
+        /// A column within a row.
         struct Column: Codable, Equatable, Hashable {
+            /// The relative size/weight of the column.
             let size: Int
+            /// The content within the column.
             let content: [Content]
         }
         
+        /// A tab within a tab navigator.
         @CodableIgnoreInitializedProperties
         struct Tab: Codable, Equatable, Identifiable, Hashable {
+            /// A unique identifier for the tab.
             let id = UUID()
             
+            /// The content within the tab.
             let content: [Content]
+            
+            /// A condensed version of the tab's content.
             var condensedContent: [Content] {
                 getCondensedContent(content)
             }
             
+            /// The title of the tab.
             let title: String
             
+            /// An item within a tab.
             @CodableIgnoreInitializedProperties
             struct Item: Codable, Equatable, Identifiable, Hashable {
+                /// A unique identifier for the item.
                 let id = UUID()
                 
+                /// The content of the item.
                 let content: [ContentSection.Content]
             }
         }
         
+        /// An item in a term list (definition list).
         @CodableIgnoreInitializedProperties
         struct TermListItem: Codable, Identifiable, Equatable, Hashable {
+            /// A unique identifier for the term list item.
             let id = UUID()
+            /// The term being defined.
             let term: Term
+            /// The definition of the term.
             let definition: Definition
             
+            /// The definition content wrapper.
             struct Definition: Codable, Equatable, Hashable {
+                /// The content of the definition.
                 let content: [ContentSection.Content]
             }
             
+            /// The term content wrapper.
             struct Term: Codable, Equatable, Hashable {
+                /// The inline content representing the term.
                 let inlineContent: [ContentStruct]
             }
         }
         
+        /// A structure representing a list item in an unordered list.
         @CodableIgnoreInitializedProperties
         struct UnorderedListItem: Codable, Identifiable, Equatable, Hashable {
+            /// A unique identifier for the list item.
             let id = UUID()
             
+            /// The content of the list item.
             let content: [ContentSection.Content]?
         }
     }
 }
 
+/// A structure representing a variant of documentation (e.g., for a specific language).
 struct Variant: Codable, Equatable, Hashable {
+    /// The traits defining the variant.
     let traits: [Trait]
+    /// The paths associated with this variant.
     let paths: [String]
     
+    /// A trait defining a characteristic of a variant.
     struct Trait: Codable, Equatable, Hashable {
+        /// The interface language for this trait.
         let interfaceLanguage: PreferedProgrammingLanguage
     }
 }
 
+/// A structure representing an override to apply to documentation variants.
 struct VariantOverride: Codable, Equatable, Hashable {
+    /// The traits that match the variants to override.
     let traits: [Variant.Trait]
+    /// The patches to apply.
     let patch: [Patch]
     
+    /// A structure representing a JSON patch operation.
     struct Patch: Codable, Equatable, Hashable {
+        /// The operation type (e.g., "replace").
         let op: String
+        /// The path to the value to modify.
         let path: String
+        /// The new value wrapper, if applicable.
         let value: AltDeclarationsWrapper?
         
+        /// A wrapper for alternative declarations in a patch.
         struct AltDeclarationsWrapper: Codable, Equatable, Hashable {
+            /// The new declarations.
             let declarations: [ContentSection.Declaration]
+            /// The kind of the wrapper.
             let kind: String
         }
         

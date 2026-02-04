@@ -8,10 +8,14 @@
 import Foundation
 import EnhancedCodable
 
+/// Enum representing different types of technology documentation sources.
 enum TechnologyTypes: Identifiable, Equatable, Sendable {
+    /// Documentation from Apple's official source.
     case apple(AppleTechnologies)
+    /// Documentation from a hosted DocC site.
     case docC(DocCSiteDTO)
     
+    /// The unique identifier for the technology source.
     var id: UUID {
         switch self {
         case .apple(let apple):
@@ -21,6 +25,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Indicates if the source is a DocC site.
     var isDocC: Bool {
         switch self {
         case .apple:
@@ -31,12 +36,18 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
     }
 }
 
+/// A structure representing Apple's technology documentation index.
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
+    /// The unique identifier.
     let id = UUID()
     
+    /// The header information for the technology page.
     let header: Header?
+    /// The groups of technologies available.
     let groups: [Technology]?
+    /// References to other symbols.
     let references: [String : Reference]
+    /// Legal notices.
     let legalNotices: LegalNotices?
     
     enum CodingKeys: CodingKey {
@@ -63,44 +74,68 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
         }
     }
     
+    /// A common section structure used in the technologies JSON.
     struct CommonTechnologiesSection: Codable {
+        /// The kind of section.
         let kind: String
         
-        // Header
+        // MARK: Header
+        /// The background image URL.
         let backgroundImage: String?
+        /// The image URL.
         let image: String?
+        /// The title of the section.
         let title: String?
         
-        // Technology
+        // MARK: Technology
+        /// The groups of technologies in this section.
         let groups: [Technology]?
     }
     
+    /// The header details for the technology page.
     struct Header: Codable, Equatable, Hashable {
+        /// The background image.
         let backgroundImage: String
+        /// The main image.
         let image: String
+        /// The title.
         let title: String
+        /// The kind of header.
         let kind: String
     }
     
+    /// A specific technology group (e.g., "Platforms", "Tools").
     @CodableIgnoreInitializedProperties
     struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
+        /// The unique identifier for the technology group.
         let id = UUID()
         
+        /// The name of the technology group.
         let name: String
+        /// The list of specific technology frameworks in this group.
         let technologies: [FrameworkSection]
     }
     
+    /// A section representing a specific framework or technology.
     @CodableIgnoreInitializedProperties
     struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
+        /// The unique identifier for the framework section.
         let id = UUID()
         
+        /// The languages supported.
         let languages: [String]
+        /// The title of the framework.
         let title: String
+        /// Tags associated with the framework.
         let tags: [String]
+        /// The navigation destination.
         let destination: Destination
+        /// Legal notices.
         let legalNotices: LegalNotices?
+        /// The associated DocC site, if applicable.
         let docCSite: DocCSiteDTO?
         
+        /// Checks if this framework section is equal to another.
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
                   let url = URL(string: framework.destination.identifier)
@@ -111,12 +146,17 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
             return currentUrl.path().lowercased() == url.path().lowercased()
         }
         
+        /// The destination details for navigation.
         struct Destination: Codable, Hashable {
+            /// The type of destination.
             let type: String
+            /// Indicates if the destination is active.
             let isActive: Bool
+            /// The identifier path.
             let identifier: String
         }
         
+        /// Converts this section into a `Reference` object.
         var frameworkReference: Reference {
             Reference(
                 title: title,

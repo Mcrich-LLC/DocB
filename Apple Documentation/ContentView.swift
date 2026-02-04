@@ -22,6 +22,7 @@ struct ContentView: View {
     @Environment(\.openWindow) var openWindow
     @Query var docCSites: [DocCSite]
     
+    /// The tint color for the navigation bar, based on the current context.
     var navigationTint: Color? {
         guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
         
@@ -73,6 +74,7 @@ struct ContentView: View {
         }
     }
     
+    /// A handler for opening URLs within the app, managing deep links and browser actions.
     var urlActionHandler: OpenURLAction { OpenURLAction { url in
         guard !url.absoluteString.contains("videos"),
               !url.absoluteString.contains("tutorials"),

@@ -269,18 +269,27 @@ class NavigationViewModel: @MainActor Equatable {
         technology = currentState.technology
     }
     
+    /// Determines if a reference should be removed from the navigation path.
+    /// - Parameter reference: The reference to check.
+    /// - Returns: `true` if the reference matches the current history state.
     func shouldRemoveReferenceFromPath(_ reference: Reference?) -> Bool {
         history[currentIndex].reference == reference
     }
     
+    /// Determines if a technology should be removed from the navigation path.
+    /// - Parameter technology: The technology to check.
+    /// - Returns: `true` if the technology matches the current history state and there is no active reference.
     func shouldRemoveTechnologyFromPath(_ technology: AppleTechnologies.FrameworkSection?) -> Bool {
         history[currentIndex].technology == technology && history[currentIndex].reference == nil
     }
     
+    /// Checks if the current history state represents the homepage.
+    /// - Returns: `true` if the current state is the homepage.
     func homepageIsCurrent() -> Bool {
         history[currentIndex].isHomepage
     }
     
+    /// Toggles the presence of the homepage at the beginning of the history based on split view usage.
     func toggleHomepageInBeginingOfHistory() {
         if isUsingSplitView && history.first?.isHomepage != true {
             history.insert(.init(technology: nil, reference: nil, isHomepage: true), at: 0)
@@ -293,6 +302,9 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Finds the index of a specific reference in the history stack.
+    /// - Parameter reference: The reference to search for.
+    /// - Returns: The index of the reference if found, otherwise `nil`.
     func getHistoryIndexOfReference(_ reference: Reference) -> Int? {
         history.lastIndex(where: { history in
             guard let ref = history.reference else {
@@ -303,6 +315,9 @@ class NavigationViewModel: @MainActor Equatable {
         })
     }
     
+    /// Retrieves the technology at a specific index in the history.
+    /// - Parameter index: The index to retrieve from.
+    /// - Returns: The `AppleTechnologies.FrameworkSection` at the index, or `nil` if invalid.
     func getHistoryTechnology(at index: Int) -> AppleTechnologies.FrameworkSection? {
         if index < history.count - 1 && index >= 0 {
             return history[index].technology
@@ -311,6 +326,8 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Handles the removal of a reference from the history and path.
+    /// - Parameter reference: The reference being removed.
     func handleHistoryRemoval(for reference: Reference) {
         isNavigating = true
         defer { isNavigating = false }
@@ -356,17 +373,26 @@ extension Dictionary {
     }
 }
 
+/// A private structure representing a state in the navigation history.
 private struct History: Identifiable, Hashable {
+    /// A unique identifier for the history item.
     let id = UUID()
     
+    /// The technology associated with this history state.
     var technology: AppleTechnologies.FrameworkSection?
+    /// The reference associated with this history state.
     var reference: Reference?
+    /// Indicates if this history state represents the homepage.
     let isHomepage: Bool
 }
 
+/// An enum representing an element in the navigation path.
 enum PathElement: Hashable {
+    /// A reference path element.
     case reference(Reference)
+    /// A technology path element.
     case technology(AppleTechnologies.FrameworkSection)
+    /// The homepage path element.
     case homepage
 }
 

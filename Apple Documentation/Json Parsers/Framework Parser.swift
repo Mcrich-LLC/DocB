@@ -41,15 +41,22 @@ struct Framework: Codable, AppleDocumentation {
         
         /// A wrapper for identifiers to make them identifiable.
         struct IdentifiableIdentifier: Identifiable, Equatable, Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
+            /// A unique identifier for the instance.
             let id = UUID()
+            /// The actual identifier string.
             let identifier: String
             
+            /// A textual representation of the identifier.
             var description: String { identifier }
             
+            /// Initializes a new instance with the given identifier.
+            /// - Parameter identifier: The identifier string.
             init(_ identifier: String) {
                 self.identifier = identifier
             }
             
+            /// Initializes a new instance from a string literal.
+            /// - Parameter value: The string literal value.
             init(stringLiteral value: StringLiteralType) {
                 self.identifier = String(describing: value)
             }

@@ -22,18 +22,25 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     /// A structure representing an interface language node in the index.
     @CodableIgnoreInitializedProperties
     struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable {
+        /// The unique identifier for the interface language node.
         let id = UUID()
         
+        /// The title of the language interface (e.g., "Swift").
         let title: String
+        /// The relative path to the documentation for this language.
         let path: String?
+        /// The type of the interface node.
         let type: String
         
+        /// Sub-nodes or children of this interface language, such as frameworks.
         let children: [InterfaceLanguage]?
         
+        /// Returns a list of all framework sections derived from this language node and its children.
         func allFrameworkSections(for site: DocCSiteDTO) -> [AppleTechnologies.FrameworkSection] {
             children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
         }
         
+        /// Converts an interface language node into a framework section.
         func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO) -> AppleTechnologies.FrameworkSection? {
 //            let languages = self.index.interfaceLanguages.filter({
 //                $0.value.contains(where: { $0.path == interfaceLanguage.path ?? "" }) || $0.value.flatMap { $0.children ?? [] }.contains(where: { $0.path == interfaceLanguage.path ?? "" })
@@ -63,6 +70,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         lhs.id == rhs.id
     }
     
+    /// Hashes the essential components of the site DTO.
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(timestamp)
@@ -95,6 +103,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.persistentModelID = nil
     }
     
+    /// Initializes a DTO from a stored model.
     init(_ model: DocCSite) {
         self.id = model.id
         self.timestamp = model.timestamp
@@ -111,6 +120,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
     
+    /// Updates the index of the DocC site.
     func setIndex(_ index: DocCIndex) {
         self.index = index
     }
@@ -121,14 +131,17 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         case index
     }
     
+    /// Retrieves the flattened list of interface languages from the index.
     var groups: [DocCIndex.InterfaceLanguage] {
         index.interfaceLanguages.flatMap({ $0.value })
     }
     
+    /// Retrieves all framework sections from the site's index.
     var allFrameworkSections: [AppleTechnologies.FrameworkSection] {
         groups.compactMap(frameworkSection)
     }
     
+    /// Converts an interface language into a framework section for this site.
     func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage) -> AppleTechnologies.FrameworkSection? {
         guard let path = interfaceLanguage.path else { return nil }
         
@@ -148,6 +161,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         )
     }
     
+    /// Deletes the site from the provided model context.
     func deleteSite(modelContext: ModelContext) {
         guard let persistentModelID else { return }
         let model = modelContext.model(for: persistentModelID)
@@ -168,6 +182,7 @@ final class DocCSite: Identifiable {
     
     /// The stored index of the site.
 //    @Attribute(.externalStorage)
+    /// The stored index of the site.
     var index: DocCIndex
     
     /// Initializes a new `DocCSite`.

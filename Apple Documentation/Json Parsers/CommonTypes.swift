@@ -680,7 +680,14 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
     }
     
     var externalURL: URL? {
-        guard let urlString = url else {
+        var urlString: String? = url
+        
+        // Fallback to identifier
+        if urlString == nil {
+            urlString = URL(string: identifier)?.path()
+        }
+        
+        guard let urlString else {
             return nil
         }
         

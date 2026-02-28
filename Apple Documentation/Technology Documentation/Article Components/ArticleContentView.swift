@@ -350,19 +350,43 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            let widthDeterminedColumns: Int = if let viewSize {
-                max(1, Int(viewSize.width / 350))
-            } else {
-                content.columns?.count ?? 1
-            }
-            LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.alignment.horizontal, spacing: 20) {
-                ForEach(content.columns ?? [], id: \.self) { column in
-                    VStack(alignment: .center) {
-                        ForEach(column.content) { content in
-                            ArticleContentView(content: content, references: references)
+            if (content.columns ?? []).filter({ $0.size > 1 }).isEmpty {
+                let widthDeterminedColumns: Int = if let viewSize {
+                    max(1, Int(viewSize.width / 350))
+                } else {
+                    content.columns?.count ?? 1
+                }
+                
+                LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.alignment.horizontal, spacing: 20) {
+                    ForEach(content.columns ?? [], id: \.self) { column in
+                        VStack(alignment: .center) {
+                            ForEach(column.content) { content in
+                                ArticleContentView(content: content, references: references)
+                            }
                         }
+                        .frame(maxHeight: .infinity, alignment: .top)
                     }
-                    .frame(maxHeight: .infinity, alignment: .top)
+                }
+            } else {
+                HStack {
+                    let columnNumber = content.numberOfColumns ?? (content.columns ?? []).reduce(0, { partialResult, column in
+                        partialResult.advanced(by: column.size)
+                    })
+                    let columnWidth = if let viewSize {
+                        viewSize.width/CGFloat(columnNumber)
+                    } else {
+                        // Should not be shown because viewSize is set instantly
+                        50.0
+                    }
+                    
+                    ForEach(content.columns ?? [], id: \.self) { column in
+                        VStack(alignment: .center) {
+                            ForEach(column.content) { content in
+                                ArticleContentView(content: content, references: references)
+                            }
+                        }
+                        .frame(maxWidth: columnWidth*CGFloat(column.size), maxHeight: .infinity, alignment: .top)
+                    }
                 }
             }
         case .none:

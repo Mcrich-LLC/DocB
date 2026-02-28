@@ -24,7 +24,7 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
         let path: String?
         let type: String
         
-        let children: [InterfaceLanguage]?
+        fileprivate(set) var children: [InterfaceLanguage]?
         
         func allFrameworkSections(for site: DocCSiteDTO) -> [AppleTechnologies.FrameworkSection] {
             children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
@@ -111,6 +111,16 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     var groups: [DocCIndex.InterfaceLanguage] {
         index.interfaceLanguages.flatMap({ $0.value })
+    }
+    
+    var nonSampleCodeGroups: [DocCIndex.InterfaceLanguage] {
+        let groups = groups.filter({ $0.type != "sampleCode" }).map({ group in
+            var group = group
+            group.children = group.children?.filter({ $0.type != "sampleCode" })
+            return group
+        }).filter({ $0.children?.isEmpty == false })
+        
+        return groups
     }
     
     var allFrameworkSections: [AppleTechnologies.FrameworkSection] {

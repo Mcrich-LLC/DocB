@@ -251,7 +251,7 @@ private struct TechView: View {
             if searchHasResults {
                 if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
                     Section {
-                        ForEach(docCSites.asDTOs.filter({ $0.groups.count <= 1 })) { technology in
+                        ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
                             DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                                 .contextMenu {
                                     Button("Delete", systemImage: "trash", role: .destructive) {
@@ -260,7 +260,7 @@ private struct TechView: View {
                                 }
                         }
                     }
-                    ForEach(docCSites.asDTOs.filter({ $0.groups.count > 1 })) { technology in
+                    ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
                         Section {
                             DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                         } header: {
@@ -316,7 +316,7 @@ private struct DocCTechView: View {
     var body: some View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, technology, group) } ?? []
-            if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
+            if !filtered.isEmpty, var frameworkSection = group.frameworkSection(for: group, site: technology) {
                     TechnologyNavigationLinkButton(technology: frameworkSection) {
                         ListItemLabel(framework: frameworkSection, references: [:])
                     }

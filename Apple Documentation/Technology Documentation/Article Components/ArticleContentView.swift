@@ -291,7 +291,7 @@ struct ArticleContentView: View {
                 }
                 
                 ForEach(tabSelection.condensedContent) { tabContents in
-                    ArticleContentView(content: tabContents, references: references)
+                    ArticleContentView(content: tabContents, references: references, alignment: .top)
                 }
             }
         case .reference:
@@ -357,13 +357,12 @@ struct ArticleContentView: View {
             }
             LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.alignment.horizontal, spacing: 20) {
                 ForEach(content.columns ?? [], id: \.self) { column in
-                    HStack {
-                        VStack(alignment: .center) {
-                            ForEach(column.content) { content in
-                                ArticleContentView(content: content, references: references)
-                            }
+                    VStack(alignment: .center) {
+                        ForEach(column.content) { content in
+                            ArticleContentView(content: content, references: references)
                         }
                     }
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
         case .none:

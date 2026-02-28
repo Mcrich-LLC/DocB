@@ -29,6 +29,16 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
             return true
         }
     }
+    
+    @MainActor
+    var names: [String] {
+        switch self {
+        case .apple(let apple):
+            return ["Apple Developer Documentation"]
+        case .docC(let docC):
+            return docC.groups.map(\.title)
+        }
+    }
 }
 
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {

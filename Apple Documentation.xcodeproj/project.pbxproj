@@ -17,6 +17,7 @@
 		2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F74D2F2AA3BD00A3201C /* AppSettings.swift */; };
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
+		225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E3FC62F5370AF0077916C /* AddTechnologyView.swift */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3DE2CBF6A8500090C9F /* Article Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B22CBF6A8500090C9F /* Article Parser.swift */; };
 		2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B32CBF6A8500090C9F /* CommonTypes.swift */; };
@@ -76,6 +77,7 @@
 		2239F74D2F2AA3BD00A3201C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
+		225E3FC62F5370AF0077916C /* AddTechnologyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTechnologyView.swift; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
 		2287E3B32CBF6A8500090C9F /* CommonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTypes.swift; sourceTree = "<group>"; };
 		2287E3B42CBF6A8500090C9F /* Framework Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Framework Parser.swift"; sourceTree = "<group>"; };
@@ -247,6 +249,7 @@
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
+				225E3FC62F5370AF0077916C /* AddTechnologyView.swift */,
 				2209FBBA2CC98C0900372F9E /* LegalNoticesView.swift */,
 				222AB77A2CBF78B2001196C1 /* ChevronView.swift */,
 				2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */,
@@ -407,6 +410,7 @@
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,
 				22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */,
 				2287E3E62CBF6A8500090C9F /* AsideView.swift in Sources */,
+				225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */,
 				2287E3E72CBF6A8500090C9F /* DeclarationContentView.swift in Sources */,
 				2287E3E82CBF6A8500090C9F /* DetailsView.swift in Sources */,
 				2287E3E92CBF6A8500090C9F /* DownloadButtonView.swift in Sources */,

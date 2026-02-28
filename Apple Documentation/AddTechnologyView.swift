@@ -127,7 +127,7 @@ struct AddTechnologyView: View {
             removeDocCSite(url: technology.baseURL)
         } else {
             Task {
-                await addDocCSite(url: technology.baseURL)
+                await addDocCSite(url: technology.baseURL, overrideName: technology.title)
             }
         }
     }
@@ -154,7 +154,7 @@ struct AddTechnologyView: View {
         documentationViewModel.deleteTechnology(.docC(site), modelContext: modelContext)
     }
     
-    private func addDocCSite(url: URL) async {
+    private func addDocCSite(url: URL, overrideName: String? = nil) async {
         guard let scheme = url.scheme,
               let host = url.host
         else {
@@ -173,7 +173,7 @@ struct AddTechnologyView: View {
             return
         }
         
-        await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext)
+        await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext, overrideName: overrideName)
     }
 }
 

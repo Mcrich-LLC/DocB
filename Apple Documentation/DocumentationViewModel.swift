@@ -136,7 +136,7 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(baseUrl: URL, modelContext: ModelContext) async {
+    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async {
         guard !baseUrl.absoluteString.contains("developer.apple.com") else {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
@@ -159,7 +159,7 @@ class DocumentationViewModel {
             let (data, _) = try await URLSession.shared.data(from: indexUrl)
             
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
-            let site = DocCSite(url: baseUrl, index: index)
+            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
             modelContext.insert(site)
             await MainActor.run {
                 withAnimation {

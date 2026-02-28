@@ -66,14 +66,16 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     let id: UUID
     let timestamp: Date
+    let overrideName: String?
     let url: URL
     private(set) var index: DocCIndex
     fileprivate var persistentModelID: PersistentIdentifier?
     
-    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+    init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.id = UUID()
         self.timestamp = timestamp
         self.url = url
+        self.overrideName = overrideName
         self.index = index
         self.persistentModelID = nil
     }
@@ -82,6 +84,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.id = model.id
         self.timestamp = model.timestamp
         self.url = model.url
+        self.overrideName = model.overrideName
         self.index = model.index
         self.persistentModelID = model.persistentModelID
     }
@@ -91,6 +94,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.id = UUID()
         self.timestamp = try container.decode(Date.self, forKey: .timestamp)
         self.url = try container.decode(URL.self, forKey: .url)
+        self.overrideName = try container.decodeIfPresent(String.self, forKey: .overrideName)
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
     
@@ -101,6 +105,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     enum CodingKeys: String, CodingKey {
         case timestamp
         case url
+        case overrideName
         case index
     }
     
@@ -144,13 +149,15 @@ final class DocCSite: Identifiable {
     var id: UUID = UUID()
     var timestamp: Date
     var url: URL
+    var overrideName: String? = nil
     
 //    @Attribute(.externalStorage)
     var index: DocCIndex
     
-    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+    init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url
+        self.overrideName = overrideName
         self.index = index
     }
     

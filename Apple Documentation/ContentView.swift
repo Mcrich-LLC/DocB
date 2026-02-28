@@ -251,11 +251,26 @@ private struct TechView: View {
             if searchHasResults {
                 if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
                     Section {
-                        ForEach(docCSites.asDTOs) { technology in
+                        ForEach(docCSites.asDTOs.filter({ $0.groups.count <= 1 })) { technology in
                             DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                                .contextMenu {
+                                    Button("Delete", systemImage: "trash", role: .destructive) {
+                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                    }
+                                }
                         }
-                    } header: {
-                        Text("Custom Documentation")
+                    }
+                    ForEach(docCSites.asDTOs.filter({ $0.groups.count > 1 })) { technology in
+                        Section {
+                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                        } header: {
+                            Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
+                                .contextMenu {
+                                    Button("Delete", systemImage: "trash", role: .destructive) {
+                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                    }
+                                }
+                        }
                     }
                 }
                 ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
@@ -306,11 +321,6 @@ private struct DocCTechView: View {
             if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
                     TechnologyNavigationLinkButton(technology: frameworkSection) {
                         ListItemLabel(framework: frameworkSection, references: [:])
-                    }
-                    .contextMenu {
-                        Button("Delete", systemImage: "trash", role: .destructive) {
-                            documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                        }
                     }
                     .foregroundStyle(Color.primary)
                     .listRowBackground(Color.clear)

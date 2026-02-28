@@ -7,65 +7,49 @@
 // swiftlint:disable type_body_length
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 import AVKit
 import HighlightSwift
 
-struct ArticleContentView: View {
-    let content: ContentSection.Content
-    let references: [String : Reference]
-    let type: ContentType?
-    let alignment: Alignment
-    @Environment(\.docCSite) var docCSite
-    @State var orderedListIndex: Int
-    @State private var enlargedImageSheetIdentifier: EnlargedImageSheetIdentifier?
-    @Environment(NavigationViewModel.self) var navigationViewModel
+@Observable
+private class ArticleContentManager {
+    var content: ContentSection.Content
+    var references: [String : Reference]
+    var type: ContentType?
+    var alignment: Alignment
+    var orderedListIndex: Int
+    var enlargedImageSheetIdentifier: EnlargedImageSheetIdentifier?
     
-    init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
+    init(content: ContentSection.Content, references: [String : Reference], type: ContentType? = nil, alignment: Alignment, orderedListIndex: Int) {
         self.content = content
         self.references = references
         self.type = type
-        self.orderedListIndex = orderedListIndex
         self.alignment = alignment
+        self.orderedListIndex = orderedListIndex
     }
     
-    @State var player: AVPlayer?
-    @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
-    @State private var viewSize: CGSize?
-    
-    @Environment(\.colorScheme) var colorScheme
-    
-    var body: some View {
-        VStack {
-            if let inlineContent = content.inlineContent {
-                self.inlineContent(for: inlineContent)
-            } else {
-                typeBody
-            }
-        }
-        .sheet(item: $enlargedImageSheetIdentifier, content: { identifier in
-            EnlargedImageView(identifier: identifier)
-        })
-        .onAppear {
-            if content.type == .video, let identifier = content.identifier, let url = fetchPhotoVideoURL(for: identifier) {
-                self.player = AVPlayer(url: url)
-            }
+    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> AttributedString {
+        let type = type ?? self.type
+        let orderedListIndex = orderedListIndex ?? self.orderedListIndex
+        
+        switch type {
+        case .unorderedList:
+            var bulletString = AttributedString(" • ")
+            bulletString.foregroundColor = Color.primary
             
-            if content.type == .tabNavigator, let tab = content.tabs?.first {
-                self.tabSelection = tab
-            }
+            return bulletString + AttributedString(string)
+        case .orderedList:
+            var numberString = AttributedString(" \(orderedListIndex). ")
+            numberString.foregroundColor = Color.primary
+            
+            return numberString + AttributedString(string)
+        default:
+            return AttributedString(string)
         }
-        .onGeometryChange(for: CGSize.self) { proxy in
-            proxy.size
-        } action: { newValue in
-            viewSize = newValue
-        }
-
     }
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
-    func fetchPhotoVideoURL(for identifier: String) -> URL? {
-        
+    func fetchPhotoVideoURL(for identifier: String, colorScheme: ColorScheme, docCSite: DocCSiteDTO?) -> URL? {
         guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme, docCSite: docCSite) else {
             return nil
         }
@@ -160,9 +144,57 @@ struct ArticleContentView: View {
         
         return AttributedString(attributedString)
     }
+}
+
+struct ArticleContentView: View {
+    @State private var manager: ArticleContentManager
+    @Environment(\.docCSite) var docCSite
+    @Environment(NavigationViewModel.self) var navigationViewModel
+    
+    init(content: ContentSection.Content, references: [String : Reference], from type: ContentType? = nil, orderedListIndex: Int = 1, alignment: Alignment = .leading) {
+        self.manager = .init(content: content, references: references, type: type, alignment: alignment, orderedListIndex: orderedListIndex)
+    }
+    
+    @State var player: AVPlayer?
+    @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
+    @State private var viewSize: CGSize?
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        let content = manager.content
+        
+        VStack {
+            if let inlineContent = content.inlineContent {
+                InlineContentView(for: inlineContent)
+            } else {
+                typeBody
+            }
+        }
+        .sheet(item: $manager.enlargedImageSheetIdentifier, content: { identifier in
+            EnlargedImageView(identifier: identifier)
+        })
+        .onAppear {
+            if content.type == .video, let identifier = content.identifier, let url = fetchPhotoVideoURL(for: identifier) {
+                self.player = AVPlayer(url: url)
+            }
+            
+            if content.type == .tabNavigator, let tab = content.tabs?.first {
+                self.tabSelection = tab
+            }
+        }
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { newValue in
+            viewSize = newValue
+        }
+        .environment(manager)
+    }
     
     @ViewBuilder
     var typeBody: some View {
+        let content = manager.content
+        
         switch content.type {
         case .heading:
             if let text = content.text, let level = content.level {
@@ -175,45 +207,48 @@ struct ArticleContentView: View {
                         .title
                 }
                 
-                Text(specialStyleString(text))
+                Text(manager.specialStyleString(text))
                     .font(font)
                     .bold().textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: self.alignment)
+                    .frame(maxWidth: .infinity, alignment: self.manager.alignment)
                     .padding(.top, 10)
             }
         case .paragraph:
             if let text = content.text {
-                Text(specialStyleString(text)).textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: self.alignment)
+                Text(manager.specialStyleString(text)).textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: self.manager.alignment)
             }
         case .text:
             if let text = content.text {
-                Text(specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text)).textSelection(.enabled)
             }
         case .strong:
             if let text = content.text {
-                Text(specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text)).textSelection(.enabled)
                     .bold()
             }
         case .small:
             if let text = content.text {
-                Text(specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text)).textSelection(.enabled)
                     .font(.caption)
             }
         case .image:
             if let identifier = content.identifier {
-                KFImage(fetchPhotoVideoURL(for: identifier))
-                    .placeholder({
+                LazyImage(url: fetchPhotoVideoURL(for: identifier)) { state in
+                    if state.isLoading {
                         Image(systemSymbol: .photo)
                             .resizable()
                             .scaledToFit()
-                    })
-                    .resizable()
-                    .scaledToFit()
+                    } else if let image = state.image {
+                        image
+                        .resizable()
+                        .scaledToFit()
+                    }
+                }
                     .frame(maxWidth: 700, maxHeight: 700)
                     .onTapGesture {
                         if let url = fetchPhotoVideoURL(for: identifier) {
-                            self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                            self.manager.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
                         }
                     }
             }
@@ -222,14 +257,14 @@ struct ArticleContentView: View {
                 .scaledToFit()
         case .termList:
             if let termListItems = content.termListItems {
-                VStack(alignment: alignment.horizontal, spacing: 10) {
+                VStack(alignment: manager.alignment.horizontal, spacing: 10) {
                     ForEach(termListItems) { termItem in
                         VStack {
-                            inlineContent(for: termItem.term.inlineContent)
+                            InlineContentView(for: termItem.term.inlineContent)
                                 .fontWeight(.semibold)
                             
                             ForEach(termItem.definition.content) { content in
-                                ArticleContentView(content: content, references: self.references)
+                                ArticleContentView(content: content, references: self.manager.references)
                                     .padding(.leading, 15)
                             }
                         }
@@ -242,7 +277,7 @@ struct ArticleContentView: View {
                     if let content = item.content {
                         VStack(spacing: 5) {
                             ForEach(content) { subcontent in
-                                ArticleContentView(content: subcontent, references: self.references, from: .unorderedList)
+                                ArticleContentView(content: subcontent, references: self.manager.references, from: .unorderedList)
                                     .padding(.bottom, content.last == subcontent ? 10 : 0)
                             }
                         }
@@ -258,7 +293,7 @@ struct ArticleContentView: View {
                             ForEach(content) { subcontent in
                                 ArticleContentView(
                                     content: subcontent,
-                                    references: self.references,
+                                    references: self.manager.references,
                                     from: .orderedList,
                                     orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1
                                 )
@@ -291,11 +326,11 @@ struct ArticleContentView: View {
                 }
                 
                 ForEach(tabSelection.condensedContent) { tabContents in
-                    ArticleContentView(content: tabContents, references: references, alignment: .top)
+                    ArticleContentView(content: tabContents, references: manager.references, alignment: .top)
                 }
             }
         case .reference:
-            if let identifier = content.identifier, let referenceText = getReferenceText(for: identifier) {
+            if let identifier = content.identifier, let referenceText = manager.getReferenceText(for: identifier) {
                 Text(referenceText)
             }
         case .table:
@@ -305,7 +340,7 @@ struct ArticleContentView: View {
         case .emphasis:
             if let inlineContent = content.inlineContent {
                 ForEach(inlineContent) { inline in
-                    let string = getEmphasisString(inline)
+                    let string = manager.getEmphasisString(inline)
                     
                     Text(string).italic()
                         .textSelection(.enabled)
@@ -318,7 +353,7 @@ struct ArticleContentView: View {
                         .highlightLanguage(.swift)
                         .codeTextColors(.theme(.xcode))
                         .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: self.alignment)
+                        .frame(maxWidth: .infinity, alignment: self.manager.alignment)
                         .font(.subheadline)
                         .foregroundStyle(Color.primary)
                         .overlay(alignment: .topTrailing) {
@@ -333,21 +368,21 @@ struct ArticleContentView: View {
             Divider()
         case .aside:
             if let style = content.style {
-                AsideView(style: style, content: content.content ?? [], references: references)
+                AsideView(style: style, content: content.content ?? [], references: manager.references)
             }
         case .code:
-            let attributedString = getCodeString(content.code ?? [])
+            let attributedString = manager.getCodeString(content.code ?? [])
             
             Text(attributedString)
                 .textSelection(.enabled)
         case .codeVoice:
-            let attributedString = getCodeString(content.code ?? [])
+            let attributedString = manager.getCodeString(content.code ?? [])
             
             Text(attributedString)
                 .textSelection(.enabled)
         case .links:
             if let linkItems = content.linkItems, let Style = content.style {
-                LinksGridListView(identifiers: linkItems, style: Style, references: references, navigationViewModel: navigationViewModel)
+                LinksGridListView(identifiers: linkItems, style: Style, references: manager.references, navigationViewModel: navigationViewModel)
             }
         case .row:
             if (content.columns ?? []).filter({ $0.size > 1 }).isEmpty {
@@ -357,11 +392,11 @@ struct ArticleContentView: View {
                     content.columns?.count ?? 1
                 }
                 
-                LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.alignment.horizontal, spacing: 20) {
+                LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.manager.alignment.horizontal, spacing: 20) {
                     ForEach(content.columns ?? [], id: \.self) { column in
                         VStack(alignment: .center) {
                             ForEach(column.content) { content in
-                                ArticleContentView(content: content, references: references)
+                                ArticleContentView(content: content, references: manager.references)
                             }
                         }
                         .frame(maxHeight: .infinity, alignment: .top)
@@ -382,7 +417,7 @@ struct ArticleContentView: View {
                     ForEach(content.columns ?? [], id: \.self) { column in
                         VStack(alignment: .center) {
                             ForEach(column.content) { content in
-                                ArticleContentView(content: content, references: references)
+                                ArticleContentView(content: content, references: manager.references)
                             }
                         }
                         .frame(maxWidth: columnWidth*CGFloat(column.size), maxHeight: .infinity, alignment: .top)
@@ -406,7 +441,7 @@ struct ArticleContentView: View {
                 
                 VStack {
                     ForEach(contentSlice) { item in
-                        ArticleContentView(content: item, references: self.references)
+                        ArticleContentView(content: item, references: self.manager.references)
                     }
                 }
                 .padding(.vertical)
@@ -429,182 +464,186 @@ struct ArticleContentView: View {
         }
     }
     
-    func specialStyleString(_ string: String, type: ContentType? = nil, orderedListIndex: Int? = nil) -> AttributedString {
-        let type = type ?? self.type
-        let orderedListIndex = orderedListIndex ?? self.orderedListIndex
-        
-        switch type {
-        case .unorderedList:
-            var bulletString = AttributedString(" • ")
-            bulletString.foregroundColor = Color.primary
-            
-            return bulletString + AttributedString(string)
-        case .orderedList:
-            var numberString = AttributedString(" \(orderedListIndex). ")
-            numberString.foregroundColor = Color.primary
-            
-            return numberString + AttributedString(string)
-        default:
-            return AttributedString(string)
-        }
+    func fetchPhotoVideoURL(for identifier: String) -> URL? {
+        manager.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme, docCSite: docCSite)
     }
     
-    // swiftlint:disable cyclomatic_complexity function_body_length
-    func inlineContent(for content: [ContentStruct], alignment: Alignment? = nil) -> some View {
-        var views: [InlineContent] = []
+    // swiftlint:disable shorthand_operator cyclomatic_complexity
+    struct InlineContentView: View {
+        let content: [ContentStruct]
+        let alignment: Alignment?
         
-        var text: AttributedString = specialStyleString("", type: .text)
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.docCSite) private var docCSite
         
-        func appendText() {
-            views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: alignment ?? self.alignment)))
-            text = specialStyleString("", type: .text)
+        @Environment(ArticleContentManager.self) private var manager
+        
+        init(for content: [ContentStruct], alignment: Alignment? = nil) {
+            self.content = content
+            self.alignment = alignment
         }
         
-        // swiftlint:disable shorthand_operator
-        func appendContent(_ content: [ContentStruct]) {
-            for inline in content {
-                switch inline.type {
-                case .text, .orderedList, .unorderedList, .paragraph, .heading:
-                    let inlineText: String
-                    
-                    if let text = inline.text {
-                        inlineText = text
-                    } else if let text = inline.code {
-                        inlineText = text
-                    } else if let identifier = inline.identifier {
-                        // Get reference if possible
-                        if let reference = references[identifier], let title = reference.title {
-                            inlineText = title
+        func fetchPhotoVideoURL(for identifier: String) -> URL? {
+            manager.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme, docCSite: docCSite)
+        }
+        
+        var body: some View {
+            var views: [InlineContent] = []
+            
+            var text: AttributedString = manager.specialStyleString("", type: .text)
+            
+            func appendText() {
+                views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: alignment ?? self.manager.alignment)))
+                text = manager.specialStyleString("", type: .text)
+            }
+            
+            func appendContent(_ content: [ContentStruct]) {
+                for inline in content {
+                    switch inline.type {
+                    case .text, .orderedList, .unorderedList, .paragraph, .heading:
+                        let inlineText: String
+                        
+                        if let text = inline.text {
+                            inlineText = text
+                        } else if let text = inline.code {
+                            inlineText = text
+                        } else if let identifier = inline.identifier {
+                            // Get reference if possible
+                            if let reference = manager.references[identifier], let title = reference.title {
+                                inlineText = title
+                            } else {
+                                // Fallback to parsing identifier for text if not possible
+                                inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                            }
                         } else {
-                            // Fallback to parsing identifier for text if not possible
-                            inlineText = String(identifier.split(separator: "/").last?.split(separator: "-").first ?? "").capitalized
+                            inlineText = ""
                         }
-                    } else {
-                        inlineText = ""
-                    }
-                    
-                    if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
-                        var attributedString = specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
                         
-                        if let font = inline.font?.font {
-                            if let weight = inline.fontWeight?.fontWeight {
-                                attributedString.font = font.weight(weight)
-                            } else {
-                                attributedString.font = font
+                        if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
+                            var attributedString = manager.specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
+                            
+                            if let font = inline.font?.font {
+                                if let weight = inline.fontWeight?.fontWeight {
+                                    attributedString.font = font.weight(weight)
+                                } else {
+                                    attributedString.font = font
+                                }
+                            } else if let weight = inline.fontWeight?.fontWeight {
+                                attributedString.font = .body.weight(weight)
                             }
-                        } else if let weight = inline.fontWeight?.fontWeight {
-                            attributedString.font = .body.weight(weight)
-                        }
-                        
-                        if let identifier = inline.identifier {
-                            // Get official link if possible
-                            if let reference = references[identifier], let url = reference.externalURL {
-                                attributedString.link = url
-                            } else {
-                                // Fall back to parsing identifier if not possible
-                                attributedString.link = URL(string: identifier)
-                            }
-                        }
-                        
-                        if inlineText == "/%1.5_break_/%" {
-                            attributedString = AttributedString("\n\n")
-                            attributedString.font = .system(size: 2)
-                        }
-                        
-                        text = text + attributedString
-                    }
-                case .codeVoice:
-                    let attributedString = self.getCodeString(inline)
-                    
-                    text = text + attributedString
-                case .emphasis:
-                    if inline.inlineContent?.isAllSomeFormOfText == true {
-                        text += inline.getFlattenedAttributedString()
-                        continue
-                    }
-                    
-                    let string = getEmphasisString(inline)
-                    var attributedString = AttributedString(string)
-                    attributedString.font = .body.italic()
-                    
-                    text = text + attributedString
-                case .strong:
-                    if inline.inlineContent?.isAllSomeFormOfText == true {
-                        text += inline.getFlattenedAttributedString()
-                        continue
-                    }
-                    
-                    let string = getEmphasisString(inline)
-                    var attributedString = AttributedString(string)
-                    attributedString.font = .body.bold()
-                    
-                    text = text + attributedString
-                case .reference:
-                    if let identifier = inline.identifier, let referenceText = getReferenceText(for: identifier) {
-                        text = text + referenceText
-                    }
-                case .image:
-                    appendText()
-                    
-                    if let identifier = inline.identifier {
-                        let image = KFImage(fetchPhotoVideoURL(for: identifier))
-                            .placeholder({
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color.clear)
-                                    .stroke(Color.primary, lineWidth: 2)
-                                    .scaledToFit()
-                                    .overlay {
-                                        ProgressView()
-                                    }
-                            })
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 700, maxHeight: 700)
-                            .padding(.bottom)
-                            .onTapGesture {
-                                if let url = fetchPhotoVideoURL(for: identifier) {
-                                    self.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                            
+                            if let identifier = inline.identifier {
+                                // Get official link if possible
+                                if let reference = manager.references[identifier], let url = reference.externalURL {
+                                    attributedString.link = url
+                                } else {
+                                    // Fall back to parsing identifier if not possible
+                                    attributedString.link = URL(string: identifier)
                                 }
                             }
-
-                        views.append(image)
-                        for ref in inline.metadata?.abstract ?? [] {
-                            views.append(inlineContent(for: [ref], alignment: .top).multilineTextAlignment(.center))
+                            
+                            if inlineText == "/%1.5_break_/%" {
+                                attributedString = AttributedString("\n\n")
+                                attributedString.font = .system(size: 2)
+                            }
+                            
+                            text = text + attributedString
                         }
-                    }
-                case .video:
-                    appendText()
-                    
-                    if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
-                        let player = AVPlayer(url: url)
-                        let playerView = VideoPlayer(player: player)
-                            .scaledToFit()
+                    case .codeVoice:
+                        let attributedString = self.manager.getCodeString(inline)
                         
-                        views.append(.init(playerView))
+                        text = text + attributedString
+                    case .emphasis:
+                        if inline.inlineContent?.isAllSomeFormOfText == true {
+                            text += inline.getFlattenedAttributedString()
+                            continue
+                        }
+                        
+                        let string = manager.getEmphasisString(inline)
+                        var attributedString = AttributedString(string)
+                        attributedString.font = .body.italic()
+                        
+                        text = text + attributedString
+                    case .strong:
+                        if inline.inlineContent?.isAllSomeFormOfText == true {
+                            text += inline.getFlattenedAttributedString()
+                            continue
+                        }
+                        
+                        let string = manager.getEmphasisString(inline)
+                        var attributedString = AttributedString(string)
+                        attributedString.font = .body.bold()
+                        
+                        text = text + attributedString
+                    case .reference:
+                        if let identifier = inline.identifier, let referenceText = manager.getReferenceText(for: identifier) {
+                            text = text + referenceText
+                        }
+                    case .image:
+                        appendText()
+                        
+                        if let identifier = inline.identifier {
+                            let image = LazyImage(url: fetchPhotoVideoURL(for: identifier)) { state in
+                                if state.isLoading {
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(Color.clear)
+                                        .stroke(Color.primary, lineWidth: 2)
+                                        .scaledToFit()
+                                        .overlay {
+                                            ProgressView()
+                                        }
+                                } else if let image = state.image {
+                                    image
+                                    .resizable()
+                                    .scaledToFit()
+                                }
+                            }
+                                .frame(maxWidth: 700, maxHeight: 700)
+                                .padding(.bottom)
+                                .onTapGesture {
+                                    if let url = fetchPhotoVideoURL(for: identifier) {
+                                        self.manager.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                                    }
+                                }
+
+                            views.append(image)
+                            for ref in inline.metadata?.abstract ?? [] {
+                                views.append(InlineContentView(for: [ref], alignment: .top).multilineTextAlignment(.center))
+                            }
+                        }
+                    case .video:
+                        appendText()
+                        
+                        if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
+                            let player = AVPlayer(url: url)
+                            let playerView = VideoPlayer(player: player)
+                                .scaledToFit()
+                            
+                            views.append(.init(playerView))
+                        }
+                    default: break
                     }
-                default: break
-                }
-                
-                if let inlineContent = inline.inlineContent {
-                    appendContent(inlineContent)
+                    
+                    if let inlineContent = inline.inlineContent {
+                        appendContent(inlineContent)
+                    }
                 }
             }
-        }
-        appendContent(content)
-        // swiftlint:enable shorthand_operator
-        
-        if text != AttributedString("") {
-            appendText()
-        }
-        
-        return VStack {
-            ForEach(views) { inlineContent in
-                inlineContent.view
+            appendContent(content)
+            
+            if text != AttributedString("") {
+                appendText()
             }
+            
+            return VStack {
+                ForEach(views) { inlineContent in
+                    inlineContent.view
+                }
+            }
+            .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(manager.type) ? 5 : 0)
         }
-        .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(type) ? 5 : 0)
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable shorthand_operator cyclomatic_complexity
     
     fileprivate struct InlineContent: Identifiable {
         let id = UUID()

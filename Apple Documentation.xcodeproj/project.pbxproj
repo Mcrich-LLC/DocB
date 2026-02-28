@@ -18,6 +18,8 @@
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E3FC62F5370AF0077916C /* AddTechnologyView.swift */; };
+		225E3FCA2F53A5EC0077916C /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 225E3FC92F53A5EC0077916C /* Nuke */; };
+		225E3FCC2F53A5EC0077916C /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 225E3FCB2F53A5EC0077916C /* NukeUI */; };
 		227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 2274642F2CB4D4E900BE0863 /* Kingfisher */; };
 		2287E3DE2CBF6A8500090C9F /* Article Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B22CBF6A8500090C9F /* Article Parser.swift */; };
 		2287E3DF2CBF6A8500090C9F /* CommonTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3B32CBF6A8500090C9F /* CommonTypes.swift */; };
@@ -138,7 +140,9 @@
 				22E7F4E22CB5048400FD6B2C /* HighlightSwift in Frameworks */,
 				22C450B12CB4D61B00376AA5 /* SFSafeSymbols in Frameworks */,
 				227464302CB4D4E900BE0863 /* Kingfisher in Frameworks */,
+				225E3FCC2F53A5EC0077916C /* NukeUI in Frameworks */,
 				22002BBF2D28F65400B0B7AD /* EnhancedCodable in Frameworks */,
+				225E3FCA2F53A5EC0077916C /* Nuke in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,6 +317,8 @@
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
 				22E7F4E12CB5048400FD6B2C /* HighlightSwift */,
 				22002BBE2D28F65400B0B7AD /* EnhancedCodable */,
+				225E3FC92F53A5EC0077916C /* Nuke */,
+				225E3FCB2F53A5EC0077916C /* NukeUI */,
 			);
 			productName = "Apple Documentation";
 			productReference = 22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */;
@@ -348,6 +354,7 @@
 				22E9F5052CB504660049B87C /* XCRemoteSwiftPackageReference "HighlightSwift" */,
 				22002BBD2D28F65400B0B7AD /* XCRemoteSwiftPackageReference "EnhancedCodable" */,
 				22E138C42D6539A4002D11CE /* XCRemoteSwiftPackageReference "STTextView" */,
+				225E3FC82F53A5EC0077916C /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
 			projectDirPath = "";
@@ -693,6 +700,14 @@
 				kind = branch;
 			};
 		};
+		225E3FC82F53A5EC0077916C /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
 		2274642E2CB4D4E900BE0863 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -732,6 +747,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 22002BBD2D28F65400B0B7AD /* XCRemoteSwiftPackageReference "EnhancedCodable" */;
 			productName = EnhancedCodable;
+		};
+		225E3FC92F53A5EC0077916C /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 225E3FC82F53A5EC0077916C /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		225E3FCB2F53A5EC0077916C /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 225E3FC82F53A5EC0077916C /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
 		};
 		2274642F2CB4D4E900BE0863 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

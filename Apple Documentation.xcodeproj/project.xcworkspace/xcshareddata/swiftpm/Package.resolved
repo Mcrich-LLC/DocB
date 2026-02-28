@@ -1,5 +1,5 @@
 {
-  "originHash" : "223828f9cf518c85985ee4cfd92a3dd8611a416c4fb504de2dffbf0338c661dc",
+  "originHash" : "4acc23accc8c08d76eea1cb76d2ac6be7e6cf5e32f984a60b7201c363d9ec463",
   "pins" : [
     {
       "identity" : "coretextswift",
@@ -35,6 +35,15 @@
       "state" : {
         "revision" : "e6749919f9761d573d37a7d7e78b1b854c191d7f",
         "version" : "8.1.3"
+      }
+    },
+    {
+      "identity" : "nuke",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kean/Nuke",
+      "state" : {
+        "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
+        "version" : "12.9.0"
       }
     },
     {

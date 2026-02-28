@@ -248,48 +248,44 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if docCSites.isEmpty {
+            if docCSites.isEmpty && !searchText.isEmpty {
                 ContentUnavailableView {
                     Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
                 .listRowSeparator(.hidden)
-            } else {
-                Group {
-                    if searchHasResults {
-                        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
-                            Section {
-                                ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
-                                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                                        .contextMenu {
-                                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                                documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                            }
-                                        }
+            } else if searchHasResults {
+                if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
+                    Section {
+                        ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                                .contextMenu {
+                                    Button("Delete", systemImage: "trash", role: .destructive) {
+                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                    }
                                 }
-                            }
-                            ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
-                                Section {
-                                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                                } header: {
-                                    Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
-                                        .contextMenu {
-                                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                                documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                            }
-                                        }
+                        }
+                    }
+                    ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                        Section {
+                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                        } header: {
+                            Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
+                                .contextMenu {
+                                    Button("Delete", systemImage: "trash", role: .destructive) {
+                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                    }
                                 }
-                            }
                         }
-                        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
-                            technologyView(for: technology)
-                        }
-                    } else {
-                        ContentUnavailableView.search(text: searchText)
                     }
                 }
-                .searchable(text: $searchText)
+                ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+                    technologyView(for: technology)
+                }
+            } else {
+                ContentUnavailableView.search(text: searchText)
             }
         }
+        .searchable(text: $searchText)
         .overlay(content: {
             if documentationViewModel.technologies.isEmpty && !docCSites.isEmpty {
                 ProgressView("Loading")

@@ -79,6 +79,7 @@ struct AddTechnologyView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
             }
             .listRowSeparator(.hidden, edges: .all)
+            .listRowBackground(Color.clear)
             Section("Our Favorite Projects") {
                 ForEach(featuredTechnologies) { technology in
                     Button {

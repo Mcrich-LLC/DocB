@@ -94,6 +94,7 @@ struct AddTechnologyView: View {
                                 .contentTransition(.symbolEffect(.replace))
                                 .foregroundStyle(isSuggestedAdded(technology) ? Color.accentColor : .primary)
                             SuggestedTechnologyRow(technology: technology)
+                                .frame(minHeight: 50)
                             Spacer()
                         }
                     }
@@ -226,9 +227,6 @@ private struct SuggestedTechnologyRow: View {
             if let image = technology.image {
                 KFImage(image)
                     .resizable()
-                    .frame(width: 50, height: 50)
-            } else {
-                Spacer()
                     .frame(width: 50, height: 50)
             }
         }

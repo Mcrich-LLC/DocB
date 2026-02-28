@@ -152,6 +152,10 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     @ViewBuilder
     let label: Content
     
+    var isSelected: Bool {
+        navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() && navigationViewModel.technology?.docCSite == technology.docCSite
+    }
+    
     var body: some View {
         Group {
             MacOSAgnosticButton {
@@ -168,7 +172,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
             } label: {
                 label
             }
-            .selectedLineBackground(isSelected: navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased())
+            .selectedLineBackground(isSelected: isSelected)
         }
 #if !os(macOS)
         .hoverEffect()

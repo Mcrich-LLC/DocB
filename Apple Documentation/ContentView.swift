@@ -277,9 +277,7 @@ private struct TechView: View {
                     technologyView(for: technology)
                 }
             } else {
-                ContentUnavailableView {
-                    Label("No Results", systemSymbol: .magnifyingglass)
-                }
+                ContentUnavailableView.search(text: searchText)
             }
         }
         .overlay(content: {

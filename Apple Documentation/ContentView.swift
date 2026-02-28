@@ -59,9 +59,7 @@ struct ContentView: View {
                 await navigationViewModel.handleURL(url!, documentationViewModel: documentationViewModel)
                 return
             }
-            await documentationViewModel.fetchHomepage()
             await documentationViewModel.loadTechnologies(docCSites.asDTOs)
-            await documentationViewModel.fetchTechnologies()
         }
         .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
             self.navigationViewModel.isShowingTechnology = newValue != nil
@@ -345,7 +343,7 @@ private struct DocCTechView: View {
                     }
                     .contextMenu {
                         Button("Delete", systemImage: "trash", role: .destructive) {
-                            documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
+                            documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
                         }
                     }
                     .foregroundStyle(Color.primary)
@@ -361,6 +359,8 @@ private struct AppleTechView: View {
     let isVisibleForSearch: (_ technology: AppleTechnologies.FrameworkSection) -> Bool
     let searchText: String
     @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
@@ -378,6 +378,11 @@ private struct AppleTechView: View {
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+            }
+            .contextMenu {
+                Button("Delete", systemImage: "trash", role: .destructive) {
+                    documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
+                }
             }
         }
         

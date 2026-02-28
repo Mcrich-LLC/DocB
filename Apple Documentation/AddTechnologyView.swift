@@ -24,7 +24,13 @@ struct AddTechnologyView: View {
     @State private var addDocumentationUrl = ""
     
     private var customSites: [TechnologyTypes] {
-        documentationViewModel.technologies.filter({ tech in !featuredTechnologies.contains(where: { tech.names.contains($0.title) }) })
+        documentationViewModel.technologies.filter { tech in
+            switch tech {
+            case .apple: return true
+            case .docC(let site):
+                return !featuredTechnologies.contains(where: { $0.baseURL == site.url })
+            }
+        }
     }
 
     private let featuredTechnologies: [SuggestedTechnology] = [
@@ -85,7 +91,16 @@ struct AddTechnologyView: View {
             
             Section("Add Some Custom Ones") {
                 ForEach(customSites, id: \.id) { technology in
-                    EnteredTechnologyRow(technology: technology)
+                    HStack {
+                        EnteredTechnologyRow(technology: technology)
+                        Spacer()
+                        Button {
+                            documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
+                        } label: {
+                            Label("Remove", systemSymbol: .trash)
+                        }
+                        .labelStyle(.iconOnly)
+                    }
                 }
                 HStack {
                     TextField("https://developer.apple.com", text: $addDocumentationUrl)
@@ -171,7 +186,7 @@ private struct EnteredTechnologyRow: View {
             SuggestedTechnologyRow(
                 technology: .init(
                     title: "Apple Developer Documentation",
-                    subtitle: "All of the documentation from developer.apple.com/documentation",
+                    subtitle: "The documentation from Apple's Official website",
                     image: nil,
                     baseURL: URL(string: "https://developer.apple.com/documentation")!)
             )

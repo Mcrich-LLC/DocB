@@ -50,6 +50,14 @@ extension [TechnologyTypes] {
             }
         }
     }
+    var appleTechnologies: [AppleTechnologies] {
+        compactMap { tech in
+            switch tech {
+            case .apple(let apple): return apple
+            case .docC: return nil
+            }
+        }
+    }
 }
 
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {

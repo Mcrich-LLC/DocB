@@ -857,6 +857,7 @@ enum ContentType: String, Codable, Equatable, Hashable {
     case codeVoice
     case strong
     case thematicBreak
+    case small
 }
 
 // MARK: Platforms

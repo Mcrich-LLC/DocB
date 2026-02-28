@@ -104,7 +104,7 @@ class DocumentationViewModel {
     private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
     var homepage: HomepageParser?
     
-    func fetchHomepage() async {
+    private func fetchHomepage() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: homepageUrl)
             
@@ -121,8 +121,9 @@ class DocumentationViewModel {
     private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
     
     private(set) var technologies: [TechnologyTypes] = []
+    private(set) var appleDocCSiteRef: DocCSiteDTO?
     
-    func fetchTechnologies() async {
+    private func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
             
@@ -135,17 +136,34 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(baseUrl: URL, modelContext: ModelContext) async {
+    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async {
+        guard !baseUrl.absoluteString.contains("developer.apple.com") else {
+            let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
+            modelContext.insert(site)
+            await fetchHomepage()
+            await fetchTechnologies()
+            return
+        }
         do {
+            guard !technologies.contains(where: { tech in
+                switch tech {
+                case .apple:
+                    return false
+                case .docC(let docCSiteDTO):
+                    return docCSiteDTO.url == baseUrl
+                }
+            }) else {
+                return
+            }
             let indexUrl = baseUrl.appending(path: "index/index.json")
             let (data, _) = try await URLSession.shared.data(from: indexUrl)
             
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
-            let site = DocCSite(url: baseUrl, index: index)
+            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
             modelContext.insert(site)
             await MainActor.run {
                 withAnimation {
-                    self.technologies.insert(.docC(site.dto), at: self.technologies.count-1)
+                    self.technologies.append(.docC(site.dto))
                 }
             }
         } catch {
@@ -155,6 +173,12 @@ class DocumentationViewModel {
     
     func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
+            guard !site.url.absoluteString.contains("developer.apple.com") else {
+                appleDocCSiteRef = site
+                await fetchHomepage()
+                await fetchTechnologies()
+                continue
+            }
             do {
                 let indexUrl = site.url.appending(path: "index/index.json")
                 let (data, _) = try await URLSession.shared.data(from: indexUrl)
@@ -172,9 +196,17 @@ class DocumentationViewModel {
         }
     }
     
-    func deleteTechnology(_ site: DocCSiteDTO, modelContext: ModelContext) {
-        technologies.removeAll { $0.id == site.id }
-        site.deleteSite(modelContext: modelContext)
+    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) {
+        switch site {
+        case .apple:
+            technologies.removeAll { $0.id == site.id }
+            if let site = appleDocCSiteRef {
+                site.deleteSite(modelContext: modelContext)
+            }
+        case .docC(let docCSiteDTO):
+            technologies.removeAll { $0.id == site.id }
+            docCSiteDTO.deleteSite(modelContext: modelContext)
+        }
     }
     
     // MARK: Frameworks

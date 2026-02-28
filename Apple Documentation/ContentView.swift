@@ -59,9 +59,7 @@ struct ContentView: View {
                 await navigationViewModel.handleURL(url!, documentationViewModel: documentationViewModel)
                 return
             }
-            await documentationViewModel.fetchHomepage()
             await documentationViewModel.loadTechnologies(docCSites.asDTOs)
-            await documentationViewModel.fetchTechnologies()
         }
         .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
             self.navigationViewModel.isShowingTechnology = newValue != nil
@@ -250,34 +248,56 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if searchHasResults {
-                if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
-                    Section {
-                        ForEach(docCSites.asDTOs) { technology in
-                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+            if docCSites.isEmpty {
+                ContentUnavailableView {
+                    Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
+                }
+                .listRowSeparator(.hidden)
+            } else {
+                Group {
+                    if searchHasResults {
+                        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
+                            Section {
+                                ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                                        .contextMenu {
+                                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                                documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                            }
+                                        }
+                                }
+                            }
+                            ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                                Section {
+                                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                                } header: {
+                                    Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
+                                        .contextMenu {
+                                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                                documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                            }
+                                        }
+                                }
+                            }
                         }
-                    } header: {
-                        Text("Custom Documentation")
+                        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+                            technologyView(for: technology)
+                        }
+                    } else {
+                        ContentUnavailableView.search(text: searchText)
                     }
                 }
-                ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
-                    technologyView(for: technology)
-                }
-            } else {
-                ContentUnavailableView {
-                    Label("No Results", systemSymbol: .magnifyingglass)
-                }
+                .searchable(text: $searchText)
             }
         }
         .overlay(content: {
-            if documentationViewModel.technologies.isEmpty {
+            if documentationViewModel.technologies.isEmpty && !docCSites.isEmpty {
                 ProgressView("Loading")
             }
         })
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
-        .searchable(text: $searchText)
         #if !os(macOS)
         .navigationTitle("Documentation")
         #endif
@@ -289,44 +309,10 @@ private struct TechView: View {
             }
             
         }
-        .alert("Add Documentation", isPresented: $showAddDocumentationAlert) {
-            TextField("URL", text: $addDocumentationUrl)
-            Button("Add") {
-                Task {
-                    defer {
-                        self.addDocumentationUrl = ""
-                    }
-                    var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
-                    
-                    if !addDocumentationUrl.contains("://") {
-                        addDocumentationUrl = "https://\(addDocumentationUrl)"
-                    }
-                    
-                    guard let url = URL(string: addDocumentationUrl),
-                          let scheme = url.scheme,
-                          let host = url.host
-                    else {
-                        return
-                    }
-                    
-                    let limitedPath: String
-                    
-                    if let indexRange = url.path().firstRange(of: "/documentation") {
-                        limitedPath = String(url.path().prefix(upTo: indexRange.lowerBound))
-                    } else {
-                        limitedPath = url.path()
-                    }
-                    
-                    guard let baseUrl = URL(string: "\(scheme)://\(host)\(limitedPath)") else {
-                        return
-                    }
-                    
-                    await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext)
-                }
-            }
-            Button("Cancel") {}
-        }
-        
+        .sheet(isPresented: $showAddDocumentationAlert, content: {
+            AddTechnologyView()
+                .frame(minHeight: 400)
+        })
     }
 }
 
@@ -339,14 +325,9 @@ private struct DocCTechView: View {
     var body: some View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, technology, group) } ?? []
-            if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
+            if !filtered.isEmpty, var frameworkSection = group.frameworkSection(for: group, site: technology) {
                     TechnologyNavigationLinkButton(technology: frameworkSection) {
                         ListItemLabel(framework: frameworkSection, references: [:])
-                    }
-                    .contextMenu {
-                        Button("Delete", systemImage: "trash", role: .destructive) {
-                            documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
-                        }
                     }
                     .foregroundStyle(Color.primary)
                     .listRowBackground(Color.clear)
@@ -361,6 +342,8 @@ private struct AppleTechView: View {
     let isVisibleForSearch: (_ technology: AppleTechnologies.FrameworkSection) -> Bool
     let searchText: String
     @Environment(NavigationViewModel.self) var navigationViewModel
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
@@ -378,6 +361,11 @@ private struct AppleTechView: View {
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+            }
+            .contextMenu {
+                Button("Delete", systemImage: "trash", role: .destructive) {
+                    documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
+                }
             }
         }
         

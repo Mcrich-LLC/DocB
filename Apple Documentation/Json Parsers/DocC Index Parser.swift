@@ -24,7 +24,7 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
         let path: String?
         let type: String
         
-        let children: [InterfaceLanguage]?
+        fileprivate(set) var children: [InterfaceLanguage]?
         
         func allFrameworkSections(for site: DocCSiteDTO) -> [AppleTechnologies.FrameworkSection] {
             children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
@@ -66,14 +66,16 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     let id: UUID
     let timestamp: Date
+    let overrideName: String?
     let url: URL
     private(set) var index: DocCIndex
     fileprivate var persistentModelID: PersistentIdentifier?
     
-    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+    init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.id = UUID()
         self.timestamp = timestamp
         self.url = url
+        self.overrideName = overrideName
         self.index = index
         self.persistentModelID = nil
     }
@@ -82,6 +84,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.id = model.id
         self.timestamp = model.timestamp
         self.url = model.url
+        self.overrideName = model.overrideName
         self.index = model.index
         self.persistentModelID = model.persistentModelID
     }
@@ -91,6 +94,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.id = UUID()
         self.timestamp = try container.decode(Date.self, forKey: .timestamp)
         self.url = try container.decode(URL.self, forKey: .url)
+        self.overrideName = try container.decodeIfPresent(String.self, forKey: .overrideName)
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
     
@@ -101,11 +105,22 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     enum CodingKeys: String, CodingKey {
         case timestamp
         case url
+        case overrideName
         case index
     }
     
     var groups: [DocCIndex.InterfaceLanguage] {
         index.interfaceLanguages.flatMap({ $0.value })
+    }
+    
+    var nonSampleCodeGroups: [DocCIndex.InterfaceLanguage] {
+        let groups = groups.filter({ $0.type != "sampleCode" }).map({ group in
+            var group = group
+            group.children = group.children?.filter({ $0.type != "sampleCode" })
+            return group
+        }).filter({ $0.children?.isEmpty == false })
+        
+        return groups
     }
     
     var allFrameworkSections: [AppleTechnologies.FrameworkSection] {
@@ -144,13 +159,15 @@ final class DocCSite: Identifiable {
     var id: UUID = UUID()
     var timestamp: Date
     var url: URL
+    var overrideName: String? = nil
     
 //    @Attribute(.externalStorage)
     var index: DocCIndex
     
-    init(timestamp: Date = .init(), url: URL, index: DocCIndex) {
+    init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url
+        self.overrideName = overrideName
         self.index = index
     }
     

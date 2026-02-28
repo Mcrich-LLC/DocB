@@ -37,7 +37,7 @@ struct AddTechnologyView: View {
         SuggestedTechnology(
             title: "CubiomesKit",
             subtitle: "Generate, inspect, and view Minecraft Java worlds.",
-            image: URL(string: "https://cubiomeskit.alidade.dev/images/CubiomesKit/Icon@2x.png")!,
+            image: URL(string: "https://cubiomeskit.alidade.dev/images/CubiomesKit/Icon.png")!,
             baseURL: URL(string: "https://cubiomeskit.alidade.dev")!
         ),
         SuggestedTechnology(
@@ -57,8 +57,18 @@ struct AddTechnologyView: View {
             subtitle: "A library for working with Swift code.",
             image: nil,
             baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-syntax/main")!
+        ),
+        SuggestedTechnology(
+            title: "WWDC Notes",
+            subtitle: "Session notes shared by the community for the community.",
+            image: nil,
+            baseURL: URL(string: "https://wwdcnotes.com")!
         )
     ]
+    
+    private func isSuggestedAdded(_ technology: SuggestedTechnology) -> Bool {
+        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL })
+    }
 
     var body: some View {
         List {
@@ -75,14 +85,15 @@ struct AddTechnologyView: View {
                         toggleSuggestedTechnology(technology)
                     } label: {
                         HStack {
+                            Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkCircleFill : .circle)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 15, height: 15)
+                                .animation(.easeInOut, value: documentationViewModel.technologies)
+                                .contentTransition(.symbolEffect(.replace))
+                                .foregroundStyle(isSuggestedAdded(technology) ? Color.accentColor : .primary)
                             SuggestedTechnologyRow(technology: technology)
                             Spacer()
-                            if documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) {
-                                Image(systemSymbol: .checkmark)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 15, height: 15)
-                            }
                         }
                     }
                 }
@@ -122,8 +133,7 @@ struct AddTechnologyView: View {
     }
     
     private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
-        print(documentationViewModel.technologies.docCSites.map(\.url))
-        if documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) {
+        if isSuggestedAdded(technology) {
             removeDocCSite(url: technology.baseURL)
         } else {
             Task {
@@ -202,12 +212,7 @@ private struct SuggestedTechnologyRow: View {
     let technology: SuggestedTechnology
 
     var body: some View {
-        HStack(alignment: .top) {
-            if let image = technology.image {
-                KFImage(image)
-                    .resizable()
-                    .frame(width: 50, height: 50)
-            }
+        HStack(alignment: .center) {
             VStack(alignment: .leading) {
                 Text(technology.title)
                     .font(.headline)
@@ -215,6 +220,15 @@ private struct SuggestedTechnologyRow: View {
                     Text(subtitle)
                         .foregroundStyle(.secondary)
                 }
+            }
+            Spacer()
+            if let image = technology.image {
+                KFImage(image)
+                    .resizable()
+                    .frame(width: 50, height: 50)
+            } else {
+                Spacer()
+                    .frame(width: 50, height: 50)
             }
         }
     }

@@ -145,6 +145,16 @@ class DocumentationViewModel {
             return
         }
         do {
+            guard !technologies.contains(where: { tech in
+                switch tech {
+                case .apple:
+                    return false
+                case .docC(let docCSiteDTO):
+                    return docCSiteDTO.url == baseUrl
+                }
+            }) else {
+                return
+            }
             let indexUrl = baseUrl.appending(path: "index/index.json")
             let (data, _) = try await URLSession.shared.data(from: indexUrl)
             
@@ -188,7 +198,7 @@ class DocumentationViewModel {
     
     func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) {
         switch site {
-        case .apple(let appleTechnologies):
+        case .apple:
             technologies.removeAll { $0.id == site.id }
             if let site = appleDocCSiteRef {
                 site.deleteSite(modelContext: modelContext)

@@ -287,44 +287,10 @@ private struct TechView: View {
             }
             
         }
-        .alert("Add Documentation", isPresented: $showAddDocumentationAlert) {
-            TextField("URL", text: $addDocumentationUrl)
-            Button("Add") {
-                Task {
-                    defer {
-                        self.addDocumentationUrl = ""
-                    }
-                    var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
-                    
-                    if !addDocumentationUrl.contains("://") {
-                        addDocumentationUrl = "https://\(addDocumentationUrl)"
-                    }
-                    
-                    guard let url = URL(string: addDocumentationUrl),
-                          let scheme = url.scheme,
-                          let host = url.host
-                    else {
-                        return
-                    }
-                    
-                    let limitedPath: String
-                    
-                    if let indexRange = url.path().firstRange(of: "/documentation") {
-                        limitedPath = String(url.path().prefix(upTo: indexRange.lowerBound))
-                    } else {
-                        limitedPath = url.path()
-                    }
-                    
-                    guard let baseUrl = URL(string: "\(scheme)://\(host)\(limitedPath)") else {
-                        return
-                    }
-                    
-                    await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext)
-                }
-            }
-            Button("Cancel") {}
-        }
-        
+        .sheet(isPresented: $showAddDocumentationAlert, content: {
+            AddTechnologyView()
+                .frame(minHeight: 400)
+        })
     }
 }
 

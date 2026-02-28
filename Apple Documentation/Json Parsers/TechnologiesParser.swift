@@ -41,6 +41,17 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
     }
 }
 
+extension [TechnologyTypes] {
+    var docCSites: [DocCSiteDTO] {
+        compactMap { tech in
+            switch tech {
+            case .apple: return nil
+            case .docC(let docC): return docC
+            }
+        }
+    }
+}
+
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
     let id = UUID()
     

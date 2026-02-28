@@ -7,6 +7,7 @@
 
 import Kingfisher
 import SwiftUI
+import SwiftData
 
 private struct SuggestedTechnology: Identifiable {
     let id = UUID()
@@ -19,6 +20,7 @@ private struct SuggestedTechnology: Identifiable {
 struct AddTechnologyView: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
+    @Query var docCSites: [DocCSite]
     @State private var addDocumentationUrl = ""
     
     private var customSites: [TechnologyTypes] {
@@ -33,22 +35,22 @@ struct AddTechnologyView: View {
             baseURL: URL(string: "https://cubiomeskit.alidade.dev")!
         ),
         SuggestedTechnology(
-            title: "DocC",
-            subtitle: "Produce rich API reference documentation and interactive tutorials for your Swift framework or package.",
+            title: "Swift.org",
+            subtitle: "All of the DocC documentation from swift.org",
             image: nil,
-            baseURL: URL(string: "https://www.swift.org/documentation/docc/")!
+            baseURL: URL(string: "https://www.swift.org/")!
         ),
         SuggestedTechnology(
             title: "Swift-Testing",
             subtitle: "Create and run tests for your Swift packages and Xcode projects.",
             image: nil,
-            baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-testing/6.2.4/documentation/testing")!
+            baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-testing/main")!
         ),
         SuggestedTechnology(
             title: "Swift-Syntax",
             subtitle: "A library for working with Swift code.",
             image: nil,
-            baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-syntax/602.0.0/documentation/swiftsyntax")!
+            baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-syntax/main")!
         )
     ]
 
@@ -63,9 +65,23 @@ struct AddTechnologyView: View {
             .listRowSeparator(.hidden, edges: .all)
             Section("Our Favorite Projects") {
                 ForEach(featuredTechnologies) { technology in
-                    SuggestedTechnologyRow(technology: technology)
+                    Button {
+                        toggleSuggestedTechnology(technology)
+                    } label: {
+                        HStack {
+                            SuggestedTechnologyRow(technology: technology)
+                            Spacer()
+                            if documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) {
+                                Image(systemSymbol: .checkmark)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 15, height: 15)
+                            }
+                        }
+                    }
                 }
             }
+            .buttonStyle(.plain)
             
             Section("Add Some Custom Ones") {
                 ForEach(customSites, id: \.id) { technology in
@@ -90,18 +106,41 @@ struct AddTechnologyView: View {
         }
     }
     
-    func addCustomDocCSite() async {
-        defer {
-            self.addDocumentationUrl = ""
+    private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
+        print(documentationViewModel.technologies.docCSites.map(\.url))
+        if documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) {
+            removeDocCSite(url: technology.baseURL)
+        } else {
+            Task {
+                await addDocCSite(url: technology.baseURL)
+            }
         }
+    }
+    
+    private func addCustomDocCSite() async {
         var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
         
         if !addDocumentationUrl.contains("://") {
             addDocumentationUrl = "https://\(addDocumentationUrl)"
         }
         
-        guard let url = URL(string: addDocumentationUrl),
-              let scheme = url.scheme,
+        guard let url = URL(string: addDocumentationUrl) else {
+            return
+        }
+        
+        await addDocCSite(url: url)
+        self.addDocumentationUrl = ""
+    }
+    
+    private func removeDocCSite(url: URL) {
+        guard let site = docCSites.first(where: { $0.url == url })?.dto else {
+            return
+        }
+        documentationViewModel.deleteTechnology(.docC(site), modelContext: modelContext)
+    }
+    
+    private func addDocCSite(url: URL) async {
+        guard let scheme = url.scheme,
               let host = url.host
         else {
             return

@@ -163,7 +163,7 @@ class DocumentationViewModel {
             modelContext.insert(site)
             await MainActor.run {
                 withAnimation {
-                    self.technologies.insert(.docC(site.dto), at: self.technologies.count-1)
+                    self.technologies.append(.docC(site.dto))
                 }
             }
         } catch {

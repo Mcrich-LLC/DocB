@@ -195,6 +195,11 @@ struct ArticleContentView: View {
                 Text(specialStyleString(text)).textSelection(.enabled)
                     .bold()
             }
+        case .small:
+            if let text = content.text {
+                Text(specialStyleString(text)).textSelection(.enabled)
+                    .font(.caption)
+            }
         case .image:
             if let identifier = content.identifier {
                 KFImage(fetchPhotoVideoURL(for: identifier))

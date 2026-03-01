@@ -352,9 +352,9 @@ struct ArticleContentView: View {
                     CodeText(code.joined(separator: "\n"))
                         .highlightLanguage(.swift)
                         .codeTextColors(.theme(.xcode))
+                        .applyCodeFont()
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: self.manager.alignment)
-                        .font(.subheadline)
                         .foregroundStyle(Color.primary)
                         .overlay(alignment: .topTrailing) {
                             CodeCopyOverlayButton(string: code.joined(separator: "\n"))
@@ -374,11 +374,13 @@ struct ArticleContentView: View {
             let attributedString = manager.getCodeString(content.code ?? [])
             
             Text(attributedString)
+                .applyCodeFont()
                 .textSelection(.enabled)
         case .codeVoice:
             let attributedString = manager.getCodeString(content.code ?? [])
             
             Text(attributedString)
+                .applyCodeFont()
                 .textSelection(.enabled)
         case .links:
             if let linkItems = content.linkItems, let Style = content.style {

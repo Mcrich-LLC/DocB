@@ -598,7 +598,7 @@ struct ArticleContentView: View {
                                     .scaledToFit()
                                 }
                             }
-                                .frame(maxWidth: 700, maxHeight: 700)
+                                .frame(maxWidth: 700, maxHeight: 700, alignment: self.manager.alignment)
                                 .padding(.bottom)
                                 .onTapGesture {
                                     if let url = fetchPhotoVideoURL(for: identifier) {

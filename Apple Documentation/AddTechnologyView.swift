@@ -42,7 +42,7 @@ struct AddTechnologyView: View {
         ),
         SuggestedTechnology(
             title: "Swift.org",
-            subtitle: "All of the DocC documentation from swift.org",
+            subtitle: "All of the documentation from swift.org",
             image: nil,
             baseURL: URL(string: "https://www.swift.org/")!
         ),

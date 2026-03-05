@@ -10,8 +10,8 @@ import SwiftUI
 import PrivateObfuscationMacro
 
 struct Constants {
-    static let appleDeveloperURLBase = #base64Encoded("https://developer.apple.com")!
-    static let basePath = URL(string: "\(Constants.appleDeveloperURLBase)/tutorials/data")!
+    static let aDeveloperURLBase = #base64Encoded("https://developer.apple.com")!
+    static let basePath = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data")!
     static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.

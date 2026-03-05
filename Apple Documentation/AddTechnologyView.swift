@@ -200,7 +200,7 @@ private struct EnteredTechnologyRow: View {
                     title: "Apple Developer Documentation",
                     subtitle: "The documentation from Apple's Official website",
                     image: nil,
-                    baseURL: URL(string: "\(Constants.appleDeveloperURLBase)/documentation")!)
+                    baseURL: URL(string: "\(Constants.aDeveloperURLBase)/documentation")!)
             )
         case .docC(let docCSiteDTO):
             if let site = docCSiteDTO.groups.first, let path = URL(string: site.path ?? "") {

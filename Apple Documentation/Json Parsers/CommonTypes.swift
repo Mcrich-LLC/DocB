@@ -675,7 +675,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         }
         
         guard let docCSite = docCSite else {
-            return URL(string: "\(Constants.appleDeveloperURLBase)\(urlString)")
+            return URL(string: "\(Constants.aDeveloperURLBase)\(urlString)")
         }
         
         return docCSite.url.appending(path: urlString)

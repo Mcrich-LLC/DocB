@@ -41,13 +41,6 @@ struct Framework: Codable, AppleDocumentation {
                 self.identifier = String(describing: value)
             }
         }
-        
-        enum CodingKeys: CodingKey {
-            case id
-            case title
-            case anchor
-            case identifiers
-        }
     }
 
     struct Metadata: Codable, Equatable, Hashable {

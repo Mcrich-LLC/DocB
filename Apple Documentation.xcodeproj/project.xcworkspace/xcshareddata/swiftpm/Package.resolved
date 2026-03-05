@@ -1,5 +1,5 @@
 {
-  "originHash" : "7f4f8c61d7defce71a3801c16afa94cf1466758dd9f42a6799fae75320be2cb7",
+  "originHash" : "748c91a9026e1a734b055d84cf32a2dbfd7d2d0941a86a302a57ade738033d2e",
   "pins" : [
     {
       "identity" : "coretextswift",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/Mcrich23/EnhancedCodable",
       "state" : {
         "branch" : "main",
-        "revision" : "92df57c10ff8cff621f6965d4db742a8a52e79e7"
+        "revision" : "a980acc454acc58fe92d66730d84c8df85626c9e"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
-        "revision" : "e6749919f9761d573d37a7d7e78b1b854c191d7f",
-        "version" : "8.1.3"
+        "revision" : "c92b84898e34ab46ff0dad86c02a0acbe2d87008",
+        "version" : "8.8.0"
       }
     },
     {
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
+      }
+    },
+    {
+      "identity" : "privateobfuscationmacro",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Mcrich23/PrivateObfuscationMacro",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1b53648f745e31482f51a8ff7a5b9ddb7515428e"
       }
     },
     {
@@ -60,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/STTextKitPlus",
       "state" : {
-        "revision" : "446d6d431b163840ac5cc844ca5cf4704886c30e",
-        "version" : "0.1.8"
+        "revision" : "2ee74906f4d753458eeaa9a2f6d4538aacb86a1d",
+        "version" : "0.3.0"
       }
     },
     {
@@ -69,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/STTextView.git",
       "state" : {
-        "revision" : "d30b176bced4ae934181e811b1b6ef4a4cd53d30",
-        "version" : "2.0.0"
+        "revision" : "041b1716756b4416aaaafa1022db4cefc9c42ccc",
+        "version" : "2.3.5"
       }
     },
     {
@@ -78,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax.git",
       "state" : {
-        "revision" : "64889f0c732f210a935a0ad7cda38f77f876262d",
-        "version" : "509.1.1"
+        "revision" : "0687f71944021d616d34d922343dcef086855920",
+        "version" : "600.0.1"
       }
     }
   ],

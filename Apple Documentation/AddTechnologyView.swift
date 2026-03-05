@@ -42,7 +42,7 @@ struct AddTechnologyView: View {
         ),
         SuggestedTechnology(
             title: "Swift.org",
-            subtitle: "All of the DocC documentation from swift.org",
+            subtitle: "All of the documentation from swift.org",
             image: nil,
             baseURL: URL(string: "https://www.swift.org/")!
         ),
@@ -116,7 +116,7 @@ struct AddTechnologyView: View {
                     }
                 }
                 HStack {
-                    TextField("https://developer.apple.com", text: $addDocumentationUrl)
+                    TextField("https://docs.example.com", text: $addDocumentationUrl)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit {
                             Task {
@@ -200,7 +200,7 @@ private struct EnteredTechnologyRow: View {
                     title: "Apple Developer Documentation",
                     subtitle: "The documentation from Apple's Official website",
                     image: nil,
-                    baseURL: URL(string: "https://developer.apple.com/documentation")!)
+                    baseURL: URL(string: "\(Constants.appleDeveloperURLBase)/documentation")!)
             )
         case .docC(let docCSiteDTO):
             if let site = docCSiteDTO.groups.first, let path = URL(string: site.path ?? "") {

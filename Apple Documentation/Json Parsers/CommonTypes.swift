@@ -233,23 +233,6 @@ struct Fragment: Codable, Hashable {
     let tokens: [Token]?
     let attributes: [Attribute]?
     
-    enum CodingKeys: CodingKey {
-        case id
-        case kind
-        case content
-        case declarations
-        case mentions
-        case details
-        
-        // Web Endpoint
-        case items
-        case bodyContentType
-        case mimeType
-        case title
-        case tokens
-        case attributes
-    }
-    
     enum Kind: String, Codable, Equatable, Hashable {
         case content
         case declarations
@@ -692,7 +675,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         }
         
         guard let docCSite = docCSite else {
-            return URL(string: "https://developer.apple.com\(urlString)")
+            return URL(string: "\(Constants.appleDeveloperURLBase)\(urlString)")
         }
         
         return docCSite.url.appending(path: urlString)

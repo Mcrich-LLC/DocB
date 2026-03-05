@@ -101,7 +101,7 @@ class DocumentationViewModel {
     }
     
     // MARK: Homepage
-    private let homepageUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation.json")!
+    private let homepageUrl = URL(string: "\(Constants.appleDeveloperURLBase)/tutorials/data/documentation.json")!
     var homepage: HomepageParser?
     
     private func fetchHomepage() async {
@@ -118,7 +118,7 @@ class DocumentationViewModel {
     }
     
     // MARK: Technologies
-    private let technologiesUrl = URL(string: "https://developer.apple.com/tutorials/data/documentation/technologies.json")!
+    private let technologiesUrl = URL(string: "\(Constants.appleDeveloperURLBase)/tutorials/data/documentation/technologies.json")!
     
     private(set) var technologies: [TechnologyTypes] = []
     private(set) var appleDocCSiteRef: DocCSiteDTO?

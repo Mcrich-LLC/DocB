@@ -80,12 +80,16 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.persistentModelID = nil
     }
     
-    init(_ model: DocCSite) {
+    init(_ model: DocCSite) throws {
+        guard let timestamp = model.timestamp, let url = model.url, let index = model.index else {
+            throw SwiftDataErrors.invalidShape
+        }
+        
         self.id = model.id
-        self.timestamp = model.timestamp
-        self.url = model.url
+        self.timestamp = timestamp
+        self.url = url
         self.overrideName = model.overrideName
-        self.index = model.index
+        self.index = index
         self.persistentModelID = model.persistentModelID
     }
     
@@ -146,23 +150,27 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         )
     }
     
-    func deleteSite(modelContext: ModelContext) {
+    func deleteSite(modelContext: ModelContext) throws {
         guard let persistentModelID else { return }
         let model = modelContext.model(for: persistentModelID)
         modelContext.delete(model)
+        try modelContext.save()
     }
+}
+
+enum SwiftDataErrors: Error {
+    case invalidShape
 }
 
 @Model
 final class DocCSite: Identifiable {
-    @Attribute(.unique)
     var id: UUID = UUID()
-    var timestamp: Date
-    var url: URL
-    var overrideName: String? = nil
+    var timestamp: Date?
+    var url: URL?
+    var overrideName: String?
     
 //    @Attribute(.externalStorage)
-    var index: DocCIndex
+    var index: DocCIndex?
     
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
@@ -178,13 +186,15 @@ final class DocCSite: Identifiable {
     }
     
     @MainActor var dto: DocCSiteDTO {
-        .init(self)
+        get throws {
+            try .init(self)
+        }
     }
 }
 
 extension [DocCSite] {
     @MainActor var asDTOs: [DocCSiteDTO] {
-        map({ DocCSiteDTO($0) })
+        compactMap({ try? DocCSiteDTO($0) })
     }
 }
 

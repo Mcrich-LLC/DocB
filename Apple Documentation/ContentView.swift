@@ -194,7 +194,9 @@ struct ContentView: View {
     
 private struct TechView: View {
     @State var searchText = ""
+    @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DocCSite.timestamp) var docCSites: [DocCSite]
     
@@ -260,7 +262,11 @@ private struct TechView: View {
                             DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                                 .contextMenu {
                                     Button("Delete", systemImage: "trash", role: .destructive) {
-                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                        do {
+                                            try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                        } catch {
+                                            self.errorAlert = error
+                                        }
                                     }
                                 }
                         }
@@ -272,7 +278,11 @@ private struct TechView: View {
                             Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
                                 .contextMenu {
                                     Button("Delete", systemImage: "trash", role: .destructive) {
-                                        documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                        do {
+                                            try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                        } catch {
+                                            self.errorAlert = error
+                                        }
                                     }
                                 }
                         }
@@ -299,7 +309,11 @@ private struct TechView: View {
         #endif
         .toolbar {
             Button {
+                #if os(macOS)
+                openWindow(id: WindowTypes.addSites)
+                #else
                 showAddDocumentationAlert.toggle()
+                #endif
             } label: {
                 Image(systemSymbol: .plus)
             }
@@ -309,6 +323,7 @@ private struct TechView: View {
             AddTechnologyView()
                 .frame(minHeight: 400)
         })
+        .alert(for: $errorAlert)
     }
 }
 
@@ -340,8 +355,15 @@ private struct AppleTechView: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
+    @State var errorAlert: Error?
     
     var body: some View {
+        internalBody
+            .alert(for: $errorAlert)
+    }
+    
+    @ViewBuilder
+    var internalBody: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
             Section("Apple Documentation") {
                 HomepageNavigationLinkButton {
@@ -360,7 +382,11 @@ private struct AppleTechView: View {
             }
             .contextMenu {
                 Button("Delete", systemImage: "trash", role: .destructive) {
-                    documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
+                    do {
+                        try documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
+                    } catch {
+                        self.errorAlert = error
+                    }
                 }
             }
         }

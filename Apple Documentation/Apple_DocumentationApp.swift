@@ -9,12 +9,23 @@ import SwiftUI
 @_exported import SFSafeSymbols
 import SwiftData
 
+struct WindowTypes {
+    static let addSites = "add_sites"
+}
+
 @main
 struct Apple_DocumentationApp: App {
     @State var documentationViewModel = DocumentationViewModel()
     @State var appSettings = AppSettings()
+    let docCSiteModelContainer: ModelContainer
     
     init() {
+        do {
+            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, configurations: .init(cloudKitDatabase: .automatic))
+        } catch {
+            fatalError("Error Initializing ModelContainer: \(error)")
+        }
+        
         loadRocketSimConnect()
     }
     
@@ -24,11 +35,17 @@ struct Apple_DocumentationApp: App {
         } defaultValue: {
             URL(string: "doc://")!
         }
-        .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
+        .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
         
         #if os(macOS)
+        Window("Add Site", id: WindowTypes.addSites) {
+            AddTechnologyView()
+        }
+        .modelContainer(docCSiteModelContainer)
+        .environment(documentationViewModel)
+        .environment(appSettings)
         Settings {
             SettingsView()
         }

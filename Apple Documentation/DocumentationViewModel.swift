@@ -136,10 +136,11 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async {
+    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
         guard !baseUrl.absoluteString.contains("developer.apple.com") else {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
+            try modelContext.save()
             await fetchHomepage()
             await fetchTechnologies()
             return
@@ -161,9 +162,11 @@ class DocumentationViewModel {
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
             let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
             modelContext.insert(site)
+            try modelContext.save()
+            let dto = try site.dto
             await MainActor.run {
                 withAnimation {
-                    self.technologies.append(.docC(site.dto))
+                    self.technologies.append(.docC(dto))
                 }
             }
         } catch {
@@ -196,16 +199,16 @@ class DocumentationViewModel {
         }
     }
     
-    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) {
+    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
         switch site {
         case .apple:
             technologies.removeAll { $0.id == site.id }
             if let site = appleDocCSiteRef {
-                site.deleteSite(modelContext: modelContext)
+                try site.deleteSite(modelContext: modelContext)
             }
         case .docC(let docCSiteDTO):
             technologies.removeAll { $0.id == site.id }
-            docCSiteDTO.deleteSite(modelContext: modelContext)
+            try docCSiteDTO.deleteSite(modelContext: modelContext)
         }
     }
     

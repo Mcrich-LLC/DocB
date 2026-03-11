@@ -41,18 +41,7 @@ struct EnlargedImageView: View {
         }
         .frame(minWidth: isPhone ? nil : 600, maxWidth: .infinity, minHeight: isPhone ? nil : 300, maxHeight: .infinity)
         .overlay(alignment: .topTrailing, content: {
-            Button {
-                dismiss()
-            } label: {
-                Label("Close", systemSymbol: .xCircle)
-                    .labelStyle(.iconOnly)
-#if !os(macOS)
-                    .background(Color(platformColor: .systemBackground))
-                    .clipShape(.circle)
-                    .font(.title3)
-#endif
-            }
-            .buttonBorderShape(.circle)
+            ToolbarCloseButton()
         })
         .padding()
     }

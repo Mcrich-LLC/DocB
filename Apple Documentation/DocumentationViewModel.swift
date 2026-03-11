@@ -200,6 +200,10 @@ class DocumentationViewModel {
     }
     
     func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
+        guard technologies.contains(where: { $0.id == site.id }) else {
+            return
+        }
+        
         switch site {
         case .apple:
             technologies.removeAll { $0.id == site.id }

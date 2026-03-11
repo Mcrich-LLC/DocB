@@ -166,7 +166,7 @@ class DocumentationViewModel {
             let dto = try site.dto
             await MainActor.run {
                 withAnimation {
-                    self.technologies.append(.docC(dto))
+                    self.technologies.appendOrUpdate(.docC(dto))
                 }
             }
         } catch {
@@ -190,7 +190,7 @@ class DocumentationViewModel {
                 site.setIndex(index)
                 await MainActor.run {
                     withAnimation {
-                        self.technologies.append(.docC(site))
+                        self.technologies.appendOrUpdate(.docC(site))
                     }
                 }
             } catch {
@@ -278,5 +278,16 @@ class DocumentationViewModel {
 //        } catch {
 //            print(error)
 //        }
+    }
+}
+
+extension [TechnologyTypes] {
+    mutating func appendOrUpdate(_ new: TechnologyTypes) {
+        guard let index = firstIndex(where: { $0.id == new.id }) else {
+            append(new)
+            return
+        }
+        
+        self[index] = new
     }
 }

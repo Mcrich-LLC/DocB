@@ -61,12 +61,24 @@ struct ContentView: View {
             }
             await documentationViewModel.loadTechnologies(docCSites.asDTOs)
         }
+        .onChange(of: docCSites, onSwiftDataChange)
         .onChange(of: navigationViewModel.technology, initial: true, { _, newValue in
             self.navigationViewModel.isShowingTechnology = newValue != nil
         })
         .environment(\.openURL, urlActionHandler)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+        }
+    }
+    
+    func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
+        Task {
+            await documentationViewModel.loadTechnologies(newValue.asDTOs)
+        }
+        Task {
+            for value in oldValue where !newValue.contains(where: { $0.id == value.id }) {
+                try? documentationViewModel.deleteTechnology(.docC(value.dto), modelContext: modelContext)
+            }
         }
     }
     

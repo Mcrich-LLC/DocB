@@ -81,7 +81,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     init(_ model: DocCSite) throws {
-        guard let timestamp = model.timestamp, let url = model.url, let index = model.index else {
+        guard let timestamp = model.timestamp, let url = model.url, let index = model.indexV2 else {
             throw SwiftDataErrors.invalidShape
         }
         
@@ -168,26 +168,26 @@ final class DocCSite: Identifiable {
     var timestamp: Date?
     var url: URL?
     var overrideName: String?
-    fileprivate var index: DocCIndexModel?
+    fileprivate var indexV2: DocCIndexModel?
     
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
-        self.index = DocCIndexModel(index)
+        self.indexV2 = DocCIndexModel(index)
     }
     
     fileprivate init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndexModel) {
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
-        self.index = index
+        self.indexV2 = index
     }
     
     init(_ dto: DocCSiteDTO) async {
         self.timestamp = dto.timestamp
         self.url = dto.url
-        self.index = await DocCIndexModel(dto.index)
+        self.indexV2 = await DocCIndexModel(dto.index)
     }
     
     @MainActor var dto: DocCSiteDTO {
@@ -212,7 +212,7 @@ extension EnvironmentValues {
 private final class DocCIndexModel: Identifiable {
     var id: UUID = UUID()
     
-    @Relationship(deleteRule: .cascade, inverse: \DocCSite.index)
+    @Relationship(deleteRule: .cascade, inverse: \DocCSite.indexV2)
     var site: DocCSite?
     
     var interfaceLanguages: [InterfaceLanguageSetModel]?

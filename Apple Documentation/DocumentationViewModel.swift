@@ -137,7 +137,7 @@ class DocumentationViewModel {
     }
     
     func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
-        guard !baseUrl.absoluteString.contains("developer.apple.com") else {
+        guard !baseUrl.absoluteString.lowercased().contains("developer.apple.com") else {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()

@@ -21,7 +21,7 @@ struct OnboardingAddSourcesView: View {
 //                .listRowBackground(Color(platformColor: .secondarySystemGroupedBackground))
 //                .backgroundStyle(.background.secondary)
                 .scrollContentBackground(.hidden)
-                .frame(maxWidth: 500)
+//                .frame(maxWidth: 500)
             
             HStack {
                 Button {

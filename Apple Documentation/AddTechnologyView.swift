@@ -130,11 +130,6 @@ struct AddTechnologyView: View {
             }
         }
         .navigationTitle("Add Sources")
-        #if !os(macOS)
-        .toolbar {
-            ToolbarCloseButton()
-        }
-        #endif
         .alert(for: $errorAlert)
     }
     

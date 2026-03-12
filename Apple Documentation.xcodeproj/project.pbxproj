@@ -16,6 +16,11 @@
 		2239F66B2F29905E00A3201C /* SelectedLineBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */; };
 		2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F74D2F2AA3BD00A3201C /* AppSettings.swift */; };
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
+		224E23B42F6252F000FC7D19 /* MainOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */; };
+		224E23B52F6252F000FC7D19 /* IntroOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */; };
+		224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */; };
+		224E23BB2F62535A00FC7D19 /* EnvironmentValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */; };
+		224E23C12F62554200FC7D19 /* OnboardingAddSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E3FC62F5370AF0077916C /* AddTechnologyView.swift */; };
 		225E3FCA2F53A5EC0077916C /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 225E3FC92F53A5EC0077916C /* Nuke */; };
@@ -79,6 +84,11 @@
 		2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedLineBackground.swift; sourceTree = "<group>"; };
 		2239F74D2F2AA3BD00A3201C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
+		224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainOnboardingView.swift; sourceTree = "<group>"; };
+		224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroOnboardingView.swift; sourceTree = "<group>"; };
+		224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewSteps Enum Protocol.swift"; sourceTree = "<group>"; };
+		224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentValues.swift; sourceTree = "<group>"; };
+		224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAddSourcesView.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
 		225E3FC62F5370AF0077916C /* AddTechnologyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTechnologyView.swift; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
@@ -166,6 +176,17 @@
 				22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */,
 			);
 			path = "SwiftUI Styles";
+			sourceTree = "<group>";
+		};
+		224E23B22F6252F000FC7D19 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */,
+				224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */,
+				224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */,
+				224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		2287E3B72CBF6A8500090C9F /* Json Parsers */ = {
@@ -265,6 +286,8 @@
 				2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */,
 				2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */,
 				2239F74D2F2AA3BD00A3201C /* AppSettings.swift */,
+				224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */,
+				224E23B22F6252F000FC7D19 /* Onboarding */,
 				224E236E2F620F7300FC7D19 /* Components */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
@@ -421,6 +444,9 @@
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
 				2287E3E42CBF6A8500090C9F /* ArticleBadges.swift in Sources */,
 				2239F66B2F29905E00A3201C /* SelectedLineBackground.swift in Sources */,
+				224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */,
+				224E23B42F6252F000FC7D19 /* MainOnboardingView.swift in Sources */,
+				224E23B52F6252F000FC7D19 /* IntroOnboardingView.swift in Sources */,
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,
 				22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */,
 				2287E3E62CBF6A8500090C9F /* AsideView.swift in Sources */,
@@ -442,6 +468,7 @@
 				2287E3F12CBF6A8500090C9F /* WrappingHStack.swift in Sources */,
 				22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */,
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,
+				224E23C12F62554200FC7D19 /* OnboardingAddSourcesView.swift in Sources */,
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
 				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
 				22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */,
@@ -460,6 +487,7 @@
 				2287E3FD2CBF6A8500090C9F /* MacOSAgnosticButton.swift in Sources */,
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
 				2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */,
+				224E23BB2F62535A00FC7D19 /* EnvironmentValues.swift in Sources */,
 				2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */,
 				2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */,
 			);

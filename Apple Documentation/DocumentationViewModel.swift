@@ -177,6 +177,9 @@ class DocumentationViewModel {
     func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
+                guard !technologies.contains(where: { $0.isApple }) else {
+                    continue
+                }
                 appleDocCSiteRef = site
                 await fetchHomepage()
                 await fetchTechnologies()

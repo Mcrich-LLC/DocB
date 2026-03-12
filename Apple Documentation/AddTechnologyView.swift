@@ -17,6 +17,18 @@ private struct SuggestedTechnology: Identifiable {
     let baseURL: URL
 }
 
+struct AddTechnologySheetView: View {
+    var body: some View {
+        NavigationStack {
+            AddTechnologyView()
+                .toolbar {
+                    ToolbarCloseButton()
+                }
+                .frame(minHeight: 400)
+        }
+    }
+}
+
 struct AddTechnologyView: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext

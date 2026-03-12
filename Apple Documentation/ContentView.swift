@@ -307,27 +307,23 @@ private struct TechView: View {
         .navigationTitle("Documentation")
         #endif
         .toolbar {
-            Button {
-                #if os(macOS)
-                openWindow(id: WindowTypes.addSites)
-                #else
-                showAddDocumentationAlert.toggle()
-                #endif
-            } label: {
+            Button(action: showAddDocumentationView) {
                 Image(systemSymbol: .plus)
             }
             
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
-            NavigationStack {
-                AddTechnologyView()
-                    .toolbar {
-                        ToolbarCloseButton()
-                    }
-                    .frame(minHeight: 400)
-            }
+            AddTechnologySheetView()
         })
         .alert(for: $errorAlert)
+    }
+    
+    private func showAddDocumentationView() {
+        #if os(macOS)
+        openWindow(id: WindowTypes.addSites)
+        #else
+        showAddDocumentationAlert.toggle()
+        #endif
     }
 }
 

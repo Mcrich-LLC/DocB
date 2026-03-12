@@ -283,7 +283,12 @@ private final class InterfaceLanguageModel: Identifiable {
         self.title = language.title
         self.path = language.path
         self.type = language.type
-        self.children = language.children?.map({ InterfaceLanguageModel($0) })
+        
+        if let children = language.children {
+            let models = children.map { InterfaceLanguageModel($0) }
+            self.children = models
+            models.forEach { $0.parent = self }
+        }
     }
     
     var asInterfaceLanguage: DocCIndex.InterfaceLanguage {

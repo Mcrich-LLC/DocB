@@ -82,19 +82,6 @@ struct Apple_DocumentationApp: App {
         showAddSource = true
         #endif
     }
-    
-    func topViewController(from vc: UIViewController?) -> UIViewController? {
-        if let nav = vc as? UINavigationController {
-            return topViewController(from: nav.visibleViewController)
-        }
-        if let tab = vc as? UITabBarController {
-            return topViewController(from: tab.selectedViewController)
-        }
-        if let presented = vc?.presentedViewController {
-            return topViewController(from: presented)
-        }
-        return vc
-    }
 }
 
 private struct MainView: View {

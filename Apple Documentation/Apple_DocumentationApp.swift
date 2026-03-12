@@ -40,7 +40,7 @@ struct Apple_DocumentationApp: App {
         .environment(appSettings)
         
         #if os(macOS)
-        Window("Add Site", id: WindowTypes.addSites) {
+        Window("Add Sources", id: WindowTypes.addSites) {
             AddTechnologyView()
         }
         .modelContainer(docCSiteModelContainer)

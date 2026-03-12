@@ -129,7 +129,7 @@ struct AddTechnologyView: View {
                 }
             }
         }
-        .navigationTitle("Add Some DocC Sites")
+        .navigationTitle("Add Sources")
         #if !os(macOS)
         .toolbar {
             ToolbarCloseButton()

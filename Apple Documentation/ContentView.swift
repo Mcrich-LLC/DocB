@@ -332,8 +332,10 @@ private struct TechView: View {
             
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
-            AddTechnologyView()
-                .frame(minHeight: 400)
+            NavigationStack {
+                AddTechnologyView()
+                    .frame(minHeight: 400)
+            }
         })
         .alert(for: $errorAlert)
     }

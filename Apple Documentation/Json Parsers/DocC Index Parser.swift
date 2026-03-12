@@ -241,7 +241,7 @@ private final class InterfaceLanguageSetModel: Identifiable {
     var name: String?
     var languages: [InterfaceLanguageModel]?
     
-    @Relationship(deleteRule: .nullify, inverse: \DocCIndexModel.interfaceLanguages)
+    @Relationship(deleteRule: .cascade, inverse: \DocCIndexModel.interfaceLanguages)
     var index: DocCIndexModel?
     
     init(name: String? = nil, languages: [InterfaceLanguageModel]? = nil) {
@@ -263,8 +263,12 @@ private final class InterfaceLanguageModel: Identifiable {
     var path: String?
     var type: String?
     
-    @Relationship(deleteRule: .nullify, inverse: \InterfaceLanguageSetModel.languages)
+    @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
     var set: InterfaceLanguageSetModel?
+    
+    // parent relationship
+    @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
+    var parent: InterfaceLanguageModel?
     
     fileprivate(set) var children: [InterfaceLanguageModel]?
 

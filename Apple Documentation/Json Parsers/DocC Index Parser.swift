@@ -89,7 +89,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.timestamp = timestamp
         self.url = url
         self.overrideName = model.overrideName
-        self.index = index
+        self.index = index.asIndex
         self.persistentModelID = model.persistentModelID
     }
     
@@ -168,11 +168,16 @@ final class DocCSite: Identifiable {
     var timestamp: Date?
     var url: URL?
     var overrideName: String?
-    
-//    @Attribute(.externalStorage)
-    var index: DocCIndex?
+    fileprivate var index: DocCIndexModel?
     
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
+        self.timestamp = timestamp
+        self.url = url
+        self.overrideName = overrideName
+        self.index = DocCIndexModel(index)
+    }
+    
+    fileprivate init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndexModel) {
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
@@ -182,7 +187,7 @@ final class DocCSite: Identifiable {
     init(_ dto: DocCSiteDTO) async {
         self.timestamp = dto.timestamp
         self.url = dto.url
-        self.index = await dto.index
+        self.index = await DocCIndexModel(dto.index)
     }
     
     @MainActor var dto: DocCSiteDTO {
@@ -201,4 +206,85 @@ extension [DocCSite] {
 // Make Environment Value
 extension EnvironmentValues {
     @Entry var docCSite: DocCSiteDTO?
+}
+
+@Model
+private final class DocCIndexModel: Identifiable {
+    var id: UUID = UUID()
+    
+    @Relationship(deleteRule: .cascade, inverse: \DocCSite.index)
+    var site: DocCSite?
+    
+    var interfaceLanguages: [InterfaceLanguageSetModel]?
+    
+    init(interfaceLanguages: [InterfaceLanguageSetModel]) {
+        self.interfaceLanguages = interfaceLanguages
+    }
+    
+    init(_ index: DocCIndex) {
+        self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
+    }
+    
+    var asIndex: DocCIndex {
+        let interfaceLanguages = (interfaceLanguages ?? []).reduce(into: [String: [DocCIndex.InterfaceLanguage]]()) { acc, set in
+            guard let name = set.name, let languages = set.languages else { return }
+            acc[name] = languages.map({ $0.asInterfaceLanguage })
+        }
+        
+        return DocCIndex(interfaceLanguages: interfaceLanguages)
+    }
+}
+
+@Model
+private final class InterfaceLanguageSetModel: Identifiable {
+    var id = UUID()
+    var name: String?
+    var languages: [InterfaceLanguageModel]?
+    
+    @Relationship(deleteRule: .nullify, inverse: \DocCIndexModel.interfaceLanguages)
+    var index: DocCIndexModel?
+    
+    init(name: String? = nil, languages: [InterfaceLanguageModel]? = nil) {
+        self.name = name
+        self.languages = languages
+    }
+    
+    init(name: String, languages: [DocCIndex.InterfaceLanguage]) {
+        self.name = name
+        self.languages = languages.map({ InterfaceLanguageModel($0) })
+    }
+}
+
+@Model
+private final class InterfaceLanguageModel: Identifiable {
+    var id = UUID()
+    
+    var title: String?
+    var path: String?
+    var type: String?
+    
+    @Relationship(deleteRule: .nullify, inverse: \InterfaceLanguageSetModel.languages)
+    var set: InterfaceLanguageSetModel?
+    
+    fileprivate(set) var children: [InterfaceLanguageModel]?
+
+    init(title: String?, path: String? = nil, type: String?, children: [InterfaceLanguageModel]) {
+        self.title = title
+        self.path = path
+        self.type = type
+        self.children = children
+    }
+    
+    init(_ language: DocCIndex.InterfaceLanguage) {
+        self.title = language.title
+        self.path = language.path
+        self.type = language.type
+        self.children = language.children?.map({ InterfaceLanguageModel($0) })
+    }
+    
+    var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
+        let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
+        
+        return DocCIndex.InterfaceLanguage(title: title ?? "Unknonwn", path: path, type: type ?? "Unknown", children: children)
+    }
 }

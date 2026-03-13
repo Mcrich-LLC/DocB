@@ -14,6 +14,12 @@ struct WindowTypes {
     static let main = "main"
 }
 
+#if DEBUG
+private let CKDatabaseID = "iCloud.com.Mcrich.Apple-Documentation.Debug"
+#else
+private let CKDatabaseID = "iCloud.com.Mcrich.Apple-Documentation"
+#endif
+
 @main
 struct Apple_DocumentationApp: App {
     @State var documentationViewModel = DocumentationViewModel()
@@ -24,7 +30,7 @@ struct Apple_DocumentationApp: App {
     
     init() {
         do {
-            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, configurations: .init(cloudKitDatabase: .automatic))
+            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, configurations: .init(cloudKitDatabase: .private(CKDatabaseID)))
         } catch {
             fatalError("Error Initializing ModelContainer: \(error)")
         }

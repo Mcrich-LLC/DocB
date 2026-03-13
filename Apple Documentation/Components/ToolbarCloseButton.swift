@@ -11,7 +11,7 @@ struct ToolbarCloseButton: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        if #available(iOS 26, macOS 26, *) {
+        if #available(iOS 26, macOS 26, visionOS 26, *) {
             Button(role: .close, action: dismiss.callAsFunction)
         } else {
             Button {

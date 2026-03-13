@@ -31,8 +31,10 @@ struct OnboardingAddSourcesView: View {
                     .fontDesign(.rounded)
                     .padding(.vertical)
                     .frame(maxWidth: .infinity)
-                    .foregroundStyle(Color.primary)
-                    .colorInvert()
+                    #if os(visionOS)
+                        .foregroundStyle(Color.primary)
+                        .colorInvert()
+                    #endif
             }
             .buttonStyle(.borderedProminent)
             .tint(Color.primary)

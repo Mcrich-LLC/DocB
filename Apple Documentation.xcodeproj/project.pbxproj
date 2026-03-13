@@ -16,6 +16,11 @@
 		2239F66B2F29905E00A3201C /* SelectedLineBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */; };
 		2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F74D2F2AA3BD00A3201C /* AppSettings.swift */; };
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
+		224E23B42F6252F000FC7D19 /* MainOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */; };
+		224E23B52F6252F000FC7D19 /* IntroOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */; };
+		224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */; };
+		224E23BB2F62535A00FC7D19 /* EnvironmentValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */; };
+		224E23C12F62554200FC7D19 /* OnboardingAddSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E3FC62F5370AF0077916C /* AddTechnologyView.swift */; };
 		225E3FCA2F53A5EC0077916C /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 225E3FC92F53A5EC0077916C /* Nuke */; };
@@ -79,6 +84,11 @@
 		2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedLineBackground.swift; sourceTree = "<group>"; };
 		2239F74D2F2AA3BD00A3201C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
+		224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainOnboardingView.swift; sourceTree = "<group>"; };
+		224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroOnboardingView.swift; sourceTree = "<group>"; };
+		224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewSteps Enum Protocol.swift"; sourceTree = "<group>"; };
+		224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentValues.swift; sourceTree = "<group>"; };
+		224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAddSourcesView.swift; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
 		225E3FC62F5370AF0077916C /* AddTechnologyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTechnologyView.swift; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
@@ -130,6 +140,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		224E236E2F620F7300FC7D19 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 		22BD11292F09079C00D238BC /* SwiftUI Modifiers */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftUI Modifiers"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -165,6 +176,17 @@
 				22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */,
 			);
 			path = "SwiftUI Styles";
+			sourceTree = "<group>";
+		};
+		224E23B22F6252F000FC7D19 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */,
+				224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */,
+				224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */,
+				224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		2287E3B72CBF6A8500090C9F /* Json Parsers */ = {
@@ -264,6 +286,9 @@
 				2239F66A2F29905E00A3201C /* SelectedLineBackground.swift */,
 				2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */,
 				2239F74D2F2AA3BD00A3201C /* AppSettings.swift */,
+				224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */,
+				224E23B22F6252F000FC7D19 /* Onboarding */,
+				224E236E2F620F7300FC7D19 /* Components */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
 			);
@@ -311,6 +336,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				224E236E2F620F7300FC7D19 /* Components */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 			);
 			name = "Developer Documentation";
@@ -418,6 +444,9 @@
 				2287E3E32CBF6A8500090C9F /* AbstractView.swift in Sources */,
 				2287E3E42CBF6A8500090C9F /* ArticleBadges.swift in Sources */,
 				2239F66B2F29905E00A3201C /* SelectedLineBackground.swift in Sources */,
+				224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */,
+				224E23B42F6252F000FC7D19 /* MainOnboardingView.swift in Sources */,
+				224E23B52F6252F000FC7D19 /* IntroOnboardingView.swift in Sources */,
 				2287E3E52CBF6A8500090C9F /* ArticleContentView.swift in Sources */,
 				22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */,
 				2287E3E62CBF6A8500090C9F /* AsideView.swift in Sources */,
@@ -439,6 +468,7 @@
 				2287E3F12CBF6A8500090C9F /* WrappingHStack.swift in Sources */,
 				22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */,
 				2287E3F22CBF6A8500090C9F /* HomepageHero.swift in Sources */,
+				224E23C12F62554200FC7D19 /* OnboardingAddSourcesView.swift in Sources */,
 				2287E3F32CBF6A8500090C9F /* HomepageResources.swift in Sources */,
 				22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */,
 				22BC5F4F2E50CEA400271120 /* TagFilters.swift in Sources */,
@@ -457,6 +487,7 @@
 				2287E3FD2CBF6A8500090C9F /* MacOSAgnosticButton.swift in Sources */,
 				2287E3FE2CBF6A8500090C9F /* NavigationLinkButton.swift in Sources */,
 				2229DBB12CFEEF35009EB389 /* SettingsView.swift in Sources */,
+				224E23BB2F62535A00FC7D19 /* EnvironmentValues.swift in Sources */,
 				2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */,
 				2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */,
 			);
@@ -593,23 +624,37 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -619,6 +664,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -635,23 +686,37 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -661,6 +726,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

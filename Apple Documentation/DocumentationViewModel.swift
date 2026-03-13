@@ -136,10 +136,11 @@ class DocumentationViewModel {
         }
     }
     
-    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async {
-        guard !baseUrl.absoluteString.contains("developer.apple.com") else {
+    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
+        guard !baseUrl.absoluteString.lowercased().contains("developer.apple.com") else {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
+            try modelContext.save()
             await fetchHomepage()
             await fetchTechnologies()
             return
@@ -161,9 +162,11 @@ class DocumentationViewModel {
             let index = try JSONDecoder().decode(DocCIndex.self, from: data)
             let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
             modelContext.insert(site)
+            try modelContext.save()
+            let dto = try site.dto
             await MainActor.run {
                 withAnimation {
-                    self.technologies.append(.docC(site.dto))
+                    self.technologies.appendOrUpdate(.docC(dto))
                 }
             }
         } catch {
@@ -174,6 +177,9 @@ class DocumentationViewModel {
     func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
+                guard !technologies.contains(where: { $0.isApple }) else {
+                    continue
+                }
                 appleDocCSiteRef = site
                 await fetchHomepage()
                 await fetchTechnologies()
@@ -187,7 +193,7 @@ class DocumentationViewModel {
                 site.setIndex(index)
                 await MainActor.run {
                     withAnimation {
-                        self.technologies.append(.docC(site))
+                        self.technologies.appendOrUpdate(.docC(site))
                     }
                 }
             } catch {
@@ -196,16 +202,20 @@ class DocumentationViewModel {
         }
     }
     
-    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) {
+    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
+        guard technologies.contains(where: { $0.id == site.id }) else {
+            return
+        }
+        
         switch site {
         case .apple:
             technologies.removeAll { $0.id == site.id }
             if let site = appleDocCSiteRef {
-                site.deleteSite(modelContext: modelContext)
+                try site.deleteSite(modelContext: modelContext)
             }
         case .docC(let docCSiteDTO):
             technologies.removeAll { $0.id == site.id }
-            docCSiteDTO.deleteSite(modelContext: modelContext)
+            try docCSiteDTO.deleteSite(modelContext: modelContext)
         }
     }
     
@@ -275,5 +285,16 @@ class DocumentationViewModel {
 //        } catch {
 //            print(error)
 //        }
+    }
+}
+
+extension [TechnologyTypes] {
+    mutating func appendOrUpdate(_ new: TechnologyTypes) {
+        guard let index = firstIndex(where: { $0.id == new.id }) else {
+            append(new)
+            return
+        }
+        
+        self[index] = new
     }
 }

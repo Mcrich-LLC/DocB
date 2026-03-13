@@ -17,11 +17,24 @@ private struct SuggestedTechnology: Identifiable {
     let baseURL: URL
 }
 
+struct AddTechnologySheetView: View {
+    var body: some View {
+        NavigationStack {
+            AddTechnologyView()
+                .toolbar {
+                    ToolbarCloseButton()
+                }
+                .frame(minHeight: 400)
+        }
+    }
+}
+
 struct AddTechnologyView: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
     @Query var docCSites: [DocCSite]
     @State private var addDocumentationUrl = ""
+    @State private var errorAlert: Error?
     
     private var customSites: [TechnologyTypes] {
         documentationViewModel.technologies.filter { tech in
@@ -72,14 +85,6 @@ struct AddTechnologyView: View {
 
     var body: some View {
         List {
-            Section {
-                Text("Add Some DocC Sites")
-                    .font(.title)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .listRowSeparator(.hidden, edges: .all)
-            .listRowBackground(Color.clear)
             Section("Our Favorite Projects") {
                 ForEach(featuredTechnologies) { technology in
                     Button {
@@ -108,7 +113,11 @@ struct AddTechnologyView: View {
                         EnteredTechnologyRow(technology: technology)
                         Spacer()
                         Button {
-                            documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
+                            do {
+                                try documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
+                            } catch {
+                                self.errorAlert = error
+                            }
                         } label: {
                             Label("Remove", systemSymbol: .trash)
                         }
@@ -132,6 +141,8 @@ struct AddTechnologyView: View {
                 }
             }
         }
+        .navigationTitle("Add Sources")
+        .alert(for: $errorAlert)
     }
     
     private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
@@ -160,10 +171,14 @@ struct AddTechnologyView: View {
     }
     
     private func removeDocCSite(url: URL) {
-        guard let site = docCSites.first(where: { $0.url == url })?.dto else {
+        guard let site = try? docCSites.first(where: { $0.url == url })?.dto else {
             return
         }
-        documentationViewModel.deleteTechnology(.docC(site), modelContext: modelContext)
+        do {
+            try documentationViewModel.deleteTechnology(.docC(site), modelContext: modelContext)
+        } catch {
+            self.errorAlert = error
+        }
     }
     
     private func addDocCSite(url: URL, overrideName: String? = nil) async {
@@ -185,7 +200,11 @@ struct AddTechnologyView: View {
             return
         }
         
-        await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext, overrideName: overrideName)
+        do {
+            try await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext, overrideName: overrideName)
+        } catch {
+            self.errorAlert = error
+        }
     }
 }
 
@@ -236,7 +255,9 @@ private struct SuggestedTechnologyRow: View {
 #Preview {
     @Previewable @State var documentationViewModel: DocumentationViewModel =
         .init()
-    AddTechnologyView()
-        .environment(documentationViewModel)
-        .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
+    NavigationStack {
+        AddTechnologyView()
+            .environment(documentationViewModel)
+            .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
+    }
 }

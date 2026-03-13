@@ -9,26 +9,54 @@ import SwiftUI
 @_exported import SFSafeSymbols
 import SwiftData
 
+struct WindowTypes {
+    static let addSites = "add_sites"
+    static let main = "main"
+}
+
 @main
 struct Apple_DocumentationApp: App {
     @State var documentationViewModel = DocumentationViewModel()
     @State var appSettings = AppSettings()
+    @State private var showAddSource = false
+    @Environment(\.openWindow) var openWindow
+    let docCSiteModelContainer: ModelContainer
     
     init() {
+        do {
+            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, configurations: .init(cloudKitDatabase: .automatic))
+        } catch {
+            fatalError("Error Initializing ModelContainer: \(error)")
+        }
+        
         loadRocketSimConnect()
     }
     
     var body: some Scene {
-        WindowGroup(for: URL.self) { url in
-            ContentView(url: url.wrappedValue)
+        WindowGroup(id: WindowTypes.main, for: URL.self) { url in
+            MainView(url: url.wrappedValue, showAddSource: $showAddSource)
         } defaultValue: {
             URL(string: "doc://")!
         }
-        .modelContainer(for: [DocCSite.self], isAutosaveEnabled: true)
+        .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Window", action: { openWindow(id: WindowTypes.main) })
+                    .keyboardShortcut(.init("n"), modifiers: .command)
+                Button("Add Source", action: showAddDocumentationView)
+                    .keyboardShortcut(.init("n"), modifiers: [.command, .shift])
+            }
+        }
         
         #if os(macOS)
+        Window("Add Source", id: WindowTypes.addSites) {
+            AddTechnologyView()
+        }
+        .modelContainer(docCSiteModelContainer)
+        .environment(documentationViewModel)
+        .environment(appSettings)
         Settings {
             SettingsView()
         }
@@ -45,5 +73,68 @@ struct Apple_DocumentationApp: App {
         }
         print("RocketSim Connect successfully linked")
         #endif
+    }
+    
+    private func showAddDocumentationView() {
+        #if os(macOS)
+        openWindow(id: WindowTypes.addSites)
+        #else
+        showAddSource = true
+        #endif
+    }
+}
+
+private struct MainView: View {
+    @AppStorage("has_onboarded") private var hasOnboarded: Bool = false
+    let url: URL
+    @Binding var showAddSource: Bool
+    
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(\.modelContext) var modelContext
+    @Environment(\.appearsActive) var appearsActive
+    @Query private var docCSites: [DocCSite]
+    
+    var activeTrackedShowAddSource: Binding<Bool> {
+        Binding {
+            appearsActive && self.showAddSource
+        } set: { newValue in
+            showAddSource = newValue
+        }
+
+    }
+    
+    var body: some View {
+        VStack {
+            switch hasOnboarded {
+            case true:
+                ContentView(url: url)
+                    .backForward(isBack: false)
+            case false:
+                MainOnboardingView()
+                    .backForward(isBack: false)
+                    .customDismiss {
+                        hasOnboarded = true
+                    }
+            }
+        }
+        .animation(.default, value: hasOnboarded)
+        .task {
+            await documentationViewModel.loadTechnologies(docCSites.asDTOs)
+        }
+        .onChange(of: docCSites, onSwiftDataChange)
+        .sheet(isPresented: activeTrackedShowAddSource) {
+            AddTechnologySheetView()
+        }
+    }
+    
+    private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
+        Task {
+            await documentationViewModel.loadTechnologies(newValue.asDTOs)
+        }
+        Task {
+            for value in oldValue where !newValue.contains(where: { $0.id == value.id }) {
+                try? documentationViewModel.deleteTechnology(.docC(value.dto), modelContext: modelContext)
+            }
+        }
     }
 }

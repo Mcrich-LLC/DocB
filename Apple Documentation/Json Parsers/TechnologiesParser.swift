@@ -30,6 +30,15 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    var isApple: Bool {
+        switch self {
+        case .apple:
+            return true
+        case .docC:
+            return false
+        }
+    }
+    
     @MainActor
     var names: [String] {
         switch self {

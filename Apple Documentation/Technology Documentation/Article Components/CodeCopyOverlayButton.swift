@@ -34,9 +34,16 @@ struct CodeCopyOverlayButton: View {
                     .labelStyle(.iconOnly)
             }
         }
+        #if os(visionOS)
+        .backgroundStyle(.clear)
+        #else
         .background(.regularMaterial)
+        #endif
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .scaleEffect(string.contains("\n") ? 1 : 0.75)
+        #if os(visionOS)
+        .offset(y: -12)
+        #endif
         #else
         EmptyView()
             .frame(width: 0, height: 0)

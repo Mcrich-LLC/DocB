@@ -51,7 +51,7 @@ struct MainOnboardingView: View {
                     .backForward(isBack: stepManager.isBack)
             case .addSources:
                 OnboardingAddSourcesView()
-//                    .padding()
+                    .padding()
                     .fillSpaceAvailable()
                     .backForward(isBack: stepManager.isBack)
             }

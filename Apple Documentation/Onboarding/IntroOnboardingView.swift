@@ -26,7 +26,9 @@ struct IntroOnboardingView: View {
                 .minimumScaleFactor(0.7)
             Text("Stop hunting across tabs. Every dependency's documentation, organized in one calm, beautiful place.")
                 .foregroundStyle(.primary.opacity(0.5))
-            
+        }
+        .frame(maxWidth: 500, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
             Button {
                 stepManager.next()
             } label: {
@@ -40,9 +42,8 @@ struct IntroOnboardingView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(.primary)
+            .buttonBorderShape(.roundedRectangle)
         }
-        .buttonBorderShape(.roundedRectangle)
-        .frame(maxWidth: 500)
     }
 }
 

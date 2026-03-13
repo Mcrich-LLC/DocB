@@ -18,16 +18,14 @@ struct OnboardingAddSourcesView: View {
             
             AddTechnologyView()
                 .listStyle(.inset)
-//                .listRowBackground(Color(platformColor: .secondarySystemGroupedBackground))
-//                .backgroundStyle(.background.secondary)
                 .scrollContentBackground(.hidden)
-//                .frame(maxWidth: 500)
-            
+        }
+        .frame(maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
             Button {
                 stepManager.next()
             } label: {
                 Text("Done")
-                    .labelStyle(.iconTrailing)
                     .font(.title3)
                     .fontWeight(.black)
                     .fontDesign(.rounded)
@@ -35,9 +33,9 @@ struct OnboardingAddSourcesView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color.primary)
+            .tint(.primary)
+            .buttonBorderShape(.roundedRectangle)
         }
-        .buttonBorderShape(.roundedRectangle)
     }
 }
 

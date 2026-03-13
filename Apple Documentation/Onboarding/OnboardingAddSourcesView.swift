@@ -31,9 +31,13 @@ struct OnboardingAddSourcesView: View {
                     .fontDesign(.rounded)
                     .padding(.vertical)
                     .frame(maxWidth: .infinity)
+                    #if os(visionOS)
+                        .foregroundStyle(Color.primary)
+                        .colorInvert()
+                    #endif
             }
             .buttonStyle(.borderedProminent)
-            .tint(.primary)
+            .tint(Color.primary)
             .buttonBorderShape(.roundedRectangle)
         }
     }

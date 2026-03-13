@@ -627,7 +627,7 @@
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -689,7 +689,7 @@
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;

@@ -157,9 +157,9 @@ struct ArticleView: View {
                             //                                    // TODO: Implement Downloading
                             //                                }
                             
-                            Button("Save", systemImage: "bookmark") {
-                                // TODO: Implement Bookmarks
-                            }
+//                            Button("Save", systemImage: "bookmark") {
+//                                // TODO: Implement Bookmarks
+//                            }
                             
                             if let variants = article.variants {
                                 LanguagePicker(variants: variants)

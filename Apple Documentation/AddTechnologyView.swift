@@ -9,7 +9,7 @@ import Kingfisher
 import SwiftUI
 import SwiftData
 
-private struct SuggestedTechnology: Identifiable {
+private struct SuggestedTechnology: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let subtitle: String?
@@ -35,6 +35,7 @@ struct AddTechnologyView: View {
     @Query var docCSites: [DocCSite]
     @State private var addDocumentationUrl = ""
     @State private var errorAlert: Error?
+    @State private var technologiesAddInProgress: Set<SuggestedTechnology> = []
     
     private var customSites: [TechnologyTypes] {
         documentationViewModel.technologies.filter { tech in
@@ -80,7 +81,7 @@ struct AddTechnologyView: View {
     ]
     
     private func isSuggestedAdded(_ technology: SuggestedTechnology) -> Bool {
-        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL })
+        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) || technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
     }
 
     var body: some View {
@@ -147,10 +148,13 @@ struct AddTechnologyView: View {
     
     private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
         if isSuggestedAdded(technology) {
+            technologiesAddInProgress.remove(technology)
             removeDocCSite(url: technology.baseURL)
         } else {
             Task {
+                technologiesAddInProgress.insert(technology)
                 await addDocCSite(url: technology.baseURL, overrideName: technology.title)
+                technologiesAddInProgress.remove(technology)
             }
         }
     }

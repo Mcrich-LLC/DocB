@@ -23,20 +23,19 @@ struct OnboardingAddSourcesView: View {
                 .scrollContentBackground(.hidden)
 //                .frame(maxWidth: 500)
             
-            HStack {
-                Button {
-                    stepManager.next()
-                } label: {
-                    Text("Done")
-                        .labelStyle(.iconTrailing)
-                        .font(.title3)
-                        .fontWeight(.black)
-                        .fontDesign(.rounded)
-                        .padding(.vertical)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
+            Button {
+                stepManager.next()
+            } label: {
+                Text("Done")
+                    .labelStyle(.iconTrailing)
+                    .font(.title3)
+                    .fontWeight(.black)
+                    .fontDesign(.rounded)
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.primary)
         }
         .buttonBorderShape(.roundedRectangle)
     }

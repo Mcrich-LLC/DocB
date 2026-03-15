@@ -171,6 +171,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         return view
     }
     
+    /// Filters down to the lowest technology group and sets that as the side panel when enabled.
     func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
         var view = self
         view.alwaysShowClosestTechnologyGroup = isEnabled

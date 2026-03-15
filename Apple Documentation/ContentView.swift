@@ -377,6 +377,7 @@ private struct InterfaceLanguageSearchListing: View {
                 ReferenceNavigationLinkButton(reference: reference) {
                     Text(title)
                 }
+                .alwaysShowClosestTechnologyGroup()
             } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
                 MacOSAgnosticLink(destination: url) {
                     Text(title)

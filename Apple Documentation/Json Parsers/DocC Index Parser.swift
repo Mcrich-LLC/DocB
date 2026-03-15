@@ -168,7 +168,7 @@ final class DocCSite: Identifiable {
     var timestamp: Date?
     var url: URL?
     var overrideName: String?
-    fileprivate var indexV2: DocCIndexModel?
+    var indexV2: DocCIndexModel?
     
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
@@ -195,6 +195,22 @@ final class DocCSite: Identifiable {
             try .init(self)
         }
     }
+    
+    var groups: [InterfaceLanguageModel] {
+        indexV2?.interfaceLanguages?.flatMap({ $0.languages ?? [] }) ?? []
+    }
+    
+    func hasResultsForSearch(_ query: String) -> Bool {
+        guard let indexV2 else { return false }
+        
+        for interfaceLanguage in indexV2.interfaceLanguages ?? [] {
+            for language in interfaceLanguage.languages ?? [] where language.hasResultsForSearch(query) {
+                return true
+            }
+        }
+        
+        return false
+    }
 }
 
 extension [DocCSite] {
@@ -208,92 +224,108 @@ extension EnvironmentValues {
     @Entry var docCSite: DocCSiteDTO?
 }
 
-@Model
-private final class DocCIndexModel: Identifiable {
-    var id: UUID = UUID()
-    
-    @Relationship(deleteRule: .cascade, inverse: \DocCSite.indexV2)
-    var site: DocCSite?
-    
-    var interfaceLanguages: [InterfaceLanguageSetModel]?
-    
-    init(interfaceLanguages: [InterfaceLanguageSetModel]) {
-        self.interfaceLanguages = interfaceLanguages
-    }
-    
-    init(_ index: DocCIndex) {
-        self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
-    }
-    
-    var asIndex: DocCIndex {
-        let interfaceLanguages = (interfaceLanguages ?? []).reduce(into: [String: [DocCIndex.InterfaceLanguage]]()) { acc, set in
-            guard let name = set.name, let languages = set.languages else { return }
-            acc[name] = languages.map({ $0.asInterfaceLanguage })
+extension DocCSite {
+    @Model
+    final class DocCIndexModel: Identifiable {
+        var id: UUID = UUID()
+        
+        @Relationship(deleteRule: .cascade, inverse: \DocCSite.indexV2)
+        var site: DocCSite?
+        
+        var interfaceLanguages: [InterfaceLanguageSetModel]?
+        
+        init(interfaceLanguages: [InterfaceLanguageSetModel]) {
+            self.interfaceLanguages = interfaceLanguages
         }
         
-        return DocCIndex(interfaceLanguages: interfaceLanguages)
-    }
-}
-
-@Model
-private final class InterfaceLanguageSetModel: Identifiable {
-    var id = UUID()
-    var name: String?
-    var languages: [InterfaceLanguageModel]?
-    
-    @Relationship(deleteRule: .cascade, inverse: \DocCIndexModel.interfaceLanguages)
-    var index: DocCIndexModel?
-    
-    init(name: String? = nil, languages: [InterfaceLanguageModel]? = nil) {
-        self.name = name
-        self.languages = languages
-    }
-    
-    init(name: String, languages: [DocCIndex.InterfaceLanguage]) {
-        self.name = name
-        self.languages = languages.map({ InterfaceLanguageModel($0) })
-    }
-}
-
-@Model
-private final class InterfaceLanguageModel: Identifiable {
-    var id = UUID()
-    
-    var title: String?
-    var path: String?
-    var type: String?
-    
-    @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
-    var set: InterfaceLanguageSetModel?
-    
-    // parent relationship
-    @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
-    var parent: InterfaceLanguageModel?
-    
-    fileprivate(set) var children: [InterfaceLanguageModel]?
-
-    init(title: String?, path: String? = nil, type: String?, children: [InterfaceLanguageModel]) {
-        self.title = title
-        self.path = path
-        self.type = type
-        self.children = children
-    }
-    
-    init(_ language: DocCIndex.InterfaceLanguage) {
-        self.title = language.title
-        self.path = language.path
-        self.type = language.type
+        init(_ index: DocCIndex) {
+            self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
+        }
         
-        if let children = language.children {
-            let models = children.map { InterfaceLanguageModel($0) }
-            self.children = models
-            models.forEach { $0.parent = self }
+        var asIndex: DocCIndex {
+            let interfaceLanguages = (interfaceLanguages ?? []).reduce(into: [String: [DocCIndex.InterfaceLanguage]]()) { acc, set in
+                guard let name = set.name, let languages = set.languages else { return }
+                acc[name] = languages.map({ $0.asInterfaceLanguage })
+            }
+            
+            return DocCIndex(interfaceLanguages: interfaceLanguages)
         }
     }
     
-    var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
-        let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
+    @Model
+    final class InterfaceLanguageSetModel: Identifiable {
+        var id = UUID()
+        var name: String?
+        var languages: [InterfaceLanguageModel]?
         
-        return DocCIndex.InterfaceLanguage(title: title ?? "Unknonwn", path: path, type: type ?? "Unknown", children: children)
+        @Relationship(deleteRule: .cascade, inverse: \DocCIndexModel.interfaceLanguages)
+        var index: DocCIndexModel?
+        
+        init(name: String? = nil, languages: [InterfaceLanguageModel]? = nil) {
+            self.name = name
+            self.languages = languages
+        }
+        
+        init(name: String, languages: [DocCIndex.InterfaceLanguage]) {
+            self.name = name
+            self.languages = languages.map({ InterfaceLanguageModel($0) })
+        }
+    }
+    
+    @Model
+    final class InterfaceLanguageModel: Identifiable {
+        var id = UUID()
+        
+        var title: String?
+        var path: String?
+        var type: String?
+        
+        @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
+        var set: InterfaceLanguageSetModel?
+        
+        // parent relationship
+        @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
+        var parent: InterfaceLanguageModel?
+        
+        fileprivate(set) var children: [InterfaceLanguageModel]?
+        
+        init(title: String?, path: String? = nil, type: String?, children: [InterfaceLanguageModel]) {
+            self.title = title
+            self.path = path
+            self.type = type
+            self.children = children
+        }
+        
+        init(_ language: DocCIndex.InterfaceLanguage) {
+            self.title = language.title
+            self.path = language.path
+            self.type = language.type
+            
+            if let children = language.children {
+                let models = children.map { InterfaceLanguageModel($0) }
+                self.children = models
+                models.forEach { $0.parent = self }
+            }
+        }
+        
+        var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
+            let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
+            
+            return DocCIndex.InterfaceLanguage(title: title ?? "Unknonwn", path: path, type: type ?? "Unknown", children: children)
+        }
+        
+        func hasResultsForSearch(_ query: String) -> Bool {
+            if title?.lowercased().contains(query.lowercased()) == true {
+                return true
+            }
+            
+            guard let children else { return false }
+            
+            for child in children where child.hasResultsForSearch(query) && child.type?.lowercased().contains("module") != true {
+                return true
+            }
+            
+            return false
+        }
     }
 }

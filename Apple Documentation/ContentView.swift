@@ -20,6 +20,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.modelContext) var modelContext
     @Environment(\.openWindow) var openWindow
+    @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
     @Query var docCSites: [DocCSite]
     
     var navigationTint: Color? {
@@ -124,6 +125,18 @@ struct ContentView: View {
         }
     }}
     
+    private var minWindowFrame: CGSize? {
+        #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
+        return CGSize(width: navigationViewModel.splitViewColumnVisibility == .detailOnly ? 350 : 700, height: 600)
+        #else
+        guard supportsMultipleWindows else {
+            return nil
+        }
+        
+        return CGSize(width: navigationViewModel.splitViewColumnVisibility == .detailOnly ? 350 : 500, height: 400)
+        #endif
+    }
+    
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
@@ -164,6 +177,7 @@ struct ContentView: View {
             .accentColor(Color.accentColor)
         }
         .accentColor(navigationTint)
+        .frame(minWidth: minWindowFrame?.width, minHeight: minWindowFrame?.height)
     }
     
     @ViewBuilder

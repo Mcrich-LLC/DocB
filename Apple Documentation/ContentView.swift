@@ -372,7 +372,7 @@ private struct InterfaceLanguageSearchListing: View {
     }
     
     var body: some View {
-        if let title = interfaceLanguage.title, title.contains(searchText) {
+        if let title = interfaceLanguage.title, title.lowercased().contains(searchText.lowercased()) {
             if let reference {
                 ReferenceNavigationLinkButton(reference: reference) {
                     Text(title)

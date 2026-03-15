@@ -207,8 +207,8 @@ final class DocCSite: Identifiable {
     func hasResultsForSearch(_ query: String) -> Bool {
         guard let indexV2 else { return false }
         
-        for interfaceLanguage in indexV2.interfaceLanguages ?? [] {
-            return (interfaceLanguage.languages ?? []).first(where: { $0.hasResultsForSearch(query) }) != nil
+        for interfaceLanguage in indexV2.interfaceLanguages ?? [] where (interfaceLanguage.languages ?? []).first(where: { $0.hasResultsForSearch(query) }) != nil {
+            return true
         }
         
         return false

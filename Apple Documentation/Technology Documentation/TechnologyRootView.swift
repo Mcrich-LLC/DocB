@@ -61,10 +61,27 @@ struct TechnologyRootView: View {
         }
     }
     
+    private func convertOutsideReferenceToIn() -> Reference? {
+        guard let ogIdentifier = navigationViewModel.reference?.identifier,
+              let ogIdentifierURL = URL(string: ogIdentifier.lowercased()),
+              let reference = framework?.references.first(where: { URL(string: $0.key.lowercased())?.path() == ogIdentifierURL.path() })
+        else {
+            return nil
+        }
+        
+        return reference.value
+    }
+    
     var body: some View {
         VStack {
             if let framework {
-                FrameworkView(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
+                ScrollViewReader { scrollProxy in
+                    FrameworkView(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
+                        .onAppear {
+                            guard let reference = convertOutsideReferenceToIn() else { return }
+                            scrollProxy.scrollTo(reference.identifier, anchor: .center)
+                        }
+                }
                 #if os(macOS) || targetEnvironment(macCatalyst)
                 .listRowSpacing(navigationViewModel.isUsingSplitView ? 10 : 0)
                 #else
@@ -165,6 +182,7 @@ struct TechnologyRootView: View {
                         FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
+                            .id(frameworkSection.frameworkReference.identifier)
                     }
                     
                     ForEach(topicSections) { section in
@@ -174,6 +192,7 @@ struct TechnologyRootView: View {
                                     FrameworkListItem(reference: manager.getReference(from: reference), title: title)
                                         .listRowBackground(Color.clear)
                                         .listRowSeparator(.hidden)
+                                        .id(identifier.identifier)
                                 }
                             }
                         } header: {

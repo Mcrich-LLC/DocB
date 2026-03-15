@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HighlightSwift
 import SwiftData
 
 struct ContentView: View {
@@ -371,16 +372,29 @@ private struct InterfaceLanguageSearchListing: View {
         return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
     }
     
+    @ViewBuilder
+    func text(_ text: String) -> some View {
+        let role = Role(rawValue: interfaceLanguage.type ?? "") ?? .codeListing
+        
+        if [Role.codeListing, .pseudoSymbol, .restRequestSymbol, .collection, .collectionGroup, .symbol].contains(role) {
+            CodeText(text)
+                .highlightLanguage(.swift)
+                .codeTextColors(.theme(.xcode))
+        } else {
+            Text(text)
+        }
+    }
+    
     var body: some View {
         if let title = interfaceLanguage.title, title.lowercased().contains(searchText.lowercased()) {
             if let reference {
                 ReferenceNavigationLinkButton(reference: reference) {
-                    Text(title)
+                    text(title)
                 }
                 .alwaysShowClosestTechnologyGroup()
             } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
                 MacOSAgnosticLink(destination: url) {
-                    Text(title)
+                    text(title)
                 }
             }
         }

@@ -75,16 +75,15 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             let identifier = url.path()
             
             for group in groups {
-                let technologyGroup = group.children?.first(where: {
+                let technologyGroup = group.allChildren.first(where: {
                     ($0.children ?? []).contains(where: { tech in
                         tech.path?.lowercased() == identifier.lowercased()
                     })
                 })
                 
-                if let technologyGroup,
-                   let technology = technologyGroup.children?.first(where: { $0.path == identifier }) {
+                if let technologyGroup {
                     withAnimation(.snappy) {
-                        navigationViewModel.setTechnology(site.frameworkSection(for: technology))
+                        navigationViewModel.setTechnology(site.frameworkSection(for: technologyGroup))
                     }
                     return
                 }

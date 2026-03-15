@@ -356,10 +356,31 @@ private struct InterfaceLanguageSearchListing: View {
     let searchText: String
     let interfaceLanguage: DocCSite.InterfaceLanguageModel
     
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    
+    var reference: Reference? {
+        guard let path = interfaceLanguage.path, let type = interfaceLanguage.type else {
+            return nil
+        }
+        
+        guard let siteModel = try? interfaceLanguage.getSet()?.index?.site,
+              let site = documentationViewModel.technologies.docCSites.first(where: { $0.id == siteModel.id }) else {
+            return nil
+        }
+        
+        return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
+    }
+    
     var body: some View {
-        if let path = interfaceLanguage.path, let url = URL(string: "com.Mcrich.Apple-Documentation://nav\(path)"), let title = interfaceLanguage.title, title.contains(searchText) {
-            MacOSAgnosticLink(destination: url) {
-                Text(title)
+        if let title = interfaceLanguage.title, title.contains(searchText) {
+            if let reference {
+                ReferenceNavigationLinkButton(reference: reference) {
+                    Text(title)
+                }
+            } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
+                MacOSAgnosticLink(destination: url) {
+                    Text(title)
+                }
             }
         }
         

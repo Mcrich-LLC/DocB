@@ -26,6 +26,10 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
         
         fileprivate(set) var children: [InterfaceLanguage]?
         
+        var allChildren: [InterfaceLanguage] {
+            (children ?? []) + (children?.flatMap(\.allChildren) ?? [])
+        }
+        
         func allFrameworkSections(for site: DocCSiteDTO) -> [AppleTechnologies.FrameworkSection] {
             children?.compactMap { frameworkSection(for: $0, site: site) } ?? []
         }
@@ -279,7 +283,7 @@ extension DocCSite {
         var type: String?
         
         @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
-        var set: InterfaceLanguageSetModel?
+        private var set: InterfaceLanguageSetModel?
         
         // parent relationship
         @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
@@ -300,9 +304,13 @@ extension DocCSite {
             self.type = language.type
             
             if let children = language.children {
-                let models = children.map { InterfaceLanguageModel($0) }
+                let models = children.map { child in
+                    let model = InterfaceLanguageModel(child)
+                    model.parent = self
+                    
+                    return model
+                }
                 self.children = models
-                models.forEach { $0.parent = self }
             }
         }
         
@@ -320,6 +328,15 @@ extension DocCSite {
             guard let children else { return false }
             
             return children.first(where: { $0.hasResultsForSearch(query) }) != nil
+        }
+        
+        @MainActor
+        func getSet() throws -> InterfaceLanguageSetModel? {
+            if let set {
+                return set
+            }
+            
+            return try self.parent?.getSet()
         }
     }
 }

@@ -3,4 +3,130 @@
    uuid = "8DA728FB-DF98-4028-AA1B-760E1C8C606E"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1EB59E63-EDFE-43BF-A979-5F8985381730"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/NavigationLinkButton.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "67"
+            endingLineNumber = "67"
+            landmarkName = "_actionHandleTechnologies(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E02F1BC0-8BC9-4C24-BA9D-5FDFE10E22D9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/NavigationLinkButton.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "60"
+            endingLineNumber = "60"
+            landmarkName = "_actionHandleTechnologies(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "27FD2D9A-6BB1-4E85-9802-A279175CFA16"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/NavigationLinkButton.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
+            landmarkName = "_actionHandleSite(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "27FD2D9A-6BB1-4E85-9802-A279175CFA16 - ad3343e89580c174"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #4 () -&gt; () in Developer_Documentation.ReferenceNavigationLinkButton._actionHandleSite(Developer_Documentation.DocCSiteDTO) -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/NavigationLinkButton.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "88"
+                  endingLineNumber = "88">
+               </Location>
+               <Location
+                  uuid = "27FD2D9A-6BB1-4E85-9802-A279175CFA16 - 950603747c5358f7"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Developer_Documentation.ReferenceNavigationLinkButton._actionHandleSite(Developer_Documentation.DocCSiteDTO) -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/NavigationLinkButton.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "88"
+                  endingLineNumber = "88">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B56F8B27-3127-4598-8082-10E77A5E15DF"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Apple Documentation/NavigationLinkButton.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "117"
+            endingLineNumber = "117"
+            landmarkName = "action()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "B56F8B27-3127-4598-8082-10E77A5E15DF - a6c5bf2fb5d3ab5c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Developer_Documentation.ReferenceNavigationLinkButton.action() -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/NavigationLinkButton.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "118"
+                  endingLineNumber = "118">
+               </Location>
+               <Location
+                  uuid = "B56F8B27-3127-4598-8082-10E77A5E15DF - a6c5bf2fb5d3ab7d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Developer_Documentation.ReferenceNavigationLinkButton.action() -&gt; ()"
+                  moduleName = "Developer Documentation.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mcrich/Xcode/Apple%20Documentation/Apple%20Documentation/NavigationLinkButton.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "117"
+                  endingLineNumber = "117">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

@@ -204,9 +204,7 @@ final class DocCSite: Identifiable {
         guard let indexV2 else { return false }
         
         for interfaceLanguage in indexV2.interfaceLanguages ?? [] {
-            for language in interfaceLanguage.languages ?? [] where language.hasResultsForSearch(query) {
-                return true
-            }
+            return (interfaceLanguage.languages ?? []).first(where: { $0.hasResultsForSearch(query) }) != nil
         }
         
         return false
@@ -315,17 +313,13 @@ extension DocCSite {
         }
         
         func hasResultsForSearch(_ query: String) -> Bool {
-            if title?.lowercased().contains(query.lowercased()) == true {
+            if title?.lowercased().contains(query.lowercased()) == true && type?.lowercased() != "module" {
                 return true
             }
             
             guard let children else { return false }
             
-            for child in children where child.hasResultsForSearch(query) && child.type?.lowercased().contains("module") != true {
-                return true
-            }
-            
-            return false
+            return children.first(where: { $0.hasResultsForSearch(query) }) != nil
         }
     }
 }

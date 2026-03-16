@@ -49,6 +49,9 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     var shouldShowBackground: Bool = true
     var removeLastPathComponentFirst: Bool = false
     
+    /// Filters down to the lowest technology group and sets that as the side panel.
+    var alwaysShowClosestTechnologyGroup: Bool = false
+    
     var isSelected: Bool {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
@@ -75,20 +78,44 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             let identifier = url.path()
             
             for group in groups {
-                let technologyGroup = group.children?.first(where: {
-                    ($0.children ?? []).contains(where: { tech in
-                        tech.path?.lowercased() == identifier.lowercased()
-                    })
-                })
-                
-                if let technologyGroup,
-                   let technology = technologyGroup.children?.first(where: { $0.path == identifier }) {
-                    withAnimation(.snappy) {
-                        navigationViewModel.setTechnology(site.frameworkSection(for: technology))
-                    }
-                    return
+                switch alwaysShowClosestTechnologyGroup {
+                case true :
+                    __handleAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
+                case false:
+                    __handleDontAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
                 }
             }
+        }
+    }
+    
+    private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
+        let technologyGroup = group.children?.first(where: {
+            ($0.children ?? []).contains(where: { tech in
+                tech.path?.lowercased() == identifier.lowercased()
+            })
+        })
+        
+        if let technologyGroup,
+           let technology = technologyGroup.children?.first(where: { $0.path == identifier }) {
+            withAnimation(.snappy) {
+                navigationViewModel.setTechnology(site.frameworkSection(for: technology))
+            }
+            return
+        }
+    }
+    
+    private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
+        let technologyGroup = group.allChildren.first(where: {
+            ($0.children ?? []).contains(where: { tech in
+                tech.path?.lowercased() == identifier.lowercased()
+            })
+        })
+        
+        if let technologyGroup {
+            withAnimation(.snappy) {
+                navigationViewModel.setTechnology(site.frameworkSection(for: technologyGroup))
+            }
+            return
         }
     }
     
@@ -140,6 +167,14 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     func removeLastPathComponentFirst(_ bool: Bool) -> Self {
         var view = self
         view.removeLastPathComponentFirst = bool
+        
+        return view
+    }
+    
+    /// Filters down to the lowest technology group and sets that as the side panel when enabled.
+    func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
+        var view = self
+        view.alwaysShowClosestTechnologyGroup = isEnabled
         
         return view
     }

@@ -691,7 +691,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         return currentUrl.path().lowercased() == url.path().lowercased()
     }
     
-    init(title: String?, abstract: [ContentStruct]?, identifier: String, kind: String?, type: String, url: String?, role: Role?, fragments: [Fragment]?, deprecated: Bool?, beta: Bool?, variants: [Variant]?, images: [ImageStruct]?, docCSite: DocCSiteDTO?) {
+    init(title: String? = nil, abstract: [ContentStruct]? = nil, identifier: String, kind: String? = nil, type: String, url: String? = nil, role: Role? = nil, fragments: [Fragment]? = nil, deprecated: Bool? = nil, beta: Bool? = nil, variants: [Variant]? = nil, images: [ImageStruct]? = nil, docCSite: DocCSiteDTO? = nil) {
         self.title = title
         self.abstract = abstract
         self.identifier = identifier

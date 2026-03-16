@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HighlightSwift
 import SwiftData
 
 struct ContentView: View {
@@ -19,6 +20,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.modelContext) var modelContext
     @Environment(\.openWindow) var openWindow
+    @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
     @Query var docCSites: [DocCSite]
     
     var navigationTint: Color? {
@@ -123,6 +125,18 @@ struct ContentView: View {
         }
     }}
     
+    private var minWindowFrame: CGSize? {
+        #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
+        return CGSize(width: navigationViewModel.splitViewColumnVisibility == .detailOnly ? 350 : 700, height: 600)
+        #else
+        guard supportsMultipleWindows else {
+            return nil
+        }
+        
+        return CGSize(width: navigationViewModel.splitViewColumnVisibility == .detailOnly ? 350 : 500, height: 400)
+        #endif
+    }
+    
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
@@ -163,6 +177,7 @@ struct ContentView: View {
             .accentColor(Color.accentColor)
         }
         .accentColor(navigationTint)
+        .frame(minWidth: minWindowFrame?.width, minHeight: minWindowFrame?.height)
     }
     
     @ViewBuilder
@@ -249,47 +264,15 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if docCSites.isEmpty && !searchText.isEmpty {
+            if docCSites.isEmpty && searchText.isEmpty {
                 ContentUnavailableView {
                     Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
                 .listRowSeparator(.hidden)
+            } else if !searchText.isEmpty {
+                searchList
             } else if searchHasResults {
-                if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
-                    Section {
-                        ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
-                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                                .contextMenu {
-                                    Button("Delete", systemImage: "trash", role: .destructive) {
-                                        do {
-                                            try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                        } catch {
-                                            self.errorAlert = error
-                                        }
-                                    }
-                                }
-                        }
-                    }
-                    ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
-                        Section {
-                            DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                        } header: {
-                            Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
-                                .contextMenu {
-                                    Button("Delete", systemImage: "trash", role: .destructive) {
-                                        do {
-                                            try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                        } catch {
-                                            self.errorAlert = error
-                                        }
-                                    }
-                                }
-                        }
-                    }
-                }
-                ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
-                    technologyView(for: technology)
-                }
+                technoloigesList
             } else {
                 ContentUnavailableView.search(text: searchText)
             }
@@ -324,6 +307,115 @@ private struct TechView: View {
         #else
         showAddDocumentationAlert.toggle()
         #endif
+    }
+    
+    @ViewBuilder
+    private var searchList: some View {
+        ForEach(docCSites) { site in
+            if let index = site.indexV2, site.hasResultsForSearch(searchText) {
+                Section(site.overrideName ?? site.groups.first?.title ?? "Unknown") {
+                    ForEach(index.interfaceLanguages ?? []) { interface in
+                        ForEach(interface.languages ?? []) { language in
+                            InterfaceLanguageSearchListing(searchText: searchText, interfaceLanguage: language)
+                        }
+                    }
+                }
+            }
+        }
+        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+            technologyView(for: technology)
+        }
+    }
+    
+    @ViewBuilder
+    private var technoloigesList: some View {
+        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
+            Section {
+                ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                do {
+                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                } catch {
+                                    self.errorAlert = error
+                                }
+                            }
+                        }
+                }
+            }
+            ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                Section {
+                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                } header: {
+                    Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                do {
+                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
+                                } catch {
+                                    self.errorAlert = error
+                                }
+                            }
+                        }
+                }
+            }
+        }
+        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+            technologyView(for: technology)
+        }
+    }
+}
+
+private struct InterfaceLanguageSearchListing: View {
+    let searchText: String
+    let interfaceLanguage: DocCSite.InterfaceLanguageModel
+    
+    @Environment(DocumentationViewModel.self) var documentationViewModel
+    
+    var reference: Reference? {
+        guard let path = interfaceLanguage.path, let type = interfaceLanguage.type else {
+            return nil
+        }
+        
+        guard let siteModel = try? interfaceLanguage.getSet()?.index?.site,
+              let site = documentationViewModel.technologies.docCSites.first(where: { $0.id == siteModel.id }) else {
+            return nil
+        }
+        
+        return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
+    }
+    
+    @ViewBuilder
+    func text(_ text: String) -> some View {
+        let role = Role(rawValue: interfaceLanguage.type ?? "") ?? .codeListing
+        
+        if [Role.codeListing, .pseudoSymbol, .restRequestSymbol, .collection, .collectionGroup, .symbol].contains(role) {
+            CodeText(text)
+                .highlightLanguage(.swift)
+                .codeTextColors(.theme(.xcode))
+        } else {
+            Text(text)
+        }
+    }
+    
+    var body: some View {
+        if let title = interfaceLanguage.title, title.lowercased().contains(searchText.lowercased()) {
+            if let reference {
+                ReferenceNavigationLinkButton(reference: reference) {
+                    text(title)
+                }
+                .alwaysShowClosestTechnologyGroup()
+            } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
+                MacOSAgnosticLink(destination: url) {
+                    text(title)
+                }
+            }
+        }
+        
+        ForEach(interfaceLanguage.children ?? []) { child in
+            InterfaceLanguageSearchListing(searchText: searchText, interfaceLanguage: child)
+        }
     }
 }
 

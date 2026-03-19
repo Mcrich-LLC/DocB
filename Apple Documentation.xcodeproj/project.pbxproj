@@ -143,6 +143,7 @@
 		224E236E2F620F7300FC7D19 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 		22BD11292F09079C00D238BC /* SwiftUI Modifiers */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftUI Modifiers"; sourceTree = "<group>"; };
 		22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftData Models"; sourceTree = "<group>"; };
+		22C6B4DA2F6C86100077EAF5 /* Bookmarks */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Bookmarks; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -267,6 +268,7 @@
 		2287E3DD2CBF6A8500090C9F /* Apple Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
 				22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */,
 				2209FBB92CC9885900372F9E /* Protocols */,
 				2287E3B72CBF6A8500090C9F /* Json Parsers */,
@@ -341,6 +343,7 @@
 				224E236E2F620F7300FC7D19 /* Components */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */,
+				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
 			);
 			name = "Developer Documentation";
 			packageProductDependencies = (

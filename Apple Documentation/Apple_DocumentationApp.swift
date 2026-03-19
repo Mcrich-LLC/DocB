@@ -24,7 +24,7 @@ struct Apple_DocumentationApp: App {
     
     init() {
         do {
-            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, configurations: .init(cloudKitDatabase: .automatic))
+            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, Bookmark.self, BookmarkCollection.self, configurations: .init(cloudKitDatabase: .automatic))
         } catch {
             fatalError("Error Initializing ModelContainer: \(error)")
         }

@@ -22,18 +22,20 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
     
     let id: UUID
     var title: String
+    var lastUpdatedDate: Date
     var bookmarks: [BookmarkDTO]
     fileprivate var persistentModelID: PersistentIdentifier?
     
-    init(title: String, bookmarks: [BookmarkDTO]) {
+    init(title: String, lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
         self.id = UUID()
         self.title = title
+        self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
         self.persistentModelID = nil
     }
     
     init(_ model: BookmarkCollection) throws {
-        guard let title = model.title else {
+        guard let title = model.title, let lastUpdatedDate = model.lastUpdatedDate else {
             throw SwiftDataErrors.invalidShape
         }
         
@@ -43,6 +45,7 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
         self.id = model.id
         self.title = title
         self.bookmarks = bookmarks
+        self.lastUpdatedDate = lastUpdatedDate
         self.persistentModelID = model.persistentModelID
     }
     
@@ -50,12 +53,14 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
+        self.lastUpdatedDate = try container.decode(Date.self, forKey: .lastUpdatedDate)
         self.bookmarks = try container.decode([BookmarkDTO].self, forKey: .bookmarks)
     }
     
     enum CodingKeys: String, CodingKey {
         case title
         case bookmarks
+        case lastUpdatedDate
     }
     
     func deleteSite(modelContext: ModelContext) throws {
@@ -70,11 +75,13 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
 final class BookmarkCollection: Identifiable {
     var id = UUID()
     var title: String?
+    var lastUpdatedDate: Date?
     var bookmarks: [Bookmark]?
     
-    init(id: UUID = UUID(), title: String, bookmarks: [Bookmark]) {
+    init(id: UUID = UUID(), title: String, bookmarks: [Bookmark], lastUpdatedDate: Date? = nil) {
         self.id = id
         self.title = title
+        self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
     }
     

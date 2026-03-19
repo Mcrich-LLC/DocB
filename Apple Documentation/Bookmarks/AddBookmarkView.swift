@@ -22,12 +22,37 @@ struct AddBookmarkView: View {
     
     var body: some View {
         List {
-            ForEach(collections) { collection in
-                if let title = collection.title {
-                    Toggle(isOn: collectionBinding(for: collection.id), label: {
-                        Label(title, systemSymbol: .folder)
-                    })
-                    .toggleStyle(.button)
+            if collections.isEmpty {
+                ContentUnavailableView("No saved collections", systemImage: "folder.badge.questionmark", description: Text("You haven't created any collections. Create one to save your bookmarks."))
+                    .listRowBackground(Color.clear)
+            } else {
+                ForEach(collections) { collection in
+                    if let title = collection.title {
+                        let isSelected = selectedCollections.contains(collection.id)
+                        
+                        HStack {
+                            Button {
+                                switch isSelected {
+                                case true:
+                                    selectedCollections.remove(collection.id)
+                                case false:
+                                    selectedCollections.insert(collection.id)
+                                }
+                            } label: {
+                                Label(title, systemSymbol: .folder)
+                            }
+                            .tint(Color.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemSymbol: .checkmark)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: 15, maxHeight: 15)
+                                .opacity(isSelected ? 1 : 0)
+                        }
+                        .animation(.easeInOut.speed(1.4), value: isSelected)
+                    }
                 }
             }
         }
@@ -74,19 +99,6 @@ struct AddBookmarkView: View {
         } catch {
             print(error)
             self.errorAlert = error
-        }
-    }
-    
-    func collectionBinding(for id: UUID) -> Binding<Bool> {
-        Binding {
-            selectedCollections.contains(id)
-        } set: { isSelected in
-            switch isSelected {
-            case true:
-                selectedCollections.insert(id)
-            case false:
-                selectedCollections.remove(id)
-            }
         }
     }
 }

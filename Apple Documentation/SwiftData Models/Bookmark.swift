@@ -69,7 +69,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     init(_ model: Bookmark) throws {
-        guard let title = model.title, let siteBaseURL = model.siteBaseURL, let identifier = model.identifier else {
+        guard let title = model.title, let siteBaseURL = model.siteBaseURL, let identifier = model.identifier, let type = model.type else {
             throw SwiftDataErrors.invalidShape
         }
         
@@ -77,7 +77,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.title = title
         self.identifier = identifier
         self.kind = model.kind
-        self.type = model.type
+        self.type = type
         self.role = model.role
         self.deprecated = model.deprecated ?? false
         self.beta = model.beta ?? false
@@ -127,7 +127,7 @@ final class Bookmark: Identifiable {
     var title: String?
     var identifier: String?
     var kind: String?
-    var type: String
+    var type: String?
     var role: Role?
     var deprecated: Bool?
     var beta: Bool?

@@ -69,13 +69,13 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     init(_ model: Bookmark) throws {
-        guard let title = model.title, let siteBaseURL = model.siteBaseURL else {
+        guard let title = model.title, let siteBaseURL = model.siteBaseURL, let identifier = model.identifier else {
             throw SwiftDataErrors.invalidShape
         }
         
         self.id = model.id
         self.title = title
-        self.identifier = model.identifier
+        self.identifier = identifier
         self.kind = model.kind
         self.type = model.type
         self.role = model.role
@@ -125,7 +125,7 @@ enum BookmarkErrors: Error {
 final class Bookmark: Identifiable {
     var id = UUID()
     var title: String?
-    var identifier: String
+    var identifier: String?
     var kind: String?
     var type: String
     var role: Role?

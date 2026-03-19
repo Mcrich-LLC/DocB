@@ -17,32 +17,70 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(title)
-        hasher.combine(reference)
+        hasher.combine(identifier)
+        hasher.combine(kind)
+        hasher.combine(type)
+        hasher.combine(role)
+        hasher.combine(deprecated)
+        hasher.combine(beta)
         hasher.combine(siteBaseURL)
     }
     
     let id: UUID
     var title: String
-    var reference: Reference
+    var identifier: String
+    var kind: String?
+    var type: String
+    var role: Role?
+    var deprecated: Bool
+    var beta: Bool
     var siteBaseURL: URL
     fileprivate var persistentModelID: PersistentIdentifier?
     
-    init(title: String, reference: Reference, siteBaseURL: URL) {
+    init(title: String, identifier: String, kind: String?, type: String, role: Role?, deprecated: Bool, beta: Bool, siteBaseURL: URL) {
         self.id = UUID()
         self.title = title
-        self.reference = reference
+        self.identifier = identifier
+        self.kind = kind
+        self.type = type
+        self.role = role
+        self.deprecated = deprecated
+        self.beta = beta
+        self.siteBaseURL = siteBaseURL
+        self.persistentModelID = nil
+    }
+    
+    init(reference: Reference) throws {
+        guard let title = reference.title, !title.isEmpty, let externalURLHost = reference.externalURL?.host(), let siteBaseURL = URL(string: externalURLHost) else {
+            throw BookmarkErrors.invalidReference
+        }
+        
+        self.id = UUID()
+        self.title = title
+        self.identifier = reference.identifier
+        self.kind = reference.kind
+        self.type = reference.type
+        self.role = reference.role
+        self.deprecated = reference.deprecated ?? false
+        self.beta = reference.beta ?? false
+        
         self.siteBaseURL = siteBaseURL
         self.persistentModelID = nil
     }
     
     init(_ model: Bookmark) throws {
-        guard let title = model.title, let reference = model.reference, let siteBaseURL = model.siteBaseURL else {
+        guard let title = model.title, let siteBaseURL = model.siteBaseURL else {
             throw SwiftDataErrors.invalidShape
         }
         
         self.id = model.id
         self.title = title
-        self.reference = reference
+        self.identifier = model.identifier
+        self.kind = model.kind
+        self.type = model.type
+        self.role = model.role
+        self.deprecated = model.deprecated ?? false
+        self.beta = model.beta ?? false
         self.siteBaseURL = siteBaseURL
         self.persistentModelID = model.persistentModelID
     }
@@ -51,13 +89,23 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
-        self.reference = try container.decode(Reference.self, forKey: .reference)
+        self.identifier = try container.decode(String.self, forKey: .identifier)
+        self.kind = try container.decodeIfPresent(String.self, forKey: .kind)
+        self.type = try container.decode(String.self, forKey: .type)
+        self.role = try container.decodeIfPresent(Role.self, forKey: .role)
+        self.deprecated = try container.decodeIfPresent(Bool.self, forKey: .deprecated) ?? false
+        self.beta = try container.decodeIfPresent(Bool.self, forKey: .beta) ?? false
         self.siteBaseURL = try container.decode(URL.self, forKey: .siteBaseURL)
     }
     
     enum CodingKeys: String, CodingKey {
         case title
-        case reference
+        case identifier
+        case kind
+        case type
+        case role
+        case deprecated
+        case beta
         case siteBaseURL
     }
     
@@ -69,21 +117,35 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
 }
 
+enum BookmarkErrors: Error {
+    case invalidReference
+}
+
 @Model
 final class Bookmark: Identifiable {
     var id = UUID()
     var title: String?
-    var reference: Reference?
+    var identifier: String
+    var kind: String?
+    var type: String
+    var role: Role?
+    var deprecated: Bool?
+    var beta: Bool?
     var siteBaseURL: URL?
     
     @Relationship(deleteRule: .cascade, inverse: \BookmarkCollection.bookmarks)
     var collection: BookmarkCollection?
     
-    init(id: UUID = UUID(), title: String, reference: Reference, siteBaseURL: URL) {
-        self.id = id
+    init(title: String? = nil, identifier: String, kind: String? = nil, type: String, role: Role? = nil, deprecated: Bool? = nil, beta: Bool? = nil, siteBaseURL: URL? = nil) {
         self.title = title
-        self.reference = reference
+        self.identifier = identifier
+        self.kind = kind
+        self.type = type
+        self.role = role
+        self.deprecated = deprecated
+        self.beta = beta
         self.siteBaseURL = siteBaseURL
+        self.collection = collection
     }
     
     @MainActor

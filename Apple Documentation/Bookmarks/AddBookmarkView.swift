@@ -37,8 +37,9 @@ struct AddBookmarkView: View {
                 ToolbarCloseButton()
             }
             ToolbarItemGroup(placement: .primaryAction) {
+                EditButton()
                 Button {
-                    
+                    isShowingCreateCollectionAlert.toggle()
                 } label: {
                     Label("Add", systemSymbol: .plus)
                 }

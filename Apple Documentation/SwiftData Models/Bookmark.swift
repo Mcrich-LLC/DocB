@@ -148,6 +148,21 @@ final class Bookmark: Identifiable {
         self.collection = collection
     }
     
+    init(reference: Reference) throws {
+        guard let title = reference.title, !title.isEmpty, let externalURLHost = reference.externalURL?.host(), let siteBaseURL = URL(string: externalURLHost) else {
+            throw BookmarkErrors.invalidReference
+        }
+        
+        self.title = title
+        self.identifier = reference.identifier
+        self.kind = reference.kind
+        self.type = reference.type
+        self.role = reference.role
+        self.deprecated = reference.deprecated ?? false
+        self.beta = reference.beta ?? false
+        self.siteBaseURL = siteBaseURL
+    }
+    
     @MainActor
     var dto: BookmarkDTO {
         get throws {

@@ -17,6 +17,7 @@ struct ArticleView: View {
     @State var article: Article?
     @State var showToolbarBG: Bool = false
     @State var scrollOffset: CGFloat = 0
+    @State var isShowingAddBookmark = false
     
     enum ScrollIdentifier: CaseIterable {
         case header
@@ -157,9 +158,9 @@ struct ArticleView: View {
                             //                                    // TODO: Implement Downloading
                             //                                }
                             
-//                            Button("Save", systemImage: "bookmark") {
-//                                // TODO: Implement Bookmarks
-//                            }
+                            Button("Save", systemImage: "bookmark") {
+                                isShowingAddBookmark.toggle()
+                            }
                             
                             if let variants = article.variants {
                                 LanguagePicker(variants: variants)
@@ -198,6 +199,11 @@ struct ArticleView: View {
             Task {
                 self.article = nil
                 await loadArticle()
+            }
+        })
+        .popover(isPresented: $isShowingAddBookmark, content: {
+            NavigationStack {
+                AddBookmarkView(reference: reference)
             }
         })
         .onDisappear {

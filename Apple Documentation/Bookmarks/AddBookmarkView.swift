@@ -9,10 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct AddBookmarkView: View {
+    /// The reference to be saved to bookmark collections.
+    let reference: Reference
+    
     /// The collections saved in SwiftData
     @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
     
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     
     /// The IDs of collections the user has selected for a bookmark to be saved in.
     @State private var selectedCollections: Set<UUID> = []
@@ -56,20 +60,44 @@ struct AddBookmarkView: View {
                 }
             }
         }
+        .onAppear {
+            do {
+                let identifier = reference.identifier
+                
+                let descriptor = FetchDescriptor<Bookmark>(
+                    predicate: #Predicate { bookmark in
+                        bookmark.identifier == identifier
+                    }
+                )
+                
+                let bookmarks = try modelContext.fetch(descriptor)
+                
+                self.selectedCollections = Set(bookmarks.compactMap(\.collection).map(\.id))
+            } catch {
+                print(error)
+                errorAlert = error
+            }
+        }
         .navigationTitle("Add Bookmark")
         .toolbar {
-            ToolbarItem(placement: .navigation) {
-                ToolbarCloseButton()
-            }
-            ToolbarItemGroup(placement: .primaryAction) {
-                EditButton()
-                Button {
-                    isShowingCreateCollectionAlert.toggle()
-                } label: {
-                    Label("Add", systemSymbol: .plus)
+            ToolbarItem(placement: .primaryAction) {
+                if #available(iOS 26.0, *) {
+                    doneButton
+                        .buttonStyle(.glassProminent)
+                } else {
+                    doneButton
                 }
             }
         }
+        .overlay(alignment: .bottomTrailing, content: {
+            if #available(iOS 26.0, *) {
+                addButton
+                .buttonStyle(.glass)
+            } else {
+                addButton
+                .buttonStyle(.bordered)
+            }
+        })
         .alert("Create Collection", isPresented: $isShowingCreateCollectionAlert) {
             TextField("Collection Name", text: $createCollectionTitleString)
             CancelButton {
@@ -80,7 +108,53 @@ struct AddBookmarkView: View {
             Text("Enter the name of your new collection.")
         }
         .alert(for: $errorAlert)
-
+    }
+    
+    @ViewBuilder
+    var doneButton: some View {
+        Button {
+            do {
+                try addBookmarks()
+                dismiss()
+            } catch {
+                print(error)
+                errorAlert = error
+            }
+        } label: {
+            Label("Done", systemSymbol: .checkmark)
+        }
+        .labelStyle(.iconOnly)
+    }
+    
+    @ViewBuilder
+    var addButton: some View {
+        Button {
+            isShowingCreateCollectionAlert.toggle()
+        } label: {
+            Label {
+                Text("Add Collection")
+            } icon: {
+                Image(systemSymbol: .plus)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 30, height: 30)
+            }
+            .padding(7)
+        }
+        .buttonBorderShape(.circle)
+        .labelStyle(.iconOnly)
+        .padding([.trailing, .bottom], 15)
+    }
+    
+    func addBookmarks() throws {
+        for collectionID in selectedCollections {
+            guard let collection = collections.first(where: { $0.id == collectionID }) else { continue }
+            
+            let bookmark = try Bookmark(reference: reference)
+            
+            collection.bookmarks?.append(bookmark)
+        }
+        try modelContext.save()
     }
     
     func createCollection() {
@@ -105,7 +179,7 @@ struct AddBookmarkView: View {
 
 #Preview {
     NavigationStack {
-        AddBookmarkView()
+        AddBookmarkView(reference: .init(identifier: "", type: ""))
             .modelContainer(for: [Bookmark.self, BookmarkCollection.self])
     }
 }

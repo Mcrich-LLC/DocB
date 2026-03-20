@@ -84,7 +84,13 @@ class NavigationViewModel: @MainActor Equatable {
     private var previousIndex = 0
     private var isNavigating = false
     
-    var path: [PathElement] = []
+    var path: [PathElement] = [] /*{
+        willSet {
+            if newValue == path.dropLast() {
+                goBackward(updatePath: false)
+            }
+        }
+    }*/
     private var backupPath: [PathElement] = []
     
     func appendPath(_ element: PathElement) {
@@ -127,6 +133,11 @@ class NavigationViewModel: @MainActor Equatable {
         
         // Prevent Duplicates
         if let reference, history.last?.reference?.isEqual(to: reference) == true {
+            return
+        }
+        if let reference, history.last?.technology?.isEqual(to: technology) == true, history.last?.reference == nil {
+            history[history.count-1].reference = reference
+            appendPath(.reference(reference))
             return
         }
         if reference == nil, history.last?.technology?.isEqual(to: technology) == true {
@@ -187,7 +198,7 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
-    // Navigate forward in history
+    /// Navigates forward in history
     func goForward(updatePath: Bool = true) {
         guard currentIndex < history.count - 1 else { return }
         currentIndex += 1

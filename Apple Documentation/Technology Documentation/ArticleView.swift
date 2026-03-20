@@ -194,7 +194,7 @@ struct ArticleView: View {
         .background(Color(platformColor: .systemBackground)
             .ignoresSafeArea()
         )
-        .environment(\.docCSite, reference.docCSite)
+        .environment(\.docCSite, reference.docCSite ?? navigationViewModel.technology?.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
                 self.article = nil

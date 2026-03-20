@@ -43,7 +43,9 @@ struct BookmarkCollectionsView: View {
         }
         .navigationTitle("Bookmarks")
         .toolbar {
+            #if !os(macOS)
             EditButton()
+            #endif
             Button {
                 isShowingCreateCollectionAlert.toggle()
             } label: {

@@ -81,7 +81,7 @@ struct AddBookmarkView: View {
         .navigationTitle("Add Bookmark")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                if #available(iOS 26.0, *) {
+                if #available(iOS 26.0, macOS 26.0, *) {
                     doneButton
                         .buttonStyle(.glassProminent)
                 } else {
@@ -90,7 +90,7 @@ struct AddBookmarkView: View {
             }
         }
         .overlay(alignment: .bottomTrailing, content: {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, macOS 26.0, *) {
                 addButton
                 .buttonStyle(.glass)
             } else {

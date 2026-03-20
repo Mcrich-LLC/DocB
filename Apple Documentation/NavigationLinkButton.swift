@@ -38,21 +38,26 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 }
 
 struct ReferenceNavigationLinkButton<Content: View>: View {
-    @Environment(NavigationViewModel.self) var navigationViewModel
-    @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.openURL) private var openURL
-    let reference: Reference
+    private let reference: Reference
     
     @ViewBuilder
-    let label: Content
+    private let label: Content
     
-    var shouldShowBackground: Bool = true
-    var removeLastPathComponentFirst: Bool = false
+    init(reference: Reference, @ViewBuilder label: () -> Content) {
+        self.reference = reference
+        self.label = label()
+    }
+    
+    private var shouldShowBackground: Bool = true
+    private var removeLastPathComponentFirst: Bool = false
     
     /// Filters down to the lowest technology group and sets that as the side panel.
-    var alwaysShowClosestTechnologyGroup: Bool = false
+    private var alwaysShowClosestTechnologyGroup: Bool = false
     
-    var isSelected: Bool {
+    private var isSelected: Bool {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
     

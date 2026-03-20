@@ -175,4 +175,10 @@ final class Bookmark: Identifiable {
         
         return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta)
     }
+    
+    func asReferenceWithDocCSite(from technologies: [TechnologyTypes]) -> Reference? {
+        guard let identifier, let type, let siteBaseURL else { return nil }
+        
+        return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta, docCSite: technologies.docCSites.first(where: { $0.url.absoluteString.contains(siteBaseURL.absoluteString) }))
+    }
 }

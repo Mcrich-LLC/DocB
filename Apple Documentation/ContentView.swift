@@ -144,26 +144,13 @@ struct ContentView: View {
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            Group {
-                if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
+            SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingTechnology, secondaryShowCondition: navigationViewModel.technology != nil) {
+                TechView()
+            } innerView: {
+                if let selectedTechnology = navigationViewModel.technology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
-                        .transition(.move(edge: .trailing))
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Back", systemImage: "chevron.left") {
-                                    withAnimation(.snappy) {
-                                        navigationViewModel.isShowingTechnology = false
-                                    }
-                                }
-                                .labelStyle(.titleAndIcon)
-                            }
-                        }
-                } else {
-                    TechView()
-                        .transition(.move(edge: .leading))
                 }
             }
-            .animation(.default, value: navigationViewModel.isShowingTechnology)
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -187,9 +174,12 @@ struct ContentView: View {
     @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            Group {
-                TechView()
-            }
+            TechView()
+                .toolbar(content: {
+                    NavigationLink(element: .bookmarkCollections) {
+                        Label("Open Bookmarks", systemSymbol: .folder)
+                    }
+                })
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -300,10 +290,6 @@ private struct TechView: View {
         .toolbar {
             Button(action: showAddDocumentationView) {
                 Image(systemSymbol: .plus)
-            }
-            
-            NavigationLink(element: .bookmarkCollections) {
-                Label("Open Bookmarks", systemSymbol: .folder)
             }
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {

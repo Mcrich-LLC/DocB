@@ -28,7 +28,9 @@ struct BookmarkCollectionsView: View {
             } else {
                 ForEach(collections) { collection in
                     if let title = collection.title {
-                        Label(title, systemSymbol: .folder)
+                        NavigationLink(element: .bookmark(collection)) {
+                            Label(title, systemSymbol: .folder)
+                        }
                     }
                 }
                 .onDelete { indexSet in

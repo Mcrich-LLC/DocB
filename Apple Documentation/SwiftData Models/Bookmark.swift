@@ -169,4 +169,10 @@ final class Bookmark: Identifiable {
             try BookmarkDTO(self)
         }
     }
+    
+    var asReference: Reference? {
+        guard let identifier, let type else { return nil }
+        
+        return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta)
+    }
 }

@@ -337,7 +337,14 @@ enum PathElement: Hashable {
     case reference(Reference)
     case technology(AppleTechnologies.FrameworkSection)
     case homepage
-    case bookmarks
+    case bookmarkCollections
+    case bookmark(BookmarkCollection)
+}
+
+extension NavigationLink where Destination == Never {
+    init(element: PathElement, @ViewBuilder  label: () -> Label) {
+        self.init(value: element, label: label)
+    }
 }
 
 // MARK: Deeplinking

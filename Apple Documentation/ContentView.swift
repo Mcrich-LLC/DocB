@@ -33,7 +33,9 @@ struct ContentView: View {
             return nil
         case .homepage:
             return nil
-        case .bookmarks:
+        case .bookmarkCollections:
+            return nil
+        case .bookmark:
             return nil
         }
     }
@@ -200,8 +202,10 @@ struct ContentView: View {
                         ArticleView(reference: reference)
                     case .technology(let technology):
                         TechnologyRootView(frameworkSection: technology)
-                    case .bookmarks:
+                    case .bookmarkCollections:
                         BookmarkCollectionsView()
+                    case .bookmark(let collection):
+                        BookmarkCollectionNavigationView(collection: collection)
                     }
                 }
             }
@@ -214,7 +218,6 @@ private struct TechView: View {
     @State var searchText = ""
     @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(NavigationViewModel.self) private var navigationViewModel
     @Environment(\.openWindow) private var openWindow
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DocCSite.timestamp) var docCSites: [DocCSite]
@@ -299,9 +302,7 @@ private struct TechView: View {
                 Image(systemSymbol: .plus)
             }
             
-            Button {
-                navigationViewModel.appendPath(.bookmarks)
-            } label: {
+            NavigationLink(element: .bookmarkCollections) {
                 Label("Open Bookmarks", systemSymbol: .folder)
             }
         }

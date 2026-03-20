@@ -337,6 +337,7 @@ enum PathElement: Hashable {
     case reference(Reference)
     case technology(AppleTechnologies.FrameworkSection)
     case homepage
+    case bookmarks
 }
 
 // MARK: Deeplinking

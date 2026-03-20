@@ -147,8 +147,20 @@ struct AddBookmarkView: View {
     }
     
     func addBookmarks() throws {
+        let bookmarksFetchDescriptor = FetchDescriptor<Bookmark>(predicate: #Predicate { bookmark in
+            bookmark.identifier == (reference.identifier as String?)
+        })
+        
+        let existingBookmarksForReference = try modelContext.fetch(bookmarksFetchDescriptor)
+        
+        for bookmark in existingBookmarksForReference where selectedCollections.contains(bookmark.collection?.id ?? UUID()) {
+            modelContext.delete(bookmark)
+        }
+        
         for collectionID in selectedCollections {
-            guard let collection = collections.first(where: { $0.id == collectionID }) else { continue }
+            guard let collection = collections.first(where: { $0.id == collectionID }),
+                    collection.bookmarks?.contains(where: { existingBookmarksForReference.contains($0) }) != true
+            else { continue }
             
             let bookmark = try Bookmark(reference: reference)
             

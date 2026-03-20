@@ -175,7 +175,7 @@ extension DocCSite {
     final class DocCIndexModel: Identifiable {
         var id: UUID = UUID()
         
-        @Relationship(deleteRule: .cascade, inverse: \DocCSite.indexV2)
+        @Relationship(deleteRule: .nullify, inverse: \DocCSite.indexV2)
         var site: DocCSite?
         
         var interfaceLanguages: [InterfaceLanguageSetModel]?

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BookmarkCollectionNavigationView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(\.modelContext) private var modelContext
     let collection: BookmarkCollection
     
     var body: some View {
@@ -21,7 +22,19 @@ struct BookmarkCollectionNavigationView: View {
                     .removeLastPathComponentFirst(true)
                 }
             }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    guard let bookmark = collection.bookmarks?[index] else { continue }
+                    modelContext.delete(bookmark)
+                }
+                try? modelContext.save()
+            }
         }
         .navigationTitle(collection.title ?? "")
+        .toolbar {
+            #if !os(macOS)
+            EditButton()
+            #endif
+        }
     }
 }

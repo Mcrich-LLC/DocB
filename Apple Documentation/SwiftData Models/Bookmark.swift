@@ -133,7 +133,7 @@ final class Bookmark: Identifiable {
     var beta: Bool?
     var siteBaseURL: URL?
     
-    @Relationship(deleteRule: .cascade, inverse: \BookmarkCollection.bookmarks)
+    @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
     var collection: BookmarkCollection?
     
     init(title: String? = nil, identifier: String, kind: String? = nil, type: String, role: Role? = nil, deprecated: Bool? = nil, beta: Bool? = nil, siteBaseURL: URL? = nil) {

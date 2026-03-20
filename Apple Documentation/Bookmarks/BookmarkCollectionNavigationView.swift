@@ -55,13 +55,22 @@ private struct SectionView: View {
     let collection: BookmarkCollection
     let url: URL
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(NavigationViewModel.self) private var navigationViewModel
     
     var body: some View {
         ForEach(collection.bookmarksWithinUrls[url] ?? []) { bookmark in
             if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
                 ReferenceNavigationLinkButton(reference: reference) {
-                    Text(text)
+                    HStack {
+                        Text(text)
+                        
+                        if !navigationViewModel.isUsingSplitView {
+                            Spacer()
+                            ChevronView()
+                        }
+                    }
                 }
+                .tint(Color.primary)
             }
         }
     }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BookmarkCollectionNavigationView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(NavigationViewModel.self) private var navigationViewModel
     @Environment(\.modelContext) private var modelContext
     let collection: BookmarkCollection
     
@@ -47,6 +48,11 @@ struct BookmarkCollectionNavigationView: View {
                 EditButton()
             }
             #endif
+        }
+        .onDisappear {
+            if navigationViewModel.bookmarkCollection == nil && !navigationViewModel.isUsingSplitView {
+                navigationViewModel.goBackward(updatePath: false)
+            }
         }
     }
 }

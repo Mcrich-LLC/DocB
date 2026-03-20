@@ -201,11 +201,6 @@ struct ContentView: View {
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             TechView()
-                .toolbar(content: {
-                    NavigationLink(element: .bookmarkCollections) {
-                        Label("Open Bookmarks", systemSymbol: .folder)
-                    }
-                })
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -317,6 +312,10 @@ private struct TechView: View {
             Button(action: showAddDocumentationView) {
                 Image(systemSymbol: .plus)
             }
+            AllBookmarkCollectionsNavigationLink {
+                Label("Open Bookmarks", systemSymbol: .folder)
+            }
+            .labelStyle(.iconOnly)
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
             AddTechnologySheetView()

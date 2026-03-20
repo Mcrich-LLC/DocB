@@ -133,10 +133,15 @@ class NavigationViewModel: @MainActor Equatable {
     func addToHistory() {
         guard !isNavigating else { return }
         
+        // Remove future history if we're adding a new state
+        if currentIndex < history.count - 1, currentIndex >= 0 {
+            history = Array(history.prefix(currentIndex+1))
+        }
+        
         // Handle Bookmark Navigation
         if isShowingAllBookmarkCollections {
             if history.last?.isAllBookmarkCollections == false {
-                history.append(.init(technology: nil, reference: nil, bookmarkCollection: bookmarkCollection, isBookmarkCollection: bookmarkCollection != nil, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
+                history.append(.init(technology: nil, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: bookmarkCollection != nil, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
                 appendPath(.bookmarkCollections)
                 if let bookmarkCollection {
                     appendPath(.bookmark(bookmarkCollection))
@@ -165,11 +170,6 @@ class NavigationViewModel: @MainActor Equatable {
                 goForward()
             }
             return
-        }
-        
-        // Remove future history if we're adding a new state
-        if currentIndex < history.count - 1, currentIndex >= 0 {
-            history = Array(history.prefix(currentIndex+1))
         }
         
         let didRectify = rectifyHistory()

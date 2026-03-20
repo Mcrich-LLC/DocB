@@ -240,3 +240,16 @@ struct BookmarkCollectionNavigationLink<Content: View>: View {
         }
     }
 }
+
+struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
+    @ViewBuilder let label: Content
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    
+    var body: some View {
+        Button {
+            navigationViewModel.isShowingAllBookmarkCollections = true
+        } label: {
+            label
+        }
+    }
+}

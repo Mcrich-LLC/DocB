@@ -86,7 +86,11 @@ struct BookmarkCollectionsView: View {
         } message: { collection in
             Text("Deleting \"\(collection.title ?? "")\" cannot be undone.")
         }
-
+        .onDisappear {
+            if navigationViewModel.bookmarkCollection == nil && !navigationViewModel.isUsingSplitView {
+                navigationViewModel.goBackward(updatePath: false)
+            }
+        }
     }
     
     func createCollection() {

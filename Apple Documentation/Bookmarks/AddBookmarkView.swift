@@ -103,7 +103,11 @@ struct AddBookmarkView: View {
             CancelButton {
                 createCollectionTitleString = ""
             }
-            Button("Create", action: createCollection)
+            Button("Create") {
+                Task {
+                    await createCollection()
+                }
+            }
         } message: {
             Text("Enter the name of your new collection.")
         }
@@ -169,7 +173,7 @@ struct AddBookmarkView: View {
         try modelContext.save()
     }
     
-    func createCollection() {
+    func createCollection() async {
         guard !createCollectionTitleString.isEmpty else {
             return
         }
@@ -180,6 +184,8 @@ struct AddBookmarkView: View {
         do {
             modelContext.insert(collection)
             try modelContext.save()
+            
+            try? await Task.sleep(nanoseconds: 25)
             
             self.selectedCollections.insert(collection.id)
         } catch {

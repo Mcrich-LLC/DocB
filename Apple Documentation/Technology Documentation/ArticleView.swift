@@ -12,6 +12,7 @@ struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
@@ -165,6 +166,12 @@ struct ArticleView: View {
                                 isShowingAddBookmark.toggle()
                             }
                             .animation(.default, value: isBookmarked)
+                            .popover(isPresented: $isShowingAddBookmark, content: {
+                                NavigationStack {
+                                    AddBookmarkView(reference: reference)
+                                        .frame(minWidth: horizontalSizeClass == .regular ? 400 : nil, minHeight: horizontalSizeClass == .regular ? 400 : nil)
+                                }
+                            })
                             
                             if let variants = article.variants {
                                 LanguagePicker(variants: variants)
@@ -203,11 +210,6 @@ struct ArticleView: View {
             Task {
                 self.article = nil
                 await loadArticle()
-            }
-        })
-        .popover(isPresented: $isShowingAddBookmark, content: {
-            NavigationStack {
-                AddBookmarkView(reference: reference)
             }
         })
         .onAppear {

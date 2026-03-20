@@ -17,6 +17,8 @@ struct BookmarkCollectionsView: View {
     @State private var isShowingCreateCollectionAlert = false
     @State private var createCollectionTitleString = ""
     @State private var errorAlert: Error?
+    @State private var showDeleteCollectionAlert = false
+    @State private var currentCollection: BookmarkCollection?
     
     var body: some View {
         List {
@@ -27,6 +29,12 @@ struct BookmarkCollectionsView: View {
                 ForEach(collections) { collection in
                     if let title = collection.title {
                         Label(title, systemSymbol: .folder)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        currentCollection = collections[index]
+                        showDeleteCollectionAlert = true
                     }
                 }
             }
@@ -50,6 +58,23 @@ struct BookmarkCollectionsView: View {
             Text("Enter the name of your new collection.")
         }
         .alert(for: $errorAlert)
+        .alert("Are You Sure?", isPresented: $showDeleteCollectionAlert, presenting: currentCollection) { collection in
+            Button("Cancel", role: .cancel) {
+                currentCollection = nil
+            }
+            Button("Delete", role: .destructive) {
+                do {
+                    modelContext.delete(collection)
+                    currentCollection = nil
+                    try modelContext.save()
+                } catch {
+                    errorAlert = error
+                }
+            }
+        } message: { collection in
+            Text("Deleting \"\(collection.title ?? "")\" cannot be undone.")
+        }
+
     }
     
     func createCollection() {

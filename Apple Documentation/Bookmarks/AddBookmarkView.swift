@@ -153,7 +153,7 @@ struct AddBookmarkView: View {
         
         let existingBookmarksForReference = try modelContext.fetch(bookmarksFetchDescriptor)
         
-        for bookmark in existingBookmarksForReference where selectedCollections.contains(bookmark.collection?.id ?? UUID()) {
+        for bookmark in existingBookmarksForReference where !selectedCollections.contains(bookmark.collection?.id ?? UUID()) {
             modelContext.delete(bookmark)
         }
         

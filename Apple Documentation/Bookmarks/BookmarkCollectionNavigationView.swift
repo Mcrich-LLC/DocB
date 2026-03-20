@@ -18,23 +18,34 @@ struct BookmarkCollectionNavigationView: View {
     
     var body: some View {
         List {
-            ForEach(Array(collection.bookmarksWithinUrls.keys).sorted(by: { (technology(for: $0)?.primaryName ?? "") < (technology(for: $1)?.primaryName ?? "") }), id: \.self) { url in
-                Section(technology(for: url)?.primaryName ?? url.host() ?? url.absoluteString) {
-                    SectionView(collection: collection, url: url)
+            if (collection.bookmarks ?? []).isEmpty {
+                ContentUnavailableView(
+                    "You haven't created any bookmarks",
+                    systemImage: "folder.badge.questionmark",
+                    description: Text("Visit a documentation page and tap the ") + Text(Image(systemSymbol: .bookmark)) + Text(" button to get started.")
+                )
+                    .listRowBackground(Color.clear)
+            } else {
+                ForEach(Array(collection.bookmarksWithinUrls.keys).sorted(by: { (technology(for: $0)?.primaryName ?? "") < (technology(for: $1)?.primaryName ?? "") }), id: \.self) { url in
+                    Section(technology(for: url)?.primaryName ?? url.host() ?? url.absoluteString) {
+                        SectionView(collection: collection, url: url)
+                    }
                 }
-            }
-            .onDelete { indexSet in
-                for index in indexSet {
-                    guard let bookmark = collection.bookmarks?[index] else { continue }
-                    modelContext.delete(bookmark)
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        guard let bookmark = collection.bookmarks?[index] else { continue }
+                        modelContext.delete(bookmark)
+                    }
+                    try? modelContext.save()
                 }
-                try? modelContext.save()
             }
         }
         .navigationTitle(collection.title ?? "")
         .toolbar {
             #if !os(macOS)
-            EditButton()
+            if !(collection.bookmarks ?? []).isEmpty {
+                EditButton()
+            }
             #endif
         }
     }

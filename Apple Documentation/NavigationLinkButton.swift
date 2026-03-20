@@ -78,6 +78,13 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             let identifier = url.path()
             
             for group in groups {
+                if group.path?.lowercased() == identifier.lowercased() {
+                    withAnimation(.snappy) {
+                        navigationViewModel.setTechnology(site.frameworkSection(for: group))
+                    }
+                    return
+                }
+                
                 switch alwaysShowClosestTechnologyGroup {
                 case true :
                     __handleAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
@@ -105,7 +112,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
-        let technologyGroup = group.allChildren.first(where: {
+        var technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
             })

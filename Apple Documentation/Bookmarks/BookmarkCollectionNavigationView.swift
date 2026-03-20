@@ -12,14 +12,15 @@ struct BookmarkCollectionNavigationView: View {
     @Environment(\.modelContext) private var modelContext
     let collection: BookmarkCollection
     
+    func technology(for url: URL) -> TechnologyTypes? {
+        documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
+    }
+    
     var body: some View {
         List {
-            ForEach(collection.bookmarks ?? []) { bookmark in
-                if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
-                    ReferenceNavigationLinkButton(reference: reference) {
-                        Text(text)
-                    }
-                    .removeLastPathComponentFirst(true)
+            ForEach(Array(collection.bookmarksWithinUrls.keys).sorted(by: { (technology(for: $0)?.primaryName ?? "") < (technology(for: $1)?.primaryName ?? "") }), id: \.self) { url in
+                Section(technology(for: url)?.primaryName ?? url.host() ?? url.absoluteString) {
+                    SectionView(collection: collection, url: url)
                 }
             }
             .onDelete { indexSet in
@@ -35,6 +36,22 @@ struct BookmarkCollectionNavigationView: View {
             #if !os(macOS)
             EditButton()
             #endif
+        }
+    }
+}
+
+private struct SectionView: View {
+    let collection: BookmarkCollection
+    let url: URL
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
+    
+    var body: some View {
+        ForEach(collection.bookmarksWithinUrls[url] ?? []) { bookmark in
+            if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
+                ReferenceNavigationLinkButton(reference: reference) {
+                    Text(text)
+                }
+            }
         }
     }
 }

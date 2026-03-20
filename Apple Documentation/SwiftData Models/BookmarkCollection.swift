@@ -91,4 +91,12 @@ final class BookmarkCollection: Identifiable {
             try BookmarkCollectionDTO(self)
         }
     }
+    
+    var bookmarksWithinUrls: [URL : [Bookmark]] {
+        (bookmarks ?? []).reduce(into: [:]) { result, bookmark in
+            guard let siteBaseURL = bookmark.siteBaseURL else { return }
+            
+            result[siteBaseURL, default: []].append(bookmark)
+        }
+    }
 }

@@ -6,14 +6,17 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.modelContext) private var modelContext
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
     
+    @State var isBookmarked = false
     @State var article: Article?
     @State var showToolbarBG: Bool = false
     @State var scrollOffset: CGFloat = 0
@@ -158,7 +161,7 @@ struct ArticleView: View {
                             //                                    // TODO: Implement Downloading
                             //                                }
                             
-                            Button("Save", systemImage: "bookmark") {
+                            Button("Save", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") {
                                 isShowingAddBookmark.toggle()
                             }
                             
@@ -206,10 +209,36 @@ struct ArticleView: View {
                 AddBookmarkView(reference: reference)
             }
         })
+        .onAppear {
+            getIfBookmarked()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave), perform: { _ in
+            getIfBookmarked()
+        })
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }
         .accentColor(Color.accentColor)
+    }
+    
+    func getIfBookmarked() {
+        do {
+            let descriptor = FetchDescriptor<Bookmark>(
+                predicate: #Predicate { bookmark in
+                    bookmark.identifier == (reference.identifier as String?)
+                }
+            )
+            
+            let bookmarks = try modelContext.fetch(descriptor)
+            withAnimation {
+                isBookmarked = !bookmarks.isEmpty
+            }
+        } catch {
+            print(error)
+            withAnimation {
+                isBookmarked = false
+            }
+        }
     }
     
     @ViewBuilder

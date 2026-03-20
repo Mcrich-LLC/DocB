@@ -164,6 +164,7 @@ struct ArticleView: View {
                             Button("Save", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") {
                                 isShowingAddBookmark.toggle()
                             }
+                            .animation(.default, value: isBookmarked)
                             
                             if let variants = article.variants {
                                 LanguagePicker(variants: variants)
@@ -230,14 +231,10 @@ struct ArticleView: View {
             )
             
             let bookmarks = try modelContext.fetch(descriptor)
-            withAnimation {
-                isBookmarked = !bookmarks.isEmpty
-            }
+            isBookmarked = !bookmarks.isEmpty
         } catch {
             print(error)
-            withAnimation {
-                isBookmarked = false
-            }
+            isBookmarked = false
         }
     }
     

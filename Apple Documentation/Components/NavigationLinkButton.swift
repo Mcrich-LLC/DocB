@@ -226,3 +226,17 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
 #endif
     }
 }
+
+struct BookmarkCollectionNavigationLink<Content: View>: View {
+    let collection: BookmarkCollection
+    @ViewBuilder let label: Content
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    
+    var body: some View {
+        Button {
+            navigationViewModel.setBookmarkCollection(collection)
+        } label: {
+            label
+        }
+    }
+}

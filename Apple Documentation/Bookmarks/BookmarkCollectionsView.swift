@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct BookmarkCollectionsView: View {
+    @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// The collections saved in SwiftData
     @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
@@ -28,8 +29,15 @@ struct BookmarkCollectionsView: View {
             } else {
                 ForEach(collections) { collection in
                     if let title = collection.title {
-                        NavigationLink(element: .bookmark(collection)) {
-                            Label(title, systemSymbol: .folder)
+                        BookmarkCollectionNavigationLink(collection: collection) {
+                            HStack {
+                                Label(title, systemSymbol: .folder)
+                                
+                                if !navigationViewModel.isUsingSplitView {
+                                    Spacer()
+                                    ChevronView()
+                                }
+                            }
                         }
                     }
                 }

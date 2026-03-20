@@ -13,6 +13,29 @@ import SwiftUI
 @MainActor
 class NavigationViewModel: @MainActor Equatable {
     var technologyHistoryUpdatingIsEnabled: Bool = false
+    var isShowingAllBookmarkCollections = false {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    var isShowingBookmarkCollection = false
+    private(set) var bookmarkCollection: BookmarkCollection? {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    func setBookmarkCollection(_ collection: BookmarkCollection) {
+        self.bookmarkCollection = collection
+        self.isShowingAllBookmarkCollections = true
+        self.isShowingBookmarkCollection = true
+    }
+    
     var isShowingTechnology = false
     private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
@@ -110,12 +133,35 @@ class NavigationViewModel: @MainActor Equatable {
     func addToHistory() {
         guard !isNavigating else { return }
         
+        // Handle Bookmark Navigation
+        if isShowingAllBookmarkCollections {
+            if history.last?.isAllBookmarkCollections == false {
+                history.append(.init(technology: nil, reference: nil, bookmarkCollection: bookmarkCollection, isBookmarkCollection: bookmarkCollection != nil, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
+                appendPath(.bookmarkCollections)
+                if let bookmarkCollection {
+                    appendPath(.bookmark(bookmarkCollection))
+                }
+                goForward()
+                return
+            } else if let bookmarkCollection {
+                if history.last?.bookmarkCollection != bookmarkCollection {
+                    appendPath(.bookmark(bookmarkCollection))
+                }
+                
+                history[history.count-1].bookmarkCollection = bookmarkCollection
+                history[history.count-1].isBookmarkCollection = true
+                goForward()
+                return
+            }
+        }
+        
+        // Handle Documentation Navigation
         guard let technology else {
             if let technology {
                 appendPath(.technology(technology))
             }
-            if self.technology == nil && self.reference == nil && history.last?.isHomepage == false {
-                history.append(.init(technology: nil, reference: nil, isHomepage: true))
+            if self.technology == nil && self.reference == nil && self.bookmarkCollection == nil && history.last?.isHomepage == false {
+                history.append(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true))
                 goForward()
             }
             return
@@ -147,7 +193,7 @@ class NavigationViewModel: @MainActor Equatable {
         if history.isEmpty {
             isStartingHistory = true
         }
-        history.append(History(technology: technology, reference: reference, isHomepage: false))
+        history.append(History(technology: technology, reference: reference, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: false))
         goForward()
         isStartingHistory = false
     }
@@ -263,7 +309,7 @@ class NavigationViewModel: @MainActor Equatable {
     
     func toggleHomepageInBeginingOfHistory() {
         if isUsingSplitView && history.first?.isHomepage != true {
-            history.insert(.init(technology: nil, reference: nil, isHomepage: true), at: 0)
+            history.insert(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true), at: 0)
             currentIndex += 1
         } else if !isUsingSplitView && history.first?.isHomepage == true {
             history.remove(at: 0)
@@ -341,6 +387,9 @@ private struct History: Identifiable, Hashable {
     
     var technology: AppleTechnologies.FrameworkSection?
     var reference: Reference?
+    var bookmarkCollection: BookmarkCollection?
+    var isBookmarkCollection: Bool
+    var isAllBookmarkCollections: Bool
     let isHomepage: Bool
 }
 

@@ -141,19 +141,47 @@ struct ContentView: View {
         #endif
     }
     
+    struct SidebarView: View {
+        @Environment(NavigationViewModel.self) var navigationViewModel
+        
+        var topLevelBinding: Binding<Bool> {
+            Binding {
+                navigationViewModel.isShowingTechnology || navigationViewModel.isShowingAllBookmarkCollections
+            } set: { newValue in
+                guard !newValue else { return }
+                
+                navigationViewModel.isShowingTechnology = false
+                navigationViewModel.isShowingAllBookmarkCollections = false
+            }
+        }
+        
+        var body: some View {
+            @Bindable var navigationViewModel = navigationViewModel
+            SidebarNavigationView(isShowingInnerView: topLevelBinding) {
+                TechView()
+            } innerView: {
+                if navigationViewModel.isShowingAllBookmarkCollections {
+                    SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
+                        BookmarkCollectionsView()
+                    } innerView: { collection in
+                        BookmarkCollectionNavigationView(collection: collection)
+                    }
+                } else if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
+                    TechnologyRootView(frameworkSection: selectedTechnology)
+                }
+            }
+        }
+    }
+    
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingTechnology, unwrapping: navigationViewModel.technology) {
-                TechView()
-            } innerView: { selectedTechnology in
-                TechnologyRootView(frameworkSection: selectedTechnology)
-            }
-            .frame(minWidth: 290)
-            .navigationSplitViewColumnWidth(min: 290, ideal: 380)
-            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
-            .environment(\.horizontalSizeClass, horizontalSizeClass)
-            .accentColor(Color.accentColor)
+            SidebarView()
+                .frame(minWidth: 290)
+                .navigationSplitViewColumnWidth(min: 290, ideal: 380)
+                .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
+                .environment(\.horizontalSizeClass, horizontalSizeClass)
+                .accentColor(Color.accentColor)
         } detail: {
             Group {
                 if let reference = navigationViewModel.reference {

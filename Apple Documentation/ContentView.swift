@@ -144,12 +144,10 @@ struct ContentView: View {
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingTechnology, secondaryShowCondition: navigationViewModel.technology != nil) {
+            SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingTechnology, unwrapping: navigationViewModel.technology) {
                 TechView()
-            } innerView: {
-                if let selectedTechnology = navigationViewModel.technology {
-                    TechnologyRootView(frameworkSection: selectedTechnology)
-                }
+            } innerView: { selectedTechnology in
+                TechnologyRootView(frameworkSection: selectedTechnology)
             }
             .frame(minWidth: 290)
             .navigationSplitViewColumnWidth(min: 290, ideal: 380)

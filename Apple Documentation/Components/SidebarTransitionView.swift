@@ -10,24 +10,31 @@ import SwiftUI
 /// A 2 piece navigation push/pop designed for the sidebar.
 ///
 /// - Warning: When not otherwise using the toolbar, the toolbar size may change between inner and outer views.
-struct SidebarNavigationView<OuterView: View, InnerView: View>: View {
+struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @Binding private var isShowingInnerView: Bool
-    private let secondaryShowCondition: Bool
+    private let unwrappedOptional: P?
     
     @ViewBuilder private let outerView: OuterView
-    @ViewBuilder private let innerView: InnerView
+    @ViewBuilder private let innerView: (P) -> InnerView
     
-    init(isShowingInnerView: Binding<Bool>, secondaryShowCondition: Bool = true, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: () -> InnerView) {
+    init(isShowingInnerView: Binding<Bool>, unwrapping: P?, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping (P) -> InnerView) {
         self._isShowingInnerView = isShowingInnerView
-        self.secondaryShowCondition = secondaryShowCondition
+        self.unwrappedOptional = unwrapping
         self.outerView = outerView()
-        self.innerView = innerView()
+        self.innerView = innerView
+    }
+    
+    init(isShowingInnerView: Binding<Bool>, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping () -> InnerView) where P == Bool {
+        self._isShowingInnerView = isShowingInnerView
+        self.unwrappedOptional = true
+        self.outerView = outerView()
+        self.innerView = { _ in innerView() }
     }
     
     var body: some View {
         Group {
-            if isShowingInnerView {
-                innerView
+            if isShowingInnerView, let unwrappedOptional {
+                innerView(unwrappedOptional)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .transition(.move(edge: .trailing))
                     .toolbar {

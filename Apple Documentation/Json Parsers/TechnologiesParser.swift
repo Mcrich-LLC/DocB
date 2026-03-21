@@ -21,6 +21,15 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    var url: URL {
+        switch self {
+        case .apple(let appleTechnologies):
+            return URL(string: Constants.aDeveloperURLBase)!
+        case .docC(let docCSiteDTO):
+            return docCSiteDTO.url
+        }
+    }
+    
     var isDocC: Bool {
         switch self {
         case .apple:
@@ -42,10 +51,20 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
     @MainActor
     var names: [String] {
         switch self {
-        case .apple(let apple):
+        case .apple:
             return ["Apple Developer Documentation"]
         case .docC(let docC):
             return docC.groups.map(\.title)
+        }
+    }
+    
+    @MainActor
+    var primaryName: String {
+        switch self {
+        case .apple:
+            return "Apple Developer Documentation"
+        case .docC(let docC):
+            return docC.overrideName ?? docC.groups.map(\.title).first ?? "Unknown"
         }
     }
 }

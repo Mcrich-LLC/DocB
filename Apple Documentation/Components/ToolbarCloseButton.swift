@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ToolbarCloseButton: View {
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         if #available(iOS 26, macOS 26, visionOS 26, *) {

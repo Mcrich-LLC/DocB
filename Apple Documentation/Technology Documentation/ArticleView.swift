@@ -6,17 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
     let reference: Reference
     
+    @State var isBookmarked = false
     @State var article: Article?
     @State var showToolbarBG: Bool = false
     @State var scrollOffset: CGFloat = 0
+    @State var isShowingAddBookmark = false
     
     enum ScrollIdentifier: CaseIterable {
         case header
@@ -157,9 +162,16 @@ struct ArticleView: View {
                             //                                    // TODO: Implement Downloading
                             //                                }
                             
-//                            Button("Save", systemImage: "bookmark") {
-//                                // TODO: Implement Bookmarks
-//                            }
+                            Button("Save", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") {
+                                isShowingAddBookmark.toggle()
+                            }
+                            .animation(.default, value: isBookmarked)
+                            .popover(isPresented: $isShowingAddBookmark, content: {
+                                NavigationStack {
+                                    AddBookmarkView(reference: reference)
+                                        .frame(minWidth: horizontalSizeClass == .regular ? 400 : nil, minHeight: horizontalSizeClass == .regular ? 400 : nil)
+                                }
+                            })
                             
                             if let variants = article.variants {
                                 LanguagePicker(variants: variants)
@@ -193,17 +205,39 @@ struct ArticleView: View {
         .background(Color(platformColor: .systemBackground)
             .ignoresSafeArea()
         )
-        .environment(\.docCSite, reference.docCSite)
+        .environment(\.docCSite, reference.docCSite ?? navigationViewModel.technology?.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
                 self.article = nil
                 await loadArticle()
             }
         })
+        .onAppear {
+            getIfBookmarked()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave), perform: { _ in
+            getIfBookmarked()
+        })
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }
         .accentColor(Color.accentColor)
+    }
+    
+    func getIfBookmarked() {
+        do {
+            let descriptor = FetchDescriptor<Bookmark>(
+                predicate: #Predicate { bookmark in
+                    bookmark.identifier == (reference.identifier as String?)
+                }
+            )
+            
+            let bookmarks = try modelContext.fetch(descriptor)
+            isBookmarked = !bookmarks.isEmpty
+        } catch {
+            print(error)
+            isBookmarked = false
+        }
     }
     
     @ViewBuilder

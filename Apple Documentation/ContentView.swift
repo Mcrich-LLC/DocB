@@ -33,6 +33,10 @@ struct ContentView: View {
             return nil
         case .homepage:
             return nil
+        case .bookmarkCollections:
+            return nil
+        case .bookmark:
+            return nil
         }
     }
     
@@ -137,40 +141,72 @@ struct ContentView: View {
         #endif
     }
     
+    struct SidebarView: View {
+        @Environment(NavigationViewModel.self) var navigationViewModel
+        
+        var topLevelBinding: Binding<Bool> {
+            Binding {
+                navigationViewModel.isShowingTechnology || navigationViewModel.isShowingAllBookmarkCollections
+            } set: { newValue in
+                guard !newValue else { return }
+                
+                navigationViewModel.isShowingTechnology = false
+                navigationViewModel.isShowingAllBookmarkCollections = false
+            }
+        }
+        
+        var body: some View {
+            @Bindable var navigationViewModel = navigationViewModel
+            SidebarNavigationView(isShowingInnerView: topLevelBinding) {
+                TechView()
+            } innerView: {
+                if navigationViewModel.isShowingAllBookmarkCollections {
+                    SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
+                        BookmarkCollectionsView()
+                    } innerView: { collection in
+                        BookmarkCollectionNavigationView(collection: collection)
+                    }
+                } else if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
+                    TechnologyRootView(frameworkSection: selectedTechnology)
+                }
+            }
+        }
+    }
+    
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            Group {
-                if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
-                    TechnologyRootView(frameworkSection: selectedTechnology)
-                        .transition(.move(edge: .trailing))
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Back", systemImage: "chevron.left") {
-                                    withAnimation(.snappy) {
-                                        navigationViewModel.isShowingTechnology = false
-                                    }
-                                }
-                                .labelStyle(.titleAndIcon)
-                            }
-                        }
-                } else {
-                    TechView()
-                        .transition(.move(edge: .leading))
-                }
-            }
-            .animation(.default, value: navigationViewModel.isShowingTechnology)
-            .frame(minWidth: 290)
-            .navigationSplitViewColumnWidth(min: 290, ideal: 380)
-            .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
-            .environment(\.horizontalSizeClass, horizontalSizeClass)
-            .accentColor(Color.accentColor)
+            SidebarView()
+                .frame(minWidth: 290)
+                .navigationSplitViewColumnWidth(min: 290, ideal: 380)
+                .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
+                .environment(\.horizontalSizeClass, horizontalSizeClass)
+                .accentColor(Color.accentColor)
         } detail: {
             Group {
                 if let reference = navigationViewModel.reference {
                     ArticleView(reference: reference)
                 } else if let homepage = documentationViewModel.homepage {
                     HomepageView(homepage: homepage)
+                } else {
+                    Spacer()
+                        .toolbar(content: {
+                            if navigationViewModel.isUsingSplitView {
+                                ToolbarItemGroup(placement: .navigation) {
+                                    Group {
+                                        Button("Backward", systemImage: "chevron.left") {
+                                            navigationViewModel.goBackward()
+                                        }
+                                        .disabled(!navigationViewModel.previousHistoryExists)
+                                        
+                                        Button("Forward", systemImage: "chevron.right") {
+                                            navigationViewModel.goForward()
+                                        }
+                                        .disabled(!navigationViewModel.futureHistoryExists)
+                                    }
+                                }
+                            }
+                        })
                 }
             }
             .frame(minWidth: 150, minHeight: 150)
@@ -183,9 +219,7 @@ struct ContentView: View {
     @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            Group {
-                TechView()
-            }
+            TechView()
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -198,6 +232,10 @@ struct ContentView: View {
                         ArticleView(reference: reference)
                     case .technology(let technology):
                         TechnologyRootView(frameworkSection: technology)
+                    case .bookmarkCollections:
+                        BookmarkCollectionsView()
+                    case .bookmark(let collection):
+                        BookmarkCollectionNavigationView(collection: collection)
                     }
                 }
             }
@@ -293,7 +331,10 @@ private struct TechView: View {
             Button(action: showAddDocumentationView) {
                 Image(systemSymbol: .plus)
             }
-            
+            AllBookmarkCollectionsNavigationLink {
+                Label("Open Bookmarks", systemSymbol: .folder)
+            }
+            .labelStyle(.iconOnly)
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
             AddTechnologySheetView()

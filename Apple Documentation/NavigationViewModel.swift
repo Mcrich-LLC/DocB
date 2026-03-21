@@ -13,6 +13,31 @@ import SwiftUI
 @MainActor
 class NavigationViewModel: @MainActor Equatable {
     var technologyHistoryUpdatingIsEnabled: Bool = false
+    
+    /// Sets the next `addToHistory` call to use bookmarks 
+    var isNavigatingFromBookmarks: Bool = false
+    var isShowingAllBookmarkCollections = false {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    var isShowingBookmarkCollection = false
+    private(set) var bookmarkCollection: BookmarkCollection? {
+        didSet {
+            if !isNavigating {
+                addToHistory()
+            }
+        }
+    }
+    
+    func setBookmarkCollection(_ collection: BookmarkCollection?) {
+        self.bookmarkCollection = collection
+        self.isShowingBookmarkCollection = collection != nil
+    }
+    
     var isShowingTechnology = false
     private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
@@ -24,7 +49,7 @@ class NavigationViewModel: @MainActor Equatable {
     
     func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
         self.technology = technology
-        self.isShowingTechnology = true
+        self.isShowingTechnology = technology != nil
     }
     
     private(set) var reference: Reference? {
@@ -84,7 +109,13 @@ class NavigationViewModel: @MainActor Equatable {
     private var previousIndex = 0
     private var isNavigating = false
     
-    var path: [PathElement] = []
+    var path: [PathElement] = [] /*{
+        willSet {
+            if newValue == path.dropLast() {
+                goBackward(updatePath: false)
+            }
+        }
+    }*/
     private var backupPath: [PathElement] = []
     
     func appendPath(_ element: PathElement) {
@@ -100,24 +131,95 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // MARK: History
-    // Add current state to history
-    func addToHistory() {
+    /// Add current state to history
+    private func addToHistory() {
         guard !isNavigating else { return }
+        defer { isNavigatingFromBookmarks = false }
         
-        guard let technology else {
-            if let technology {
-                appendPath(.technology(technology))
-            }
-            if self.technology == nil && self.reference == nil && history.last?.isHomepage == false {
-                history.append(.init(technology: nil, reference: nil, isHomepage: true))
-                goForward()
-            }
-            return
+        if history.isEmpty {
+            isStartingHistory = true
         }
+        defer { isStartingHistory = false }
         
         // Remove future history if we're adding a new state
         if currentIndex < history.count - 1, currentIndex >= 0 {
             history = Array(history.prefix(currentIndex+1))
+        }
+        
+        if isNavigatingFromBookmarks {
+            if isShowingAllBookmarkCollections, _addBookmarkToHistory() {
+                return
+            }
+        } else {
+            isNavigating = true
+            defer { isNavigating = false }
+            
+            setBookmarkCollection(nil)
+            isShowingAllBookmarkCollections = false
+        }
+        
+        _addTechnologyToHistory()
+    }
+    
+    /// Handle Bookmark History Additions
+    /// - Returns:
+    /// A boolean value describing if the function added anything to history.
+    private func _addBookmarkToHistory() -> Bool {
+        if history.last?.isAllBookmarkCollections != true {
+            let element = History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false)
+            
+            history.append(element)
+            appendPath(.bookmarkCollections)
+            if let bookmarkCollection {
+                appendPath(.bookmark(bookmarkCollection))
+            }
+            goForward()
+            return true
+        } else if let bookmarkCollection {
+            if history.last?.bookmarkCollection != bookmarkCollection {
+                appendPath(.bookmark(bookmarkCollection))
+            }
+            
+            // Remove Stale Paths
+            if history.last?.bookmarkCollection == bookmarkCollection, isUsingSplitView, !path.isEmpty {
+                let collectionIndex = path.lastIndex(of: .bookmark(bookmarkCollection)) ?? 0
+                removeLastPath(path.count-1-collectionIndex)
+            }
+            
+            // Update history
+            history[history.count-1].bookmarkCollection = bookmarkCollection
+            history[history.count-1].isBookmarkCollection = true
+            history[history.count-1].technology = technology
+            history[history.count-1].reference = reference
+            
+            // Add new paths
+            if let technology, path.last != .technology(technology) {
+                appendPath(.technology(technology))
+            }
+            if let reference, path.last != .reference(reference) {
+                appendPath(.reference(reference))
+            }
+            
+            if history.last?.bookmarkCollection == bookmarkCollection, isUsingSplitView {
+                goForward()
+            }
+            return true
+        }
+        
+        return false
+    }
+    
+    /// Handles Documentation History Additions
+    private func _addTechnologyToHistory() {
+        guard let technology else {
+            if let technology {
+                appendPath(.technology(technology))
+            }
+            if self.technology == nil && self.reference == nil && self.bookmarkCollection == nil && history.last?.isHomepage == false {
+                history.append(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true))
+                goForward()
+            }
+            return
         }
         
         let didRectify = rectifyHistory()
@@ -129,16 +231,17 @@ class NavigationViewModel: @MainActor Equatable {
         if let reference, history.last?.reference?.isEqual(to: reference) == true {
             return
         }
+        if let reference, history.last?.technology?.isEqual(to: technology) == true, history.last?.reference == nil {
+            history[history.count-1].reference = reference
+            appendPath(.reference(reference))
+            return
+        }
         if reference == nil, history.last?.technology?.isEqual(to: technology) == true {
             return
         }
         
-        if history.isEmpty {
-            isStartingHistory = true
-        }
-        history.append(History(technology: technology, reference: reference, isHomepage: false))
+        history.append(History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
         goForward()
-        isStartingHistory = false
     }
     
     private func rectifyHistory() -> Bool {
@@ -172,6 +275,27 @@ class NavigationViewModel: @MainActor Equatable {
     
     // Navigate backward in history
     func goBackward(updatePath: Bool = true) {
+        if !isUsingSplitView && isShowingAllBookmarkCollections && isShowingBookmarkCollection {
+            isNavigating = true
+            defer { isNavigating = false }
+            
+            if reference != nil {
+                setReference(nil)
+                history[history.count-1].reference = nil
+            } else if technology != nil {
+                setTechnology(nil)
+                history[history.count-1].technology = nil
+            } else if isShowingBookmarkCollection {
+                setBookmarkCollection(nil)
+                history[history.count-1].bookmarkCollection = nil
+                history[history.count-1].isBookmarkCollection = false
+            } else {
+                history[history.count-1].isAllBookmarkCollections = false
+                isShowingAllBookmarkCollections = false
+            }
+            return
+        }
+        
         currentIndex -= 1
         navigateToCurrentHistory()
         
@@ -187,7 +311,7 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
-    // Navigate forward in history
+    /// Navigates forward in history
     func goForward(updatePath: Bool = true) {
         guard currentIndex < history.count - 1 else { return }
         currentIndex += 1
@@ -219,6 +343,13 @@ class NavigationViewModel: @MainActor Equatable {
                 appendPath(.reference(reference))
             }
         }
+        
+        if isShowingAllBookmarkCollections, history.last?.isAllBookmarkCollections != true {
+            appendPath(.bookmarkCollections)
+        }
+        if let bookmarkCollection, isShowingBookmarkCollection, history.last?.bookmarkCollection != bookmarkCollection {
+            appendPath(.bookmark(bookmarkCollection))
+        }
     }
     
     // Helper function to update technology and reference based on the current history state
@@ -228,14 +359,20 @@ class NavigationViewModel: @MainActor Equatable {
         
         guard currentIndex >= 0 else {
             history = []
-            currentIndex = -1
+            currentIndex = 0
             technology = nil
             reference = nil
+            bookmarkCollection = nil
+            isShowingBookmarkCollection = false
+            isShowingAllBookmarkCollections = false
             return
         }
         let currentState = history[currentIndex]
         reference = currentState.reference
         technology = currentState.technology
+        bookmarkCollection = currentState.bookmarkCollection
+        isShowingBookmarkCollection = currentState.isBookmarkCollection
+        isShowingAllBookmarkCollections = currentState.isAllBookmarkCollections
     }
     
     func shouldRemoveReferenceFromPath(_ reference: Reference?) -> Bool {
@@ -252,7 +389,7 @@ class NavigationViewModel: @MainActor Equatable {
     
     func toggleHomepageInBeginingOfHistory() {
         if isUsingSplitView && history.first?.isHomepage != true {
-            history.insert(.init(technology: nil, reference: nil, isHomepage: true), at: 0)
+            history.insert(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true), at: 0)
             currentIndex += 1
         } else if !isUsingSplitView && history.first?.isHomepage == true {
             history.remove(at: 0)
@@ -293,11 +430,15 @@ class NavigationViewModel: @MainActor Equatable {
             return
         }
         
+        if isShowingAllBookmarkCollections && isShowingBookmarkCollection {
+            setReference(nil)
+            history[historyIndex].reference = nil
+            return
+        }
+        
         guard let oldTechnology = getHistoryTechnology(at: historyIndex-1), !oldTechnology.isEqual(to: technology) else {
-            isNavigating = true
             history[historyIndex].reference = nil
             setReference(nil)
-            isNavigating = false
             return
         }
         
@@ -330,6 +471,9 @@ private struct History: Identifiable, Hashable {
     
     var technology: AppleTechnologies.FrameworkSection?
     var reference: Reference?
+    var bookmarkCollection: BookmarkCollection?
+    var isBookmarkCollection: Bool
+    var isAllBookmarkCollections: Bool
     let isHomepage: Bool
 }
 
@@ -337,6 +481,14 @@ enum PathElement: Hashable {
     case reference(Reference)
     case technology(AppleTechnologies.FrameworkSection)
     case homepage
+    case bookmarkCollections
+    case bookmark(BookmarkCollection)
+}
+
+extension NavigationLink where Destination == Never {
+    init(element: PathElement, @ViewBuilder  label: () -> Label) {
+        self.init(value: element, label: label)
+    }
 }
 
 // MARK: Deeplinking

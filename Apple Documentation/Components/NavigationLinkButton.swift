@@ -38,21 +38,27 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 }
 
 struct ReferenceNavigationLinkButton<Content: View>: View {
-    @Environment(NavigationViewModel.self) var navigationViewModel
-    @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.openURL) private var openURL
-    let reference: Reference
+    private let reference: Reference
     
     @ViewBuilder
-    let label: Content
+    private let label: Content
     
-    var shouldShowBackground: Bool = true
-    var removeLastPathComponentFirst: Bool = false
+    init(reference: Reference, @ViewBuilder label: () -> Content) {
+        self.reference = reference
+        self.label = label()
+    }
+    
+    private var isBookmarkNavigator: Bool = false
+    private var shouldShowBackground: Bool = true
+    private var removeLastPathComponentFirst: Bool = false
     
     /// Filters down to the lowest technology group and sets that as the side panel.
-    var alwaysShowClosestTechnologyGroup: Bool = false
+    private var alwaysShowClosestTechnologyGroup: Bool = false
     
-    var isSelected: Bool {
+    private var isSelected: Bool {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
     
@@ -78,6 +84,13 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             let identifier = url.path()
             
             for group in groups {
+                if group.path?.lowercased() == identifier.lowercased() {
+                    withAnimation(.snappy) {
+                        navigationViewModel.setTechnology(site.frameworkSection(for: group))
+                    }
+                    return
+                }
+                
                 switch alwaysShowClosestTechnologyGroup {
                 case true :
                     __handleAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
@@ -105,7 +118,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
-        let technologyGroup = group.allChildren.first(where: {
+        var technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
             })
@@ -120,6 +133,8 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     func action() {
+        navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
+        
         if let url = reference.externalURL, reference.isExternalReference {
             openURL(url)
             return
@@ -142,6 +157,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             }
         }
         
+        navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
         navigationViewModel.setReference(reference)
     }
     
@@ -175,6 +191,14 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
         var view = self
         view.alwaysShowClosestTechnologyGroup = isEnabled
+        
+        return view
+    }
+    
+    /// Navigates from the position a bookmark group.
+    func bookmarkNavigator(_ isEnabled: Bool = true) -> Self {
+        var view = self
+        view.isBookmarkNavigator = isEnabled
         
         return view
     }
@@ -212,5 +236,34 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
 #if !os(macOS)
         .hoverEffect()
 #endif
+    }
+}
+
+struct BookmarkCollectionNavigationLink<Content: View>: View {
+    let collection: BookmarkCollection
+    @ViewBuilder let label: Content
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    
+    var body: some View {
+        Button {
+            navigationViewModel.isNavigatingFromBookmarks = true
+            navigationViewModel.setBookmarkCollection(collection)
+        } label: {
+            label
+        }
+    }
+}
+
+struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
+    @ViewBuilder let label: Content
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    
+    var body: some View {
+        Button {
+            navigationViewModel.isNavigatingFromBookmarks = true
+            navigationViewModel.isShowingAllBookmarkCollections = true
+        } label: {
+            label
+        }
     }
 }

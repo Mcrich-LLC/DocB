@@ -39,6 +39,14 @@ struct BookmarkCollectionsView: View {
                                 }
                             }
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                currentCollection = collection
+                                showDeleteCollectionAlert = true
+                            } label: {
+                                Label("Delete", systemSymbol: .trash)
+                            }
+                        }
                     }
                 }
                 .onDelete { indexSet in

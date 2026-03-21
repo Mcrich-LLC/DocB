@@ -188,6 +188,25 @@ struct ContentView: View {
                     ArticleView(reference: reference)
                 } else if let homepage = documentationViewModel.homepage {
                     HomepageView(homepage: homepage)
+                } else {
+                    Spacer()
+                        .toolbar(content: {
+                            if navigationViewModel.isUsingSplitView {
+                                ToolbarItemGroup(placement: .navigation) {
+                                    Group {
+                                        Button("Backward", systemImage: "chevron.left") {
+                                            navigationViewModel.goBackward()
+                                        }
+                                        .disabled(!navigationViewModel.previousHistoryExists)
+                                        
+                                        Button("Forward", systemImage: "chevron.right") {
+                                            navigationViewModel.goForward()
+                                        }
+                                        .disabled(!navigationViewModel.futureHistoryExists)
+                                    }
+                                }
+                            }
+                        })
                 }
             }
             .frame(minWidth: 150, minHeight: 150)

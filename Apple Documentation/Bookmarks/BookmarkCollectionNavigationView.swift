@@ -76,6 +76,7 @@ private struct SectionView: View {
                         }
                     }
                 }
+                .bookmarkNavigator()
                 .tint(Color.primary)
             }
         }

@@ -13,6 +13,9 @@ import SwiftUI
 @MainActor
 class NavigationViewModel: @MainActor Equatable {
     var technologyHistoryUpdatingIsEnabled: Bool = false
+    
+    /// Sets the next `addToHistory` call to use bookmarks 
+    var isNavigatingFromBookmarks: Bool = false
     var isShowingAllBookmarkCollections = false {
         didSet {
             if !isNavigating {
@@ -32,7 +35,6 @@ class NavigationViewModel: @MainActor Equatable {
     
     func setBookmarkCollection(_ collection: BookmarkCollection?) {
         self.bookmarkCollection = collection
-        self.isShowingAllBookmarkCollections = true
         self.isShowingBookmarkCollection = collection != nil
     }
     
@@ -132,6 +134,7 @@ class NavigationViewModel: @MainActor Equatable {
     /// Add current state to history
     private func addToHistory() {
         guard !isNavigating else { return }
+        defer { isNavigatingFromBookmarks = false }
         
         if history.isEmpty {
             isStartingHistory = true
@@ -143,8 +146,16 @@ class NavigationViewModel: @MainActor Equatable {
             history = Array(history.prefix(currentIndex+1))
         }
         
-        if isShowingAllBookmarkCollections, _addBookmarkToHistory() {
-            return
+        if isNavigatingFromBookmarks {
+            if isShowingAllBookmarkCollections, _addBookmarkToHistory() {
+                return
+            }
+        } else {
+            isNavigating = true
+            defer { isNavigating = false }
+            
+            setBookmarkCollection(nil)
+            isShowingAllBookmarkCollections = false
         }
         
         _addTechnologyToHistory()

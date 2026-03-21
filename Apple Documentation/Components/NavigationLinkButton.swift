@@ -51,6 +51,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         self.label = label()
     }
     
+    private var isBookmarkNavigator: Bool = false
     private var shouldShowBackground: Bool = true
     private var removeLastPathComponentFirst: Bool = false
     
@@ -132,6 +133,8 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     func action() {
+        navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
+        
         if let url = reference.externalURL, reference.isExternalReference {
             openURL(url)
             return
@@ -154,6 +157,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             }
         }
         
+        navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
         navigationViewModel.setReference(reference)
     }
     
@@ -187,6 +191,14 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
         var view = self
         view.alwaysShowClosestTechnologyGroup = isEnabled
+        
+        return view
+    }
+    
+    /// Navigates from the position a bookmark group.
+    func bookmarkNavigator(_ isEnabled: Bool = true) -> Self {
+        var view = self
+        view.isBookmarkNavigator = isEnabled
         
         return view
     }
@@ -234,6 +246,7 @@ struct BookmarkCollectionNavigationLink<Content: View>: View {
     
     var body: some View {
         Button {
+            navigationViewModel.isNavigatingFromBookmarks = true
             navigationViewModel.setBookmarkCollection(collection)
         } label: {
             label
@@ -247,6 +260,7 @@ struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
     
     var body: some View {
         Button {
+            navigationViewModel.isNavigatingFromBookmarks = true
             navigationViewModel.isShowingAllBookmarkCollections = true
         } label: {
             label

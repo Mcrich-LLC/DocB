@@ -21,7 +21,7 @@ struct BookmarkCollectionNavigationView: View {
         List {
             if (collection.bookmarks ?? []).isEmpty {
                 ContentUnavailableView(
-                    "You haven't created any bookmarks",
+                    "You haven't saved any bookmarks",
                     systemImage: "folder.badge.questionmark",
                     description: Text("Visit a documentation page and tap the ") + Text(Image(systemSymbol: .bookmark)) + Text(" button to get started.")
                 )
@@ -50,7 +50,7 @@ struct BookmarkCollectionNavigationView: View {
             #endif
         }
         .onDisappear {
-            if navigationViewModel.bookmarkCollection == nil && !navigationViewModel.isUsingSplitView {
+            if navigationViewModel.reference == nil && navigationViewModel.technology == nil && !navigationViewModel.isUsingSplitView {
                 navigationViewModel.goBackward(updatePath: false)
             }
         }

@@ -169,12 +169,8 @@ class NavigationViewModel: @MainActor Equatable {
                 appendPath(.bookmark(bookmarkCollection))
             }
             
-            if history.last?.bookmarkCollection == bookmarkCollection, !isUsingSplitView {
-                return false
-            }
-            
             // Remove Stale Paths
-            if !path.isEmpty {
+            if history.last?.bookmarkCollection == bookmarkCollection, isUsingSplitView, !path.isEmpty {
                 let collectionIndex = path.lastIndex(of: .bookmark(bookmarkCollection)) ?? 0
                 removeLastPath(path.count-1-collectionIndex)
             }
@@ -193,7 +189,9 @@ class NavigationViewModel: @MainActor Equatable {
                 appendPath(.reference(reference))
             }
             
-            goForward()
+            if history.last?.bookmarkCollection == bookmarkCollection, isUsingSplitView {
+                goForward()
+            }
             return true
         }
         
@@ -266,6 +264,17 @@ class NavigationViewModel: @MainActor Equatable {
     
     // Navigate backward in history
     func goBackward(updatePath: Bool = true) {
+        if !isUsingSplitView && isShowingAllBookmarkCollections && isShowingBookmarkCollection {
+            if reference != nil {
+                history[history.count-1].reference = nil
+                return
+            }
+            if technology != nil {
+                history[history.count-1].technology = nil
+                return
+            }
+        }
+        
         currentIndex -= 1
         navigateToCurrentHistory()
         
@@ -400,11 +409,15 @@ class NavigationViewModel: @MainActor Equatable {
             return
         }
         
+        if isShowingAllBookmarkCollections && isShowingBookmarkCollection {
+            setReference(nil)
+            history[historyIndex].reference = nil
+            return
+        }
+        
         guard let oldTechnology = getHistoryTechnology(at: historyIndex-1), !oldTechnology.isEqual(to: technology) else {
-            isNavigating = true
             history[historyIndex].reference = nil
             setReference(nil)
-            isNavigating = false
             return
         }
         

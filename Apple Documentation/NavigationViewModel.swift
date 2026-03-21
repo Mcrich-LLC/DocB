@@ -129,40 +129,59 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // MARK: History
-    // Add current state to history
-    func addToHistory() {
+    /// Add current state to history
+    private func addToHistory() {
         guard !isNavigating else { return }
+        
+        if history.isEmpty {
+            isStartingHistory = true
+        }
+        defer { isStartingHistory = false }
         
         // Remove future history if we're adding a new state
         if currentIndex < history.count - 1, currentIndex >= 0 {
             history = Array(history.prefix(currentIndex+1))
         }
         
-        // Handle Bookmark Navigation
-        if isShowingAllBookmarkCollections {
-            if history.last?.isAllBookmarkCollections == false {
-                history.append(.init(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
-                appendPath(.bookmarkCollections)
-                if let bookmarkCollection {
-                    appendPath(.bookmark(bookmarkCollection))
-                }
-                goForward()
-                return
-            } else if let bookmarkCollection {
-                if history.last?.bookmarkCollection != bookmarkCollection {
-                    appendPath(.bookmark(bookmarkCollection))
-                }
-                
-                history[history.count-1].bookmarkCollection = bookmarkCollection
-                history[history.count-1].isBookmarkCollection = true
-                history[history.count-1].technology = technology
-                history[history.count-1].reference = reference
-                goForward()
-                return
-            }
+        if isShowingAllBookmarkCollections, _addBookmarkToHistory() {
+            return
         }
         
-        // Handle Documentation Navigation
+        _addTechnologyToHistory()
+    }
+    
+    /// Handle Bookmark History Additions
+    /// - Returns:
+    /// A boolean value describing if the function added anything to history.
+    private func _addBookmarkToHistory() -> Bool {
+        if history.last?.isAllBookmarkCollections == false {
+            let element = History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false)
+            
+            history.append(element)
+            appendPath(.bookmarkCollections)
+            if let bookmarkCollection {
+                appendPath(.bookmark(bookmarkCollection))
+            }
+            goForward()
+            return true
+        } else if let bookmarkCollection {
+            if history.last?.bookmarkCollection != bookmarkCollection {
+                appendPath(.bookmark(bookmarkCollection))
+            }
+            
+            history[history.count-1].bookmarkCollection = bookmarkCollection
+            history[history.count-1].isBookmarkCollection = true
+            history[history.count-1].technology = technology
+            history[history.count-1].reference = reference
+            goForward()
+            return true
+        }
+        
+        return false
+    }
+    
+    /// Handles Documentation History Additions
+    private func _addTechnologyToHistory() {
         guard let technology else {
             if let technology {
                 appendPath(.technology(technology))
@@ -192,12 +211,8 @@ class NavigationViewModel: @MainActor Equatable {
             return
         }
         
-        if history.isEmpty {
-            isStartingHistory = true
-        }
         history.append(History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
         goForward()
-        isStartingHistory = false
     }
     
     private func rectifyHistory() -> Bool {

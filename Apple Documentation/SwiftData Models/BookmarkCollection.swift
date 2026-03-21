@@ -78,8 +78,7 @@ final class BookmarkCollection: Identifiable {
     var lastUpdatedDate: Date?
     var bookmarks: [Bookmark]?
     
-    init(id: UUID = UUID(), title: String, bookmarks: [Bookmark], lastUpdatedDate: Date? = nil) {
-        self.id = id
+    init(title: String, bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
         self.title = title
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks

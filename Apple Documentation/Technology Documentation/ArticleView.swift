@@ -216,7 +216,10 @@ struct ArticleView: View {
             getIfBookmarked()
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave), perform: { _ in
-            getIfBookmarked()
+            Task {
+                try? await Task.sleep(nanoseconds: 25)
+                getIfBookmarked()
+            }
         })
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)

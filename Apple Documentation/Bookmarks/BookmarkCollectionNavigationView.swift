@@ -28,7 +28,9 @@ struct BookmarkCollectionNavigationView: View {
                     .listRowBackground(Color.clear)
             } else {
                 ForEach(Array(collection.bookmarksWithinUrls.keys).sorted(by: { (technology(for: $0)?.primaryName ?? "") < (technology(for: $1)?.primaryName ?? "") }), id: \.self) { url in
-                    Section(technology(for: url)?.primaryName ?? url.host() ?? url.absoluteString) {
+                    let tech = technology(for: url)
+                    
+                    Section(tech?.primaryName ?? url.host() ?? url.absoluteString) {
                         SectionView(collection: collection, url: url)
                     }
                 }
@@ -63,22 +65,107 @@ private struct SectionView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    func technology(for url: URL) -> TechnologyTypes? {
+        documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
+    }
+    
     var body: some View {
         ForEach(collection.bookmarksWithinUrls[url] ?? []) { bookmark in
             if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
-                ReferenceNavigationLinkButton(reference: reference) {
-                    HStack {
-                        Text(text)
-                        
-                        if !navigationViewModel.isUsingSplitView {
-                            Spacer()
-                            ChevronView()
+                Group {
+                    if technology(for: url) == nil {
+                        AddSourceButton(bookmark: bookmark) {
+                            Label(text: text)
                         }
+                    } else {
+                        ReferenceNavigationLinkButton(reference: reference) {
+                            Label(text: text)
+                        }
+                        .bookmarkNavigator()
                     }
                 }
-                .bookmarkNavigator()
                 .tint(Color.primary)
             }
         }
+    }
+    
+    private struct Label: View {
+        let text: String
+        @Environment(NavigationViewModel.self) private var navigationViewModel
+        
+        var body: some View {
+            HStack {
+                Text(text)
+                
+                if !navigationViewModel.isUsingSplitView {
+                    Spacer()
+                    ChevronView()
+                }
+            }
+        }
+    }
+}
+
+private struct AddSourceButton<Content: View>: View {
+    let bookmark: Bookmark
+    @ViewBuilder let label: Content
+    @State private var isShowingAddPopover = false
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var errorAlert: Error?
+    
+    var body: some View {
+        Button {
+            isShowingAddPopover.toggle()
+        } label: {
+            label
+        }
+        .confirmationDialog("Add Source?", isPresented: $isShowingAddPopover, titleVisibility: .visible) {
+            CancelButton {}
+            Button("Add") {
+                Task {
+                    await addDocCSite()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+        } message: {
+            Text("This bookmark references a source that has not been added. Do you want to add it?")
+        }
+        .alert(for: $errorAlert)
+    }
+    
+    private func addDocCSite() async {
+        guard let initialUrl = bookmark.siteBaseURL else { return }
+        
+        let scheme = initialUrl.scheme ?? "https"
+        
+        let urlString = "\(scheme)://\(initialUrl.absoluteString.replacingOccurrences(of: "\(scheme)://", with: ""))"
+        guard let url = URL(string: urlString) else { return }
+        print(url.absoluteString)
+        
+        do {
+            try await documentationViewModel.addTechnology(baseUrl: url, modelContext: modelContext, overrideName: nil)
+        } catch {
+            self.errorAlert = error
+        }
+    }
+}
+
+#Preview {
+    @Previewable @State var isShowing = false
+    
+    NavigationStack {
+        Text("Hello World")
+            .toolbar {
+                Button("Test") {
+                    isShowing.toggle()
+                }
+                .confirmationDialog("Test", isPresented: $isShowing, titleVisibility: .automatic) {
+                    Button("Cancel") {}
+                } message: {
+                    Text("Lorem Ipsum")
+                }
+            }
     }
 }

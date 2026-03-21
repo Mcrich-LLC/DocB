@@ -173,11 +173,19 @@ class NavigationViewModel: @MainActor Equatable {
                 return false
             }
             
+            // Remove Stale Paths
+            if !path.isEmpty {
+                let collectionIndex = path.lastIndex(of: .bookmark(bookmarkCollection)) ?? 0
+                removeLastPath(path.count-1-collectionIndex)
+            }
+            
+            // Update history
             history[history.count-1].bookmarkCollection = bookmarkCollection
             history[history.count-1].isBookmarkCollection = true
             history[history.count-1].technology = technology
             history[history.count-1].reference = reference
             
+            // Add new paths
             if let technology, path.last != .technology(technology) {
                 appendPath(.technology(technology))
             }

@@ -30,10 +30,10 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
-    func setBookmarkCollection(_ collection: BookmarkCollection) {
+    func setBookmarkCollection(_ collection: BookmarkCollection?) {
         self.bookmarkCollection = collection
         self.isShowingAllBookmarkCollections = true
-        self.isShowingBookmarkCollection = true
+        self.isShowingBookmarkCollection = collection != nil
     }
     
     var isShowingTechnology = false
@@ -47,7 +47,7 @@ class NavigationViewModel: @MainActor Equatable {
     
     func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
         self.technology = technology
-        self.isShowingTechnology = true
+        self.isShowingTechnology = technology != nil
     }
     
     private(set) var reference: Reference? {
@@ -265,14 +265,24 @@ class NavigationViewModel: @MainActor Equatable {
     // Navigate backward in history
     func goBackward(updatePath: Bool = true) {
         if !isUsingSplitView && isShowingAllBookmarkCollections && isShowingBookmarkCollection {
+            isNavigating = true
+            defer { isNavigating = false }
+            
             if reference != nil {
+                setReference(nil)
                 history[history.count-1].reference = nil
-                return
-            }
-            if technology != nil {
+            } else if technology != nil {
+                setTechnology(nil)
                 history[history.count-1].technology = nil
-                return
+            } else if isShowingBookmarkCollection {
+                setBookmarkCollection(nil)
+                history[history.count-1].bookmarkCollection = nil
+                history[history.count-1].isBookmarkCollection = false
+            } else {
+                history[history.count-1].isAllBookmarkCollections = false
+                isShowingAllBookmarkCollections = false
             }
+            return
         }
         
         currentIndex -= 1
@@ -338,7 +348,7 @@ class NavigationViewModel: @MainActor Equatable {
         
         guard currentIndex >= 0 else {
             history = []
-            currentIndex = -1
+            currentIndex = 0
             technology = nil
             reference = nil
             bookmarkCollection = nil

@@ -245,7 +245,7 @@ struct BookmarkCollectionNavigationLink<Content: View>: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     var body: some View {
-        Button {
+        MacOSAgnosticButton {
             navigationViewModel.isNavigatingFromBookmarks = true
             navigationViewModel.setBookmarkCollection(collection)
         } label: {

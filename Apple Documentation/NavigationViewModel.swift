@@ -154,7 +154,7 @@ class NavigationViewModel: @MainActor Equatable {
     /// - Returns:
     /// A boolean value describing if the function added anything to history.
     private func _addBookmarkToHistory() -> Bool {
-        if history.last?.isAllBookmarkCollections == false {
+        if history.last?.isAllBookmarkCollections != true {
             let element = History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false)
             
             history.append(element)
@@ -169,10 +169,22 @@ class NavigationViewModel: @MainActor Equatable {
                 appendPath(.bookmark(bookmarkCollection))
             }
             
+            if history.last?.bookmarkCollection == bookmarkCollection, !isUsingSplitView {
+                return false
+            }
+            
             history[history.count-1].bookmarkCollection = bookmarkCollection
             history[history.count-1].isBookmarkCollection = true
             history[history.count-1].technology = technology
             history[history.count-1].reference = reference
+            
+            if let technology, path.last != .technology(technology) {
+                appendPath(.technology(technology))
+            }
+            if let reference, path.last != .reference(reference) {
+                appendPath(.reference(reference))
+            }
+            
             goForward()
             return true
         }
@@ -294,10 +306,10 @@ class NavigationViewModel: @MainActor Equatable {
             }
         }
         
-        if isShowingAllBookmarkCollections {
+        if isShowingAllBookmarkCollections, history.last?.isAllBookmarkCollections != true {
             appendPath(.bookmarkCollections)
         }
-        if let bookmarkCollection, isShowingBookmarkCollection {
+        if let bookmarkCollection, isShowingBookmarkCollection, history.last?.bookmarkCollection != bookmarkCollection {
             appendPath(.bookmark(bookmarkCollection))
         }
     }

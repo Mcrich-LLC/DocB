@@ -13,7 +13,9 @@ struct AddBookmarkView: View {
     let reference: Reference
     
     /// The collections saved in SwiftData
-    @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
+    @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection]
+    /// All bookmarks saved in SwiftData
+    @Query private var bookmarks: [Bookmark]
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -32,16 +34,12 @@ struct AddBookmarkView: View {
             } else {
                 ForEach(collections) { collection in
                     if let title = collection.title {
-                        let isSelected = selectedCollections.contains(collection.id)
+                        let existingBookmark = bookmarks.first(where: { $0.identifier == reference.identifier && $0.collection?.id == collection.id })
+                        let isSelected = existingBookmark != nil
                         
                         HStack {
                             Button {
-                                switch isSelected {
-                                case true:
-                                    selectedCollections.remove(collection.id)
-                                case false:
-                                    selectedCollections.insert(collection.id)
-                                }
+                                toggleBookmark(existingBookmark, collection: collection)
                             } label: {
                                 Label(title, systemSymbol: .folder)
                             }
@@ -117,13 +115,7 @@ struct AddBookmarkView: View {
     @ViewBuilder
     var doneButton: some View {
         Button {
-            do {
-                try addBookmarks()
-                dismiss()
-            } catch {
-                print(error)
-                errorAlert = error
-            }
+            dismiss()
         } label: {
             Label("Done", systemSymbol: .checkmark)
         }
@@ -150,27 +142,24 @@ struct AddBookmarkView: View {
         .padding([.trailing, .bottom], 15)
     }
     
-    func addBookmarks() throws {
-        let bookmarksFetchDescriptor = FetchDescriptor<Bookmark>(predicate: #Predicate { bookmark in
-            bookmark.identifier == (reference.identifier as String?)
-        })
-        
-        let existingBookmarksForReference = try modelContext.fetch(bookmarksFetchDescriptor)
-        
-        for bookmark in existingBookmarksForReference where !selectedCollections.contains(bookmark.collection?.id ?? UUID()) {
-            modelContext.delete(bookmark)
+    func toggleBookmark(_ existingBookmark: Bookmark?, collection: BookmarkCollection) {
+        do {
+            if let existingBookmark {
+                modelContext.delete(existingBookmark)
+            } else {
+                let bookmark = try Bookmark(reference: reference)
+                
+                if collection.bookmarks == nil {
+                    collection.bookmarks = []
+                }
+                
+                collection.bookmarks?.append(bookmark)
+            }
+            try modelContext.save()
+        } catch {
+            print(error)
+            self.errorAlert = error
         }
-        
-        for collectionID in selectedCollections {
-            guard let collection = collections.first(where: { $0.id == collectionID }),
-                    collection.bookmarks?.contains(where: { existingBookmarksForReference.contains($0) }) != true
-            else { continue }
-            
-            let bookmark = try Bookmark(reference: reference)
-            
-            collection.bookmarks?.append(bookmark)
-        }
-        try modelContext.save()
     }
     
     func createCollection() async {

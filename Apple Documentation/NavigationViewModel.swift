@@ -141,7 +141,7 @@ class NavigationViewModel: @MainActor Equatable {
         // Handle Bookmark Navigation
         if isShowingAllBookmarkCollections {
             if history.last?.isAllBookmarkCollections == false {
-                history.append(.init(technology: nil, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: bookmarkCollection != nil, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
+                history.append(.init(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
                 appendPath(.bookmarkCollections)
                 if let bookmarkCollection {
                     appendPath(.bookmark(bookmarkCollection))
@@ -155,6 +155,8 @@ class NavigationViewModel: @MainActor Equatable {
                 
                 history[history.count-1].bookmarkCollection = bookmarkCollection
                 history[history.count-1].isBookmarkCollection = true
+                history[history.count-1].technology = technology
+                history[history.count-1].reference = reference
                 goForward()
                 return
             }
@@ -193,7 +195,7 @@ class NavigationViewModel: @MainActor Equatable {
         if history.isEmpty {
             isStartingHistory = true
         }
-        history.append(History(technology: technology, reference: reference, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: false))
+        history.append(History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: isShowingBookmarkCollection, isAllBookmarkCollections: isShowingAllBookmarkCollections, isHomepage: false))
         goForward()
         isStartingHistory = false
     }
@@ -276,6 +278,13 @@ class NavigationViewModel: @MainActor Equatable {
                 appendPath(.reference(reference))
             }
         }
+        
+        if isShowingAllBookmarkCollections {
+            appendPath(.bookmarkCollections)
+        }
+        if let bookmarkCollection, isShowingBookmarkCollection {
+            appendPath(.bookmark(bookmarkCollection))
+        }
     }
     
     // Helper function to update technology and reference based on the current history state
@@ -288,11 +297,17 @@ class NavigationViewModel: @MainActor Equatable {
             currentIndex = -1
             technology = nil
             reference = nil
+            bookmarkCollection = nil
+            isShowingBookmarkCollection = false
+            isShowingAllBookmarkCollections = false
             return
         }
         let currentState = history[currentIndex]
         reference = currentState.reference
         technology = currentState.technology
+        bookmarkCollection = currentState.bookmarkCollection
+        isShowingBookmarkCollection = currentState.isBookmarkCollection
+        isShowingAllBookmarkCollections = currentState.isAllBookmarkCollections
     }
     
     func shouldRemoveReferenceFromPath(_ reference: Reference?) -> Bool {

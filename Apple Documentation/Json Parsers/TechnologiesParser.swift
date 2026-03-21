@@ -64,7 +64,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         case .apple:
             return "Apple Developer Documentation"
         case .docC(let docC):
-            return docC.overrideName ?? docC.groups.map(\.title).first ?? "Unknown"
+            return docC.overrideName ?? docC.groups.filter({ $0.type.lowercased() == "module" }).map(\.title).first ?? "Unknown"
         }
     }
 }

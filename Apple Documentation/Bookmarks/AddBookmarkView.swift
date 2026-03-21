@@ -19,9 +19,6 @@ struct AddBookmarkView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    
-    /// The IDs of collections the user has selected for a bookmark to be saved in.
-    @State private var selectedCollections: Set<UUID> = []
     @State private var isShowingCreateCollectionAlert: Bool = false
     @State private var createCollectionTitleString = ""
     @State private var errorAlert: Error?
@@ -58,36 +55,27 @@ struct AddBookmarkView: View {
                 }
             }
         }
-        .onAppear {
-            do {
-                let identifier = reference.identifier
-                
-                let descriptor = FetchDescriptor<Bookmark>(
-                    predicate: #Predicate { bookmark in
-                        bookmark.identifier == identifier
-                    }
-                )
-                
-                let bookmarks = try modelContext.fetch(descriptor)
-                
-                self.selectedCollections = Set(bookmarks.compactMap(\.collection).map(\.id))
-            } catch {
-                print(error)
-                errorAlert = error
-            }
-        }
         .navigationTitle("Add Bookmark")
+        #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
+                #if os(visionOS)
+                doneButton
+                #else
                 if #available(iOS 26.0, macOS 26.0, *) {
                     doneButton
                         .buttonStyle(.glassProminent)
                 } else {
                     doneButton
                 }
+                #endif
             }
         }
+        #endif
         .overlay(alignment: .bottomTrailing, content: {
+            #if os(visionOS)
+            addButton
+            #else
             if #available(iOS 26.0, macOS 26.0, *) {
                 addButton
                 .buttonStyle(.glass)
@@ -95,6 +83,7 @@ struct AddBookmarkView: View {
                 addButton
                 .buttonStyle(.bordered)
             }
+            #endif
         })
         .alert("Create Collection", isPresented: $isShowingCreateCollectionAlert) {
             TextField("Collection Name", text: $createCollectionTitleString)
@@ -175,8 +164,7 @@ struct AddBookmarkView: View {
             try modelContext.save()
             
             try? await Task.sleep(nanoseconds: 25)
-            
-            self.selectedCollections.insert(collection.id)
+            toggleBookmark(nil, collection: collection)
         } catch {
             print(error)
             self.errorAlert = error

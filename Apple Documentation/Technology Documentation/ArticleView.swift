@@ -212,7 +212,7 @@ struct ArticleView: View {
                 await loadArticle()
             }
         })
-        .onAppear {
+        .onChange(of: reference, initial: true) {
             getIfBookmarked()
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave), perform: { _ in

@@ -187,10 +187,14 @@ class NavigationViewModel: @MainActor Equatable {
             }
             
             // Update history
-            history[history.count-1].bookmarkCollection = bookmarkCollection
-            history[history.count-1].isBookmarkCollection = true
-            history[history.count-1].technology = technology
-            history[history.count-1].reference = reference
+            if history.last?.reference != reference && history.last?.reference != nil {
+                history.append(History(technology: technology, reference: reference, bookmarkCollection: bookmarkCollection, isBookmarkCollection: true, isAllBookmarkCollections: true, isHomepage: false))
+            } else {
+                history[history.count-1].bookmarkCollection = bookmarkCollection
+                history[history.count-1].isBookmarkCollection = true
+                history[history.count-1].technology = technology
+                history[history.count-1].reference = reference
+            }
             
             // Add new paths
             if let technology, path.last != .technology(technology) {

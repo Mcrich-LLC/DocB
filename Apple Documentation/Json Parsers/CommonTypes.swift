@@ -675,7 +675,10 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         }
         
         guard let docCSite = docCSite else {
-            return URL(string: "\(Constants.aDeveloperURLBase)\(urlString)")
+            guard urlString.contains(Constants.aDeveloperURLBase) else {
+                return URL(string: "\(Constants.aDeveloperURLBase)\(urlString)")
+            }
+            return URL(string: urlString)
         }
         
         return docCSite.url.appending(path: urlString)

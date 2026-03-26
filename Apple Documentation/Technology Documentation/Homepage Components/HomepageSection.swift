@@ -73,10 +73,7 @@ private struct HighlightedLinks: View {
                             .frame(maxWidth: 400, maxHeight: .infinity)
                     }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color(platformColor: .systemBackground))
-                )
+                .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
                 .frame(maxWidth: 800)
                 .onGeometryChange(for: CGSize.self, of: { proxy in
@@ -289,10 +286,7 @@ private struct Cards: View {
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
-                .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color(platformColor: .systemBackground))
-                )
+                .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
             }
             .foregroundStyle(Color.primary)
         }
@@ -342,7 +336,7 @@ private struct HomepageLinks: View {
         }
         .padding()
         .padding(.horizontal, (navigationViewModel.isUsingSplitView) ? 30 : 15)
-        .background(RoundedRectangle(cornerRadius: 25).fill(Color(platformColor: .systemBackground)))
+        .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal)
         .padding(.horizontal, (navigationViewModel.isUsingSplitView) ? nil : 0)
     }

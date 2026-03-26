@@ -86,7 +86,8 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
             for group in groups {
                 if group.path?.lowercased() == identifier.lowercased() {
                     withAnimation(.snappy) {
-                        navigationViewModel.setTechnology(site.frameworkSection(for: group))
+                        navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
+                        navigationViewModel.setTechnology(site.frameworkSection(for: group), noHistory: isBookmarkNavigator)
                     }
                     return
                 }
@@ -158,7 +159,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
         
         navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
-        navigationViewModel.setReference(reference)
+        navigationViewModel.setReference(reference, forceHistory: isBookmarkNavigator)
     }
     
     var body: some View {

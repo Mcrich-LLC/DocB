@@ -131,23 +131,6 @@ struct ArticleView: View {
                     let role = article.metadata.role
                     let color: Color = role.accentColor
                     
-                    if navigationViewModel.isUsingSplitView {
-                        ToolbarItemGroup(placement: .navigation) {
-                            Group {
-                                Button("Backward", systemImage: "chevron.left") {
-                                    navigationViewModel.goBackward()
-                                }
-                                .disabled(!navigationViewModel.previousHistoryExists)
-                                
-                                Button("Forward", systemImage: "chevron.right") {
-                                    navigationViewModel.goForward()
-                                }
-                                .disabled(!navigationViewModel.futureHistoryExists)
-                            }
-                            .tint(color)
-                        }
-                    }
-                    
                     ToolbarItemGroup(placement: .primaryAction) {
                         
                         Group {

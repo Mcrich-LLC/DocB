@@ -43,23 +43,6 @@ struct HomepageView: View {
             }
             .padding([.bottom], 25)
         }
-        .toolbar(content: {
-            if navigationViewModel.isUsingSplitView {
-                ToolbarItemGroup(placement: .navigation) {
-                    Group {
-                        Button("Backward", systemImage: "chevron.left") {
-                            navigationViewModel.goBackward()
-                        }
-                        .disabled(!navigationViewModel.previousHistoryExists)
-                        
-                        Button("Forward", systemImage: "chevron.right") {
-                            navigationViewModel.goForward()
-                        }
-                        .disabled(!navigationViewModel.futureHistoryExists)
-                    }
-                }
-            }
-        })
         .lineSpacing(4)
         .scrollContentBackground(.hidden)
         .background(Color.homepageBackground)

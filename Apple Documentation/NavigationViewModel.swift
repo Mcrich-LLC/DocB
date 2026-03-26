@@ -47,7 +47,11 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
-    func setTechnology(_ technology: AppleTechnologies.FrameworkSection?) {
+    func setTechnology(_ technology: AppleTechnologies.FrameworkSection?, noHistory: Bool = false) {
+        if noHistory {
+            isNavigating = true
+        }
+        
         self.technology = technology
         self.isShowingTechnology = technology != nil
     }
@@ -60,7 +64,11 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
-    func setReference(_ reference: Reference?) {
+    func setReference(_ reference: Reference?, forceHistory: Bool = false) {
+        if forceHistory {
+            isNavigating = false
+        }
+        
         self.reference = reference
     }
         
@@ -197,16 +205,17 @@ class NavigationViewModel: @MainActor Equatable {
             }
             
             // Add new paths
-            if let technology, path.last != .technology(technology) {
-                appendPath(.technology(technology))
-            }
-            if let reference, path.last != .reference(reference) {
-                appendPath(.reference(reference))
-            }
-            
             if history.last?.bookmarkCollection == bookmarkCollection, isUsingSplitView {
                 goForward()
+            } else {
+                if let technology, path.last != .technology(technology), !isUsingSplitView {
+                    appendPath(.technology(technology))
+                }
+                if let reference, path.last != .reference(reference), !isUsingSplitView {
+                    appendPath(.reference(reference))
+                }
             }
+            
             return true
         }
         
@@ -426,6 +435,14 @@ class NavigationViewModel: @MainActor Equatable {
         defer { isNavigating = false }
         
         guard !isUsingSplitView else { return }
+        
+        // Handle Switch from NavigationSplitView to NavigationStack
+        if history.contains(where: { $0.isAllBookmarkCollections == true }) {
+            let currentItem = history[currentIndex]
+            history.removeAll(where: { $0.isAllBookmarkCollections == true && $0.id != currentItem.id })
+            let newIndex = history.firstIndex(of: currentItem)!
+            currentIndex = newIndex
+        }
         
         guard shouldRemoveReferenceFromPath(reference),
            let historyIndex = getHistoryIndexOfReference(reference),

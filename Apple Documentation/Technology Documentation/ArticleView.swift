@@ -22,6 +22,7 @@ struct ArticleView: View {
     @State var showToolbarBG: Bool = false
     @State var scrollOffset: CGFloat = 0
     @State var isShowingAddBookmark = false
+    @State var headerSize: CGSize?
     
     enum ScrollIdentifier: CaseIterable {
         case header
@@ -43,14 +44,12 @@ struct ArticleView: View {
                         .padding(.bottom, 15)
                         .id(ScrollIdentifier.header)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(alignment: .top) {
-                            LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
-                                .padding(.top, -120+min(0, scrollOffset))
-                                .padding(.bottom, -50)
-                                .padding(.horizontal, -200)
-                                .ignoresSafeArea()
-                                .zIndex(10)
+                        .onGeometryChange(for: CGSize.self) { proxy in
+                            proxy.size
+                        } action: { size in
+                            headerSize = size
                         }
+
                     
                     if let betaSummary = article.betaSummary {
                         AsideView(style: .experiment, content: betaSummary, references: article.references)
@@ -202,9 +201,17 @@ struct ArticleView: View {
         })
         .id(reference)
         .scrollContentBackground(.hidden)
-        .background(Color(platformColor: .systemBackground)
-            .ignoresSafeArea()
-        )
+//        .background(Color(platformColor: .systemBackground)
+//            .ignoresSafeArea()
+//        )
+        .background {
+            ZStack(alignment: .top) {
+                Color(platformColor: .systemBackground)
+                LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
+                    .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
+            }
+            .backgroundExtensionEffectIfAvailable()
+        }
         .environment(\.docCSite, reference.docCSite ?? navigationViewModel.technology?.docCSite)
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {

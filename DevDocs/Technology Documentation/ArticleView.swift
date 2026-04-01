@@ -50,7 +50,6 @@ struct ArticleView: View {
                             headerSize = size
                         }
 
-                    
                     if let betaSummary = article.betaSummary {
                         AsideView(style: .experiment, content: betaSummary, references: article.references)
                     }
@@ -193,6 +192,7 @@ struct ArticleView: View {
                 LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
                     .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
             }
+            .ignoresSafeArea()
             .backgroundExtensionEffectIfAvailable()
         }
         .environment(\.docCSite, reference.docCSite ?? navigationViewModel.technology?.docCSite)

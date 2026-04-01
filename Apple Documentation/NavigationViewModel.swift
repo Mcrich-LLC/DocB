@@ -108,7 +108,7 @@ class NavigationViewModel: @MainActor Equatable {
     var previousHistoryExists: Bool { currentIndex > 0 }
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
-    private var currentIndex = -1 {
+    private var currentIndex = 0 {
         willSet {
             guard currentIndex >= 0 else { return }
             previousIndex = currentIndex
@@ -326,9 +326,10 @@ class NavigationViewModel: @MainActor Equatable {
     
     /// Navigates forward in history
     func goForward(updatePath: Bool = true) {
-        guard currentIndex < history.count - 1 else { return }
-        currentIndex += 1
-        navigateToCurrentHistory()
+        if currentIndex < history.count - 1 {
+            currentIndex += 1
+            navigateToCurrentHistory()
+        }
         
         // Update navigation stack path
         guard updatePath, let technology, previousIndex >= 0 else {

@@ -27,7 +27,7 @@ private final class TechnologyRootManager {
     
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return Developer_Documentation.isTopReferencePartOfFilter(reference, with: activeFilters)
+            return DevDocs.isTopReferencePartOfFilter(reference, with: activeFilters)
         }
         
         return shownReference
@@ -469,7 +469,7 @@ private struct FrameworkDisclosureGroup: View {
     
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return Developer_Documentation.isTopReferencePartOfFilter(reference, with: tagFilters)
+            return DevDocs.isTopReferencePartOfFilter(reference, with: tagFilters)
         }
         
         return shownReference
@@ -528,7 +528,7 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     for section in (framework.topicSections ?? []) {
         for subidentifier in section.identifiers {
             guard let subreference = framework.references[subidentifier] else { continue }
-            if Developer_Documentation.isTopReferencePartOfFilter(subreference, with: filters) {
+            if DevDocs.isTopReferencePartOfFilter(subreference, with: filters) {
                 return true
             }
         }

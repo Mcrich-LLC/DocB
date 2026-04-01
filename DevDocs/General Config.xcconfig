@@ -1,0 +1,11 @@
+//
+//  General Config.xcconfig
+//  DevDocs
+//
+//  Created by Morris Richman on 4/1/26.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=visionos*] = AccentColor_visionOS

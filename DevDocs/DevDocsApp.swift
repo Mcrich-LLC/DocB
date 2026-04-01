@@ -15,7 +15,7 @@ struct WindowTypes {
 }
 
 @main
-struct Apple_DocumentationApp: App {
+struct DevDocsApp: App {
     @State var documentationViewModel = DocumentationViewModel()
     @State var appSettings = AppSettings()
     @State private var showAddSource = false

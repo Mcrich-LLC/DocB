@@ -6,13 +6,6 @@
         "reference" : "systemBlueColor"
       },
       "idiom" : "universal"
-    },
-    {
-      "color" : {
-        "platform" : "visionos",
-        "reference" : "systemTealColor"
-      },
-      "idiom" : "vision"
     }
   ],
   "info" : {

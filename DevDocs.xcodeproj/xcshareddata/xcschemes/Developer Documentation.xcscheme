@@ -18,7 +18,7 @@
                BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
                BuildableName = "DevDocs.app"
                BlueprintName = "DevDocs"
-               ReferencedContainer = "container:Apple Documentation.xcodeproj">
+               ReferencedContainer = "container:DevDocs.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
             BuildableName = "DevDocs.app"
             BlueprintName = "DevDocs"
-            ReferencedContainer = "container:Apple Documentation.xcodeproj">
+            ReferencedContainer = "container:DevDocs.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -70,7 +70,7 @@
             BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
             BuildableName = "DevDocs.app"
             BlueprintName = "DevDocs"
-            ReferencedContainer = "container:Apple Documentation.xcodeproj">
+            ReferencedContainer = "container:DevDocs.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

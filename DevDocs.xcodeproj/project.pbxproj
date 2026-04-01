@@ -20,6 +20,7 @@
 		224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */; };
 		224E23BB2F62535A00FC7D19 /* EnvironmentValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */; };
 		224E23C12F62554200FC7D19 /* OnboardingAddSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */; };
+		225A267E2F7DC76500C89E28 /* General Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */; };
 		225AE0042D2862DF007B993D /* DocC Index Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225AE0032D2862DF007B993D /* DocC Index Parser.swift */; };
 		225E3FC72F5370AF0077916C /* AddTechnologyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225E3FC62F5370AF0077916C /* AddTechnologyView.swift */; };
 		225E3FCA2F53A5EC0077916C /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 225E3FC92F53A5EC0077916C /* Nuke */; };
@@ -52,7 +53,7 @@
 		2287E3F62CBF6A8500090C9F /* HomepageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3CF2CBF6A8500090C9F /* HomepageView.swift */; };
 		2287E3F72CBF6A8500090C9F /* LanguagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D02CBF6A8500090C9F /* LanguagePicker.swift */; };
 		2287E3F82CBF6A8500090C9F /* TechnologyRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D12CBF6A8500090C9F /* TechnologyRootView.swift */; };
-		2287E3F92CBF6A8500090C9F /* Apple_DocumentationApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D52CBF6A8500090C9F /* Apple_DocumentationApp.swift */; };
+		2287E3F92CBF6A8500090C9F /* DevDocsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D52CBF6A8500090C9F /* DevDocsApp.swift */; };
 		2287E3FA2CBF6A8500090C9F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D72CBF6A8500090C9F /* Constants.swift */; };
 		2287E3FB2CBF6A8500090C9F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D82CBF6A8500090C9F /* ContentView.swift */; };
 		2287E3FC2CBF6A8500090C9F /* DocumentationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */; };
@@ -85,6 +86,7 @@
 		224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewSteps Enum Protocol.swift"; sourceTree = "<group>"; };
 		224E23BA2F62535A00FC7D19 /* EnvironmentValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentValues.swift; sourceTree = "<group>"; };
 		224E23C02F62554200FC7D19 /* OnboardingAddSourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAddSourcesView.swift; sourceTree = "<group>"; };
+		225A267D2F7DC76500C89E28 /* General Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "General Config.xcconfig"; sourceTree = "<group>"; };
 		225AE0032D2862DF007B993D /* DocC Index Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DocC Index Parser.swift"; sourceTree = "<group>"; };
 		225E3FC62F5370AF0077916C /* AddTechnologyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTechnologyView.swift; sourceTree = "<group>"; };
 		2287E3B22CBF6A8500090C9F /* Article Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Article Parser.swift"; sourceTree = "<group>"; };
@@ -116,8 +118,8 @@
 		2287E3D02CBF6A8500090C9F /* LanguagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguagePicker.swift; sourceTree = "<group>"; };
 		2287E3D12CBF6A8500090C9F /* TechnologyRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechnologyRootView.swift; sourceTree = "<group>"; };
 		2287E3D32CBF6A8500090C9F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
-		2287E3D42CBF6A8500090C9F /* Apple Documentation.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Apple Documentation.entitlements"; sourceTree = "<group>"; };
-		2287E3D52CBF6A8500090C9F /* Apple_DocumentationApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Apple_DocumentationApp.swift; sourceTree = "<group>"; };
+		2287E3D42CBF6A8500090C9F /* DevDocs.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DevDocs.entitlements; sourceTree = "<group>"; };
+		2287E3D52CBF6A8500090C9F /* DevDocsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevDocsApp.swift; sourceTree = "<group>"; };
 		2287E3D62CBF6A8500090C9F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2287E3D72CBF6A8500090C9F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		2287E3D82CBF6A8500090C9F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -259,7 +261,7 @@
 			path = "Technology Documentation";
 			sourceTree = "<group>";
 		};
-		2287E3DD2CBF6A8500090C9F /* Apple Documentation */ = {
+		2287E3DD2CBF6A8500090C9F /* DevDocs */ = {
 			isa = PBXGroup;
 			children = (
 				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
@@ -269,10 +271,11 @@
 				2287E3B92CBF6A8500090C9F /* Preview Content */,
 				2287E3D22CBF6A8500090C9F /* Technology Documentation */,
 				2287E3D32CBF6A8500090C9F /* .swiftlint.yml */,
-				2287E3D42CBF6A8500090C9F /* Apple Documentation.entitlements */,
-				2287E3D52CBF6A8500090C9F /* Apple_DocumentationApp.swift */,
+				2287E3D42CBF6A8500090C9F /* DevDocs.entitlements */,
+				2287E3D52CBF6A8500090C9F /* DevDocsApp.swift */,
 				2229DBB02CFEEF35009EB389 /* SettingsView.swift */,
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
+				225A267D2F7DC76500C89E28 /* General Config.xcconfig */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
 				2287E3D82CBF6A8500090C9F /* ContentView.swift */,
 				225E3FC62F5370AF0077916C /* AddTechnologyView.swift */,
@@ -287,7 +290,7 @@
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22474ED92DFCE9AF00D9DE44 /* SwiftUI Styles */,
 			);
-			path = "Apple Documentation";
+			path = DevDocs;
 			sourceTree = "<group>";
 		};
 		22C450AF2CB4D61B00376AA5 /* Frameworks */ = {
@@ -300,7 +303,7 @@
 		22F8CD5D2CB23D6C0081BB0A = {
 			isa = PBXGroup;
 			children = (
-				2287E3DD2CBF6A8500090C9F /* Apple Documentation */,
+				2287E3DD2CBF6A8500090C9F /* DevDocs */,
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
 			);
@@ -365,7 +368,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "Apple Documentation" */;
+			buildConfigurationList = 22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "DevDocs" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -399,6 +402,7 @@
 			files = (
 				2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */,
 				2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */,
+				225A267E2F7DC76500C89E28 /* General Config.xcconfig in Resources */,
 				2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -475,7 +479,7 @@
 				2287E3F72CBF6A8500090C9F /* LanguagePicker.swift in Sources */,
 				2287E3F82CBF6A8500090C9F /* TechnologyRootView.swift in Sources */,
 				22E72B482D66627700552DE0 /* EnlargedImageView.swift in Sources */,
-				2287E3F92CBF6A8500090C9F /* Apple_DocumentationApp.swift in Sources */,
+				2287E3F92CBF6A8500090C9F /* DevDocsApp.swift in Sources */,
 				2287E3FA2CBF6A8500090C9F /* Constants.swift in Sources */,
 				2287E3FB2CBF6A8500090C9F /* ContentView.swift in Sources */,
 				2209FBB82CC9885300372F9E /* AppleDocumentation Protocol.swift in Sources */,
@@ -492,6 +496,7 @@
 /* Begin XCBuildConfiguration section */
 		22F8CD722CB23D6E0081BB0A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -557,6 +562,7 @@
 		};
 		22F8CD732CB23D6E0081BB0A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -615,15 +621,16 @@
 		};
 		22F8CD752CB23D6E0081BB0A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon_DEBUG;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DevDocs/DevDocs.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 44;
-				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"DevDocs/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
@@ -683,10 +690,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
-				CODE_SIGN_ENTITLEMENTS = "Apple Documentation/Apple Documentation.entitlements";
+				CODE_SIGN_ENTITLEMENTS = DevDocs/DevDocs.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 44;
-				DEVELOPMENT_ASSET_PATHS = "\"Apple Documentation/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"DevDocs/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
@@ -742,7 +749,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "Apple Documentation" */ = {
+		22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "DevDocs" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22F8CD722CB23D6E0081BB0A /* Debug */,

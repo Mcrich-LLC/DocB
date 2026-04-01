@@ -11,31 +11,27 @@ import SwiftUI
 ///
 /// - Warning: When not otherwise using the toolbar, the toolbar size may change between inner and outer views.
 struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
-    @Binding private var apiExposedisShowingInnerView: Bool
+    @Binding private var isShowingInnerView: Bool
     private let unwrappedOptional: P?
     
     @ViewBuilder private let outerView: OuterView
     @ViewBuilder private let innerView: (P) -> InnerView
     
     init(isShowingInnerView: Binding<Bool>, unwrapping: P?, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping (P) -> InnerView) {
-        self._apiExposedisShowingInnerView = isShowingInnerView
-        self.isShowingInnerView = isShowingInnerView.wrappedValue
+        self._isShowingInnerView = isShowingInnerView
         self.unwrappedOptional = unwrapping
         self.outerView = outerView()
         self.innerView = innerView
     }
     
     init(isShowingInnerView: Binding<Bool>, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping () -> InnerView) where P == Bool {
-        self._apiExposedisShowingInnerView = isShowingInnerView
-        self.isShowingInnerView = isShowingInnerView.wrappedValue
+        self._isShowingInnerView = isShowingInnerView
         self.unwrappedOptional = true
         self.outerView = outerView()
         self.innerView = { _ in innerView() }
     }
     
     @State private var isHidingBackToolbarButton = false
-    @State private var isShowingInnerView: Bool
-    @State private var isBack: Bool = false
     
     var body: some View {
         outerView
@@ -47,16 +43,6 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
                 }
             }
         .animation(.default, value: isShowingInnerView)
-        .onChange(of: apiExposedisShowingInnerView) { oldValue, newValue in
-            if oldValue && !newValue {
-                isBack = true
-            } else {
-                isBack = false
-            }
-            withAnimation(.snappy) {
-                isShowingInnerView = newValue
-            }
-        }
     }
     
     @ViewBuilder
@@ -66,12 +52,11 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
                 isHidingBackToolbarButton = isHiding
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                    .backForward(isBack: isBack)
             .toolbar {
                 if !isHidingBackToolbarButton {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Back", systemImage: "chevron.left") {
-                            apiExposedisShowingInnerView = false
+                            isShowingInnerView = false
                         }
                         .labelStyle(.titleAndIcon)
                     }

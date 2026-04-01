@@ -160,7 +160,6 @@ struct ContentView: View {
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
                 TechView()
             } innerView: {
-                let _ = print("navigationViewModel.isShowingAllBookmarkCollections: \(navigationViewModel.isShowingAllBookmarkCollections)")
                 if navigationViewModel.isShowingAllBookmarkCollections {
                     SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
                         BookmarkCollectionsView()

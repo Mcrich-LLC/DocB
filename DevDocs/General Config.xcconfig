@@ -8,4 +8,6 @@
 // Configuration settings file format documentation can be found at:
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
-ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=visionos*] = AccentColor_visionOS
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=xros*] = AccentColor_visionOS
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=xrsimulator*] = AccentColor_visionOS

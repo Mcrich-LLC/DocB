@@ -624,7 +624,6 @@
 			baseConfigurationReference = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon_DEBUG;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = DevDocs/DevDocs.entitlements;
@@ -685,9 +684,9 @@
 		};
 		22F8CD762CB23D6E0081BB0A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 225A267D2F7DC76500C89E28 /* General Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = DevDocs/DevDocs.entitlements;

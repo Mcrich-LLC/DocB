@@ -1,6 +1,6 @@
 //
 //  IntroOnboardingView.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 1/15/26.
 //

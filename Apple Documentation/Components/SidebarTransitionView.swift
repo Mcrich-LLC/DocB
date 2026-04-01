@@ -1,6 +1,6 @@
 //
 //  SidebarNavigationView.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 3/20/26.
 //

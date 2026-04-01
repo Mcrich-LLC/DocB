@@ -1,6 +1,6 @@
 //
 //  AppSettings.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 1/28/26.
 //

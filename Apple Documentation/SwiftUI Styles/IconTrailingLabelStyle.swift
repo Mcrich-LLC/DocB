@@ -1,6 +1,6 @@
 //
 //  IconTrailingLabelStyle.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 6/13/25.
 //

@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 12/2/24.
 //

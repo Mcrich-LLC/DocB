@@ -130,7 +130,7 @@
 		22A299F92CC01902008EE3E5 /* WebEndpointRestAttributesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebEndpointRestAttributesView.swift; sourceTree = "<group>"; };
 		22BC5F4E2E50CEA400271120 /* TagFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagFilters.swift; sourceTree = "<group>"; };
 		22E72B472D66627700552DE0 /* EnlargedImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnlargedImageView.swift; sourceTree = "<group>"; };
-		22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Developer Documentation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		22F8CD662CB23D6C0081BB0A /* DevDocs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DevDocs.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -309,7 +309,7 @@
 		22F8CD672CB23D6C0081BB0A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */,
+				22F8CD662CB23D6C0081BB0A /* DevDocs.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -317,9 +317,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		22F8CD652CB23D6C0081BB0A /* Developer Documentation */ = {
+		22F8CD652CB23D6C0081BB0A /* DevDocs */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */;
+			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "DevDocs" */;
 			buildPhases = (
 				22F8CD622CB23D6C0081BB0A /* Sources */,
 				22F8CD632CB23D6C0081BB0A /* Frameworks */,
@@ -336,7 +336,7 @@
 				22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */,
 				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
 			);
-			name = "Developer Documentation";
+			name = DevDocs;
 			packageProductDependencies = (
 				2274642F2CB4D4E900BE0863 /* Kingfisher */,
 				22C450B02CB4D61B00376AA5 /* SFSafeSymbols */,
@@ -347,7 +347,7 @@
 				22AC7D462F591C550076219A /* PrivateObfuscationMacro */,
 			);
 			productName = "Apple Documentation";
-			productReference = 22F8CD662CB23D6C0081BB0A /* Developer Documentation.app */;
+			productReference = 22F8CD662CB23D6C0081BB0A /* DevDocs.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -387,7 +387,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				22F8CD652CB23D6C0081BB0A /* Developer Documentation */,
+				22F8CD652CB23D6C0081BB0A /* DevDocs */,
 			);
 		};
 /* End PBXProject section */
@@ -642,7 +642,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_CFBundleDisplayName = DevDocs;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -705,7 +705,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Apple-Documentation-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Documentation;
+				INFOPLIST_KEY_CFBundleDisplayName = DevDocs;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -751,7 +751,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "Developer Documentation" */ = {
+		22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "DevDocs" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22F8CD752CB23D6E0081BB0A /* Debug */,

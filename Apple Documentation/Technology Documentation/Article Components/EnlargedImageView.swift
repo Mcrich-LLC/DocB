@@ -1,6 +1,6 @@
 //
 //  EnlargedImageView.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 2/19/25.
 //

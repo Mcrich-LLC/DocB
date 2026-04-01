@@ -1,6 +1,6 @@
 //
 //  backgroundExtensionEffectIfAvailable.swift
-//  Developer Documentation
+//  DevDocs
 //
 //  Created by Morris Richman on 3/25/26.
 //

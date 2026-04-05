@@ -17,6 +17,7 @@ struct IconTrailingLabelStyle: LabelStyle {
     }
 }
 
+/// Convenience factory accessors for applying `IconTrailingLabelStyle`.
 extension LabelStyle where Self == IconTrailingLabelStyle {
     static var iconTrailing: Self {
         .init()

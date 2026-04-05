@@ -15,6 +15,7 @@ protocol ViewSteps: CaseIterable, RawRepresentable where RawValue == Int {
 }
 
 
+/// Default step-navigation behavior for integer-backed onboarding-style enums.
 extension ViewSteps {
     mutating func next() {
         guard let next = Self(rawValue: self.rawValue+1) else { return }

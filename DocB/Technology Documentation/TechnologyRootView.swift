@@ -275,6 +275,7 @@ struct TechnologyRootView: View {
     }
 }
 
+/// Row renderer for a framework/reference item, including nested disclosure handling.
 private struct FrameworkListItem: View {
     @Environment(\.tagFilters) var tagFilters
     
@@ -344,6 +345,7 @@ private struct FrameworkListItem: View {
     }
 }
 
+/// Default non-disclosure row renderer for a single reference destination.
 private struct DefaultListItem: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let reference: Reference
@@ -407,6 +409,7 @@ private struct DefaultListItem: View {
     }
 }
 
+/// Disclosure group that lazily loads and displays nested framework topic references.
 private struct FrameworkDisclosureGroup: View {
     
     @Environment(NavigationViewModel.self) var navigationViewModel

@@ -268,6 +268,7 @@ struct ContentView: View {
     }
 }
     
+/// Sidebar technology browser with search, add-source actions, and source grouping.
 private struct TechView: View {
     /// Sidebar search query for technologies and symbols.
     @State var searchText = ""
@@ -448,6 +449,7 @@ private struct TechView: View {
     }
 }
 
+/// Recursive search-result renderer for persisted DocC interface-language nodes.
 private struct InterfaceLanguageSearchListing: View {
     /// Current user-entered search text.
     let searchText: String
@@ -505,6 +507,7 @@ private struct InterfaceLanguageSearchListing: View {
     }
 }
 
+/// Sidebar section renderer for custom DocC technology sources.
 private struct DocCTechView: View {
     /// Custom DocC site descriptor being rendered.
     let technology: DocCSiteDTO
@@ -530,6 +533,7 @@ private struct DocCTechView: View {
     }
 }
 
+/// Sidebar section renderer for Apple-hosted technology groups.
 private struct AppleTechView: View {
     /// Apple technology payload containing groups/references.
     let technology: AppleTechnologies
@@ -626,6 +630,7 @@ private struct AppleTechView: View {
     }
 }
 
+/// Standard list row label showing title, icon, and optional selection affordances.
 private struct ListItemLabel: View {
     /// Framework metadata rendered in this row label.
     let framework: AppleTechnologies.FrameworkSection

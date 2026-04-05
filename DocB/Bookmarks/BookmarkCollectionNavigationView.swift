@@ -65,6 +65,7 @@ struct BookmarkCollectionNavigationView: View {
     }
 }
 
+/// Section renderer for bookmarks grouped under a single source URL.
 private struct SectionView: View {
     /// Parent bookmark collection being rendered.
     let collection: BookmarkCollection
@@ -100,6 +101,7 @@ private struct SectionView: View {
         }
     }
     
+    /// Bookmark row label used inside grouped bookmark sections.
     private struct Label: View {
         /// Row title shown for a bookmark entry.
         let text: String
@@ -119,6 +121,7 @@ private struct SectionView: View {
     }
 }
 
+/// Row button that offers to add a missing source for a bookmark target.
 private struct AddSourceButton<Content: View>: View {
     /// Bookmark whose missing source can be added as a DocC site.
     let bookmark: Bookmark

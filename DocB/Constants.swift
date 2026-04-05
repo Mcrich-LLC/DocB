@@ -42,11 +42,13 @@ struct Constants {
 
 #if os(macOS)
 typealias PlatformColor = NSColor
+/// macOS-specific color conveniences used to align naming with UIKit symbols.
 extension NSColor {
     static let systemBackground = NSColor.windowBackgroundColor
     static let separator = NSColor.separatorColor
 }
 
+/// Cross-platform color bridge from platform color types to SwiftUI `Color`.
 extension Color {
     init(platformColor: PlatformColor) {
         self.init(nsColor: platformColor)
@@ -55,10 +57,12 @@ extension Color {
 
 typealias PlatformFont = NSFont
 
+/// macOS toolbar placement conveniences used to share call sites across platforms.
 extension ToolbarPlacement {
     @MainActor static let navigationBar = ToolbarPlacement.windowToolbar
 }
 
+/// macOS compatibility shims for iOS-only list APIs.
 extension View {
     func listRowSpacing(_ spacing: CGFloat) -> some View {
         self
@@ -68,6 +72,7 @@ extension View {
 #else
 typealias PlatformColor = UIColor
 
+/// Cross-platform color bridge from platform color types to SwiftUI `Color`.
 extension Color {
     init(platformColor: PlatformColor) {
         self.init(uiColor: platformColor)

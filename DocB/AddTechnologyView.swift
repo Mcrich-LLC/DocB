@@ -9,6 +9,7 @@ import Kingfisher
 import SwiftUI
 import SwiftData
 
+/// Curated source descriptor used by the add-technology UI.
 private struct SuggestedTechnology: Identifiable, Hashable {
     /// Stable local identifier for SwiftUI diffing.
     let id = UUID()
@@ -232,6 +233,7 @@ struct AddTechnologyView: View {
     }
 }
 
+/// Row renderer for technologies already entered/added by the user.
 private struct EnteredTechnologyRow: View {
     /// Technology entry currently displayed in the custom list.
     let technology: TechnologyTypes
@@ -254,6 +256,7 @@ private struct EnteredTechnologyRow: View {
     }
 }
 
+/// Row renderer for a curated suggested technology entry.
 private struct SuggestedTechnologyRow: View {
     /// Curated technology metadata used to populate title, subtitle, and icon.
     let technology: SuggestedTechnology

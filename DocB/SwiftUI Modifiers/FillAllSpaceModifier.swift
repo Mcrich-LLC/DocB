@@ -23,6 +23,7 @@ struct FillAllSpaceModifier: ViewModifier {
     }
 }
 
+/// Convenience API that expands and centers a view to fill all available space.
 extension View {
     /// Wraps the view in a full-space centering layout.
     func fillSpaceAvailable() -> some View {

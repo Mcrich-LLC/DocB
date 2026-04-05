@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Environment helper methods for injecting custom dismiss behavior into view hierarchies.
 extension View {
     /// Injects a custom dismiss closure into environment values for descendant views.
     func customDismiss(_ action: @escaping () -> Void) -> some View {
@@ -19,6 +20,7 @@ extension View {
     }
 }
 
+/// Custom environment entries and convenience accessors used for dismiss coordination.
 extension EnvironmentValues {
     /// Dismisses to select anchor view
     @Entry var customDismiss: CustomDismissAction?

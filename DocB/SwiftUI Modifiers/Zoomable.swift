@@ -129,6 +129,7 @@ struct ZoomableModifier: ViewModifier {
     }
 }
 
+/// Public zooming APIs that attach `ZoomableModifier` behavior to views.
 public extension View {
     /// Enables interactive zoom and pan gestures on the receiving view.
     ///
@@ -169,6 +170,7 @@ public extension View {
     }
 }
 
+/// Internal helper APIs used to compose conditional and transform-based view behavior.
 private extension View {
     @ViewBuilder
     func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
@@ -186,6 +188,7 @@ private extension View {
     }
 }
 
+/// Geometry helpers for mapping normalized anchors into concrete coordinates.
 private extension UnitPoint {
     func scaledBy(_ size: CGSize) -> CGPoint {
         .init(
@@ -195,6 +198,7 @@ private extension UnitPoint {
     }
 }
 
+/// Transform helpers for anchored scaling and extracting effective scale factors.
 private extension CGAffineTransform {
     static func anchoredScale(scale: CGFloat, anchor: CGPoint) -> CGAffineTransform {
         CGAffineTransform(translationX: anchor.x, y: anchor.y)

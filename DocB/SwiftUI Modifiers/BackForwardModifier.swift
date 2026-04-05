@@ -23,6 +23,7 @@ struct BackForwardModifier: ViewModifier {
             )
     }
 }
+/// Convenience API that applies `BackForwardModifier` to any view.
 extension View {
     /// Applies a directional back/forward transition to the receiving view.
     ///

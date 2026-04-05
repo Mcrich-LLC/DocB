@@ -66,6 +66,7 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     }
 }
 
+/// Preference key used by nested sidebar content to hide/show the back toolbar button.
 private struct HideBackPreferenceKey: PreferenceKey {
     static let defaultValue: Bool = false
 

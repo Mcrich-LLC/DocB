@@ -34,6 +34,7 @@ struct HomepageSection: View {
 }
 
 // MARK: Highlighted Links
+/// Section renderer for featured highlighted links with responsive media/text layout.
 private struct HighlightedLinks: View {
     /// Section data for highlighted links content.
     let section: HomepageParser.Section
@@ -126,6 +127,7 @@ private struct HighlightedLinks: View {
     }
 }
 
+/// Single highlighted-link cell containing rich text and optional call to action.
 private struct HighlightedLinksCell: View {
     /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
@@ -158,6 +160,7 @@ private struct HighlightedLinksCell: View {
 }
 
 // MARK: Links
+/// Section renderer for standard link groups.
 private struct Links: View {
     /// Section data for links presentation.
     let section: HomepageParser.Section
@@ -191,6 +194,7 @@ private struct Links: View {
 }
 
 // MARK: Cards
+/// Section renderer for card-based homepage content.
 private struct Cards: View {
     /// Section data for card presentation.
     let section: HomepageParser.Section
@@ -318,6 +322,7 @@ private struct Cards: View {
 }
 
 // MARK: HomepageLinks
+/// Section renderer for capsule-style homepage links.
 private struct HomepageLinks: View {
     /// Section data for capsule-style homepage links.
     let section: HomepageParser.Section
@@ -369,6 +374,7 @@ private struct HomepageLinks: View {
     }
 }
 
+/// Capsule-style link control used by homepage links sections.
 private struct LinkCapsule: View {
     /// Current color scheme used by capsule styling.
     @Environment(\.colorScheme) var colorScheme

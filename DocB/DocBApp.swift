@@ -96,6 +96,7 @@ struct DocBApp: App {
     }
 }
 
+/// Root scene container that switches between onboarding and main content flows.
 private struct MainView: View {
     /// Onboarding completion flag persisted across launches.
     @AppStorage("has_onboarded") private var hasOnboarded: Bool = false

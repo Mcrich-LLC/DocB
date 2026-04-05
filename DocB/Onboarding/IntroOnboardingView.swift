@@ -58,6 +58,7 @@ struct IntroOnboardingView: View {
         .padding(.horizontal)
 }
 
+/// Decorative stacked-card hero image used at the top of intro onboarding.
 private struct HeaderImage: View {
     @Environment(\.colorScheme) var colorScheme
     

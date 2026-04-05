@@ -33,6 +33,7 @@ struct ErrorAlertViewModifier: ViewModifier {
     }
 }
 
+/// Convenience API that binds optional errors to the shared alert presentation modifier.
 extension View {
     /// Binds a standard "Uh Oh" alert presentation to an optional error value.
     ///

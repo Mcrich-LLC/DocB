@@ -27,6 +27,7 @@ struct SelectedLineBackground: View {
     }
 }
 
+/// Row background helpers for split-view selected-line styling.
 extension View {
     @ViewBuilder
     fileprivate func selectedLineBackgroundPadding() -> some View {
@@ -48,6 +49,7 @@ extension View {
     }
 }
 
+/// Conditional modifier that applies selected-line background only in split-view contexts.
 private struct SelectedLineBackgroundModifier: ViewModifier {
     let isSelected: Bool
     @Environment(NavigationViewModel.self) var navigationViewModel

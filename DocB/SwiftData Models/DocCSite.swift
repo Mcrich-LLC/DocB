@@ -81,6 +81,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.index = index
     }
     
+    /// Coding keys for DTO serialization/deserialization.
     enum CodingKeys: String, CodingKey {
         case timestamp
         case url
@@ -219,6 +220,7 @@ extension EnvironmentValues {
     @Entry var docCSite: DocCSiteDTO?
 }
 
+/// Nested SwiftData models that persist DocC index tree structures.
 extension DocCSite {
     @Model
     /// Persisted representation of a DocC index grouped by interface language.

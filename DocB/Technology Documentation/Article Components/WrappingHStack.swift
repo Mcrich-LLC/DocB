@@ -113,6 +113,7 @@ public struct WrappingHStack: Layout {
     }
 }
 
+/// Internal row-arrangement helpers for `WrappingHStack` layout operations.
 extension WrappingHStack {
     /// Computed layout row containing wrapped element placement metrics.
     struct Row {
@@ -239,12 +240,14 @@ extension WrappingHStack {
     }
 }
 
+/// Convenience comparisons for detecting minimum-size changes in layout cache.
 private extension CGSize {
     static var infinity: Self {
         .init(width: CGFloat.infinity, height: CGFloat.infinity)
     }
 }
 
+/// Converts SwiftUI alignment values into normalized unit points for placement math.
 private extension UnitPoint {
     init(_ alignment: Alignment) {
         switch alignment {

@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Directional transition modifier used for navigation-style back/forward animations.
 ///
-/// - Important: The transition edge is derived from `isBack` to keep motion direction consistent with history traversal.
+/// The transition edge is derived from `isBack` to keep motion direction consistent with history traversal.
 struct BackForwardModifier: ViewModifier {
     let isBack: Bool
     func body(content: Content) -> some View {

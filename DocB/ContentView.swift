@@ -11,7 +11,7 @@ import SwiftData
 
 /// Root SwiftUI container that wires navigation, deep-link handling, and shared environment state.
 ///
-/// - Important: This view keeps a long-lived `NavigationViewModel` in `@State` to preserve navigation history across redraws.
+/// This view keeps a long-lived `NavigationViewModel` in `@State` to preserve navigation history across redraws.
 struct ContentView: View {
     let url: URL?
     
@@ -80,7 +80,7 @@ struct ContentView: View {
     
     /// Normalizes inbound URLs and routes supported DocC links in-app, forwarding unsupported links to the system.
     ///
-    /// - Warning: Links containing `videos`, `tutorials`, or `design` are intentionally opened outside the app.
+    /// Links containing `videos`, `tutorials`, or `design` are intentionally opened outside the app.
     var urlActionHandler: OpenURLAction { OpenURLAction { url in
         guard !url.absoluteString.contains("videos"),
               !url.absoluteString.contains("tutorials"),

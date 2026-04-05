@@ -162,7 +162,7 @@ class DocumentationViewModel {
     ///
     /// Apple sources are treated specially and mapped to the built-in homepage and technologies endpoints.
     ///
-    /// - Important: This method silently ignores duplicate custom DocC sources by URL.
+    /// Duplicate custom DocC sources by URL are ignored.
     ///
     /// - Parameters:
     ///   - baseUrl: Root URL of the DocC site.
@@ -319,8 +319,8 @@ class DocumentationViewModel {
     
     /// Fetches and decodes a documentation article, applying variant overrides for the selected language.
     ///
-    /// - Important: Variant patch application currently targets declaration overrides in `primaryContentSections`.
-    /// - Warning: Variant patch indices are trusted from remote payloads and are applied directly when present.
+    /// Variant patch application currently targets declaration overrides in `primaryContentSections`.
+    /// Patch indices are read from the payload and applied when present.
     ///
     /// - Parameters:
     ///   - identifier: Documentation identifier for the article.

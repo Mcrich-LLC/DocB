@@ -12,7 +12,7 @@ import SwiftData
 @MainActor
 /// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
 ///
-/// - Important: DTO identity and equality are based on `id`, while hashing also incorporates timestamp, URL, and index.
+/// DTO identity and equality are based on `id`, while hashing also incorporates timestamp, URL, and index.
 final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
@@ -141,7 +141,7 @@ enum SwiftDataErrors: Error {
 @Model
 /// Persisted SwiftData model representing a DocC site source.
 ///
-/// - Important: Persisted properties are optional to tolerate schema evolution; use `dto` for validated app-layer access.
+/// Persisted properties are optional to tolerate schema evolution; use `dto` for validated app-layer access.
 final class DocCSite: Identifiable {
     var id: UUID = UUID()
     var timestamp: Date?
@@ -171,7 +171,7 @@ final class DocCSite: Identifiable {
     
     /// Converts the persisted model into a DTO used by app logic and UI layers.
     ///
-    /// - Warning: Access can throw when persisted data is malformed or missing required fields.
+    /// Access can throw when persisted data is malformed or missing required fields.
     @MainActor var dto: DocCSiteDTO {
         get throws {
             try .init(self)

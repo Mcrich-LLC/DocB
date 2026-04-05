@@ -20,6 +20,7 @@ class NavigationViewModel: @MainActor Equatable {
     
     /// Sets the next `addToHistory` call to use bookmarks 
     var isNavigatingFromBookmarks: Bool = false
+    /// Whether the UI is currently showing the top-level bookmark collections route.
     var isShowingAllBookmarkCollections = false {
         didSet {
             if !isNavigating {
@@ -28,7 +29,9 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Whether a specific bookmark collection is currently being shown.
     var isShowingBookmarkCollection = false
+    /// Currently selected bookmark collection.
     private(set) var bookmarkCollection: BookmarkCollection? {
         didSet {
             if !isNavigating {
@@ -43,7 +46,9 @@ class NavigationViewModel: @MainActor Equatable {
         self.isShowingBookmarkCollection = collection != nil
     }
     
+    /// Whether a technology pane/route is currently active.
     var isShowingTechnology = false
+    /// Currently selected technology.
     private(set) var technology: AppleTechnologies.FrameworkSection? {
         didSet {
             if !isNavigating {
@@ -66,6 +71,7 @@ class NavigationViewModel: @MainActor Equatable {
         self.isShowingTechnology = technology != nil
     }
     
+    /// Currently selected documentation reference.
     private(set) var reference: Reference? {
         didSet {
             if !isNavigating {
@@ -87,7 +93,9 @@ class NavigationViewModel: @MainActor Equatable {
         self.reference = reference
     }
         
+    /// Active split-view column visibility state.
     var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
+    /// Current horizontal size class used for layout-mode decisions.
     var horizontalSizeClass: UserInterfaceSizeClass? = .regular
     /// Returns `true` when the current environment should present split-view navigation.
     var isUsingSplitView: Bool {
@@ -122,20 +130,28 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Indicates that the next history transition is initializing from an empty state.
     var isStartingHistory: Bool = false
+    /// Linear navigation history backing back/forward behavior.
     private var history: [History] = []// [.init(technology: nil, reference: nil, isHomepage: true)]
+    /// Whether at least one backward history step exists.
     var previousHistoryExists: Bool { currentIndex > 0 }
+    /// Whether at least one forward history step exists.
     var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
+    /// Index of the currently active history entry.
     private var currentIndex = 0 {
         willSet {
             guard currentIndex >= 0 else { return }
             previousIndex = currentIndex
         }
     }
+    /// Previously active history index, used to compute path deltas.
     private var previousIndex = 0
+    /// Internal re-entrancy guard used while programmatically mutating selection/history.
     private var isNavigating = false
     
+    /// Stack path backing compact navigation presentation.
     var path: [PathElement] = [] /*{
         willSet {
             if newValue == path.dropLast() {
@@ -143,6 +159,7 @@ class NavigationViewModel: @MainActor Equatable {
             }
         }
     }*/
+    /// Backup copy of the stack path used during layout-mode transitions.
     private var backupPath: [PathElement] = []
     
     /// Appends a new element to both active and backup navigation paths.
@@ -278,6 +295,7 @@ class NavigationViewModel: @MainActor Equatable {
         goForward()
     }
     
+    /// Attempts to coalesce incoming technology/reference changes into the most recent history entry.
     private func rectifyHistory() -> Bool {
         guard let lastState = history.last, let technology else {
             return false
@@ -391,6 +409,7 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // Helper function to update technology and reference based on the current history state
+    /// Applies the current history entry to active selection state and bookmark flags.
     private func navigateToCurrentHistory() {
         isNavigating = true
         defer { isNavigating = false }
@@ -499,6 +518,7 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // Equatibility
+    /// Compares navigation models by selected technology/reference identity.
     static func == (lhs: NavigationViewModel, rhs: NavigationViewModel) -> Bool {
         guard let lhsTech = lhs.technology, let lhsReference = lhs.reference,
               let rhsTech = rhs.technology, let rhsReference = rhs.reference
@@ -521,13 +541,20 @@ extension Dictionary {
 }
 
 private struct History: Identifiable, Hashable {
+    /// Stable identifier for diffable/history list usage.
     let id = UUID()
     
+    /// Technology selected at this history point.
     var technology: AppleTechnologies.FrameworkSection?
+    /// Reference selected at this history point.
     var reference: Reference?
+    /// Bookmark collection selected at this history point, if any.
     var bookmarkCollection: BookmarkCollection?
+    /// Whether this history entry is inside a specific bookmark collection context.
     var isBookmarkCollection: Bool
+    /// Whether this history entry represents the bookmark collections root.
     var isAllBookmarkCollections: Bool
+    /// Whether this history entry represents homepage state.
     let isHomepage: Bool
 }
 

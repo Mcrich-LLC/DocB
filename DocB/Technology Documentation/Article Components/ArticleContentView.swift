@@ -187,8 +187,10 @@ struct ArticleContentView: View {
     /// Latest measured size of this view, used for adaptive row/grid layout.
     @State private var viewSize: CGSize?
     
+    /// Active color scheme used for platform-specific visual choices.
     @Environment(\.colorScheme) var colorScheme
     
+    /// Main content body that renders either inline fragments or type-specific block content.
     var body: some View {
         let content = manager.content
         
@@ -532,6 +534,7 @@ struct ArticleContentView: View {
             manager.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme, docCSite: docCSite)
         }
         
+        /// Inline body that folds all fragments into rendered text/media segments.
         var body: some View {
             // Ordered stream of rendered inline segments (text blocks, images, video).
             var views: [InlineContent] = []
@@ -695,8 +698,10 @@ struct ArticleContentView: View {
     
     /// Type-erased wrapper for inline-rendered child views used in ordered composition.
     fileprivate struct InlineContent: Identifiable {
+        /// Stable identifier for ordered inline view composition.
         let id = UUID()
         
+        /// Type-erased inline view payload.
         let view: AnyView
         
         init(_ view: any View) {

@@ -21,6 +21,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     /// Whether selection background highlighting should be shown.
     var shouldShowBackground: Bool = true
     
+    /// Renders the homepage navigation control.
     var body: some View {
         MacOSAgnosticButton {
             navigationViewModel.setReference(nil)
@@ -58,6 +59,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     @ViewBuilder
     private let label: Content
     
+    /// Creates a reference navigation button with a destination and label.
     init(reference: Reference, @ViewBuilder label: () -> Content) {
         self.reference = reference
         self.label = label()
@@ -73,10 +75,12 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     /// Filters down to the lowest technology group and sets that as the side panel.
     private var alwaysShowClosestTechnologyGroup: Bool = false
     
+    /// Whether this row is currently selected in navigation state.
     private var isSelected: Bool {
         navigationViewModel.reference?.isEqual(to: reference) == true
     }
     
+    /// Resolves and selects an Apple technology group for the current reference when possible.
     private func _actionHandleTechnologies(_ technologies: AppleTechnologies) {
         if let url = URL(string: reference.identifier),
            let moduleString = Array(url.pathComponents.dropFirst(2)).first,
@@ -93,6 +97,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
+    /// Resolves and selects a custom DocC technology group for the current reference when possible.
     private func _actionHandleSite(_ site: DocCSiteDTO) {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         if let url = URL(string: reference.identifier) {
@@ -117,6 +122,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
+    /// Handles direct child group matching for custom DocC technologies.
     private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
         let technologyGroup = group.children?.first(where: {
             ($0.children ?? []).contains(where: { tech in
@@ -133,6 +139,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
+    /// Handles closest descendant group matching for custom DocC technologies.
     private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
         var technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
@@ -148,6 +155,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         }
     }
     
+    /// Executes navigation behavior for this reference, including external-link fallback.
     func action() {
         navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
         
@@ -177,6 +185,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         navigationViewModel.setReference(reference, forceHistory: isBookmarkNavigator)
     }
     
+    /// Renders the reference navigation control.
     var body: some View {
         Group {
             MacOSAgnosticButton(action: action) {
@@ -189,6 +198,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 #endif
     }
     
+    /// Returns a copy configured to show or hide selection background.
     func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
@@ -196,6 +206,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         return view
     }
     
+    /// Returns a copy configured to pop one path element before pushing this destination.
     func removeLastPathComponentFirst(_ bool: Bool) -> Self {
         var view = self
         view.removeLastPathComponentFirst = bool
@@ -236,6 +247,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
         navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() && navigationViewModel.technology?.docCSite == technology.docCSite
     }
     
+    /// Renders the technology navigation control.
     var body: some View {
         Group {
             MacOSAgnosticButton {
@@ -262,10 +274,14 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
 
 /// Navigation button that selects a specific bookmark collection in the sidebar flow.
 struct BookmarkCollectionNavigationLink<Content: View>: View {
+    /// Target bookmark collection selected when this control is activated.
     let collection: BookmarkCollection
+    /// Label content displayed by the control.
     @ViewBuilder let label: Content
+    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    /// Renders the bookmark collection navigation control.
     var body: some View {
         MacOSAgnosticButton {
             navigationViewModel.isNavigatingFromBookmarks = true
@@ -278,9 +294,12 @@ struct BookmarkCollectionNavigationLink<Content: View>: View {
 
 /// Navigation button that routes to the top-level bookmark collections list.
 struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
+    /// Label content displayed by the control.
     @ViewBuilder let label: Content
+    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    /// Renders the all-bookmarks navigation control.
     var body: some View {
         Button {
             navigationViewModel.isNavigatingFromBookmarks = true

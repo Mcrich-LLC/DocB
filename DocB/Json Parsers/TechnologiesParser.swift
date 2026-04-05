@@ -99,11 +99,16 @@ extension [TechnologyTypes] {
 
 /// Decoded Apple technologies payload used to build homepage and framework navigation.
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
+    /// Stable identifier for diffable/UI usage.
     let id = UUID()
     
+    /// Optional hero/header section metadata.
     let header: Header?
+    /// Grouped technology sections.
     let groups: [Technology]?
+    /// Reference metadata keyed by identifier.
     let references: [String : Reference]
+    /// Optional legal notices payload.
     let legalNotices: LegalNotices?
     
     enum CodingKeys: CodingKey {
@@ -155,22 +160,32 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
     @CodableIgnoreInitializedProperties
     /// Group of related frameworks under a single technology name.
     struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
+        /// Stable identifier for diffable/UI usage.
         let id = UUID()
         
+        /// Group display name.
         let name: String
+        /// Framework entries in this group.
         let technologies: [FrameworkSection]
     }
     
     @CodableIgnoreInitializedProperties
     /// Framework entry used for navigation from technology lists.
     struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
+        /// Stable identifier for diffable/UI usage.
         let id = UUID()
         
+        /// Supported interface languages for this framework.
         let languages: [String]
+        /// Framework display title.
         let title: String
+        /// Tag metadata for filtering/grouping.
         let tags: [String]
+        /// Navigation destination metadata.
         let destination: Destination
+        /// Optional legal notices payload.
         let legalNotices: LegalNotices?
+        /// Optional custom DocC site context.
         let docCSite: DocCSiteDTO?
         
         /// Path-based equality for framework sections to avoid identifier host differences.
@@ -186,8 +201,11 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
         
         /// Destination metadata for a framework entry.
         struct Destination: Codable, Hashable {
+            /// Destination type discriminator.
             let type: String
+            /// Whether destination is currently active.
             let isActive: Bool
+            /// Canonical destination identifier.
             let identifier: String
         }
         

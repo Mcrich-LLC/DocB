@@ -12,6 +12,7 @@ import SwiftData
 @CodableIgnoreInitializedProperties
 /// Top-level DocC index payload describing available interface-language trees.
 struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
+    /// Stable identifier for diffable/UI usage.
     let id = UUID()
     
     /// Interface-language entries keyed by language token (for example, `swift`).
@@ -20,12 +21,17 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     @CodableIgnoreInitializedProperties
     /// A node in a DocC index tree representing modules, frameworks, and related groups.
     struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable {
+        /// Stable identifier for diffable/UI usage.
         let id = UUID()
         
+        /// Display title for this index node.
         let title: String
+        /// Relative documentation path for this node.
         let path: String?
+        /// Node type discriminator (for example `module`, `framework`, `sampleCode`).
         let type: String
         
+        /// Child index nodes nested under this node.
         fileprivate(set) var children: [InterfaceLanguage]?
         
         /// Recursively flattened descendant nodes.

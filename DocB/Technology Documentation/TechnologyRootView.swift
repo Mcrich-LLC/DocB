@@ -10,13 +10,17 @@ import SwiftUI
 @Observable
 /// Internal coordinator that keeps filtering and reference-visibility state for `TechnologyRootView`.
 private final class TechnologyRootManager {
+    /// Currently selected framework section driving this screen.
     var frameworkSection: AppleTechnologies.FrameworkSection
     
+    /// Creates a manager for a selected framework section.
     init(frameworkSection: AppleTechnologies.FrameworkSection) {
         self.frameworkSection = frameworkSection
     }
     
+    /// Active topic tag filters.
     var activeFilters: Set<TagFilters> = []
+    /// Cached deep-filter visibility keyed by reference identifier.
     var shownReferences: [String : Bool] = [:]
     
     /// Returns a copy of a reference associated with the currently displayed DocC site.
@@ -46,15 +50,21 @@ private final class TechnologyRootManager {
 /// Root technology browser for a selected framework section.
 struct TechnologyRootView: View {
     
+    /// Shared navigation state coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Shared documentation data/model coordinator.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
+    /// Creates a technology root view for a framework section.
     init(frameworkSection: AppleTechnologies.FrameworkSection) {
         self.manager = TechnologyRootManager(frameworkSection: frameworkSection)
     }
     
+    /// Current interface color scheme.
     @Environment(\.colorScheme) var colorScheme
+    /// Stateful manager containing local filtering/rendering state.
     @State private var manager: TechnologyRootManager
+    /// Whether deep-filter recomputation is in progress.
     @State var isLoading = false
     
     /// Cached framework payload for the selected framework section.
@@ -180,12 +190,18 @@ struct TechnologyRootView: View {
     }
     
     private struct FrameworkView: View {
+        /// Framework payload currently being rendered.
         let framework: Framework
+        /// Framework section metadata for root list item/title.
         let frameworkSection: AppleTechnologies.FrameworkSection
+        /// Topic sections already filtered for display.
         let topicSections: [Framework.TopicSection]
+        /// Shared local manager from parent view.
         @Environment(TechnologyRootManager.self) private var manager
+        /// Shared documentation data/model coordinator.
         @Environment(DocumentationViewModel.self) var documentationViewModel
         
+        /// Renders the framework + topics list.
         var body: some View {
             if framework.topicSections?.isEmpty == true {
                 Text("No documentation available for \(framework.metadata.title)")

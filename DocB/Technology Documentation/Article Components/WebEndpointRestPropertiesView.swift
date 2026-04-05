@@ -9,7 +9,9 @@ import SwiftUI
 
 /// WebEndpointRestPropertiesView renders a reusable SwiftUI view.
 struct WebEndpointRestPropertiesView: View {
+    /// REST properties/parameters content section payload.
     let contentSection: ContentSection
+    /// Reference map used by nested property descriptions.
     let references: [String : Reference]
     
     var body: some View {

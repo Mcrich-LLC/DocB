@@ -13,19 +13,30 @@ import SwiftData
 ///
 /// This view keeps a long-lived `NavigationViewModel` in `@State` to preserve navigation history across redraws.
 struct ContentView: View {
+    /// Optional startup URL used for initial deep-link routing.
     let url: URL?
     
+    /// Shared documentation model containing technologies, homepage, and fetched content.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// User-configurable app settings that affect link handling behavior.
     @Environment(AppSettings.self) var appSettings
+    /// Local navigation coordinator preserved for this root scene.
     @State var navigationViewModel = NavigationViewModel()
     
+    /// Current color scheme for view styling.
     @Environment(\.colorScheme) var colorScheme
+    /// Horizontal size class used for split/stack routing logic.
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    /// SwiftData context used by child views and deletion actions.
     @Environment(\.modelContext) var modelContext
+    /// Window-opening action for multi-window deep-link handling.
     @Environment(\.openWindow) var openWindow
+    /// Whether this platform/session supports multiple windows.
     @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
+    /// Persisted DocC sites used for sidebar content and loading.
     @Query var docCSites: [DocCSite]
     
+    /// Accent tint derived from the currently selected navigation path element.
     var navigationTint: Color? {
         guard let lastNavigationItem = navigationViewModel.path.last else { return nil }
         
@@ -135,6 +146,7 @@ struct ContentView: View {
         }
     }}
     
+    /// Minimum window/frame size guidance based on platform and split-view state.
     private var minWindowFrame: CGSize? {
         #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
         return CGSize(width: navigationViewModel.splitViewColumnVisibility == .detailOnly ? 350 : 700, height: 600)
@@ -148,8 +160,10 @@ struct ContentView: View {
     }
     
     struct SidebarView: View {
+        /// Shared navigation state for sidebar and nested navigation transitions.
         @Environment(NavigationViewModel.self) var navigationViewModel
         
+        /// Binding that maps top-level sidebar presentation to the underlying navigation flags.
         var topLevelBinding: Binding<Bool> {
             Binding {
                 navigationViewModel.isShowingTechnology || navigationViewModel.isShowingAllBookmarkCollections
@@ -180,6 +194,7 @@ struct ContentView: View {
     }
     
     @ViewBuilder
+    /// Split-view navigation presentation used on larger form factors.
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             SidebarView()
@@ -223,6 +238,7 @@ struct ContentView: View {
     }
     
     @ViewBuilder
+    /// Stack-based navigation presentation used on compact layouts.
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             TechView()
@@ -251,17 +267,26 @@ struct ContentView: View {
 }
     
 private struct TechView: View {
+    /// Sidebar search query for technologies and symbols.
     @State var searchText = ""
+    /// Error state surfaced through shared alert helper.
     @State private var errorAlert: Error?
+    /// Documentation model providing technologies and framework caches.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// Window open action used for add-source flow on macOS.
     @Environment(\.openWindow) private var openWindow
+    /// SwiftData context used for technology deletion actions.
     @Environment(\.modelContext) private var modelContext
+    /// Persisted custom DocC site list.
     @Query(sort: \DocCSite.timestamp) var docCSites: [DocCSite]
     
     // Add Documentation Alert
+    /// Controls presentation of add-source UI on non-macOS platforms.
     @State var showAddDocumentationAlert = false
+    /// Pending URL string used by add-source alerts/flows.
     @State var addDocumentationUrl: String = ""
     
+    /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO, group: DocCIndex.InterfaceLanguage) -> Bool {
         guard let frameworkSection = group.frameworkSection(for: interfaceLanguage, site: site) else {
             return false
@@ -270,16 +295,19 @@ private struct TechView: View {
         return isVisibleForSearch(frameworkSection)
     }
     
+    /// Determines whether a custom DocC site has at least one visible framework for search.
     func isVisibleForSearch(_ site: DocCSiteDTO) -> Bool {
         return !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
     }
     
+    /// Determines whether a framework section matches current search criteria.
     func isVisibleForSearch(_ technology: AppleTechnologies.FrameworkSection) -> Bool {
         guard !searchText.isEmpty else { return true }
         
         return technology.title.lowercased().contains(searchText.lowercased()) || technology.tags.contains(searchText)
     }
     
+    /// Indicates whether current search has any matching technology results.
     var searchHasResults: Bool {
         guard !searchText.isEmpty else { return true }
         
@@ -297,6 +325,7 @@ private struct TechView: View {
     }
     
     @ViewBuilder
+    /// Routes a technology source type to its corresponding sidebar section view.
     func technologyView(for technology: TechnologyTypes) -> some View {
         switch technology {
         case .apple(let technologies):
@@ -316,7 +345,7 @@ private struct TechView: View {
             } else if !searchText.isEmpty {
                 searchList
             } else if searchHasResults {
-                technoloigesList
+                technologiesList
             } else {
                 ContentUnavailableView.search(text: searchText)
             }
@@ -348,6 +377,7 @@ private struct TechView: View {
         .alert(for: $errorAlert)
     }
     
+    /// Presents add-source UI using platform-appropriate window/sheet behavior.
     private func showAddDocumentationView() {
         #if os(macOS)
         openWindow(id: WindowTypes.addSites)
@@ -357,6 +387,7 @@ private struct TechView: View {
     }
     
     @ViewBuilder
+    /// Search-result list for both DocC and Apple technologies.
     private var searchList: some View {
         ForEach(docCSites) { site in
             if let index = site.indexV2, site.hasResultsForSearch(searchText) {
@@ -375,7 +406,8 @@ private struct TechView: View {
     }
     
     @ViewBuilder
-    private var technoloigesList: some View {
+    /// Default technology listing grouped by custom and Apple sources.
+    private var technologiesList: some View {
         if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
             Section {
                 ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
@@ -415,11 +447,15 @@ private struct TechView: View {
 }
 
 private struct InterfaceLanguageSearchListing: View {
+    /// Current user-entered search text.
     let searchText: String
+    /// Interface-language node being rendered recursively.
     let interfaceLanguage: DocCSite.InterfaceLanguageModel
     
+    /// Documentation state used to resolve site context for references.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
+    /// Synthetic reference used for navigation when a node maps to a known path/type.
     var reference: Reference? {
         guard let path = interfaceLanguage.path, let type = interfaceLanguage.type else {
             return nil
@@ -434,6 +470,7 @@ private struct InterfaceLanguageSearchListing: View {
     }
     
     @ViewBuilder
+    /// Renders symbol-like text with code styling, otherwise plain text.
     func text(_ text: String) -> some View {
         let role = Role(rawValue: interfaceLanguage.type ?? "") ?? .codeListing
         
@@ -467,9 +504,13 @@ private struct InterfaceLanguageSearchListing: View {
 }
 
 private struct DocCTechView: View {
+    /// Custom DocC site descriptor being rendered.
     let technology: DocCSiteDTO
+    /// Predicate used to filter visible interface-language children.
     let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSiteDTO, _ group: DocCIndex.InterfaceLanguage) -> Bool
+    /// Documentation state for navigation and site operations.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// SwiftData context used for source modifications.
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
@@ -488,12 +529,19 @@ private struct DocCTechView: View {
 }
 
 private struct AppleTechView: View {
+    /// Apple technology payload containing groups/references.
     let technology: AppleTechnologies
+    /// Visibility filter used by current search context.
     let isVisibleForSearch: (_ technology: AppleTechnologies.FrameworkSection) -> Bool
+    /// Current search query.
     let searchText: String
+    /// Navigation state used for sidebar/label behavior.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Documentation state for delete operations.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// SwiftData context used by delete operations.
     @Environment(\.modelContext) var modelContext
+    /// Error state for alert presentation.
     @State var errorAlert: Error?
     
     var body: some View {
@@ -502,6 +550,7 @@ private struct AppleTechView: View {
     }
     
     @ViewBuilder
+    /// Main Apple technologies listing body, including discover and framework groups.
     var internalBody: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
             Section("Apple Documentation") {
@@ -576,9 +625,12 @@ private struct AppleTechView: View {
 }
 
 private struct ListItemLabel: View {
+    /// Framework metadata rendered in this row label.
     let framework: AppleTechnologies.FrameworkSection
+    /// Reference map used for beta/deprecation badges.
     let references: [String: Reference]
     
+    /// Navigation state used to show compact chevrons.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {

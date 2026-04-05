@@ -10,11 +10,15 @@ import SwiftUI
 @Observable
 /// Tracks onboarding step progression and controls forward/back navigation and dismissal.
 final class OnboardingStepManager {
+    /// Dismiss action called when onboarding reaches its final step.
     fileprivate var dismiss: CustomDismissAction = .init(action: {})
     
+    /// Current onboarding step.
     private(set) var step: OnboardingSteps = .intro
+    /// Transition direction flag used for back/forward animations.
     var isBack = false
     
+    /// Advances to the next onboarding step or dismisses when complete.
     func next() {
         isBack = false
         guard step.rawValue < OnboardingSteps.allCases.count - 1 else {
@@ -26,6 +30,7 @@ final class OnboardingStepManager {
             step.next()
         }
     }
+    /// Moves to the previous onboarding step.
     func previous() {
         isBack = true
         withAnimation {
@@ -41,7 +46,9 @@ enum OnboardingSteps: Int, ViewSteps {
 
 /// Hosts the onboarding flow and swaps step content based on the active onboarding state.
 struct MainOnboardingView: View {
+    /// Local step manager controlling onboarding flow state.
     @State var stepManager = OnboardingStepManager()
+    /// Effective dismiss action resolved from environment.
     @Environment(\.customEnabledDismissAction) var customEnabledDismissAction
     
     var body: some View {

@@ -215,6 +215,7 @@ extension [DocCSite] {
 
 /// Exposes the currently selected custom DocC site through SwiftUI environment values.
 extension EnvironmentValues {
+    /// Currently selected custom DocC site context for resolving relative references and assets.
     @Entry var docCSite: DocCSiteDTO?
 }
 

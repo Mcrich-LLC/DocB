@@ -26,8 +26,11 @@ struct MacOSAgnosticButton<Content: View>: View {
 
 /// Cross-platform link wrapper that opens URLs via gesture on macOS/Catalyst and `Link` elsewhere.
 struct MacOSAgnosticLink<Content: View>: View {
+    /// Destination URL opened when the link is activated.
     let destination: URL
+    /// Link label content.
     @ViewBuilder let label: Content
+    /// Environment URL opener used on macOS/Catalyst gesture activation.
     @Environment(\.openURL) var openURL
     
     var body: some View {

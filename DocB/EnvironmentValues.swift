@@ -8,10 +8,12 @@
 import SwiftUI
 
 extension View {
+    /// Injects a custom dismiss closure into environment values for descendant views.
     func customDismiss(_ action: @escaping () -> Void) -> some View {
         environment(\.customDismiss, .init(action: action))
     }
     
+    /// Injects an existing dismiss action wrapper into environment values.
     func customDismiss(_ action: CustomDismissAction) -> some View {
         environment(\.customDismiss, action)
     }
@@ -22,11 +24,13 @@ extension EnvironmentValues {
     @Entry var customDismiss: CustomDismissAction?
     
     @MainActor
+    /// Returns the injected dismiss action, or falls back to the system `dismiss` action.
     var customEnabledDismissAction: CustomDismissAction {
         customDismiss ?? CustomDismissAction(action: dismiss.callAsFunction)
     }
     
     @MainActor
+    /// Convenience closure for invoking the effective dismiss behavior.
     var customEnabledDismiss: () -> Void {
         customEnabledDismissAction.action
     }

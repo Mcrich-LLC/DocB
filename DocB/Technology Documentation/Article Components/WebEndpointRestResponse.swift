@@ -9,7 +9,9 @@ import SwiftUI
 
 /// WebEndpointRestResponse renders a reusable SwiftUI view.
 struct WebEndpointRestResponse: View {
+    /// REST responses content section payload.
     let contentSection: ContentSection
+    /// Reference map for linked response type identifiers.
     let references: [String : Reference]
     
     var body: some View {

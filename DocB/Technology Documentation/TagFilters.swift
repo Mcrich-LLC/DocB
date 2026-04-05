@@ -14,5 +14,6 @@ enum TagFilters: String, CaseIterable {
 }
 
 extension EnvironmentValues {
+    /// Active sidebar tag filters applied to technology listings.
     @Entry var tagFilters: Set<TagFilters> = []
 }

@@ -9,12 +9,16 @@ import SwiftUI
 
 /// Reusable navigation button that routes to the homepage and updates navigation selection state.
 struct HomepageNavigationLinkButton<Content: View>: View {
+    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Documentation model (kept for parity/extension across navigation buttons).
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
+    /// Label content displayed by the button.
     @ViewBuilder
     let label: Content
     
+    /// Whether selection background highlighting should be shown.
     var shouldShowBackground: Bool = true
     
     var body: some View {
@@ -30,6 +34,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
         .selectedLineBackground(isSelected: navigationViewModel.reference == nil && shouldShowBackground)
     }
     
+    /// Returns a copy configured to show or hide selection background.
     func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
@@ -40,11 +45,16 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 
 /// Reusable navigation button for article/reference destinations with optional bookmark-specific behavior.
 struct ReferenceNavigationLinkButton<Content: View>: View {
+    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    /// Documentation model used to resolve technologies for a reference.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// URL opener for external links.
     @Environment(\.openURL) private var openURL
+    /// Destination reference for navigation.
     private let reference: Reference
     
+    /// Row label content.
     @ViewBuilder
     private let label: Content
     
@@ -53,8 +63,11 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
         self.label = label()
     }
     
+    /// Whether this action should preserve bookmark-driven history semantics.
     private var isBookmarkNavigator: Bool = false
+    /// Whether selection background highlighting should be shown.
     private var shouldShowBackground: Bool = true
+    /// Whether one path component should be removed before pushing destination.
     private var removeLastPathComponentFirst: Bool = false
     
     /// Filters down to the lowest technology group and sets that as the side panel.
@@ -209,12 +222,16 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 
 /// Reusable navigation button that selects and shows a technology section.
 struct TechnologyNavigationLinkButton<Content: View>: View {
+    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Technology destination represented by this row.
     let technology: AppleTechnologies.FrameworkSection
     
+    /// Label content displayed by the button.
     @ViewBuilder
     let label: Content
     
+    /// Whether this row is currently selected.
     var isSelected: Bool {
         navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() && navigationViewModel.technology?.docCSite == technology.docCSite
     }

@@ -20,10 +20,15 @@ struct WindowTypes {
 @main
 /// Application entry point that configures model containers, scenes, and global environments.
 struct DocBApp: App {
+    /// Shared documentation model injected into app scenes.
     @State var documentationViewModel = DocumentationViewModel()
+    /// Shared app settings model injected into app scenes.
     @State var appSettings = AppSettings()
+    /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
+    /// Window opener used for command-driven scene creation.
     @Environment(\.openWindow) var openWindow
+    /// Primary SwiftData container for docs, bookmarks, and collections.
     let docCSiteModelContainer: ModelContainer
     
     /// Initializes the SwiftData container and development-only integrations.
@@ -92,13 +97,20 @@ struct DocBApp: App {
 }
 
 private struct MainView: View {
+    /// Onboarding completion flag persisted across launches.
     @AppStorage("has_onboarded") private var hasOnboarded: Bool = false
+    /// Initial URL value passed into this window scene.
     let url: URL
+    /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
     
+    /// Shared documentation model used for loading technologies and delete sync.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// SwiftData context for local technology deletion reconciliation.
     @Environment(\.modelContext) var modelContext
+    /// Whether the scene is currently active.
     @Environment(\.appearsActive) var appearsActive
+    /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
     
     /// Tracks source-sheet visibility only while the owning scene is active.

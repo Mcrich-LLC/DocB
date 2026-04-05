@@ -68,7 +68,9 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
 struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
+    /// Image resource identifier in the references map.
     let identifier: String
+    /// Categorized image usage type.
     let type: ImageType
     
     /// Supported DocC image usage categories.
@@ -152,14 +154,23 @@ enum CodableFontWeight: String, CaseIterable, Codable {
 struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     let id = UUID()
     
+    /// Plain text segment content.
     let text: String?
+    /// Code segment content.
     let code: String?
+    /// Optional reference identifier associated with this segment.
     let identifier: String?
+    /// Optional supplemental metadata.
     let metadata: Metadata?
+    /// Nested inline content segments.
     var inlineContent: [ContentStruct]?
+    /// Optional font style hint for rendering.
     fileprivate(set) var font: CodableFont?
+    /// Optional font weight hint for rendering.
     fileprivate(set) var fontWeight: CodableFontWeight?
+    /// Segment content type.
     fileprivate(set) var type: ContentType
+    /// Ordered-list number used when rendering ordered list content.
     fileprivate(set) var orderedListInt: Int?
     
     static fileprivate let doubleLineBreak = ContentStruct(text: "\n\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
@@ -223,7 +234,9 @@ extension [ContentStruct] {
 
 /// Raw token fragment used by declarations and reference metadata.
 struct Fragment: Codable, Hashable {
+    /// Fragment text content.
     let text: String
+    /// Fragment semantic kind (identifier, punctuation, etc.).
     let kind: String
 }
 
@@ -232,20 +245,32 @@ struct Fragment: Codable, Hashable {
 @CodableIgnoreInitializedProperties struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
+    /// Section kind discriminator.
     let kind: Kind
+    /// Raw section content blocks.
     let content: [Content]?
+    /// Condensed content optimized for article rendering.
     var condensedContent: [Content] { getCondensedContent(content ?? []) }
     
+    /// Declarations payload for symbol sections.
     var declarations: [Declaration]?
+    /// Mentioned-reference identifiers for mentions sections.
     let mentions: [String]?
+    /// Details payload for details sections.
     let details: Details?
     
     // Web Endpoint
+    /// REST response/property items for endpoint sections.
     let items: [RestResponse]?
+    /// Declared body content types for REST body sections.
     let bodyContentType: [RestResponse.RestResponseType]?
+    /// MIME type string for REST body/response sections.
     let mimeType: String?
+    /// Section title.
     let title: String?
+    /// Token stream used for endpoint/declaration code reconstruction.
     let tokens: [Token]?
+    /// Attribute definitions for REST attributes sections.
     let attributes: [Attribute]?
     
     /// Content-section discriminator used to drive rendering and decoding behavior.
@@ -643,7 +668,9 @@ struct Fragment: Codable, Hashable {
 
 /// Variant descriptor used for language-specific and trait-based DocC content.
 struct Variant: Codable, Equatable, Hashable {
+    /// Trait constraints for this variant.
     let traits: [Trait]
+    /// JSON patch target paths associated with this variant.
     let paths: [String]
     
     struct Trait: Codable, Equatable, Hashable {
@@ -653,7 +680,9 @@ struct Variant: Codable, Equatable, Hashable {
 
 /// Patch instructions used to override sections for specific variants.
 struct VariantOverride: Codable, Equatable, Hashable {
+    /// Trait constraints that activate this override.
     let traits: [Variant.Trait]
+    /// Patch operations to apply when traits match.
     let patch: [Patch]
     
     /// Individual patch operation for applying variant overrides.
@@ -681,18 +710,31 @@ struct VariantOverride: Codable, Equatable, Hashable {
 struct Reference: Codable, Hashable, Identifiable, Sendable {
     let id = UUID()
     
+    /// Display title.
     let title: String?
+    /// Optional abstract content.
     let abstract: [ContentStruct]?
+    /// Canonical identifier (often `doc://...`).
     let identifier: String
+    /// Optional kind metadata.
     let kind: String?
+    /// Reference type metadata.
     let type: String
+    /// Optional URL string from payload.
     let url: String?
+    /// Optional semantic role.
     let role: Role?
+    /// Optional syntax fragments for symbol-like titles.
     let fragments: [Fragment]?
+    /// Optional deprecation flag.
     let deprecated: Bool?
+    /// Optional beta flag.
     let beta: Bool?
+    /// Optional display variants.
     let variants: [Variant]?
+    /// Optional associated image assets.
     let images: [ImageStruct]?
+    /// Resolved DocC site context for relative links/assets.
     var docCSite: DocCSiteDTO?
     
     /// Whether this reference targets a non-DocC URL.
@@ -734,6 +776,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         return currentUrl.path().lowercased() == url.path().lowercased()
     }
     
+    /// Creates a reference from explicit values.
     init(title: String? = nil, abstract: [ContentStruct]? = nil, identifier: String, kind: String? = nil, type: String, url: String? = nil, role: Role? = nil, fragments: [Fragment]? = nil, deprecated: Bool? = nil, beta: Bool? = nil, variants: [Variant]? = nil, images: [ImageStruct]? = nil, docCSite: DocCSiteDTO? = nil) {
         self.title = title
         self.abstract = abstract
@@ -899,11 +942,17 @@ enum ContentType: String, Codable, Equatable, Hashable {
 struct Platform: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
+    /// Version where availability begins.
     let introducedAt: String?
+    /// Whether this platform is unavailable for the symbol/content.
     let unavailable: Bool?
+    /// Whether this platform availability is beta.
     let beta: Bool?
+    /// Platform name.
     let name: String
+    /// Whether the platform availability is deprecated.
     let deprecated: Bool?
+    /// Version where deprecation begins.
     let deprecatedAt: String?
 }
 

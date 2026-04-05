@@ -544,8 +544,8 @@ private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Se
 
 /// Checks whether a reference or any nested members satisfy active filters.
 ///
-/// This may trigger nested framework fetches to evaluate descendants.
-/// Running this across many references can be network-intensive and may briefly show loading states.
+/// This may fetch nested frameworks while evaluating descendants.
+/// Running it across many references can be network-intensive and may briefly show loading states.
 ///
 /// - Parameters:
 ///   - reference: The reference to evaluate.

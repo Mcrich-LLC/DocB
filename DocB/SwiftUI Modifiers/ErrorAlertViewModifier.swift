@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Presents a standard error alert whenever a bound optional error is non-`nil`.
 ///
-/// Dismissing the alert clears the bound error by setting it to `nil`.
+/// When the alert is dismissed, the bound error is reset to `nil`.
 struct ErrorAlertViewModifier: ViewModifier {
     @Binding var errorAlertItem: Error?
     

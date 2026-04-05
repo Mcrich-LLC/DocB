@@ -161,8 +161,7 @@ class DocumentationViewModel {
     /// Adds a new technology source and updates in-memory technology listings.
     ///
     /// Apple sources are treated specially and mapped to the built-in homepage and technologies endpoints.
-    ///
-    /// Duplicate custom DocC sources by URL are ignored.
+    /// If a custom DocC source with the same URL already exists, this method quietly returns without adding a duplicate.
     ///
     /// - Parameters:
     ///   - baseUrl: Root URL of the DocC site.
@@ -319,8 +318,8 @@ class DocumentationViewModel {
     
     /// Fetches and decodes a documentation article, applying variant overrides for the selected language.
     ///
-    /// Variant patch application currently targets declaration overrides in `primaryContentSections`.
-    /// Patch indices are read from the payload and applied when present.
+    /// Variant patches currently update declaration overrides in `primaryContentSections`.
+    /// When a patch includes an index for that section, the index from the payload is used directly.
     ///
     /// - Parameters:
     ///   - identifier: Documentation identifier for the article.

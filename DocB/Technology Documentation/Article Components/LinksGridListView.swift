@@ -8,6 +8,7 @@
 import SwiftUI
 import Kingfisher
 
+/// LinksGridListView renders a reusable SwiftUI view.
 struct LinksGridListView: View {
     let identifiers: [String]
     let style: ContentSection.Content.Style

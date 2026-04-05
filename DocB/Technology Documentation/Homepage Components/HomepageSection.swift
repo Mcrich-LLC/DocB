@@ -8,6 +8,7 @@
 import SwiftUI
 import Kingfisher
 
+/// HomepageSection renders a reusable SwiftUI view.
 struct HomepageSection: View {
     let section: HomepageParser.Section
     let homepage: HomepageParser

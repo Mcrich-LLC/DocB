@@ -32,6 +32,7 @@ extension EnvironmentValues {
     }
 }
 
+/// Wraps a dismiss closure that can be propagated through environment values and compared by identity.
 struct CustomDismissAction: Identifiable, Equatable {
     static func == (lhs: CustomDismissAction, rhs: CustomDismissAction) -> Bool {
         lhs.id == rhs.id

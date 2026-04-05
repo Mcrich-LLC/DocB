@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// MultilinePicker renders a reusable SwiftUI view.
 struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCollection, Data.Element: Identifiable, Data.Element: Equatable {
     let data: Data
     @Binding var selection: Data.Element

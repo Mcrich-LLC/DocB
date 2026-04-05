@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import PrivateObfuscationMacro
 
+/// Defines app-wide constants and URL helpers for loading documentation resources.
 struct Constants {
     static let aDeveloperURLBase = #base64Encoded("https://developer.apple.com")!
     static let basePath = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data")!

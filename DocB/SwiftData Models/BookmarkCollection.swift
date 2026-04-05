@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 
 @MainActor
+/// BookmarkCollectionDTO encapsulates app behavior and state.
 final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: BookmarkCollectionDTO, rhs: BookmarkCollectionDTO) -> Bool {
         lhs.id == rhs.id
@@ -72,6 +73,7 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
 }
 
 @Model
+/// BookmarkCollection encapsulates app behavior and state.
 final class BookmarkCollection: Identifiable {
     var id = UUID()
     var title: String?

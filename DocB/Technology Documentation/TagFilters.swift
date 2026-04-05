@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// TagFilters defines a constrained set of related values.
 enum TagFilters: String, CaseIterable {
     case deprecated
     case beta

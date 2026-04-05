@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// HomepageView renders a reusable SwiftUI view.
 struct HomepageView: View {
     let homepage: HomepageParser
     

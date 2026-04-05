@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// MentionsView renders a reusable SwiftUI view.
 struct MentionsView: View {
     let mentions: [String]
     let article: Article

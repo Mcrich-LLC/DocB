@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// DownloadButtonView renders a reusable SwiftUI view.
 struct DownloadButtonView: View {
     let sampleCodeDownload: Article.SampleCodeDownload
     let references: [String : Reference]

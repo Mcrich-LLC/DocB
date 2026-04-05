@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// LanguagePicker renders a reusable SwiftUI view.
 struct LanguagePicker: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
     let variants: [Variant]

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Shows bookmarks in a single collection grouped by source technology and provides per-item navigation.
 struct BookmarkCollectionNavigationView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel

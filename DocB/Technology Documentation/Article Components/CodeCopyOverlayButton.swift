@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// CodeCopyOverlayButton renders a reusable SwiftUI view.
 struct CodeCopyOverlayButton: View {
     let string: String
     @State private var hasCoppied: Bool = false

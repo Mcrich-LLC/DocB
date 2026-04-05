@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// AsideView renders a reusable SwiftUI view.
 struct AsideView: View {
     let style: ContentSection.Content.Style
     let content: [ContentSection.Content]

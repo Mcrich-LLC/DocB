@@ -146,6 +146,7 @@ private class ArticleContentManager {
     }
 }
 
+/// ArticleContentView renders a reusable SwiftUI view.
 struct ArticleContentView: View {
     @State private var manager: ArticleContentManager
     @Environment(\.docCSite) var docCSite

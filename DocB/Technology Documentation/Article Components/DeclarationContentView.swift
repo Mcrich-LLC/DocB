@@ -8,6 +8,7 @@
 import SwiftUI
 import HighlightSwift
 
+/// DeclarationContentView renders a reusable SwiftUI view.
 struct DeclarationContentView: View {
     let content: ContentSection.Declaration
     let article: Article

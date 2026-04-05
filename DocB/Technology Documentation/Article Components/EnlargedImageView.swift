@@ -8,12 +8,14 @@
 import SwiftUI
 import Kingfisher
 
+/// EnlargedImageSheetIdentifier represents reusable app data or behavior.
 struct EnlargedImageSheetIdentifier: Identifiable {
     let id = UUID()
     let identifier: String
     let url: URL
 }
 
+/// EnlargedImageView renders a reusable SwiftUI view.
 struct EnlargedImageView: View {
     let identifier: EnlargedImageSheetIdentifier
     @Environment(\.dismiss) var dismiss

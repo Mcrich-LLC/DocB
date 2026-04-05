@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// TopicsView renders a reusable SwiftUI view.
 struct TopicsView: View {
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel

@@ -8,6 +8,7 @@
 import SwiftUI
 import HighlightSwift
 
+/// WebEndpointRestEndPoint renders a reusable SwiftUI view.
 struct WebEndpointRestEndPoint: View {
     let contentSection: ContentSection
     let references: [String : Reference]

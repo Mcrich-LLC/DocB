@@ -162,6 +162,8 @@ class DocumentationViewModel {
     ///
     /// Apple sources are treated specially and mapped to the built-in homepage and technologies endpoints.
     ///
+    /// - Important: This method silently ignores duplicate custom DocC sources by URL.
+    ///
     /// - Parameters:
     ///   - baseUrl: Root URL of the DocC site.
     ///   - modelContext: SwiftData context used for persistence.
@@ -316,6 +318,9 @@ class DocumentationViewModel {
     }
     
     /// Fetches and decodes a documentation article, applying variant overrides for the selected language.
+    ///
+    /// - Important: Variant patch application currently targets declaration overrides in `primaryContentSections`.
+    /// - Warning: Variant patch indices are trusted from remote payloads and are applied directly when present.
     ///
     /// - Parameters:
     ///   - identifier: Documentation identifier for the article.

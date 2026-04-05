@@ -12,6 +12,8 @@ import SwiftUI
 @Observable
 @MainActor
 /// Central navigation state coordinator that drives history, deep links, and path synchronization.
+///
+/// - Important: `isNavigating` guards history writes during internal state transitions to prevent recursive history mutations.
 class NavigationViewModel: @MainActor Equatable {
     /// Enables selective in-place history updates for technology transitions.
     var technologyHistoryUpdatingIsEnabled: Bool = false
@@ -97,6 +99,8 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     /// Reconciles state when transitioning between split and stacked navigation modes.
+    ///
+    /// - Warning: This mutates both history and path state; call it only when layout mode actually changes.
     func handleIsUsingSplitViewChanged() {
         toggleHomepageInBeginingOfHistory()
         path = backupPath
@@ -554,6 +558,8 @@ extension NavigationViewModel {
     }
     
     /// Handles an inbound URL by resolving redirects and routing to framework/article destinations.
+    ///
+    /// - Important: `welcome` URLs are normalized through a redirect lookup before routing.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {        
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {

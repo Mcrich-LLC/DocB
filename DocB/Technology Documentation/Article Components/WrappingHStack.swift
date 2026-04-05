@@ -114,10 +114,15 @@ public struct WrappingHStack: Layout {
 }
 
 extension WrappingHStack {
+    /// Computed layout row containing wrapped element placement metrics.
     struct Row {
+        /// Row elements with source index, measured size, and horizontal offset.
         var elements: [(index: Int, size: CGSize, xOffset: CGFloat)] = []
+        /// Vertical offset of this row from the top of the layout.
         var yOffset: CGFloat = .zero
+        /// Total occupied width of this row.
         var width: CGFloat = .zero
+        /// Maximum element height in this row.
         var height: CGFloat = .zero
     }
 

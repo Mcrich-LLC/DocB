@@ -537,6 +537,7 @@ struct Fragment: Codable, Hashable {
         /// Table row/cell content payloads.
         let rows: [[[Content]]]?
         
+        /// Coding keys used to decode/encode polymorphic content nodes.
         enum CodingKeys: CodingKey {
             case type
             case identifier
@@ -863,6 +864,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         self.docCSite = docCSite
     }
     
+    /// Coding keys used for reference serialization.
     enum CodingKeys: CodingKey {
         case title
         case abstract

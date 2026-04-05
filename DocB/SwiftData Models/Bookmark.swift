@@ -100,6 +100,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.persistentModelID = model.persistentModelID
     }
     
+    /// Decodes a bookmark DTO from persisted JSON payload data.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
@@ -113,6 +114,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.siteBaseURL = try container.decode(URL.self, forKey: .siteBaseURL)
     }
     
+    /// Coding keys for bookmark DTO serialization.
     enum CodingKeys: String, CodingKey {
         case title
         case identifier

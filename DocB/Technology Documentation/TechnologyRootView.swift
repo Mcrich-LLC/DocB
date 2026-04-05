@@ -189,6 +189,7 @@ struct TechnologyRootView: View {
         .environment(manager)
     }
     
+    /// Inner framework list renderer used once a framework payload is available.
     private struct FrameworkView: View {
         /// Framework payload currently being rendered.
         let framework: Framework
@@ -435,12 +436,18 @@ private struct FrameworkDisclosureGroup: View {
         }
     }
     
+    /// Section renderer that expands topic identifiers into visible framework list rows.
     struct TopicSectionIdentifierWithID: View {
+        /// Source topic section.
         let section: Framework.TopicSection
+        /// Parent framework payload.
         let framework: Framework
+        /// Reference whose site context should be propagated to children.
         let reference: Reference
+        /// Visibility predicate for child references.
         let isReferenceShown: (Reference) -> Bool
         
+        /// Returns a copy of `reference` with inherited DocC site context.
         func getReference(from reference: Reference) -> Reference {
             var reference = reference
             reference.docCSite = self.reference.docCSite
@@ -448,6 +455,7 @@ private struct FrameworkDisclosureGroup: View {
             return reference
         }
         
+        /// Renders topic-section rows for visible child references.
         var body: some View {
             Section {
                 ForEach(section.identifiersWithIDs) { subidentifier in

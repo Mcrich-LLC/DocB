@@ -159,6 +159,7 @@ struct ContentView: View {
         #endif
     }
     
+    /// Sidebar container that switches between technologies and bookmark flows.
     struct SidebarView: View {
         /// Shared navigation state for sidebar and nested navigation transitions.
         @Environment(NavigationViewModel.self) var navigationViewModel
@@ -175,6 +176,7 @@ struct ContentView: View {
             }
         }
         
+        /// Renders the nested sidebar navigation hierarchy.
         var body: some View {
             @Bindable var navigationViewModel = navigationViewModel
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {

@@ -111,6 +111,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
     /// Optional legal notices payload.
     let legalNotices: LegalNotices?
     
+    /// Coding keys used for decoding shared section payloads.
     enum CodingKeys: CodingKey {
         case sections, legalNotices, references
     }

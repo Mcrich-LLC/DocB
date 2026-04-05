@@ -49,7 +49,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     /// Creates a DTO from a persisted `DocCSite` model.
     ///
-    /// - Warning: This initializer fails when persisted records are partially populated.
+    /// This initializer fails when persisted records are partially populated.
     ///
     /// - Parameter model: A persisted SwiftData model.
     /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
@@ -214,7 +214,7 @@ extension DocCSite {
     @Model
     /// Persisted representation of a DocC index grouped by interface language.
     ///
-    /// - Important: Child relationships use cascading deletes to keep nested index trees in sync with their parent index.
+    /// Child relationships use cascading deletes to keep nested index trees in sync with their parent index.
     final class DocCIndexModel: Identifiable {
         var id: UUID = UUID()
         

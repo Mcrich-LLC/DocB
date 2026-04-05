@@ -9,7 +9,7 @@ import SwiftUI
 
 /// A 2 piece navigation push/pop designed for the sidebar.
 ///
-/// - Warning: When not otherwise using the toolbar, the toolbar size may change between inner and outer views.
+/// If the toolbar is not otherwise in use, its size may change between the inner and outer views.
 struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @Binding private var isShowingInnerView: Bool
     private let unwrappedOptional: P?

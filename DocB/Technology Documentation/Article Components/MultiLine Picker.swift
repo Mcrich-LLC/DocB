@@ -20,7 +20,7 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
     @Namespace private var ns
     
     /// Horizontal shadow offset for the selected marker at segment edges.
-    var xShaddow: CGFloat {
+    var xShadow: CGFloat {
         guard let index = data.firstIndex(of: selection) as? Int else { return 0 }
         
         if index == 0 {
@@ -70,7 +70,7 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
                                 .fill(selectedBackgroundColor)
                                 .frame(maxHeight: .infinity)
                                 .matchedGeometryEffect(id: "Marker", in: ns)
-                                .shadow(color: .black.opacity(0.2), radius: 0.5, x: xShaddow, y: 0.7)
+                                .shadow(color: .black.opacity(0.2), radius: 0.5, x: xShadow, y: 0.7)
                         } else {
                             RoundedRectangle(cornerRadius: cornerRadius)
                                 .fill(backgroundColor.opacity(0.00000000001))

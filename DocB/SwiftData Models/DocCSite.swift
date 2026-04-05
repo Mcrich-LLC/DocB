@@ -298,7 +298,7 @@ extension DocCSite {
         var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
             let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
             
-            return DocCIndex.InterfaceLanguage(title: title ?? "Unknonwn", path: path, type: type ?? "Unknown", children: children)
+            return DocCIndex.InterfaceLanguage(title: title ?? "Unknown", path: path, type: type ?? "Unknown", children: children)
         }
         
         /// Recursively checks whether this entry or descendants match the search query.

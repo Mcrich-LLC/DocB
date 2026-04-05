@@ -168,8 +168,11 @@ private class ArticleContentManager {
 
 /// Renders a single documentation content node and recursively renders nested child content.
 struct ArticleContentView: View {
+    /// Shared renderer state for this content node and its descendants.
     @State private var manager: ArticleContentManager
+    /// Active DocC site configuration used to resolve relative media URLs.
     @Environment(\.docCSite) var docCSite
+    /// Navigation model passed to link-based content views.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Creates a content renderer for a content node and its references.
@@ -177,8 +180,11 @@ struct ArticleContentView: View {
         self.manager = .init(content: content, references: references, type: type, alignment: alignment, orderedListIndex: orderedListIndex)
     }
     
+    /// Backing player for video blocks initialized when video content appears.
     @State var player: AVPlayer?
+    /// Current tab selection for `.tabNavigator` content.
     @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
+    /// Latest measured size of this view, used for adaptive row/grid layout.
     @State private var viewSize: CGSize?
     
     @Environment(\.colorScheme) var colorScheme
@@ -411,6 +417,7 @@ struct ArticleContentView: View {
             }
         case .row:
             if (content.columns ?? []).filter({ $0.size > 1 }).isEmpty {
+                // Derive how many columns can fit at a readable minimum width (~350pt each).
                 let widthDeterminedColumns: Int = if let viewSize {
                     max(1, Int(viewSize.width / 350))
                 } else {
@@ -429,9 +436,11 @@ struct ArticleContentView: View {
                 }
             } else {
                 HStack {
+                    // Effective grid units in this row (explicit value if supplied, else sum of per-column sizes).
                     let columnNumber = content.numberOfColumns ?? (content.columns ?? []).reduce(0, { partialResult, column in
                         partialResult.advanced(by: column.size)
                     })
+                    // Width for one grid unit; each column multiplies this by its declared size.
                     let columnWidth = if let viewSize {
                         viewSize.width/CGFloat(columnNumber)
                     } else {
@@ -504,9 +513,12 @@ struct ArticleContentView: View {
         /// Optional alignment override for emitted text blocks.
         let alignment: Alignment?
         
+        /// Current appearance used when resolving media variants.
         @Environment(\.colorScheme) private var colorScheme
+        /// Active DocC site used to expand relative media URLs.
         @Environment(\.docCSite) private var docCSite
         
+        /// Parent manager injected from ``ArticleContentView`` for shared references and style context.
         @Environment(ArticleContentManager.self) private var manager
         
         /// Creates an inline content renderer for a sequence of inline nodes.
@@ -521,8 +533,10 @@ struct ArticleContentView: View {
         }
         
         var body: some View {
+            // Ordered stream of rendered inline segments (text blocks, images, video).
             var views: [InlineContent] = []
             
+            // Text accumulator that coalesces adjacent textual inlines into a single Text view.
             var text: AttributedString = manager.specialStyleString("", type: .text)
             
             func appendText() {
@@ -576,6 +590,7 @@ struct ArticleContentView: View {
                             }
                             
                             if inlineText == "/%1.5_break_/%" {
+                                // Project-specific sentinel token used to emit an intentional visual break.
                                 attributedString = AttributedString("\n\n")
                                 attributedString.font = .system(size: 2)
                             }

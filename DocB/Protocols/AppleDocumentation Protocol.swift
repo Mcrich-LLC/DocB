@@ -7,6 +7,10 @@
 
 import Foundation
 
+/// Shared protocol adopted by decoded DocC payload models in the app.
+///
+/// Conforming types provide legal notice information and common decoding/equality semantics.
 protocol AppleDocumentation: Decodable, Equatable, Hashable, Sendable {
+    /// Optional legal notices associated with the decoded documentation payload.
     var legalNotices: LegalNotices? { get }
 }

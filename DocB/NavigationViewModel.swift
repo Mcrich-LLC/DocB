@@ -11,7 +11,9 @@ import SwiftUI
 
 @Observable
 @MainActor
+/// Central navigation state coordinator that drives history, deep links, and path synchronization.
 class NavigationViewModel: @MainActor Equatable {
+    /// Enables selective in-place history updates for technology transitions.
     var technologyHistoryUpdatingIsEnabled: Bool = false
     
     /// Sets the next `addToHistory` call to use bookmarks 
@@ -33,6 +35,7 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Sets the currently selected bookmark collection and updates bookmark mode state.
     func setBookmarkCollection(_ collection: BookmarkCollection?) {
         self.bookmarkCollection = collection
         self.isShowingBookmarkCollection = collection != nil
@@ -47,6 +50,11 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Sets the currently selected technology section.
+    ///
+    /// - Parameters:
+    ///   - technology: The technology section to select.
+    ///   - noHistory: When `true`, suppresses automatic history insertion for this update.
     func setTechnology(_ technology: AppleTechnologies.FrameworkSection?, noHistory: Bool = false) {
         if noHistory {
             isNavigating = true
@@ -64,6 +72,11 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Sets the currently selected reference.
+    ///
+    /// - Parameters:
+    ///   - reference: The reference to select.
+    ///   - forceHistory: When `true`, allows this change to be captured in history.
     func setReference(_ reference: Reference?, forceHistory: Bool = false) {
         if forceHistory {
             isNavigating = false
@@ -74,6 +87,7 @@ class NavigationViewModel: @MainActor Equatable {
         
     var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     var horizontalSizeClass: UserInterfaceSizeClass? = .regular
+    /// Returns `true` when the current environment should present split-view navigation.
     var isUsingSplitView: Bool {
         #if os(macOS)
         true
@@ -82,6 +96,7 @@ class NavigationViewModel: @MainActor Equatable {
         #endif
     }
     
+    /// Reconciles state when transitioning between split and stacked navigation modes.
     func handleIsUsingSplitViewChanged() {
         toggleHomepageInBeginingOfHistory()
         path = backupPath
@@ -126,11 +141,13 @@ class NavigationViewModel: @MainActor Equatable {
     }*/
     private var backupPath: [PathElement] = []
     
+    /// Appends a new element to both active and backup navigation paths.
     func appendPath(_ element: PathElement) {
         path.append(element)
         backupPath.append(element)
     }
     
+    /// Removes one or more trailing path elements from active and backup paths.
     func removeLastPath(_ k: Int = 1) {
         guard path.count >= k else { return }
         
@@ -287,6 +304,7 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     // Navigate backward in history
+    /// Navigates backward through history and optionally updates the navigation path.
     func goBackward(updatePath: Bool = true) {
         if !isUsingSplitView && isShowingAllBookmarkCollections && isShowingBookmarkCollection {
             isNavigating = true
@@ -325,6 +343,8 @@ class NavigationViewModel: @MainActor Equatable {
     }
     
     /// Navigates forward in history
+    ///
+    /// - Parameter updatePath: Whether to mutate `path`/`backupPath` for UI synchronization.
     func goForward(updatePath: Bool = true) {
         if currentIndex < history.count - 1 {
             currentIndex += 1
@@ -389,18 +409,22 @@ class NavigationViewModel: @MainActor Equatable {
         isShowingAllBookmarkCollections = currentState.isAllBookmarkCollections
     }
     
+    /// Returns whether the current history state matches the given reference.
     func shouldRemoveReferenceFromPath(_ reference: Reference?) -> Bool {
         history[currentIndex].reference == reference
     }
     
+    /// Returns whether the current history state matches the given technology and has no reference.
     func shouldRemoveTechnologyFromPath(_ technology: AppleTechnologies.FrameworkSection?) -> Bool {
         history[currentIndex].technology == technology && history[currentIndex].reference == nil
     }
     
+    /// Returns whether the current history entry represents the homepage.
     func homepageIsCurrent() -> Bool {
         history[currentIndex].isHomepage
     }
     
+    /// Inserts or removes homepage state at the start of history based on layout mode.
     func toggleHomepageInBeginingOfHistory() {
         if isUsingSplitView && history.first?.isHomepage != true {
             history.insert(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true), at: 0)
@@ -413,6 +437,7 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Returns the last history index where a matching reference appears.
     func getHistoryIndexOfReference(_ reference: Reference) -> Int? {
         history.lastIndex(where: { history in
             guard let ref = history.reference else {
@@ -423,6 +448,7 @@ class NavigationViewModel: @MainActor Equatable {
         })
     }
     
+    /// Returns the technology at a history index when valid.
     func getHistoryTechnology(at index: Int) -> AppleTechnologies.FrameworkSection? {
         if index < history.count - 1 && index >= 0 {
             return history[index].technology
@@ -431,6 +457,7 @@ class NavigationViewModel: @MainActor Equatable {
         }
     }
     
+    /// Handles cleanup when a visible reference should be removed from history/path state.
     func handleHistoryRemoval(for reference: Reference) {
         isNavigating = true
         defer { isNavigating = false }
@@ -481,6 +508,7 @@ class NavigationViewModel: @MainActor Equatable {
 }
 
 extension Dictionary {
+    /// Merges key/value pairs from another dictionary, replacing existing values on conflict.
     mutating func merge(dict: [Key: Value]) {
         for (k, v) in dict {
             updateValue(v, forKey: k)
@@ -499,6 +527,7 @@ private struct History: Identifiable, Hashable {
     let isHomepage: Bool
 }
 
+/// NavigationPath element wrapper used for strongly typed stack and split navigation.
 enum PathElement: Hashable {
     case reference(Reference)
     case technology(AppleTechnologies.FrameworkSection)
@@ -508,6 +537,7 @@ enum PathElement: Hashable {
 }
 
 extension NavigationLink where Destination == Never {
+    /// Creates a value-based `NavigationLink` for a typed `PathElement`.
     init(element: PathElement, @ViewBuilder  label: () -> Label) {
         self.init(value: element, label: label)
     }
@@ -515,6 +545,7 @@ extension NavigationLink where Destination == Never {
 
 // MARK: Deeplinking
 extension NavigationViewModel {
+    /// Handles an inbound URL and invokes a completion closure after routing is attempted.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel, completion: (() -> Void)? = nil) {
         Task {
             await handleURL(url, documentationViewModel: documentationViewModel)
@@ -522,6 +553,7 @@ extension NavigationViewModel {
         }
     }
     
+    /// Handles an inbound URL by resolving redirects and routing to framework/article destinations.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {        
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
@@ -547,6 +579,7 @@ extension NavigationViewModel {
         await handleArticleURL(updatedUrl, documentationViewModel: documentationViewModel)
     }
     
+    /// Attempts to route a URL to a framework destination across known technology sources.
     private func handleFrameworkURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
         for technology in documentationViewModel.technologies {
             switch technology {
@@ -564,6 +597,7 @@ extension NavigationViewModel {
         }
     }
     
+    /// Attempts to match and route a URL to a custom DocC framework.
     @discardableResult
     private func handleDocCFrameworkURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
@@ -598,6 +632,7 @@ extension NavigationViewModel {
         return true
     }
     
+    /// Attempts to match and route a URL to an Apple-hosted framework.
     @discardableResult
     private func handleAppleFrameworkURL(_ url: URL, for technologies: AppleTechnologies, documentationViewModel: DocumentationViewModel) async -> Bool {
         guard let moduleString = Array(url.pathComponents.dropFirst(2)).first,
@@ -638,6 +673,7 @@ extension NavigationViewModel {
         return true
     }
     
+    /// Attempts to route a URL to an article destination across known technology sources.
     private func handleArticleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {
         for technology in documentationViewModel.technologies {
             switch technology {
@@ -655,6 +691,7 @@ extension NavigationViewModel {
         }
     }
     
+    /// Attempts to match and route a URL to an article in a custom DocC site.
     @discardableResult
     private func handleDocCArticleURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
@@ -728,6 +765,7 @@ extension NavigationViewModel {
         return true
     }
     
+    /// Attempts to match and route a URL to an Apple-hosted article.
     @discardableResult
     private func handleAppleArticleURL(_ url: URL, for technologies: AppleTechnologies, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))

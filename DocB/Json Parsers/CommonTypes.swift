@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import EnhancedCodable
 
+/// Condenses nested content blocks into render-friendly inline segments.
 private func getCondensedContent(_ content: [ContentSection.Content]) -> [ContentSection.Content] {
     var newContent: [ContentSection.Content] = []
     
@@ -63,27 +64,32 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
 }
 
 @CodableIgnoreInitializedProperties
+/// Image metadata for DocC references and content blocks.
 struct ImageStruct: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
     let identifier: String
     let type: ImageType
     
+    /// Supported DocC image usage categories.
     enum ImageType: String, Codable, CaseIterable {
         case icon
         case card
     }
 }
 
+/// Legal notice metadata attached to documentation payloads.
 struct LegalNotices: Codable, Equatable, Hashable {
     let copyright: String
     let termsOfUse: String
     let privacyPolicy: String
 }
 
+/// Codable representation of SwiftUI font styles used in parsed content.
 enum CodableFont: String, CaseIterable, Codable {
     case body, callout, caption, caption2, footnote, headline, subheadline, largeTitle, title, title2, title3
     
+    /// Corresponding SwiftUI font.
     var font: Font {
         switch self {
         case .body:
@@ -112,9 +118,11 @@ enum CodableFont: String, CaseIterable, Codable {
     }
 }
 
+/// Codable representation of SwiftUI font weights used in parsed content.
 enum CodableFontWeight: String, CaseIterable, Codable {
     case ultraLight, thin, light, regular, medium, semibold, bold, heavy, black
     
+    /// Corresponding SwiftUI font weight.
     var fontWeight: Font.Weight {
         switch self {
         case .ultraLight:
@@ -140,6 +148,7 @@ enum CodableFontWeight: String, CaseIterable, Codable {
 }
 
 @CodableIgnoreInitializedProperties
+/// Recursive inline content fragment used to render text, lists, emphasis, and metadata.
 struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     let id = UUID()
     
@@ -157,6 +166,7 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     static fileprivate let oneAndAHalfLineBreak = ContentStruct(text: "/%1.5_break_/%", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     static fileprivate let lineBreak = ContentStruct(text: "\n", code: nil, identifier: nil, metadata: nil, inlineContent: nil, font: nil, fontWeight: nil, type: .text, orderedListInt: nil)
     
+    /// Flattens nested inline content into a single attributed string.
     func getFlattenedAttributedString() -> AttributedString {
         var attributedString = AttributedString(text ?? "")
         
@@ -170,6 +180,7 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
         return attributedString
     }
     
+    /// Applies font and emphasis attributes to attributed text according to content metadata.
     private func applyAttributedStringFontAttributes(_ attributedString: AttributedString) -> AttributedString {
         var attributedString = attributedString
         
@@ -190,6 +201,7 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     }
     
     @CodableIgnoreInitializedProperties
+    /// Supplemental metadata attached to an inline content fragment.
     struct Metadata: Codable, Hashable, Equatable {
         let id: UUID = UUID()
         
@@ -198,6 +210,7 @@ struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
 }
 
 extension [ContentStruct] {
+    /// Whether all items (including nested inline content) are plain or emphasized text.
     var isAllSomeFormOfText: Bool {
         let allowableTypes: [ContentType] = [.text, .emphasis, .strong]
         return !contains(where: { content in
@@ -208,12 +221,14 @@ extension [ContentStruct] {
     }
 }
 
+/// Raw token fragment used by declarations and reference metadata.
 struct Fragment: Codable, Hashable {
     let text: String
     let kind: String
 }
 
 // swiftlint:disable:next type_body_length
+/// Parsed DocC content section supporting narrative, declarations, REST docs, and structured blocks.
 @CodableIgnoreInitializedProperties struct ContentSection: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     
@@ -233,6 +248,7 @@ struct Fragment: Codable, Hashable {
     let tokens: [Token]?
     let attributes: [Attribute]?
     
+    /// Content-section discriminator used to drive rendering and decoding behavior.
     enum Kind: String, Codable, Equatable, Hashable {
         case content
         case declarations
@@ -251,6 +267,7 @@ struct Fragment: Codable, Hashable {
     }
     
     @CodableIgnoreInitializedProperties
+    /// REST attribute model for endpoint documentation.
     struct Attribute: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
@@ -258,6 +275,7 @@ struct Fragment: Codable, Hashable {
     }
     
     @CodableIgnoreInitializedProperties
+    /// REST response documentation block.
     struct RestResponse: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
@@ -269,6 +287,7 @@ struct Fragment: Codable, Hashable {
         let name: String?
         
         @CodableIgnoreInitializedProperties
+        /// Token metadata describing HTTP types and related identifiers.
         struct RestResponseType: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
@@ -280,6 +299,7 @@ struct Fragment: Codable, Hashable {
     }
     
     @CodableIgnoreInitializedProperties
+    /// Key/value details section for symbol or endpoint metadata.
     struct Details: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         
@@ -292,6 +312,7 @@ struct Fragment: Codable, Hashable {
     }
     
     @CodableIgnoreInitializedProperties
+    /// Language-specific declaration block for symbols.
     struct Declaration: Codable, Identifiable, Equatable, Hashable {
         let id = UUID()
         let tokens: [Token]
@@ -307,12 +328,14 @@ struct Fragment: Codable, Hashable {
         }
     }
     
+    /// Token element used inside declaration and endpoint sections.
     struct Token: Codable, Equatable, Hashable {
         let text: String?
         let kind: String
         let code: String?
     }
     
+    /// Generic DocC content node supporting nested blocks, tables, tabs, and list structures.
     struct Content: Codable, Identifiable, Equatable, Hashable, Sendable {
         let id = UUID()
         let type: ContentType?
@@ -343,6 +366,7 @@ struct Fragment: Codable, Hashable {
         let unorderedListItems: [UnorderedListItem]?
         let orderedListItems: [UnorderedListItem]?
         
+        /// Converts term list items into flattened inline content suitable for rendering.
         func inlineContentFromTermListItems() -> [ContentStruct] {
             (termListItems ?? []).enumerated().flatMap({ n, item in
                 let termContent = item.term.inlineContent.map { content in
@@ -357,6 +381,7 @@ struct Fragment: Codable, Hashable {
             })
         }
         
+        /// Converts unordered list items into flattened inline content suitable for rendering.
         func inlineContentFromUnorderedListItems() -> [ContentStruct] {
             (unorderedListItems ?? []).flatMap({ item in
                 (item.content ?? []).flatMap { c in
@@ -386,6 +411,7 @@ struct Fragment: Codable, Hashable {
             }
         }
         
+        /// Converts ordered list items into flattened inline content with index metadata.
         func inlineContentFromOrderedListItems() -> [ContentStruct] {
             let flattenedItems: [ContentStruct] = (orderedListItems ?? []).flatMap({ item in
                 (item.content ?? []).flatMap { c in
@@ -545,6 +571,7 @@ struct Fragment: Codable, Hashable {
             try container.encode(rows, forKey: .rows)
         }
         
+        /// Content layout style hint from DocC payloads.
         enum Style: String, Codable, CaseIterable, Equatable {
             case compactGrid
             case detailedGrid
@@ -561,12 +588,14 @@ struct Fragment: Codable, Hashable {
             case deprecated
         }
         
+        /// Table-like column descriptor used by row content types.
         struct Column: Codable, Equatable, Hashable {
             let size: Int
             let content: [Content]
         }
         
         @CodableIgnoreInitializedProperties
+        /// Tab content wrapper for tabbed content sections.
         struct Tab: Codable, Equatable, Identifiable, Hashable {
             let id = UUID()
             
@@ -578,6 +607,7 @@ struct Fragment: Codable, Hashable {
             let title: String
             
             @CodableIgnoreInitializedProperties
+            /// Item wrapper used within tab payloads.
             struct Item: Codable, Equatable, Identifiable, Hashable {
                 let id = UUID()
                 
@@ -586,6 +616,7 @@ struct Fragment: Codable, Hashable {
         }
         
         @CodableIgnoreInitializedProperties
+        /// Term list entry with term and definition blocks.
         struct TermListItem: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             let term: Term
@@ -601,6 +632,7 @@ struct Fragment: Codable, Hashable {
         }
         
         @CodableIgnoreInitializedProperties
+        /// Unordered/ordered list entry content wrapper.
         struct UnorderedListItem: Codable, Identifiable, Equatable, Hashable {
             let id = UUID()
             
@@ -609,6 +641,7 @@ struct Fragment: Codable, Hashable {
     }
 }
 
+/// Variant descriptor used for language-specific and trait-based DocC content.
 struct Variant: Codable, Equatable, Hashable {
     let traits: [Trait]
     let paths: [String]
@@ -618,15 +651,18 @@ struct Variant: Codable, Equatable, Hashable {
     }
 }
 
+/// Patch instructions used to override sections for specific variants.
 struct VariantOverride: Codable, Equatable, Hashable {
     let traits: [Variant.Trait]
     let patch: [Patch]
     
+    /// Individual patch operation for applying variant overrides.
     struct Patch: Codable, Equatable, Hashable {
         let op: String
         let path: String
         let value: AltDeclarationsWrapper?
         
+        /// Variant override payload containing replacement declarations.
         struct AltDeclarationsWrapper: Codable, Equatable, Hashable {
             let declarations: [ContentSection.Declaration]
             let kind: String
@@ -641,6 +677,7 @@ struct VariantOverride: Codable, Equatable, Hashable {
     }
 }
 
+/// Reference metadata used for navigation, linking, and rendering across documentation payloads.
 struct Reference: Codable, Hashable, Identifiable, Sendable {
     let id = UUID()
     
@@ -658,10 +695,12 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
     let images: [ImageStruct]?
     var docCSite: DocCSiteDTO?
     
+    /// Whether this reference targets a non-DocC URL.
     var isExternalReference: Bool {
         url?.lowercased().contains("/documentation") == false
     }
     
+    /// Resolves the external URL for this reference using Apple or custom-site context.
     var externalURL: URL? {
         var urlString: String? = url
         
@@ -684,6 +723,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         return docCSite.url.appending(path: urlString)
     }
     
+    /// Path-based reference comparison that tolerates host differences.
     func isEqual(to reference: Self) -> Bool {
         guard let currentUrl = URL(string: identifier),
               let url = URL(string: reference.identifier)
@@ -748,6 +788,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         self.docCSite = nil
     }
     
+    /// Variant metadata scoped to a reference URL.
     struct Variant: Codable, Hashable {
         let url: String
         let traits: [String]
@@ -755,6 +796,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
 }
 
 // MARK: Role
+/// Semantic role for a DocC reference or content destination.
 enum Role: String, Codable, Equatable, Hashable {
     case collectionGroup
     case collection
@@ -772,6 +814,7 @@ enum Role: String, Codable, Equatable, Hashable {
     case restRequestSymbol
     case unknown
     
+    /// Optional role-specific background color used in UI.
     var color: Color? {
         switch self {
         case .sampleCode:
@@ -789,6 +832,7 @@ enum Role: String, Codable, Equatable, Hashable {
         }
     }
     
+    /// Accent color used for role badges and iconography.
     var accentColor: Color {
         switch self {
         case .collection, .symbol:
@@ -800,12 +844,14 @@ enum Role: String, Codable, Equatable, Hashable {
         }
     }
     
+    /// Gradient colors used for role-themed backgrounds.
     var gradientColors: [Color] {
         let color = color ?? .article
         
         return [color.opacity(0.4), color.opacity(0.0)]
     }
             
+    /// Preferred SF Symbol used to represent this role in lists.
     var labelIcon: SFSymbol {
         switch self {
         case .collectionGroup, .collection:
@@ -822,6 +868,7 @@ enum Role: String, Codable, Equatable, Hashable {
 
 // MARK: Content Types
 
+/// Supported inline and block content types decoded from DocC JSON.
 enum ContentType: String, Codable, Equatable, Hashable {
     case heading
     case paragraph
@@ -848,6 +895,7 @@ enum ContentType: String, Codable, Equatable, Hashable {
 
 // MARK: Platforms
 @CodableIgnoreInitializedProperties
+/// Platform availability metadata for symbols and articles.
 struct Platform: Codable, Identifiable, Equatable, Hashable {
     let id = UUID()
     

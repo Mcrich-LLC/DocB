@@ -9,9 +9,13 @@ import Foundation
 import SwiftUI
 import PrivateObfuscationMacro
 
+/// Defines app-wide constants and URL helpers for loading documentation resources.
 struct Constants {
+    /// Base URL for Apple Developer Documentation.
     static let aDeveloperURLBase = #base64Encoded("https://developer.apple.com")!
+    /// Legacy tutorials data endpoint used by older Apple payloads.
     static let basePath = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data")!
+    /// Custom deep-link scheme used to route in-app documentation links.
     static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.

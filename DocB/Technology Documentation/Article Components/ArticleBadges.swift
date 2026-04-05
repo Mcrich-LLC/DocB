@@ -7,10 +7,14 @@
 
 import SwiftUI
 
+/// ArticleBadge renders a reusable SwiftUI view.
 struct ArticleBadge: View {
+    /// Current color scheme used to maintain text contrast on badge backgrounds.
     @Environment(\.colorScheme) var colorScheme
+    /// Badge type rendered by this capsule.
     let badge: Badge
     
+    /// Supported article badge styles.
     enum Badge: String, CaseIterable {
         case beta, deprecated
         

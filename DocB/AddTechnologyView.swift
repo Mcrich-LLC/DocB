@@ -9,14 +9,21 @@ import Kingfisher
 import SwiftUI
 import SwiftData
 
+/// Curated source descriptor used by the add-technology UI.
 private struct SuggestedTechnology: Identifiable, Hashable {
+    /// Stable local identifier for SwiftUI diffing.
     let id = UUID()
+    /// Display title shown in the featured technologies list.
     let title: String
+    /// Optional descriptive subtitle shown under the title.
     let subtitle: String?
+    /// Optional icon/logo URL for the suggested technology.
     let image: URL?
+    /// Base documentation URL used to add/remove the source.
     let baseURL: URL
 }
 
+/// Presents the add-technology flow inside a navigation container with close controls.
 struct AddTechnologySheetView: View {
     var body: some View {
         NavigationStack {
@@ -29,14 +36,22 @@ struct AddTechnologySheetView: View {
     }
 }
 
+/// Lists featured and custom documentation sources and supports adding or removing DocC technologies.
 struct AddTechnologyView: View {
+    /// Shared documentation state for adding/removing technologies.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// SwiftData context used for persistence-backed source changes.
     @Environment(\.modelContext) var modelContext
+    /// Persisted DocC site models currently available in local storage.
     @Query var docCSites: [DocCSite]
+    /// User-entered custom URL text before normalization.
     @State private var addDocumentationUrl = ""
+    /// Captures errors to present through the common error alert modifier.
     @State private var errorAlert: Error?
+    /// Tracks in-flight featured add operations to keep UI state responsive.
     @State private var technologiesAddInProgress: Set<SuggestedTechnology> = []
     
+    /// Non-featured technologies currently configured by the user.
     private var customSites: [TechnologyTypes] {
         documentationViewModel.technologies.filter { tech in
             switch tech {
@@ -47,6 +62,7 @@ struct AddTechnologyView: View {
         }
     }
 
+    /// Curated list of quick-add documentation sources.
     private let featuredTechnologies: [SuggestedTechnology] = [
         SuggestedTechnology(
             title: "CubiomesKit",
@@ -80,6 +96,7 @@ struct AddTechnologyView: View {
         )
     ]
     
+    /// Returns whether a featured technology is already added or currently being added.
     private func isSuggestedAdded(_ technology: SuggestedTechnology) -> Bool {
         documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) || technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
     }
@@ -146,6 +163,7 @@ struct AddTechnologyView: View {
         .alert(for: $errorAlert)
     }
     
+    /// Adds or removes a featured technology depending on current selection state.
     private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
         if isSuggestedAdded(technology) {
             technologiesAddInProgress.remove(technology)
@@ -159,6 +177,7 @@ struct AddTechnologyView: View {
         }
     }
     
+    /// Normalizes and validates the entered custom URL, then adds it as a DocC source.
     private func addCustomDocCSite() async {
         var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
         
@@ -174,6 +193,7 @@ struct AddTechnologyView: View {
         self.addDocumentationUrl = ""
     }
     
+    /// Removes a persisted DocC source that matches the provided base URL.
     private func removeDocCSite(url: URL) {
         guard let site = try? docCSites.first(where: { $0.url == url })?.dto else {
             return
@@ -185,6 +205,7 @@ struct AddTechnologyView: View {
         }
     }
     
+    /// Adds a DocC source by extracting a normalized base URL and loading its index.
     private func addDocCSite(url: URL, overrideName: String? = nil) async {
         guard let scheme = url.scheme,
               let host = url.host
@@ -212,7 +233,9 @@ struct AddTechnologyView: View {
     }
 }
 
+/// Row renderer for technologies already entered/added by the user.
 private struct EnteredTechnologyRow: View {
+    /// Technology entry currently displayed in the custom list.
     let technology: TechnologyTypes
     
     var body: some View {
@@ -233,7 +256,9 @@ private struct EnteredTechnologyRow: View {
     }
 }
 
+/// Row renderer for a curated suggested technology entry.
 private struct SuggestedTechnologyRow: View {
+    /// Curated technology metadata used to populate title, subtitle, and icon.
     let technology: SuggestedTechnology
 
     var body: some View {

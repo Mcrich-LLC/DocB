@@ -9,19 +9,29 @@ import SwiftUI
 @_exported import SFSafeSymbols
 import SwiftData
 
+/// Scene and window identifiers used by the app.
 struct WindowTypes {
+    /// Secondary window for adding custom DocC sources.
     static let addSites = "add_sites"
+    /// Main documentation browsing window.
     static let main = "main"
 }
 
 @main
+/// Application entry point that configures model containers, scenes, and global environments.
 struct DocBApp: App {
+    /// Shared documentation model injected into app scenes.
     @State var documentationViewModel = DocumentationViewModel()
+    /// Shared app settings model injected into app scenes.
     @State var appSettings = AppSettings()
+    /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
+    /// Window opener used for command-driven scene creation.
     @Environment(\.openWindow) var openWindow
+    /// Primary SwiftData container for docs, bookmarks, and collections.
     let docCSiteModelContainer: ModelContainer
     
+    /// Initializes the SwiftData container and development-only integrations.
     init() {
         do {
             docCSiteModelContainer = try ModelContainer(for: DocCSite.self, Bookmark.self, BookmarkCollection.self, configurations: .init(cloudKitDatabase: .automatic))
@@ -65,6 +75,7 @@ struct DocBApp: App {
         #endif
     }
     
+    /// Loads RocketSim debug integration when available in local development environments.
     private func loadRocketSimConnect() {
         #if DEBUG
         guard (Bundle(path: "/Applications/RocketSim.app/Contents/Frameworks/RocketSimConnectLinker.nocache.framework")?.load() == true) else {
@@ -75,6 +86,7 @@ struct DocBApp: App {
         #endif
     }
     
+    /// Presents the add-source experience using platform-appropriate presentation.
     private func showAddDocumentationView() {
         #if os(macOS)
         openWindow(id: WindowTypes.addSites)
@@ -84,16 +96,25 @@ struct DocBApp: App {
     }
 }
 
+/// Root scene container that switches between onboarding and main content flows.
 private struct MainView: View {
+    /// Onboarding completion flag persisted across launches.
     @AppStorage("has_onboarded") private var hasOnboarded: Bool = false
+    /// Initial URL value passed into this window scene.
     let url: URL
+    /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
     
+    /// Shared documentation model used for loading technologies and delete sync.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// SwiftData context for local technology deletion reconciliation.
     @Environment(\.modelContext) var modelContext
+    /// Whether the scene is currently active.
     @Environment(\.appearsActive) var appearsActive
+    /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
     
+    /// Tracks source-sheet visibility only while the owning scene is active.
     var activeTrackedShowAddSource: Binding<Bool> {
         Binding {
             appearsActive && self.showAddSource
@@ -127,6 +148,7 @@ private struct MainView: View {
         }
     }
     
+    /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
         Task {
             await documentationViewModel.loadTechnologies(newValue.asDTOs)

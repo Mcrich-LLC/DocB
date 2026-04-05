@@ -8,10 +8,14 @@
 import SwiftUI
 import Kingfisher
 
+/// HomepageHero renders a reusable SwiftUI view.
 struct HomepageHero: View {
+    /// Homepage section payload used to render hero media and text.
     let section: HomepageParser.Section
+    /// Parsed homepage document containing shared references.
     let homepage: HomepageParser
     
+    /// Current color scheme used to select media variants.
     @Environment(\.colorScheme) var colorScheme
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Presents the opening onboarding screen that introduces the app and advances to the next step.
 struct IntroOnboardingView: View {
     @Environment(OnboardingStepManager.self) var stepManager
     
@@ -57,6 +58,7 @@ struct IntroOnboardingView: View {
         .padding(.horizontal)
 }
 
+/// Decorative stacked-card hero image used at the top of intro onboarding.
 private struct HeaderImage: View {
     @Environment(\.colorScheme) var colorScheme
     

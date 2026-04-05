@@ -8,10 +8,12 @@
 import Foundation
 import EnhancedCodable
 
+/// Unified technology source type representing Apple-hosted and custom DocC providers.
 enum TechnologyTypes: Identifiable, Equatable, Sendable {
     case apple(AppleTechnologies)
     case docC(DocCSiteDTO)
     
+    /// Stable identifier for the underlying technology payload.
     var id: UUID {
         switch self {
         case .apple(let apple):
@@ -21,6 +23,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Base URL for this technology source.
     var url: URL {
         switch self {
         case .apple(let appleTechnologies):
@@ -30,6 +33,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Whether this value represents a custom DocC site.
     var isDocC: Bool {
         switch self {
         case .apple:
@@ -39,6 +43,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Whether this value represents Apple Developer Documentation.
     var isApple: Bool {
         switch self {
         case .apple:
@@ -48,6 +53,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Display names for technology grouping in the UI.
     @MainActor
     var names: [String] {
         switch self {
@@ -58,6 +64,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
         }
     }
     
+    /// Preferred primary display name for this technology source.
     @MainActor
     var primaryName: String {
         switch self {
@@ -70,6 +77,7 @@ enum TechnologyTypes: Identifiable, Equatable, Sendable {
 }
 
 extension [TechnologyTypes] {
+    /// Custom DocC site values extracted from mixed technology arrays.
     var docCSites: [DocCSiteDTO] {
         compactMap { tech in
             switch tech {
@@ -78,6 +86,7 @@ extension [TechnologyTypes] {
             }
         }
     }
+    /// Apple technology values extracted from mixed technology arrays.
     var appleTechnologies: [AppleTechnologies] {
         compactMap { tech in
             switch tech {
@@ -88,18 +97,26 @@ extension [TechnologyTypes] {
     }
 }
 
+/// Decoded Apple technologies payload used to build homepage and framework navigation.
 struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
+    /// Stable identifier for diffable/UI usage.
     let id = UUID()
     
+    /// Optional hero/header section metadata.
     let header: Header?
+    /// Grouped technology sections.
     let groups: [Technology]?
+    /// Reference metadata keyed by identifier.
     let references: [String : Reference]
+    /// Optional legal notices payload.
     let legalNotices: LegalNotices?
     
+    /// Coding keys used for decoding shared section payloads.
     enum CodingKeys: CodingKey {
         case sections, legalNotices, references
     }
     
+    /// Decodes Apple technologies by extracting hero and technology sections from the shared sections array.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -120,6 +137,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
         }
     }
     
+    /// Raw section model used to decode mixed section content before normalization.
     struct CommonTechnologiesSection: Codable {
         let kind: String
         
@@ -132,6 +150,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
         let groups: [Technology]?
     }
     
+    /// Hero/header metadata shown at the top of the Apple technologies page.
     struct Header: Codable, Equatable, Hashable {
         let backgroundImage: String
         let image: String
@@ -140,24 +159,37 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
     }
     
     @CodableIgnoreInitializedProperties
+    /// Group of related frameworks under a single technology name.
     struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
+        /// Stable identifier for diffable/UI usage.
         let id = UUID()
         
+        /// Group display name.
         let name: String
+        /// Framework entries in this group.
         let technologies: [FrameworkSection]
     }
     
     @CodableIgnoreInitializedProperties
+    /// Framework entry used for navigation from technology lists.
     struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
+        /// Stable identifier for diffable/UI usage.
         let id = UUID()
         
+        /// Supported interface languages for this framework.
         let languages: [String]
+        /// Framework display title.
         let title: String
+        /// Tag metadata for filtering/grouping.
         let tags: [String]
+        /// Navigation destination metadata.
         let destination: Destination
+        /// Optional legal notices payload.
         let legalNotices: LegalNotices?
+        /// Optional custom DocC site context.
         let docCSite: DocCSiteDTO?
         
+        /// Path-based equality for framework sections to avoid identifier host differences.
         func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
                   let url = URL(string: framework.destination.identifier)
@@ -168,12 +200,17 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
             return currentUrl.path().lowercased() == url.path().lowercased()
         }
         
+        /// Destination metadata for a framework entry.
         struct Destination: Codable, Hashable {
+            /// Destination type discriminator.
             let type: String
+            /// Whether destination is currently active.
             let isActive: Bool
+            /// Canonical destination identifier.
             let identifier: String
         }
         
+        /// Synthetic reference representing this framework section in list UIs.
         var frameworkReference: Reference {
             Reference(
                 title: title,

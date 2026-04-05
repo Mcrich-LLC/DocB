@@ -8,17 +8,25 @@
 import SwiftUI
 import SwiftData
 
+/// Displays saved bookmark collections and supports creating, deleting, and opening collections.
 struct BookmarkCollectionsView: View {
+    /// Navigation state used to synchronize split-view and stack navigation behavior.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// The collections saved in SwiftData
     @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
     
+    /// SwiftData context used to create and delete collections.
     @Environment(\.modelContext) private var modelContext
+    /// Controls presentation of the create-collection alert.
     @State private var isShowingCreateCollectionAlert = false
+    /// User-entered collection title for creation flow.
     @State private var createCollectionTitleString = ""
+    /// Captures persistence failures for alert presentation.
     @State private var errorAlert: Error?
+    /// Controls presentation of the delete-confirmation alert.
     @State private var showDeleteCollectionAlert = false
+    /// Collection currently targeted for deletion confirmation.
     @State private var currentCollection: BookmarkCollection?
     
     var body: some View {
@@ -101,6 +109,7 @@ struct BookmarkCollectionsView: View {
         }
     }
     
+    /// Creates and persists a new bookmark collection from the alert input.
     func createCollection() {
         guard !createCollectionTitleString.isEmpty else {
             return

@@ -7,8 +7,11 @@
 
 import SwiftUI
 
+/// WebEndpointRestBody renders a reusable SwiftUI view.
 struct WebEndpointRestBody: View {
+    /// REST request-body content section payload.
     let contentSection: ContentSection
+    /// Reference map used by nested article content.
     let references: [String : Reference]
     
     var body: some View {

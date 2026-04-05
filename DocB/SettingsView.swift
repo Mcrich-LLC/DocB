@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Renders the app settings container and organizes settings into tabs.
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -19,7 +20,9 @@ struct SettingsView: View {
     }
 }
 
+/// Shows general app preferences, including default article window behavior.
 struct GeneralSettingsView: View {
+    /// Global app settings model bound to controls in this view.
     @Environment(AppSettings.self) var appSettings
     
     var body: some View {

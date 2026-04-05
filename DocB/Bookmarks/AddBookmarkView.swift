@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// Lets the user add or remove the current reference across bookmark collections.
 struct AddBookmarkView: View {
     /// The reference to be saved to bookmark collections.
     let reference: Reference
@@ -17,10 +18,15 @@ struct AddBookmarkView: View {
     /// All bookmarks saved in SwiftData
     @Query private var bookmarks: [Bookmark]
     
+    /// SwiftData context used to create/delete bookmark entities.
     @Environment(\.modelContext) private var modelContext
+    /// Dismiss action for closing the add-bookmark sheet.
     @Environment(\.dismiss) private var dismiss
+    /// Controls presentation of the "Create Collection" alert.
     @State private var isShowingCreateCollectionAlert: Bool = false
+    /// User-entered title for a new bookmark collection.
     @State private var createCollectionTitleString = ""
+    /// Captures persistence or conversion failures for alert display.
     @State private var errorAlert: Error?
     
     var body: some View {
@@ -102,6 +108,7 @@ struct AddBookmarkView: View {
     }
     
     @ViewBuilder
+    /// Toolbar action that closes the current view.
     var doneButton: some View {
         Button {
             dismiss()
@@ -112,6 +119,7 @@ struct AddBookmarkView: View {
     }
     
     @ViewBuilder
+    /// Floating action used to start creating a new collection.
     var addButton: some View {
         Button {
             isShowingCreateCollectionAlert.toggle()
@@ -131,6 +139,7 @@ struct AddBookmarkView: View {
         .padding([.trailing, .bottom], 15)
     }
     
+    /// Adds the reference to the selected collection or removes the existing bookmark when present.
     func toggleBookmark(_ existingBookmark: Bookmark?, collection: BookmarkCollection) {
         do {
             if let existingBookmark {
@@ -151,6 +160,7 @@ struct AddBookmarkView: View {
         }
     }
     
+    /// Creates a new collection from the entered title, then immediately adds the current reference to it.
     func createCollection() async {
         guard !createCollectionTitleString.isEmpty else {
             return

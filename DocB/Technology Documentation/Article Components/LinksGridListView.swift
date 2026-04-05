@@ -8,13 +8,20 @@
 import SwiftUI
 import Kingfisher
 
+/// LinksGridListView renders a reusable SwiftUI view.
 struct LinksGridListView: View {
+    /// Ordered reference identifiers to render.
     let identifiers: [String]
+    /// Link presentation style from content payload.
     let style: ContentSection.Content.Style
+    /// Reference lookup table for identifiers.
     let references: [String : Reference]
+    /// Container alignment used by wrapping layouts.
     private var alignment: Alignment
+    /// Text alignment for titles/abstracts.
     private var textAlignment: TextAlignment = .leading
-     
+      
+    /// Horizontal frame alignment derived from current text alignment.
     private var textFrameAlignment: HorizontalAlignment {
         switch textAlignment {
         case .leading:
@@ -26,8 +33,10 @@ struct LinksGridListView: View {
         }
     }
     
+    /// Shared navigation state for split-view dependent layout behavior.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    /// Creates a links renderer with style/reference payload and initial alignment from navigation mode.
     init(identifiers: [String], style: ContentSection.Content.Style, references: [String : Reference], navigationViewModel: NavigationViewModel) {
         self.identifiers = identifiers
         self.style = style
@@ -35,8 +44,10 @@ struct LinksGridListView: View {
         self.alignment = !navigationViewModel.isUsingSplitView ? .top : .topLeading
     }
     
+    /// Current color scheme used for image variant resolution.
     @Environment(\.colorScheme) var colorScheme
     
+    /// Returns a copy of this view with updated overall content alignment.
     func alignment(_ alignment: Alignment) -> Self {
         var view = self
         view.alignment = alignment
@@ -44,6 +55,7 @@ struct LinksGridListView: View {
         return view
     }
     
+    /// Returns a copy of this view with updated text alignment.
     func multilineTextAlignment(_ textAlignment: TextAlignment) -> Self {
         var view = self
         view.textAlignment = textAlignment
@@ -51,7 +63,9 @@ struct LinksGridListView: View {
         return view
     }
     
+    /// Active DocC site used to fill in missing reference site context.
     @Environment(\.docCSite) var docCSite
+    /// Ensures references inherit the current DocC site when one is not already assigned.
     func conditionReference(_ reference: Reference?) -> Reference? {
         guard var reference = reference else { return nil }
         
@@ -62,6 +76,7 @@ struct LinksGridListView: View {
         return reference
     }
     
+    /// Resolves the destination URL for a reference, preferring explicit external URLs when applicable.
     func referenceOpenURL(_ reference: Reference) -> URL? {
         if let urlString = reference.url, !urlString.contains("/documentation") {
             return reference.externalURL
@@ -158,6 +173,7 @@ struct LinksGridListView: View {
         }
     }
     
+    /// Builds title text with fragment-aware styling (especially for symbols).
     func getFullTitle(_ reference: Reference) -> AttributedString {
         
         if reference.role == .symbol {

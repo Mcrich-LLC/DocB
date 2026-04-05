@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/// Presents a standard error alert whenever a bound optional error is non-`nil`.
+///
+/// When the alert is dismissed, the bound error is reset to `nil`.
 struct ErrorAlertViewModifier: ViewModifier {
     @Binding var errorAlertItem: Error?
     
@@ -31,6 +34,9 @@ struct ErrorAlertViewModifier: ViewModifier {
 }
 
 extension View {
+    /// Binds a standard "Uh Oh" alert presentation to an optional error value.
+    ///
+    /// - Parameter error: Optional error binding that controls alert presentation.
     func alert(for error: Binding<Error?>) -> some View {
         modifier(ErrorAlertViewModifier(errorAlertItem: error))
     }

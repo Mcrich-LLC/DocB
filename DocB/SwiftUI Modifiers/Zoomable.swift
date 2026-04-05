@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Adds pinch, drag, and double-tap zoom behavior to any SwiftUI view.
+///
+/// - Warning: This modifier assumes content is anchored at `.zero` and clamps translation to content bounds.
 struct ZoomableModifier: ViewModifier {
     let minZoomScale: CGFloat
     let doubleTapZoomScale: CGFloat
@@ -127,6 +130,11 @@ struct ZoomableModifier: ViewModifier {
 }
 
 public extension View {
+    /// Enables interactive zoom and pan gestures on the receiving view.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: Minimum allowed zoom before the transform resets to identity.
+    ///   - doubleTapZoomScale: Zoom level toggled by a double tap.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,
@@ -138,6 +146,12 @@ public extension View {
         ))
     }
 
+    /// Enables interactive zoom while filling out-of-bounds space with a background color.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: Minimum allowed zoom before the transform resets to identity.
+    ///   - doubleTapZoomScale: Zoom level toggled by a double tap.
+    ///   - outOfBoundsColor: Background color shown when transformed content exposes empty space.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,

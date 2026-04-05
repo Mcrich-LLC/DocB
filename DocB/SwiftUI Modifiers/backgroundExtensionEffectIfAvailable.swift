@@ -8,6 +8,7 @@
 import SwiftUI
 
 extension View {
+    /// Applies `backgroundExtensionEffect()` on supported OS versions and otherwise returns the view unchanged.
     @inlinable @ViewBuilder
     public func backgroundExtensionEffectIfAvailable() -> some View {
         if #available(iOS 26, macOS 26, visionOS 26, *) {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Reusable navigation button that routes to the homepage and updates navigation selection state.
 struct HomepageNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
@@ -37,6 +38,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     }
 }
 
+/// Reusable navigation button for article/reference destinations with optional bookmark-specific behavior.
 struct ReferenceNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
     @Environment(DocumentationViewModel.self) private var documentationViewModel
@@ -205,6 +207,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
 }
 
+/// Reusable navigation button that selects and shows a technology section.
 struct TechnologyNavigationLinkButton<Content: View>: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let technology: AppleTechnologies.FrameworkSection
@@ -240,6 +243,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
     }
 }
 
+/// Navigation button that selects a specific bookmark collection in the sidebar flow.
 struct BookmarkCollectionNavigationLink<Content: View>: View {
     let collection: BookmarkCollection
     @ViewBuilder let label: Content
@@ -255,6 +259,7 @@ struct BookmarkCollectionNavigationLink<Content: View>: View {
     }
 }
 
+/// Navigation button that routes to the top-level bookmark collections list.
 struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
     @ViewBuilder let label: Content
     @Environment(NavigationViewModel.self) private var navigationViewModel

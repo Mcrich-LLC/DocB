@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Rounded background highlight used for selected rows in sidebar-like lists.
 struct SelectedLineBackground: View {
     let isSelected: Bool
     
@@ -38,6 +39,9 @@ extension View {
         }
     }
     
+    /// Applies the selected-line background treatment when running in split-view navigation mode.
+    ///
+    /// - Parameter isSelected: Whether the current row should render as selected.
     @ViewBuilder
     func selectedLineBackground(isSelected: Bool) -> some View {
         modifier(SelectedLineBackgroundModifier(isSelected: isSelected))
@@ -48,6 +52,7 @@ private struct SelectedLineBackgroundModifier: ViewModifier {
     let isSelected: Bool
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    /// Only applies selected-row highlighting while split-view navigation is active.
     func body(content: Content) -> some View {
         if navigationViewModel.isUsingSplitView {
             content

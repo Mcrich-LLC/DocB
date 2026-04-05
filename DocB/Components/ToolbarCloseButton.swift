@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Toolbar close button that adapts to modern role-based APIs when available.
 struct ToolbarCloseButton: View {
     @Environment(\.dismiss) private var dismiss
     

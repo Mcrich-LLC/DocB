@@ -9,12 +9,16 @@ import SwiftUI
 @_exported import SFSafeSymbols
 import SwiftData
 
+/// Scene and window identifiers used by the app.
 struct WindowTypes {
+    /// Secondary window for adding custom DocC sources.
     static let addSites = "add_sites"
+    /// Main documentation browsing window.
     static let main = "main"
 }
 
 @main
+/// Application entry point that configures model containers, scenes, and global environments.
 struct DocBApp: App {
     @State var documentationViewModel = DocumentationViewModel()
     @State var appSettings = AppSettings()
@@ -22,6 +26,7 @@ struct DocBApp: App {
     @Environment(\.openWindow) var openWindow
     let docCSiteModelContainer: ModelContainer
     
+    /// Initializes the SwiftData container and development-only integrations.
     init() {
         do {
             docCSiteModelContainer = try ModelContainer(for: DocCSite.self, Bookmark.self, BookmarkCollection.self, configurations: .init(cloudKitDatabase: .automatic))
@@ -65,6 +70,7 @@ struct DocBApp: App {
         #endif
     }
     
+    /// Loads RocketSim debug integration when available in local development environments.
     private func loadRocketSimConnect() {
         #if DEBUG
         guard (Bundle(path: "/Applications/RocketSim.app/Contents/Frameworks/RocketSimConnectLinker.nocache.framework")?.load() == true) else {
@@ -75,6 +81,7 @@ struct DocBApp: App {
         #endif
     }
     
+    /// Presents the add-source experience using platform-appropriate presentation.
     private func showAddDocumentationView() {
         #if os(macOS)
         openWindow(id: WindowTypes.addSites)
@@ -94,6 +101,7 @@ private struct MainView: View {
     @Environment(\.appearsActive) var appearsActive
     @Query private var docCSites: [DocCSite]
     
+    /// Tracks source-sheet visibility only while the owning scene is active.
     var activeTrackedShowAddSource: Binding<Bool> {
         Binding {
             appearsActive && self.showAddSource
@@ -127,6 +135,7 @@ private struct MainView: View {
         }
     }
     
+    /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
         Task {
             await documentationViewModel.loadTechnologies(newValue.asDTOs)

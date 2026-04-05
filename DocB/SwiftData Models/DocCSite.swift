@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftData
 
 @MainActor
+/// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
 final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
@@ -22,13 +23,19 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         hasher.combine(index)
     }
     
+    /// Stable identifier used for equality and identity in collections.
     let id: UUID
+    /// Timestamp indicating when the site was added.
     let timestamp: Date
+    /// Optional override display name for the site.
     let overrideName: String?
+    /// Root URL for the DocC site.
     let url: URL
+    /// Parsed index describing available interface-language groups and entries.
     private(set) var index: DocCIndex
     fileprivate var persistentModelID: PersistentIdentifier?
     
+    /// Creates an in-memory DocC site DTO.
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.id = UUID()
         self.timestamp = timestamp
@@ -38,6 +45,10 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.persistentModelID = nil
     }
     
+    /// Creates a DTO from a persisted `DocCSite` model.
+    ///
+    /// - Parameter model: A persisted SwiftData model.
+    /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
     init(_ model: DocCSite) throws {
         guard let timestamp = model.timestamp, let url = model.url, let index = model.indexV2 else {
             throw SwiftDataErrors.invalidShape
@@ -60,6 +71,9 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
     
+    /// Updates the DTO index when a fresh remote index payload is loaded.
+    ///
+    /// - Parameter index: New index payload for the site.
     func setIndex(_ index: DocCIndex) {
         self.index = index
     }
@@ -71,14 +85,20 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         case index
     }
     
+    /// Top-level interface-language groups flattened from the site index.
     var groups: [DocCIndex.InterfaceLanguage] {
         index.interfaceLanguages.flatMap({ $0.value })
     }
     
+    /// Framework sections derived from all index groups.
     var allFrameworkSections: [AppleTechnologies.FrameworkSection] {
         groups.compactMap(frameworkSection)
     }
     
+    /// Converts an interface-language entry into a framework section model for UI navigation.
+    ///
+    /// - Parameter interfaceLanguage: Source index item.
+    /// - Returns: A framework section when a valid path is present; otherwise `nil`.
     func frameworkSection(for interfaceLanguage: DocCIndex.InterfaceLanguage) -> AppleTechnologies.FrameworkSection? {
         guard let path = interfaceLanguage.path else { return nil }
         
@@ -98,6 +118,9 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         )
     }
     
+    /// Deletes the associated persisted site when this DTO is backed by SwiftData.
+    ///
+    /// - Parameter modelContext: SwiftData context used to locate and remove the model.
     func deleteSite(modelContext: ModelContext) throws {
         guard let persistentModelID else { return }
         let model = modelContext.model(for: persistentModelID)
@@ -107,10 +130,12 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
 }
 
 enum SwiftDataErrors: Error {
+    /// Indicates persisted model data is missing required fields or has an unexpected shape.
     case invalidShape
 }
 
 @Model
+/// Persisted SwiftData model representing a DocC site source.
 final class DocCSite: Identifiable {
     var id: UUID = UUID()
     var timestamp: Date?
@@ -138,16 +163,22 @@ final class DocCSite: Identifiable {
         self.indexV2 = await DocCIndexModel(dto.index)
     }
     
+    /// Converts the persisted model into a DTO used by app logic and UI layers.
     @MainActor var dto: DocCSiteDTO {
         get throws {
             try .init(self)
         }
     }
     
+    /// Top-level grouped interface-language entries from the persisted index.
     var groups: [InterfaceLanguageModel] {
         indexV2?.interfaceLanguages?.flatMap({ $0.languages ?? [] }) ?? []
     }
     
+    /// Performs a recursive title-based search across persisted interface-language entries.
+    ///
+    /// - Parameter query: Search text to match against entry titles.
+    /// - Returns: `true` when any nested item matches.
     func hasResultsForSearch(_ query: String) -> Bool {
         guard let indexV2 else { return false }
         
@@ -160,18 +191,20 @@ final class DocCSite: Identifiable {
 }
 
 extension [DocCSite] {
+    /// Converts persisted site models to DTOs, skipping malformed records.
     @MainActor var asDTOs: [DocCSiteDTO] {
         compactMap({ try? DocCSiteDTO($0) })
     }
 }
 
-// Make Environment Value
+/// Exposes the currently selected custom DocC site through SwiftUI environment values.
 extension EnvironmentValues {
     @Entry var docCSite: DocCSiteDTO?
 }
 
 extension DocCSite {
     @Model
+    /// Persisted representation of a DocC index grouped by interface language.
     final class DocCIndexModel: Identifiable {
         var id: UUID = UUID()
         
@@ -188,6 +221,7 @@ extension DocCSite {
             self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
         }
         
+        /// Reconstructs the runtime `DocCIndex` value from persisted model data.
         var asIndex: DocCIndex {
             let interfaceLanguages = (interfaceLanguages ?? []).reduce(into: [String: [DocCIndex.InterfaceLanguage]]()) { acc, set in
                 guard let name = set.name, let languages = set.languages else { return }
@@ -199,6 +233,7 @@ extension DocCSite {
     }
     
     @Model
+    /// Named set of interface-language entries for a single language key (for example, Swift).
     final class InterfaceLanguageSetModel: Identifiable {
         var id = UUID()
         var name: String?
@@ -219,6 +254,7 @@ extension DocCSite {
     }
     
     @Model
+    /// Persisted tree node for a DocC interface-language entry.
     final class InterfaceLanguageModel: Identifiable {
         var id = UUID()
         
@@ -258,12 +294,17 @@ extension DocCSite {
             }
         }
         
+        /// Reconstructs the runtime interface-language value, including recursive children.
         var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
             let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
             
             return DocCIndex.InterfaceLanguage(title: title ?? "Unknonwn", path: path, type: type ?? "Unknown", children: children)
         }
         
+        /// Recursively checks whether this entry or descendants match the search query.
+        ///
+        /// - Parameter query: Search text to compare with entry titles.
+        /// - Returns: `true` if this entry or any descendant matches.
         func hasResultsForSearch(_ query: String) -> Bool {
             if title?.lowercased().contains(query.lowercased()) == true && type?.lowercased() != "module" {
                 return true
@@ -274,6 +315,9 @@ extension DocCSite {
             return children.first(where: { $0.hasResultsForSearch(query) }) != nil
         }
         
+        /// Returns the owning language set by walking parent links when needed.
+        ///
+        /// - Returns: The nearest `InterfaceLanguageSetModel` in the ancestry chain.
         @MainActor
         func getSet() throws -> InterfaceLanguageSetModel? {
             if let set {
@@ -284,4 +328,3 @@ extension DocCSite {
         }
     }
 }
-

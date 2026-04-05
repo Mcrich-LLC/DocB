@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// Displays saved bookmark collections and supports creating, deleting, and opening collections.
 struct BookmarkCollectionsView: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
     

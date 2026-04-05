@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// WebEndpointRestAttributesView renders a reusable SwiftUI view.
 struct WebEndpointRestAttributesView: View {
     let contentSection: ContentSection
     let references: [String : Reference]

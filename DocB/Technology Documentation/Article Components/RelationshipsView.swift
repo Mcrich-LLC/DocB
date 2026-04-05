@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// RelationshipsView renders a reusable SwiftUI view.
 struct RelationshipsView: View {
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel

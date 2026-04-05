@@ -17,6 +17,7 @@ private struct SuggestedTechnology: Identifiable, Hashable {
     let baseURL: URL
 }
 
+/// Presents the add-technology flow inside a navigation container with close controls.
 struct AddTechnologySheetView: View {
     var body: some View {
         NavigationStack {
@@ -29,6 +30,7 @@ struct AddTechnologySheetView: View {
     }
 }
 
+/// Lists featured and custom documentation sources and supports adding or removing DocC technologies.
 struct AddTechnologyView: View {
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext

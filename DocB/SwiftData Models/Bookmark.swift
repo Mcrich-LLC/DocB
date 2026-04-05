@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 
 @MainActor
+/// BookmarkDTO encapsulates app behavior and state.
 final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: BookmarkDTO, rhs: BookmarkDTO) -> Bool {
         lhs.id == rhs.id
@@ -117,11 +118,13 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
 }
 
+/// BookmarkErrors defines a constrained set of related values.
 enum BookmarkErrors: Error {
     case invalidReference
 }
 
 @Model
+/// Bookmark encapsulates app behavior and state.
 final class Bookmark: Identifiable {
     var id = UUID()
     var title: String?

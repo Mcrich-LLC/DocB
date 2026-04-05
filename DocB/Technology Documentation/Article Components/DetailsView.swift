@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// DetailsView renders a reusable SwiftUI view.
 struct DetailsView: View {
     let details: ContentSection.Details
     

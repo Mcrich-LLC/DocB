@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// AbstractView renders a reusable SwiftUI view.
 struct AbstractView: View {
     let abstract: [ContentStruct]
     

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// Lets the user add or remove the current reference across bookmark collections.
 struct AddBookmarkView: View {
     /// The reference to be saved to bookmark collections.
     let reference: Reference

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// ArticleView renders a reusable SwiftUI view.
 struct ArticleView: View {
     
     @Environment(\.colorScheme) var colorScheme

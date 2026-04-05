@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// ArticleBadge renders a reusable SwiftUI view.
 struct ArticleBadge: View {
     @Environment(\.colorScheme) var colorScheme
     let badge: Badge

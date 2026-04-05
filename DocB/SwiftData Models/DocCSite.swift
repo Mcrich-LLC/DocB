@@ -133,6 +133,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
 }
 
+/// SwiftDataErrors defines a constrained set of related values.
 enum SwiftDataErrors: Error {
     /// Indicates persisted model data is missing required fields or has an unexpected shape.
     case invalidShape

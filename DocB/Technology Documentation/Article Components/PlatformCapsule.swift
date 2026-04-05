@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// PlatformCapsule renders a reusable SwiftUI view.
 struct PlatformCapsule: View {
     let platform: Platform
     

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Presents the opening onboarding screen that introduces the app and advances to the next step.
 struct IntroOnboardingView: View {
     @Environment(OnboardingStepManager.self) var stepManager
     

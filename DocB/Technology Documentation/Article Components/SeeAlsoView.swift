@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// SeeAlsoView renders a reusable SwiftUI view.
 struct SeeAlsoView: View {
     let article: Article
     @Environment(NavigationViewModel.self) var navigationViewModel

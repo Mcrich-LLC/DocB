@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+/// Tracks onboarding step progression and controls forward/back navigation and dismissal.
 final class OnboardingStepManager {
     fileprivate var dismiss: CustomDismissAction = .init(action: {})
     
@@ -33,10 +34,12 @@ final class OnboardingStepManager {
     }
 }
 
+/// Enumerates the ordered onboarding screens shown to the user.
 enum OnboardingSteps: Int, ViewSteps {
     case intro, addSources
 }
 
+/// Hosts the onboarding flow and swaps step content based on the active onboarding state.
 struct MainOnboardingView: View {
     @State var stepManager = OnboardingStepManager()
     @Environment(\.customEnabledDismissAction) var customEnabledDismissAction

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set Script Variables
-project="DevDocs.xcodeproj"
-target="DevDocs"
+project="DocB.xcodeproj"
+target="DocB"
 branch="beta"  # Default branch
 dry_run=false  # Default dry run setting
 

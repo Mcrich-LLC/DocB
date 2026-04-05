@@ -9,12 +9,17 @@ import SwiftUI
 
 /// MultilinePicker renders a reusable SwiftUI view.
 struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCollection, Data.Element: Identifiable, Data.Element: Equatable {
+    /// Options shown by the picker.
     let data: Data
+    /// Current selection binding.
     @Binding var selection: Data.Element
     
+    /// Cell builder used to render each option.
     @ViewBuilder let cell: (Data.Element) -> Cell
+    /// Namespace used for matched-geometry selection marker animation.
     @Namespace private var ns
     
+    /// Horizontal shadow offset for the selected marker at segment edges.
     var xShaddow: CGFloat {
         guard let index = data.firstIndex(of: selection) as? Int else { return 0 }
         
@@ -27,9 +32,12 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
         }
     }
     
+    /// Corner radius used by segment backgrounds.
     private let cornerRadius: CGFloat = 6
+    /// Current color scheme used by selection background color logic.
     @Environment(\.colorScheme) var colorScheme
     
+    /// Filled background color for the currently selected segment.
     var selectedBackgroundColor: Color {
         #if os(macOS)
         Color(platformColor: .windowBackgroundColor)
@@ -42,6 +50,7 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
         #endif
     }
     
+    /// Unselected segmented-control background color.
     let backgroundColor: Color = Color(platformColor: .secondarySystemFill)
 
     var body: some View {

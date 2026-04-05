@@ -9,7 +9,9 @@ import SwiftUI
 
 /// CodeCopyOverlayButton renders a reusable SwiftUI view.
 struct CodeCopyOverlayButton: View {
+    /// Text payload copied to the system pasteboard.
     let string: String
+    /// Tracks whether copy feedback should show a checkmark icon.
     @State private var hasCoppied: Bool = false
     
     var body: some View {

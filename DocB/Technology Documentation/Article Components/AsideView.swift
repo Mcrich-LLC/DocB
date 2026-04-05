@@ -9,10 +9,14 @@ import SwiftUI
 
 /// AsideView renders a reusable SwiftUI view.
 struct AsideView: View {
+    /// Aside style controlling title and accent color.
     let style: ContentSection.Content.Style
+    /// Content blocks rendered inside the aside container.
     let content: [ContentSection.Content]
+    /// Reference lookup table used by nested article content.
     let references: [String : Reference]
     
+    /// Derived aside title from the style enum raw value.
     var title: String {
         style.rawValue.capitalized
     }
@@ -35,6 +39,7 @@ struct AsideView: View {
     }
         
     @ViewBuilder
+    /// Shared renderer for aside content with a style-specific accent color.
     func asideView(color: Color) -> some View {
         VStack(alignment: .leading) {
             Text(title.capitalized)

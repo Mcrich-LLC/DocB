@@ -35,6 +35,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     let url: URL
     /// Parsed index describing available interface-language groups and entries.
     private(set) var index: DocCIndex
+    /// Persistent SwiftData identifier used for delete-by-dto operations.
     fileprivate var persistentModelID: PersistentIdentifier?
     
     /// Creates an in-memory DocC site DTO.
@@ -142,12 +143,18 @@ enum SwiftDataErrors: Error {
 ///
 /// Persisted properties are optional to tolerate schema evolution, and `dto` provides validated access for app-layer usage.
 final class DocCSite: Identifiable {
+    /// Stable identifier for the persisted site model.
     var id: UUID = UUID()
+    /// Creation timestamp for this saved site source.
     var timestamp: Date?
+    /// Base URL used to load DocC resources.
     var url: URL?
+    /// Optional user-facing override name for the source.
     var overrideName: String?
+    /// Persisted DocC index tree used for offline navigation and search.
     var indexV2: DocCIndexModel?
     
+    /// Creates a persisted site model from runtime DocC index content.
     init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url
@@ -155,6 +162,7 @@ final class DocCSite: Identifiable {
         self.indexV2 = DocCIndexModel(index)
     }
     
+    /// Internal initializer used when index content is already in model form.
     fileprivate init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndexModel) {
         self.timestamp = timestamp
         self.url = url
@@ -162,6 +170,7 @@ final class DocCSite: Identifiable {
         self.indexV2 = index
     }
     
+    /// Creates a persisted model from a runtime DTO snapshot.
     init(_ dto: DocCSiteDTO) async {
         self.timestamp = dto.timestamp
         self.url = dto.url
@@ -215,17 +224,22 @@ extension DocCSite {
     ///
     /// - Important: Child relationships use cascading deletes to keep nested index trees in sync with their parent index.
     final class DocCIndexModel: Identifiable {
+        /// Stable identifier for this persisted index model.
         var id: UUID = UUID()
         
+        /// Parent site relationship that owns this index.
         @Relationship(deleteRule: .nullify, inverse: \DocCSite.indexV2)
         var site: DocCSite?
         
+        /// Grouped interface-language entries keyed by language name.
         var interfaceLanguages: [InterfaceLanguageSetModel]?
         
+        /// Creates an index model from persisted language-set models.
         init(interfaceLanguages: [InterfaceLanguageSetModel]) {
             self.interfaceLanguages = interfaceLanguages
         }
         
+        /// Creates an index model from runtime DocC index payload.
         init(_ index: DocCIndex) {
             self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
         }
@@ -244,18 +258,24 @@ extension DocCSite {
     @Model
     /// Named set of interface-language entries for a single language key (for example, Swift).
     final class InterfaceLanguageSetModel: Identifiable {
+        /// Stable identifier for this language-set record.
         var id = UUID()
+        /// Language key (for example `swift`) associated with this set.
         var name: String?
+        /// Persisted entries for this language key.
         var languages: [InterfaceLanguageModel]?
         
+        /// Parent index relationship that owns this language set.
         @Relationship(deleteRule: .cascade, inverse: \DocCIndexModel.interfaceLanguages)
         var index: DocCIndexModel?
         
+        /// Creates a language-set model from explicit persisted fields.
         init(name: String? = nil, languages: [InterfaceLanguageModel]? = nil) {
             self.name = name
             self.languages = languages
         }
         
+        /// Creates a language-set model from runtime interface-language entries.
         init(name: String, languages: [DocCIndex.InterfaceLanguage]) {
             self.name = name
             self.languages = languages.map({ InterfaceLanguageModel($0) })
@@ -265,21 +285,29 @@ extension DocCSite {
     @Model
     /// Persisted tree node for a DocC interface-language entry.
     final class InterfaceLanguageModel: Identifiable {
+        /// Stable identifier for this interface-language node.
         var id = UUID()
         
+        /// Display title for the node.
         var title: String?
+        /// Optional documentation path used for navigation.
         var path: String?
+        /// Node type metadata (module, symbol, etc.).
         var type: String?
         
+        /// Owning language-set relationship for root nodes.
         @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
         private var set: InterfaceLanguageSetModel?
         
         // parent relationship
         @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
+        /// Parent node relationship for nested interface-language entries.
         var parent: InterfaceLanguageModel?
         
+        /// Child nodes representing nested documentation hierarchy.
         fileprivate(set) var children: [InterfaceLanguageModel]?
         
+        /// Creates a persisted interface-language node from explicit fields.
         init(title: String?, path: String? = nil, type: String?, children: [InterfaceLanguageModel]) {
             self.title = title
             self.path = path
@@ -287,6 +315,7 @@ extension DocCSite {
             self.children = children
         }
         
+        /// Creates a persisted interface-language node from runtime index payload.
         init(_ language: DocCIndex.InterfaceLanguage) {
             self.title = language.title
             self.path = language.path

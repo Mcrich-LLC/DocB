@@ -10,7 +10,9 @@ import Kingfisher
 
 /// HomepageSection renders a reusable SwiftUI view.
 struct HomepageSection: View {
+    /// Section payload being rendered.
     let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
     
     var body: some View {
@@ -33,12 +35,18 @@ struct HomepageSection: View {
 
 // MARK: Highlighted Links
 private struct HighlightedLinks: View {
+    /// Section data for highlighted links content.
     let section: HomepageParser.Section
+    /// Parsed homepage data used for references and media.
     let homepage: HomepageParser
+    /// Current color scheme used to choose media variants.
     @Environment(\.colorScheme) var colorScheme
+    /// Active DocC site used to expand relative media URLs when needed.
     @Environment(\.docCSite) var docCSite
+    /// Runtime measured card frame used to switch between horizontal and vertical layouts.
     @State var cardFrame: CGSize?
     
+    /// Whether highlighted content should stack vertically based on available width.
     var isVertical: Bool {
         guard let cardFrame else { return false }
         
@@ -88,6 +96,7 @@ private struct HighlightedLinks: View {
     }
     
     @ViewBuilder
+    /// Shared image view used in the highlighted links layout.
     var image: some View {
         if let image = section.body?.image {
             KFImage(fetchPhotoVideoURL(for: image))
@@ -106,6 +115,7 @@ private struct HighlightedLinks: View {
     }
     
     @ViewBuilder
+    /// Conditionally renders `HStack` or `VStack` for highlighted links composition.
     func VHStack<Content: View>(spacing: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
         switch isVertical {
         case false:
@@ -117,7 +127,9 @@ private struct HighlightedLinks: View {
 }
 
 private struct HighlightedLinksCell: View {
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
+    /// Single highlighted link payload for this row.
     let link: HomepageParser.Body.HighlightedLinks
         
     var body: some View {
@@ -147,8 +159,11 @@ private struct HighlightedLinksCell: View {
 
 // MARK: Links
 private struct Links: View {
+    /// Section data for links presentation.
     let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
+    /// Navigation state used for list/grid behavior in links view.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
@@ -177,12 +192,18 @@ private struct Links: View {
 
 // MARK: Cards
 private struct Cards: View {
+    /// Section data for card presentation.
     let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
+    /// Current color scheme used when loading media variants.
     @Environment(\.colorScheme) var colorScheme
+    /// Navigation state used for spacing and split-view sizing.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    /// Per-card measured text heights used to align card body heights.
     @State var cardHeights: [UUID : CGFloat] = [:]
+    /// Measured container size used to adjust card max width.
     @State var viewSize: CGSize?
     
     var body: some View {
@@ -219,6 +240,7 @@ private struct Cards: View {
     }
     
     @ViewBuilder
+    /// Placeholder shown while a card hero image is loading.
     var cardImagePlaceholder: some View {
         UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
             .fill(Color.clear)
@@ -230,6 +252,7 @@ private struct Cards: View {
     }
     
     @ViewBuilder
+    /// Renders a single homepage card including image, content, and call to action.
     func card(_ content: HomepageParser.Body.Card.Content) -> some View {
         if let url = URL(string: content.destination.identifier) {
             MacOSAgnosticLink(destination: url) {
@@ -296,8 +319,11 @@ private struct Cards: View {
 
 // MARK: HomepageLinks
 private struct HomepageLinks: View {
+    /// Section data for capsule-style homepage links.
     let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
+    /// Navigation state used to choose wrapped vs stacked layout.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
@@ -344,11 +370,16 @@ private struct HomepageLinks: View {
 }
 
 private struct LinkCapsule: View {
+    /// Current color scheme used by capsule styling.
     @Environment(\.colorScheme) var colorScheme
+    /// Primary reference driving title and URL generation.
     let reference: Reference
+    /// Reference lookup table for fallback title resolution.
     let references: [String : Reference]
+    /// Navigation state used for width behavior in compact layouts.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
+    /// Best-effort title resolved from the primary or fallback reference map.
     var title: String? {
         if let title = reference.title {
             return title
@@ -357,6 +388,7 @@ private struct LinkCapsule: View {
         }
     }
     
+    /// Deep-link URL generated for the capsule destination.
     var url: URL? {
         let urlString: String
         if let title {
@@ -369,6 +401,7 @@ private struct LinkCapsule: View {
         return URL(string: urlString)
     }
     
+    /// Hover state used to animate capsule border thickness.
     @State var isHovering = false
     
     var body: some View {

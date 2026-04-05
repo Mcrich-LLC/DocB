@@ -10,8 +10,11 @@ import Kingfisher
 
 /// HomepageResources renders a reusable SwiftUI view.
 struct HomepageResources: View {
+    /// Homepage section payload for this resources block.
     let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
+    /// Current color scheme used to resolve media variants.
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -26,6 +29,7 @@ struct HomepageResources: View {
     }
     
     @ViewBuilder
+    /// Renders a single resource card with optional image, content, and destination link.
     func item(_ item: HomepageParser.Resource) -> some View {
         VStack {
             if let imageId = item.image, let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: homepage.references, colorScheme: colorScheme, docCSite: nil) {

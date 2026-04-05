@@ -49,8 +49,6 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     
     /// Creates a DTO from a persisted `DocCSite` model.
     ///
-    /// - Warning: This initializer fails when persisted records are partially populated.
-    ///
     /// - Parameter model: A persisted SwiftData model.
     /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
     init(_ model: DocCSite) throws {

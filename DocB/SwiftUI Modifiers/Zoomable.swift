@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Adds pinch, drag, and double-tap zoom behavior to any SwiftUI view.
 ///
-/// This modifier assumes content is anchored at `.zero` and clamps translation to content bounds.
+/// - Warning: This modifier assumes content is anchored at `.zero` and clamps translation to content bounds.
 struct ZoomableModifier: ViewModifier {
     let minZoomScale: CGFloat
     let doubleTapZoomScale: CGFloat

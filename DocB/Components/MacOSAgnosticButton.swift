@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Cross-platform tappable control that behaves like a button on all supported platforms.
 ///
-/// On macOS/Catalyst, this uses `onTapGesture` to keep list-like row interactions visually consistent.
+/// - Important: On macOS/Catalyst this uses `onTapGesture` to keep list-like row interactions visually consistent.
 struct MacOSAgnosticButton<Content: View>: View {
     let action: () -> Void
     @ViewBuilder let label: Content

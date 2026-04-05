@@ -113,7 +113,6 @@ public struct WrappingHStack: Layout {
     }
 }
 
-/// Internal row-arrangement helpers for `WrappingHStack` layout operations.
 extension WrappingHStack {
     /// Computed layout row containing wrapped element placement metrics.
     struct Row {

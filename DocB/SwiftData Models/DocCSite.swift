@@ -214,13 +214,11 @@ extension [DocCSite] {
     }
 }
 
-/// Exposes the currently selected custom DocC site through SwiftUI environment values.
 extension EnvironmentValues {
     /// Currently selected custom DocC site context for resolving relative references and assets.
     @Entry var docCSite: DocCSiteDTO?
 }
 
-/// Nested SwiftData models that persist DocC index tree structures.
 extension DocCSite {
     @Model
     /// Persisted representation of a DocC index grouped by interface language.

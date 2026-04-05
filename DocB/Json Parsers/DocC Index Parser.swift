@@ -74,7 +74,6 @@ struct DocCIndex: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-/// DocC-site helpers derived from parsed DocC index structures.
 extension DocCSiteDTO {
     /// Returns grouped entries excluding sample code containers and sample code children.
     var nonSampleCodeGroups: [DocCIndex.InterfaceLanguage] {

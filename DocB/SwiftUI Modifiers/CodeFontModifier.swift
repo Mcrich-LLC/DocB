@@ -13,7 +13,6 @@ import SwiftUI
     typealias FontType = NSFont
 #endif
 
-/// Convenience API that applies app-standard code font styling to any view.
 extension View {
     /// Applies the app's monospaced code-style font at a platform-appropriate headline size.
     @ViewBuilder

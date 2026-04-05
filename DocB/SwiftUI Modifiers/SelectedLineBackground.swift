@@ -27,7 +27,6 @@ struct SelectedLineBackground: View {
     }
 }
 
-/// Row background helpers for split-view selected-line styling.
 extension View {
     @ViewBuilder
     fileprivate func selectedLineBackgroundPadding() -> some View {

@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-/// Compatibility helpers for applying background extension effects only on supported OS versions.
 extension View {
     /// Applies `backgroundExtensionEffect()` on supported OS versions and otherwise returns the view unchanged.
     @inlinable @ViewBuilder

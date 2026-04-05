@@ -13,7 +13,6 @@ enum TagFilters: String, CaseIterable {
     case beta
 }
 
-/// Environment storage for active homepage/technology tag filter selections.
 extension EnvironmentValues {
     /// Active sidebar tag filters applied to technology listings.
     @Entry var tagFilters: Set<TagFilters> = []

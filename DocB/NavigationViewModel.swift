@@ -531,7 +531,6 @@ class NavigationViewModel: @MainActor Equatable {
     
 }
 
-/// Small dictionary helpers used by navigation deep-linking merges.
 extension Dictionary {
     /// Merges key/value pairs from another dictionary, replacing existing values on conflict.
     mutating func merge(dict: [Key: Value]) {
@@ -569,7 +568,6 @@ enum PathElement: Hashable {
     case bookmark(BookmarkCollection)
 }
 
-/// Convenience initializer for value-based navigation links that use `PathElement`.
 extension NavigationLink where Destination == Never {
     /// Creates a value-based `NavigationLink` for a typed `PathElement`.
     init(element: PathElement, @ViewBuilder  label: () -> Label) {
@@ -578,7 +576,6 @@ extension NavigationLink where Destination == Never {
 }
 
 // MARK: Deeplinking
-/// Deep-link routing and URL handling behavior for navigation state.
 extension NavigationViewModel {
     /// Handles an inbound URL and invokes a completion closure after routing is attempted.
     func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel, completion: (() -> Void)? = nil) {

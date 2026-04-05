@@ -11,6 +11,8 @@ import SwiftData
 
 @MainActor
 /// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
+///
+/// - Important: DTO identity and equality are based on `id`, while hashing also incorporates timestamp, URL, and index.
 final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
@@ -46,6 +48,8 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Creates a DTO from a persisted `DocCSite` model.
+    ///
+    /// - Warning: This initializer fails when persisted records are partially populated.
     ///
     /// - Parameter model: A persisted SwiftData model.
     /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
@@ -136,6 +140,8 @@ enum SwiftDataErrors: Error {
 
 @Model
 /// Persisted SwiftData model representing a DocC site source.
+///
+/// - Important: Persisted properties are optional to tolerate schema evolution; use `dto` for validated app-layer access.
 final class DocCSite: Identifiable {
     var id: UUID = UUID()
     var timestamp: Date?
@@ -164,6 +170,8 @@ final class DocCSite: Identifiable {
     }
     
     /// Converts the persisted model into a DTO used by app logic and UI layers.
+    ///
+    /// - Warning: Access can throw when persisted data is malformed or missing required fields.
     @MainActor var dto: DocCSiteDTO {
         get throws {
             try .init(self)
@@ -205,6 +213,8 @@ extension EnvironmentValues {
 extension DocCSite {
     @Model
     /// Persisted representation of a DocC index grouped by interface language.
+    ///
+    /// - Important: Child relationships use cascading deletes to keep nested index trees in sync with their parent index.
     final class DocCIndexModel: Identifiable {
         var id: UUID = UUID()
         

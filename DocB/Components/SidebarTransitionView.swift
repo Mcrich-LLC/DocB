@@ -38,14 +38,14 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @State private var isBack: Bool = false
     
     var body: some View {
-        Group {
+        VStack {
             if isShowingInnerView, let unwrappedOptional {
                 innerView(unwrappedOptional)
                     .onPreferenceChange(HideBackPreferenceKey.self) { isHiding in
                         isHidingBackToolbarButton = isHiding
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .backForward(isBack: isBack)
+                    .transition(.opacity)
                     .toolbar {
                         if !isHidingBackToolbarButton {
                             ToolbarItem(placement: .cancellationAction) {
@@ -60,17 +60,16 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
             } else {
                 outerView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .backForward(isBack: isBack)
+                    .transition(.opacity)
             }
         }
-        .animation(.default, value: isShowingInnerView)
         .onChange(of: apiExposedisShowingInnerView) { oldValue, newValue in
             if oldValue && !newValue {
                 isBack = true
             } else {
                 isBack = false
             }
-            withAnimation(.snappy) {
+            withAnimation {
                 isShowingInnerView = newValue
             }
         }

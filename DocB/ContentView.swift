@@ -363,7 +363,7 @@ private struct TechView: View {
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
         #if !os(macOS)
-        .navigationTitle("Documentation")
+        .navigationTitle("DocB")
         #endif
         .toolbar {
             Button(action: showAddDocumentationView) {

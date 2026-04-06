@@ -8,10 +8,14 @@
 import SwiftUI
 import HighlightSwift
 
+/// WebEndpointRestEndPoint renders a reusable SwiftUI view.
 struct WebEndpointRestEndPoint: View {
+    /// REST endpoint content section payload.
     let contentSection: ContentSection
+    /// Reference map for endpoint-related links.
     let references: [String : Reference]
     
+    /// JavaScript snippet reconstructed from endpoint token stream.
     var code: String? {
         contentSection.tokens?.compactMap({ token in
             if let text = token.text {

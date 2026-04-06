@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024px" height="1024px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Glasses Bridge</title>
+    <g id="Glasses-Bridge" stroke="none" fill="none" fill-rule="evenodd">
+        <path d="M536,210.0004 C520.92,210.0004 506.66,213.5104 494,219.7704 L494,258.0404 C505.15,248.0704 519.86,242.0004 536,242.0004 C552.14,242.0004 566.85,248.0704 578,258.0404 L578,219.7704 C565.34,213.5104 551.08,210.0004 536,210.0004" id="bridge" fill="color(display-p3 1.000 1.000 1.000)"></path>
+    </g>
+</svg>

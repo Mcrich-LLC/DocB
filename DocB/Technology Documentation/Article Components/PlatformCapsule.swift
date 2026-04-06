@@ -7,9 +7,12 @@
 
 import SwiftUI
 
+/// PlatformCapsule renders a reusable SwiftUI view.
 struct PlatformCapsule: View {
+    /// Platform metadata rendered in capsule form.
     let platform: Platform
     
+    /// Human-readable platform/version label assembled from introduction/deprecation metadata.
     var text: String {
         let version: String
         
@@ -26,6 +29,7 @@ struct PlatformCapsule: View {
         return "\(platform.name) \(version)"
     }
     
+    /// Whether beta/deprecation badge chips should be displayed.
     var hasBadge: Bool {
         platform.beta == true || platform.deprecated == true || platform.deprecatedAt != nil
     }

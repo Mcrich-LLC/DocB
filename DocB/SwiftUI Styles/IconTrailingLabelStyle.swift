@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// IconTrailingLabelStyle defines reusable styling behavior.
 struct IconTrailingLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {

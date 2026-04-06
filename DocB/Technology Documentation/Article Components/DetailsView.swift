@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// DetailsView renders a reusable SwiftUI view.
 struct DetailsView: View {
+    /// Details payload rendered in the section.
     let details: ContentSection.Details
     
     var body: some View {

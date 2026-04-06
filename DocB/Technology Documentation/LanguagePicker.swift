@@ -7,10 +7,14 @@
 
 import SwiftUI
 
+/// LanguagePicker renders a reusable SwiftUI view.
 struct LanguagePicker: View {
+    /// Documentation settings model containing selected preferred language.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// Language variants available for the current article/reference.
     let variants: [Variant]
     
+    /// Deduplicated list of languages extracted from variant traits.
     var filteredLanguages: [PreferedProgrammingLanguage] {
         let traits = variants.flatMap({ $0.traits })
         let languages = traits.compactMap({ $0.interfaceLanguage })

@@ -8,11 +8,16 @@
 import SwiftUI
 import HighlightSwift
 
+/// DeclarationContentView renders a reusable SwiftUI view.
 struct DeclarationContentView: View {
+    /// Declaration token payload to render.
     let content: ContentSection.Declaration
+    /// Parent article payload (kept for future expansion and parity with sibling views).
     let article: Article
+    /// Current color scheme used by platform-specific background styling.
     @Environment(\.colorScheme) var colorScheme
     
+    /// Joined declaration text rebuilt from token text/code fragments.
     var code: String {
         content.tokens.compactMap({ token in
             if let text = token.text {

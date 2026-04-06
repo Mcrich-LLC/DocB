@@ -60,14 +60,17 @@ public struct WrappingHStack: Layout {
         var rows: (Int, [Row])?
     }
 
+    /// Builds an initial cache containing the layout's minimal required size.
     public func makeCache(subviews: Subviews) -> Cache {
         Cache(minSize: minSize(subviews: subviews))
     }
 
+    /// Refreshes cache values when subviews change.
     public func updateCache(_ cache: inout Cache, subviews: Subviews) {
         cache.minSize = minSize(subviews: subviews)
     }
 
+    /// Computes the ideal layout size for the proposed container size.
     public func sizeThatFits(proposal: ProposedViewSize,
                              subviews: Subviews,
                              cache: inout Cache) -> CGSize {
@@ -89,6 +92,7 @@ public struct WrappingHStack: Layout {
         return CGSize(width: width, height: height)
     }
 
+    /// Places subviews into wrapped rows inside the provided bounds.
     public func placeSubviews(in bounds: CGRect,
                               proposal: ProposedViewSize,
                               subviews: Subviews,
@@ -110,13 +114,19 @@ public struct WrappingHStack: Layout {
 }
 
 extension WrappingHStack {
+    /// Computed layout row containing wrapped element placement metrics.
     struct Row {
+        /// Row elements with source index, measured size, and horizontal offset.
         var elements: [(index: Int, size: CGSize, xOffset: CGFloat)] = []
+        /// Vertical offset of this row from the top of the layout.
         var yOffset: CGFloat = .zero
+        /// Total occupied width of this row.
         var width: CGFloat = .zero
+        /// Maximum element height in this row.
         var height: CGFloat = .zero
     }
 
+    /// Splits subviews into wrapped rows and computes offsets/heights for placement.
     private func arrangeRows(proposal: ProposedViewSize,
                              subviews: Subviews,
                              cache: inout Cache) -> [Row] {
@@ -193,6 +203,7 @@ extension WrappingHStack {
         return rows
     }
 
+    /// Hashes proposal and subview sizes to reuse cached row arrangements.
     private func computeHash(proposal: ProposedViewSize, sizes: [CGSize]) -> Int {
         let proposal = proposal.replacingUnspecifiedDimensions(by: .infinity)
 
@@ -206,18 +217,21 @@ extension WrappingHStack {
         return hasher.finalize()
     }
 
+    /// Returns the minimum non-zero size required by child subviews.
     private func minSize(subviews: Subviews) -> CGSize {
         subviews
             .map { $0.sizeThatFits(.zero) }
             .reduce(CGSize.zero) { CGSize(width: max($0.width, $1.width), height: max($0.height, $1.height)) }
     }
 
+    /// Resolves horizontal spacing between adjacent subviews.
     private func horizontalSpacing(_ lhs: LayoutSubview, _ rhs: LayoutSubview) -> CGFloat {
         if let horizontalSpacing { return horizontalSpacing }
 
         return lhs.spacing.distance(to: rhs.spacing, along: .horizontal)
     }
 
+    /// Resolves vertical spacing between two consecutive rows.
     private func verticalSpacing(_ lhs: LayoutSubview, _ rhs: LayoutSubview) -> CGFloat {
         if let verticalSpacing { return verticalSpacing }
 
@@ -225,12 +239,14 @@ extension WrappingHStack {
     }
 }
 
+/// Convenience comparisons for detecting minimum-size changes in layout cache.
 private extension CGSize {
     static var infinity: Self {
         .init(width: CGFloat.infinity, height: CGFloat.infinity)
     }
 }
 
+/// Converts SwiftUI alignment values into normalized unit points for placement math.
 private extension UnitPoint {
     init(_ alignment: Alignment) {
         switch alignment {

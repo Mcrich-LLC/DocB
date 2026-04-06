@@ -7,9 +7,12 @@
 
 import SwiftUI
 
+/// AbstractView renders a reusable SwiftUI view.
 struct AbstractView: View {
+    /// Parsed abstract inline content.
     let abstract: [ContentStruct]
     
+    /// Plain `Text` reconstructed from supported abstract content fragments.
     var abstractText: Text {
         var text: Text = Text("")
         

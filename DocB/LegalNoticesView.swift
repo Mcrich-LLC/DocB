@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Displays legal notice text and links to privacy policy and terms of use.
 struct LegalNoticesView: View {
     let legalNotices: LegalNotices
     @State private var text: AttributedString?

@@ -7,14 +7,20 @@
 
 import SwiftUI
 
+/// MultilinePicker renders a reusable SwiftUI view.
 struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCollection, Data.Element: Identifiable, Data.Element: Equatable {
+    /// Options shown by the picker.
     let data: Data
+    /// Current selection binding.
     @Binding var selection: Data.Element
     
+    /// Cell builder used to render each option.
     @ViewBuilder let cell: (Data.Element) -> Cell
+    /// Namespace used for matched-geometry selection marker animation.
     @Namespace private var ns
     
-    var xShaddow: CGFloat {
+    /// Horizontal shadow offset for the selected marker at segment edges.
+    var xShadow: CGFloat {
         guard let index = data.firstIndex(of: selection) as? Int else { return 0 }
         
         if index == 0 {
@@ -26,9 +32,12 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
         }
     }
     
+    /// Corner radius used by segment backgrounds.
     private let cornerRadius: CGFloat = 6
+    /// Current color scheme used by selection background color logic.
     @Environment(\.colorScheme) var colorScheme
     
+    /// Filled background color for the currently selected segment.
     var selectedBackgroundColor: Color {
         #if os(macOS)
         Color(platformColor: .windowBackgroundColor)
@@ -41,6 +50,7 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
         #endif
     }
     
+    /// Unselected segmented-control background color.
     let backgroundColor: Color = Color(platformColor: .secondarySystemFill)
 
     var body: some View {
@@ -60,7 +70,7 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
                                 .fill(selectedBackgroundColor)
                                 .frame(maxHeight: .infinity)
                                 .matchedGeometryEffect(id: "Marker", in: ns)
-                                .shadow(color: .black.opacity(0.2), radius: 0.5, x: xShaddow, y: 0.7)
+                                .shadow(color: .black.opacity(0.2), radius: 0.5, x: xShadow, y: 0.7)
                         } else {
                             RoundedRectangle(cornerRadius: cornerRadius)
                                 .fill(backgroundColor.opacity(0.00000000001))

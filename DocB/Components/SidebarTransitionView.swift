@@ -66,15 +66,18 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     }
 }
 
+/// Preference key used by nested sidebar content to hide/show the back toolbar button.
 private struct HideBackPreferenceKey: PreferenceKey {
     static let defaultValue: Bool = false
 
+    /// Keeps the most recent preference value emitted from inner content.
     static func reduce(value: inout Bool, nextValue: () -> Bool) {
         value = nextValue() // Overwrite with the latest value
     }
 }
 
 #if DEBUG
+/// Debug preview host used to manually verify nested sidebar push/pop behavior.
 private struct ProviderView: View {
     @State var isShowingInnerView = false
     @State var isShowingInnerView2 = false

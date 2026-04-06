@@ -8,22 +8,36 @@
 import SwiftUI
 import SwiftData
 
+/// ArticleView renders a reusable SwiftUI view.
 struct ArticleView: View {
     
+    /// Current color scheme used for article accent and gradient behavior.
     @Environment(\.colorScheme) var colorScheme
+    /// SwiftData context used for bookmark lookup and updates.
     @Environment(\.modelContext) private var modelContext
+    /// Horizontal size class used to tune popover sizing.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    /// Shared navigation coordinator for history and selection state.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Documentation data source used to fetch article payloads.
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    /// Reference currently being displayed.
     let reference: Reference
     
+    /// Whether the current reference is already bookmarked.
     @State var isBookmarked = false
+    /// Loaded article payload.
     @State var article: Article?
+    /// Whether to show a toolbar background while scrolling.
     @State var showToolbarBG: Bool = false
+    /// Current vertical scroll offset used by header effects.
     @State var scrollOffset: CGFloat = 0
+    /// Controls Add Bookmark popover presentation.
     @State var isShowingAddBookmark = false
+    /// Cached header size used to size the top gradient.
     @State var headerSize: CGSize?
     
+    /// Stable scroll anchors used by `ScrollViewReader`/layout IDs.
     enum ScrollIdentifier: CaseIterable {
         case header
         case primaryContent
@@ -32,6 +46,7 @@ struct ArticleView: View {
         case seeAlso
     }
     
+    /// Gradient colors resolved from article metadata role/color.
     var topColorGradient: [Color] {
         article?.metadata.color?.gradientColors ?? article?.metadata.role.gradientColors ?? []
     }
@@ -217,6 +232,7 @@ struct ArticleView: View {
         .accentColor(Color.accentColor)
     }
     
+    /// Refreshes bookmark state for the currently displayed reference.
     func getIfBookmarked() {
         do {
             let descriptor = FetchDescriptor<Bookmark>(
@@ -234,6 +250,7 @@ struct ArticleView: View {
     }
     
     @ViewBuilder
+    /// Renders the article heading block including badges, abstract, and platforms.
     func Heading(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             if (article.metadata.roleHeading != nil || article.metadata.platforms != nil) && article.topicSectionsStyle != .hidden {
@@ -284,6 +301,7 @@ struct ArticleView: View {
         .lineSpacing(3)
     }
     
+    /// Animates toolbar background visibility changes based on heading visibility.
     func setToolbarVisibility(_ isVisible: Bool) {
         withAnimation {
             self.showToolbarBG = isVisible
@@ -291,6 +309,7 @@ struct ArticleView: View {
     }
     
     @ViewBuilder
+    /// Renders beta/deprecation badges for article metadata.
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
             if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true || article?.betaSummary != nil {
@@ -302,6 +321,7 @@ struct ArticleView: View {
         }
     }
     
+    /// Fetches and assigns full article content for the current reference.
     func loadArticle() async {
         do {
             let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: reference.docCSite)

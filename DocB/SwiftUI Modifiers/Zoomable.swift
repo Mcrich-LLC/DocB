@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Adds pinch, drag, and double-tap zoom behavior to any SwiftUI view.
+///
+/// - Warning: This modifier assumes content is anchored at `.zero` and clamps translation to content bounds.
 struct ZoomableModifier: ViewModifier {
     let minZoomScale: CGFloat
     let doubleTapZoomScale: CGFloat
@@ -126,7 +129,13 @@ struct ZoomableModifier: ViewModifier {
     }
 }
 
+/// Public zooming APIs that attach `ZoomableModifier` behavior to views.
 public extension View {
+    /// Enables interactive zoom and pan gestures on the receiving view.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: Minimum allowed zoom before the transform resets to identity.
+    ///   - doubleTapZoomScale: Zoom level toggled by a double tap.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,
@@ -138,6 +147,12 @@ public extension View {
         ))
     }
 
+    /// Enables interactive zoom while filling out-of-bounds space with a background color.
+    ///
+    /// - Parameters:
+    ///   - minZoomScale: Minimum allowed zoom before the transform resets to identity.
+    ///   - doubleTapZoomScale: Zoom level toggled by a double tap.
+    ///   - outOfBoundsColor: Background color shown when transformed content exposes empty space.
     @ViewBuilder
     func zoomable(
         minZoomScale: CGFloat = 1,
@@ -155,6 +170,7 @@ public extension View {
     }
 }
 
+/// Internal helper APIs used to compose conditional and transform-based view behavior.
 private extension View {
     @ViewBuilder
     func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
@@ -172,6 +188,7 @@ private extension View {
     }
 }
 
+/// Geometry helpers for mapping normalized anchors into concrete coordinates.
 private extension UnitPoint {
     func scaledBy(_ size: CGSize) -> CGPoint {
         .init(
@@ -181,6 +198,7 @@ private extension UnitPoint {
     }
 }
 
+/// Transform helpers for anchored scaling and extracting effective scale factors.
 private extension CGAffineTransform {
     static func anchoredScale(scale: CGFloat, anchor: CGPoint) -> CGAffineTransform {
         CGAffineTransform(translationX: anchor.x, y: anchor.y)

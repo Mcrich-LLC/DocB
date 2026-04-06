@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Renders a platform-styled chevron indicator used in list rows and navigation affordances.
 struct ChevronView: View {
     @Environment(\.colorScheme) var colorScheme
     

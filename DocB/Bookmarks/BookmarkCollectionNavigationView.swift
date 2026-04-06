@@ -7,12 +7,18 @@
 
 import SwiftUI
 
+/// Shows bookmarks in a single collection grouped by source technology and provides per-item navigation.
 struct BookmarkCollectionNavigationView: View {
+    /// Documentation source state used to resolve bookmark URLs to known technologies.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// Navigation state used when returning from this collection detail view.
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    /// SwiftData context used for deleting bookmarks from the collection.
     @Environment(\.modelContext) private var modelContext
+    /// Collection whose bookmarks are presented in grouped sections.
     let collection: BookmarkCollection
     
+    /// Resolves the matching technology entry for a bookmark source URL when available.
     func technology(for url: URL) -> TechnologyTypes? {
         documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
     }
@@ -59,12 +65,18 @@ struct BookmarkCollectionNavigationView: View {
     }
 }
 
+/// Section renderer for bookmarks grouped under a single source URL.
 private struct SectionView: View {
+    /// Parent bookmark collection being rendered.
     let collection: BookmarkCollection
+    /// Grouped source URL represented by this section.
     let url: URL
+    /// Documentation source state used to resolve source labels.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// Navigation state used to adapt row affordances in split view.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    /// Resolves the matching technology entry for a grouped URL.
     func technology(for url: URL) -> TechnologyTypes? {
         documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
     }
@@ -89,8 +101,11 @@ private struct SectionView: View {
         }
     }
     
+    /// Bookmark row label used inside grouped bookmark sections.
     private struct Label: View {
+        /// Row title shown for a bookmark entry.
         let text: String
+        /// Navigation state used to decide whether chevron affordance is shown.
         @Environment(NavigationViewModel.self) private var navigationViewModel
         
         var body: some View {
@@ -106,13 +121,21 @@ private struct SectionView: View {
     }
 }
 
+/// Row button that offers to add a missing source for a bookmark target.
 private struct AddSourceButton<Content: View>: View {
+    /// Bookmark whose missing source can be added as a DocC site.
     let bookmark: Bookmark
+    /// Custom label content displayed for the button row.
     @ViewBuilder let label: Content
+    /// Controls presentation of the add-source confirmation dialog.
     @State private var isShowingAddPopover = false
+    /// Documentation model used to add the missing DocC source.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    /// SwiftData context used by add-technology operations.
     @Environment(\.modelContext) private var modelContext
+    /// Size class reserved for future presentation branching.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    /// Captures add-source failures for alert presentation.
     @State private var errorAlert: Error?
     
     var body: some View {
@@ -135,6 +158,7 @@ private struct AddSourceButton<Content: View>: View {
         .alert(for: $errorAlert)
     }
     
+    /// Normalizes and adds the bookmark's source URL as a DocC site.
     private func addDocCSite() async {
         guard let initialUrl = bookmark.siteBaseURL else { return }
         

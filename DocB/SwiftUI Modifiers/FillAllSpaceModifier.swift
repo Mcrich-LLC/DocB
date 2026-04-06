@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+/// Centers content by surrounding it with spacers so it expands to fill the available area.
 struct FillAllSpaceModifier: ViewModifier {
     func body(content: Content) -> some View {
         VStack {
@@ -23,6 +24,7 @@ struct FillAllSpaceModifier: ViewModifier {
 }
 
 extension View {
+    /// Wraps the view in a full-space centering layout.
     func fillSpaceAvailable() -> some View {
         modifier(FillAllSpaceModifier())
     }

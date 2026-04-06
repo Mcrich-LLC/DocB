@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Platform-aware cancel button that uses role-based styling on newer OS versions.
 struct CancelButton: View {
     let action: () -> Void
     

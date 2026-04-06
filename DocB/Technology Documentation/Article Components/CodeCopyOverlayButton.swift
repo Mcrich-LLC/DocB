@@ -7,9 +7,12 @@
 
 import SwiftUI
 
+/// CodeCopyOverlayButton renders a reusable SwiftUI view.
 struct CodeCopyOverlayButton: View {
+    /// Text payload copied to the system pasteboard.
     let string: String
-    @State private var hasCoppied: Bool = false
+    /// Tracks whether copy feedback should show a checkmark icon.
+    @State private var hasCopied: Bool = false
     
     var body: some View {
 #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
@@ -22,15 +25,15 @@ struct CodeCopyOverlayButton: View {
                 #endif
                 
                 withAnimation {
-                    hasCoppied = true
+                    hasCopied = true
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
                     withAnimation {
-                        hasCoppied = false
+                        hasCopied = false
                     }
                 }
             } label: {
-                Label("Copy", systemSymbol: hasCoppied ? .checkmark : .listClipboard)
+                Label("Copy", systemSymbol: hasCopied ? .checkmark : .listClipboard)
                     .labelStyle(.iconOnly)
             }
         }

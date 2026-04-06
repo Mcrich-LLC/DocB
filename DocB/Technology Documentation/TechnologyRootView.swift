@@ -8,16 +8,25 @@
 import SwiftUI
 
 @Observable
+/// Internal coordinator that keeps filtering and reference-visibility state for `TechnologyRootView`.
 private final class TechnologyRootManager {
+    /// Currently selected framework section driving this screen.
     var frameworkSection: AppleTechnologies.FrameworkSection
     
+    /// Creates a manager for a selected framework section.
     init(frameworkSection: AppleTechnologies.FrameworkSection) {
         self.frameworkSection = frameworkSection
     }
     
+    /// Active topic tag filters.
     var activeFilters: Set<TagFilters> = []
+    /// Cached deep-filter visibility keyed by reference identifier.
     var shownReferences: [String : Bool] = [:]
     
+    /// Returns a copy of a reference associated with the currently displayed DocC site.
+    ///
+    /// - Parameter reference: Source reference from a framework payload.
+    /// - Returns: A reference with the site context attached.
     func getReference(from reference: Reference) -> Reference {
         var reference = reference
         reference.docCSite = self.frameworkSection.docCSite
@@ -25,6 +34,10 @@ private final class TechnologyRootManager {
         return reference
     }
     
+    /// Determines whether a reference should be shown under the active filter set.
+    ///
+    /// - Parameter reference: The reference to evaluate.
+    /// - Returns: `true` when visible according to cached and top-level filter checks.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
             return DocB.isTopReferencePartOfFilter(reference, with: activeFilters)
@@ -34,23 +47,32 @@ private final class TechnologyRootManager {
     }
 }
 
+/// Root technology browser for a selected framework section.
 struct TechnologyRootView: View {
     
+    /// Shared navigation state coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
+    /// Shared documentation data/model coordinator.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
+    /// Creates a technology root view for a framework section.
     init(frameworkSection: AppleTechnologies.FrameworkSection) {
         self.manager = TechnologyRootManager(frameworkSection: frameworkSection)
     }
     
+    /// Current interface color scheme.
     @Environment(\.colorScheme) var colorScheme
+    /// Stateful manager containing local filtering/rendering state.
     @State private var manager: TechnologyRootManager
+    /// Whether deep-filter recomputation is in progress.
     @State var isLoading = false
     
+    /// Cached framework payload for the selected framework section.
     var framework: Framework? {
         documentationViewModel.frameworks[manager.frameworkSection.destination.identifier]
     }
     
+    /// Topic sections filtered to only those containing visible references.
     var topicSections: [Framework.TopicSection] {
         (framework?.topicSections ?? []).filter { section in
             section.identifiers.contains { identifier in
@@ -61,6 +83,7 @@ struct TechnologyRootView: View {
         }
     }
     
+    /// Maps an externally provided identifier to the local framework reference key space.
     private func convertOutsideReferenceToIn() -> Reference? {
         guard let ogIdentifier = navigationViewModel.reference?.identifier,
               let ogIdentifierURL = URL(string: ogIdentifier.lowercased()),
@@ -166,13 +189,20 @@ struct TechnologyRootView: View {
         .environment(manager)
     }
     
+    /// Inner framework list renderer used once a framework payload is available.
     private struct FrameworkView: View {
+        /// Framework payload currently being rendered.
         let framework: Framework
+        /// Framework section metadata for root list item/title.
         let frameworkSection: AppleTechnologies.FrameworkSection
+        /// Topic sections already filtered for display.
         let topicSections: [Framework.TopicSection]
+        /// Shared local manager from parent view.
         @Environment(TechnologyRootManager.self) private var manager
+        /// Shared documentation data/model coordinator.
         @Environment(DocumentationViewModel.self) var documentationViewModel
         
+        /// Renders the framework + topics list.
         var body: some View {
             if framework.topicSections?.isEmpty == true {
                 Text("No documentation available for \(framework.metadata.title)")
@@ -217,12 +247,14 @@ struct TechnologyRootView: View {
         }
     }
     
+    /// Loads the selected framework if it is not already cached.
     func loadFramework() async {
         if framework == nil {
             await documentationViewModel.fetchFramework(for: manager.frameworkSection.destination.identifier, site: manager.frameworkSection.docCSite)
         }
     }
     
+    /// Recomputes deep-filter visibility for all references in the current framework.
     @MainActor
     func getShownReferences() async {
         guard !manager.activeFilters.isEmpty else {
@@ -243,6 +275,7 @@ struct TechnologyRootView: View {
     }
 }
 
+/// Row renderer for a framework/reference item, including nested disclosure handling.
 private struct FrameworkListItem: View {
     @Environment(\.tagFilters) var tagFilters
     
@@ -251,6 +284,7 @@ private struct FrameworkListItem: View {
     var willHideDisclosureGroups: Bool = false
     var isShowingChevron: Bool = true
     
+    /// Whether this row can expand into a nested reference list.
     var hasSubParts: Bool {
         if let fragments = reference.fragments,
            fragments.contains(where: {
@@ -294,6 +328,7 @@ private struct FrameworkListItem: View {
         }
     }
     
+    /// Returns a copy of this row that suppresses nested disclosure behavior.
     func hideDisclosureGroups() -> Self {
         var view = self
         view.willHideDisclosureGroups = true
@@ -301,6 +336,7 @@ private struct FrameworkListItem: View {
         return view
     }
     
+    /// Returns a copy of this row with configurable chevron visibility.
     func showChevron(_ bool: Bool) -> Self {
         var view = self
         view.isShowingChevron = bool
@@ -309,6 +345,7 @@ private struct FrameworkListItem: View {
     }
 }
 
+/// Default non-disclosure row renderer for a single reference destination.
 private struct DefaultListItem: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let reference: Reference
@@ -317,6 +354,7 @@ private struct DefaultListItem: View {
     var isShowingChevron: Bool = true
     var shouldShowBackground: Bool = true
     
+    /// Whether navigation path adjustment is needed before appending this destination.
     var removeLastPathComponentFirst: Bool {
         guard let url = URL(string: reference.identifier), let currentTech = navigationViewModel.technology, let currentTechUrl = URL(string: currentTech.destination.identifier) else {
             return false
@@ -354,6 +392,7 @@ private struct DefaultListItem: View {
         .removeLastPathComponentFirst(removeLastPathComponentFirst)
     }
     
+    /// Returns a copy of this row with optional selected-line background.
     func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
@@ -361,6 +400,7 @@ private struct DefaultListItem: View {
         return view
     }
     
+    /// Returns a copy of this row with configurable chevron visibility.
     func showChevron(_ bool: Bool) -> Self {
         var view = self
         view.isShowingChevron = bool
@@ -369,6 +409,7 @@ private struct DefaultListItem: View {
     }
 }
 
+/// Disclosure group that lazily loads and displays nested framework topic references.
 private struct FrameworkDisclosureGroup: View {
     
     @Environment(NavigationViewModel.self) var navigationViewModel
@@ -382,10 +423,12 @@ private struct FrameworkDisclosureGroup: View {
     @State var shownReferences: [String : Bool] = [:]
     @State var isLoading = false
     
+    /// Cached framework payload for this nested reference identifier.
     var framework: Framework? {
         documentationViewModel.frameworks[identifier]
     }
     
+    /// Topic sections filtered to references visible under the active tags.
     var topicSections: [Framework.TopicSection] {
         (framework?.topicSections ?? []).filter { section in
             section.identifiers.contains { identifier in
@@ -396,12 +439,18 @@ private struct FrameworkDisclosureGroup: View {
         }
     }
     
+    /// Section renderer that expands topic identifiers into visible framework list rows.
     struct TopicSectionIdentifierWithID: View {
+        /// Source topic section.
         let section: Framework.TopicSection
+        /// Parent framework payload.
         let framework: Framework
+        /// Reference whose site context should be propagated to children.
         let reference: Reference
+        /// Visibility predicate for child references.
         let isReferenceShown: (Reference) -> Bool
         
+        /// Returns a copy of `reference` with inherited DocC site context.
         func getReference(from reference: Reference) -> Reference {
             var reference = reference
             reference.docCSite = self.reference.docCSite
@@ -409,6 +458,7 @@ private struct FrameworkDisclosureGroup: View {
             return reference
         }
         
+        /// Renders topic-section rows for visible child references.
         var body: some View {
             Section {
                 ForEach(section.identifiersWithIDs) { subidentifier in
@@ -467,6 +517,7 @@ private struct FrameworkDisclosureGroup: View {
         }
     }
     
+    /// Determines whether a nested reference should be shown.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
             return DocB.isTopReferencePartOfFilter(reference, with: tagFilters)
@@ -475,6 +526,7 @@ private struct FrameworkDisclosureGroup: View {
         return shownReference
     }
     
+    /// Recomputes deep-filter visibility for references in this disclosure group.
     @MainActor
     func getShownReferences() async {
         guard !tagFilters.isEmpty else {
@@ -497,6 +549,12 @@ private struct FrameworkDisclosureGroup: View {
 
 // MARK: File-Level Filter Functions
 
+/// Checks top-level reference metadata against active filters.
+///
+/// - Parameters:
+///   - reference: The reference to evaluate.
+///   - filters: Active tag filters.
+/// - Returns: `true` when the reference matches top-level filter criteria.
 private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>) -> Bool {
     guard !filters.isEmpty else { return true }
     
@@ -511,6 +569,16 @@ private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Se
     return false
 }
 
+/// Checks whether a reference or any nested members satisfy active filters.
+///
+/// This may fetch nested frameworks while evaluating descendants.
+/// Running it across many references can be network-intensive and may briefly show loading states.
+///
+/// - Parameters:
+///   - reference: The reference to evaluate.
+///   - filters: Active tag filters.
+///   - documentationViewModel: Shared documentation state used to fetch nested frameworks.
+/// - Returns: `true` when the reference or descendants match the filters.
 private func isFullReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>, documentationViewModel: DocumentationViewModel) async -> Bool {
     // Return if the top level is included
     if isTopReferencePartOfFilter(reference, with: filters) { return true }
@@ -537,6 +605,7 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     return false
 }
 
+/// Determines whether a reference kind is expected to contain nested members.
 private func referenceHasSubParts(_ reference: Reference) -> Bool {
     if let fragments = reference.fragments,
        fragments.contains(where: {

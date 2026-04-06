@@ -15,6 +15,7 @@
 		222AB77B2CBF78B2001196C1 /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222AB77A2CBF78B2001196C1 /* ChevronView.swift */; };
 		2239F74E2F2AA3BD00A3201C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2239F74D2F2AA3BD00A3201C /* AppSettings.swift */; };
 		22474ED82DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */; };
+		224A5D2E2F843C280060C08E /* AppIcon_DEBUG.icon in Resources */ = {isa = PBXBuildFile; fileRef = 224A5D2D2F843C280060C08E /* AppIcon_DEBUG.icon */; };
 		224E23B42F6252F000FC7D19 /* MainOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */; };
 		224E23B52F6252F000FC7D19 /* IntroOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */; };
 		224E23B92F62531500FC7D19 /* ViewSteps Enum Protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */; };
@@ -82,6 +83,7 @@
 		222AB77A2CBF78B2001196C1 /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
 		2239F74D2F2AA3BD00A3201C /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		22474ED72DFCE9AA00D9DE44 /* IconTrailingLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTrailingLabelStyle.swift; sourceTree = "<group>"; };
+		224A5D2D2F843C280060C08E /* AppIcon_DEBUG.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon_DEBUG.icon; sourceTree = "<group>"; };
 		224E23AD2F6252F000FC7D19 /* MainOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainOnboardingView.swift; sourceTree = "<group>"; };
 		224E23AE2F6252F000FC7D19 /* IntroOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroOnboardingView.swift; sourceTree = "<group>"; };
 		224E23B82F62531500FC7D19 /* ViewSteps Enum Protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewSteps Enum Protocol.swift"; sourceTree = "<group>"; };
@@ -277,6 +279,7 @@
 				2287E3D52CBF6A8500090C9F /* DocBApp.swift */,
 				2229DBB02CFEEF35009EB389 /* SettingsView.swift */,
 				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
+				224A5D2D2F843C280060C08E /* AppIcon_DEBUG.icon */,
 				22D1F1122F8203FC00FF240E /* AppIcon.icon */,
 				225A267D2F7DC76500C89E28 /* General Config.xcconfig */,
 				2287E3D72CBF6A8500090C9F /* Constants.swift */,
@@ -406,6 +409,7 @@
 				2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */,
 				2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */,
 				225A267E2F7DC76500C89E28 /* General Config.xcconfig in Resources */,
+				224A5D2E2F843C280060C08E /* AppIcon_DEBUG.icon in Resources */,
 				2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */,
 				22D1F1132F8203FC00FF240E /* AppIcon.icon in Resources */,
 			);

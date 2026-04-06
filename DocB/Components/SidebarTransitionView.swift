@@ -38,14 +38,31 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @State private var isBack: Bool = false
     
     var body: some View {
-        outerView
-            .overlay {
-                if isShowingInnerView, let unwrappedOptional {
-                    innerContent(unwrappedOptional)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.background)
-                }
+        Group {
+            if isShowingInnerView, let unwrappedOptional {
+                innerView(unwrappedOptional)
+                    .onPreferenceChange(HideBackPreferenceKey.self) { isHiding in
+                        isHidingBackToolbarButton = isHiding
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .backForward(isBack: isBack)
+                    .toolbar {
+                        if !isHidingBackToolbarButton {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Back", systemImage: "chevron.left") {
+                                    apiExposedisShowingInnerView = false
+                                }
+                                .labelStyle(.titleAndIcon)
+                            }
+                        }
+                    }
+                    .preference(key: HideBackPreferenceKey.self, value: true)
+            } else {
+                outerView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .backForward(isBack: isBack)
             }
+        }
         .animation(.default, value: isShowingInnerView)
         .onChange(of: apiExposedisShowingInnerView) { oldValue, newValue in
             if oldValue && !newValue {
@@ -57,27 +74,6 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
                 isShowingInnerView = newValue
             }
         }
-    }
-    
-    @ViewBuilder
-    func innerContent(_ unwrappedOptional: P) -> some View {
-        innerView(unwrappedOptional)
-            .onPreferenceChange(HideBackPreferenceKey.self) { isHiding in
-                isHidingBackToolbarButton = isHiding
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                    .backForward(isBack: isBack)
-            .toolbar {
-                if !isHidingBackToolbarButton {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Back", systemImage: "chevron.left") {
-                            apiExposedisShowingInnerView = false
-                        }
-                        .labelStyle(.titleAndIcon)
-                    }
-                }
-            }
-            .preference(key: HideBackPreferenceKey.self, value: true)
     }
 }
 

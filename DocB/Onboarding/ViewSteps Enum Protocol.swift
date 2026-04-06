@@ -14,7 +14,6 @@ protocol ViewSteps: CaseIterable, RawRepresentable where RawValue == Int {
     mutating func previous()
 }
 
-
 extension ViewSteps {
     mutating func next() {
         guard let next = Self(rawValue: self.rawValue+1) else { return }

@@ -14,8 +14,13 @@ struct IntroOnboardingView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HeaderImage()
-                .padding(.bottom, 20)
+            ViewThatFits {
+                HeaderImage()
+                    .frame(minWidth: 250, minHeight: 250)
+                    .layoutPriority(-1)
+                    .padding(.bottom, 20)
+                Text("").accessibilityHidden(true)
+            }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your Library")

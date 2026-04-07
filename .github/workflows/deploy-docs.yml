@@ -2,7 +2,7 @@ name: Deploy DocC to Cloudflare Workers
 
 on:
   push:
-    branches: ["main"] # Update this to your default branch if different
+    branches: [] # Update this to your default branch if different
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

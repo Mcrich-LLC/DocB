@@ -8,14 +8,7 @@
 import SwiftUI
 import SFSafeSymbols
 import SwiftData
-
-/// Scene and window identifiers used by the app.
-struct WindowTypes {
-    /// Secondary window for adding custom DocC sources.
-    static let addSites = "add_sites"
-    /// Main documentation browsing window.
-    static let main = "main"
-}
+import DocBCore
 
 @main
 /// Application entry point that configures model containers, scenes, and global environments.

@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftDocB",
+    name: "DocBCore",
     platforms: [.macOS(.v15), .iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "SwiftDocB",
-            targets: ["SwiftDocB"]
+            name: "DocBCore",
+            targets: ["DocBCore"]
         ),
     ],
     dependencies: [
@@ -26,9 +26,8 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SwiftDocB",
+            name: "DocBCore",
             dependencies: ["EnhancedCodable", "PrivateObfuscationMacro", "HighlightSwift", "Kingfisher", "Nuke", .product(name: "NukeUI", package: "Nuke"), "SFSafeSymbols", "STTextView"],
-            path: "./DocB",
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]

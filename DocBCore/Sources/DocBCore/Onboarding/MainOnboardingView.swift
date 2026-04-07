@@ -45,13 +45,15 @@ enum OnboardingSteps: Int, ViewSteps {
 }
 
 /// Hosts the onboarding flow and swaps step content based on the active onboarding state.
-struct MainOnboardingView: View {
+public struct MainOnboardingView: View {
     /// Local step manager controlling onboarding flow state.
     @State var stepManager = OnboardingStepManager()
     /// Effective dismiss action resolved from environment.
     @Environment(\.customEnabledDismissAction) var customEnabledDismissAction
     
-    var body: some View {
+    public init() {}
+    
+    public var body: some View {
         VStack {
             switch stepManager.step {
             case .intro:

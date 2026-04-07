@@ -24,8 +24,9 @@ private struct SuggestedTechnology: Identifiable, Hashable {
 }
 
 /// Presents the add-technology flow inside a navigation container with close controls.
-struct AddTechnologySheetView: View {
-    var body: some View {
+public struct AddTechnologySheetView: View {
+    public init() {}
+    public var body: some View {
         NavigationStack {
             AddTechnologyView()
                 .toolbar {
@@ -37,7 +38,9 @@ struct AddTechnologySheetView: View {
 }
 
 /// Lists featured and custom documentation sources and supports adding or removing DocC technologies.
-struct AddTechnologyView: View {
+public struct AddTechnologyView: View {
+    public init() {}
+    
     /// Shared documentation state for adding/removing technologies.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     /// SwiftData context used for persistence-backed source changes.
@@ -101,7 +104,7 @@ struct AddTechnologyView: View {
         documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) || technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
     }
 
-    var body: some View {
+    public var body: some View {
         List {
             Section("Our Favorite Projects") {
                 ForEach(featuredTechnologies) { technology in

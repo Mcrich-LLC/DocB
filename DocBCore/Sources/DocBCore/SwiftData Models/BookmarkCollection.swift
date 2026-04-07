@@ -85,9 +85,9 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
 
 @Model
 /// BookmarkCollection encapsulates app behavior and state.
-final class BookmarkCollection: Identifiable {
+public final class BookmarkCollection: Identifiable {
     /// Stable identifier for the persisted collection.
-    var id = UUID()
+    public var id = UUID()
     /// Optional display title for the collection.
     var title: String?
     /// Optional timestamp used to sort collections by recency.

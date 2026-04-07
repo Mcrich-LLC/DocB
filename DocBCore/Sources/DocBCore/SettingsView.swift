@@ -8,8 +8,10 @@
 import SwiftUI
 
 /// Renders the app settings container and organizes settings into tabs.
-struct SettingsView: View {
-    var body: some View {
+public struct SettingsView: View {
+    public init() {}
+    
+    public var body: some View {
         TabView {
             Tab("General", systemImage: "gear") {
                 GeneralSettingsView()

@@ -9,12 +9,12 @@ import SwiftUI
 
 extension View {
     /// Injects a custom dismiss closure into environment values for descendant views.
-    func customDismiss(_ action: @escaping () -> Void) -> some View {
+    public func customDismiss(_ action: @escaping () -> Void) -> some View {
         environment(\.customDismiss, .init(action: action))
     }
     
     /// Injects an existing dismiss action wrapper into environment values.
-    func customDismiss(_ action: CustomDismissAction) -> some View {
+    public func customDismiss(_ action: CustomDismissAction) -> some View {
         environment(\.customDismiss, action)
     }
 }
@@ -37,11 +37,11 @@ extension EnvironmentValues {
 }
 
 /// Wraps a dismiss closure that can be propagated through environment values and compared by identity.
-struct CustomDismissAction: Identifiable, Equatable {
-    static func == (lhs: CustomDismissAction, rhs: CustomDismissAction) -> Bool {
+public struct CustomDismissAction: Identifiable, Equatable {
+    public static func == (lhs: CustomDismissAction, rhs: CustomDismissAction) -> Bool {
         lhs.id == rhs.id
     }
     
-    let id = UUID()
-    let action: () -> Void
+    public let id = UUID()
+    public let action: () -> Void
 }

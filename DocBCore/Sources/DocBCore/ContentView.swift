@@ -12,7 +12,11 @@ import SwiftData
 /// Root SwiftUI container that wires navigation, deep-link handling, and shared environment state.
 ///
 /// This view keeps a long-lived `NavigationViewModel` in `@State` to preserve navigation history across redraws.
-struct ContentView: View {
+public struct ContentView: View {
+    public init(url: URL? = nil) {
+        self.url = url
+    }
+    
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
     
@@ -56,7 +60,7 @@ struct ContentView: View {
         }
     }
     
-    var body: some View {
+    public var body: some View {
         Group {
             if navigationViewModel.isUsingSplitView {
                 navigationSplitView

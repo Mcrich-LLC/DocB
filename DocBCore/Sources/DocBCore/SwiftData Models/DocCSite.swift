@@ -13,12 +13,12 @@ import SwiftData
 /// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
 ///
 /// DTO identity and equality are based on `id`, while hashing also includes timestamp, URL, and index.
-final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
-    nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
+public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
+    public nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
     }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(timestamp)
         hasher.combine(url)
@@ -26,7 +26,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Stable identifier used for equality and identity in collections.
-    let id: UUID
+    public let id: UUID
     /// Timestamp indicating when the site was added.
     let timestamp: Date
     /// Optional override display name for the site.
@@ -65,7 +65,7 @@ final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
         self.persistentModelID = model.persistentModelID
     }
     
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.timestamp = try container.decode(Date.self, forKey: .timestamp)
@@ -143,9 +143,9 @@ enum SwiftDataErrors: Error {
 /// Persisted SwiftData model representing a DocC site source.
 ///
 /// Persisted properties are optional to tolerate schema evolution, and `dto` provides validated access for app-layer usage.
-final class DocCSite: Identifiable {
+public final class DocCSite: Identifiable {
     /// Stable identifier for the persisted site model.
-    var id: UUID = UUID()
+    public var id: UUID = UUID()
     /// Creation timestamp for this saved site source.
     var timestamp: Date?
     /// Base URL used to load DocC resources.
@@ -181,7 +181,7 @@ final class DocCSite: Identifiable {
     /// Converts the persisted model into a DTO used by app logic and UI layers.
     ///
     /// This accessor throws when persisted data is malformed or required fields are missing.
-    @MainActor var dto: DocCSiteDTO {
+    @MainActor public var dto: DocCSiteDTO {
         get throws {
             try .init(self)
         }
@@ -209,7 +209,7 @@ final class DocCSite: Identifiable {
 
 extension [DocCSite] {
     /// Converts persisted site models to DTOs, skipping malformed records.
-    @MainActor var asDTOs: [DocCSiteDTO] {
+    @MainActor public var asDTOs: [DocCSiteDTO] {
         compactMap({ try? DocCSiteDTO($0) })
     }
 }

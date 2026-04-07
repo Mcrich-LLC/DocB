@@ -59,7 +59,9 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
 @Observable
 @MainActor
 /// Central state and networking coordinator for DocC technologies, frameworks, and articles.
-class DocumentationViewModel {
+public class DocumentationViewModel {
+    public init() {}
+    
     /// The currently selected language used for language-specific DocC requests.
     var preferedProgrammingLanguage: PreferedProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift {
         didSet {
@@ -208,7 +210,7 @@ class DocumentationViewModel {
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
     ///
     /// - Parameter sites: Persisted DocC site DTOs.
-    func loadTechnologies(_ sites: [DocCSiteDTO]) async {
+    public func loadTechnologies(_ sites: [DocCSiteDTO]) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
                 guard !technologies.contains(where: { $0.isApple }) else {
@@ -241,7 +243,7 @@ class DocumentationViewModel {
     /// - Parameters:
     ///   - site: The technology to remove.
     ///   - modelContext: SwiftData context used for deletion.
-    func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
+    public func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
         guard technologies.contains(where: { $0.id == site.id }) else {
             return
         }

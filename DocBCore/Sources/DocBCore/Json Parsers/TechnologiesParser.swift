@@ -9,12 +9,12 @@ import Foundation
 import EnhancedCodable
 
 /// Unified technology source type representing Apple-hosted and custom DocC providers.
-enum TechnologyTypes: Identifiable, Equatable, Sendable {
+public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     case apple(AppleTechnologies)
     case docC(DocCSiteDTO)
     
     /// Stable identifier for the underlying technology payload.
-    var id: UUID {
+    public var id: UUID {
         switch self {
         case .apple(let apple):
             return apple.id
@@ -98,9 +98,9 @@ extension [TechnologyTypes] {
 }
 
 /// Decoded Apple technologies payload used to build homepage and framework navigation.
-struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
+public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
     /// Stable identifier for diffable/UI usage.
-    let id = UUID()
+    public let id = UUID()
     
     /// Optional hero/header section metadata.
     let header: Header?
@@ -117,7 +117,7 @@ struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable 
     }
     
     /// Decodes Apple technologies by extracting hero and technology sections from the shared sections array.
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)

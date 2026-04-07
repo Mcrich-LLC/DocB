@@ -1,5 +1,5 @@
 {
-  "originHash" : "748c91a9026e1a734b055d84cf32a2dbfd7d2d0941a86a302a57ade738033d2e",
+  "originHash" : "5255730487910bf5770ddadd519a4cc20aeb0a301a5d30d095105d7b02740719",
   "pins" : [
     {
       "identity" : "coretextswift",
@@ -33,14 +33,14 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
-        "revision" : "c92b84898e34ab46ff0dad86c02a0acbe2d87008",
-        "version" : "8.8.0"
+        "revision" : "c152c1915f60c51e4afa0752656993ee5b3c63db",
+        "version" : "8.8.1"
       }
     },
     {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kean/Nuke",
+      "location" : "https://github.com/kean/Nuke.git",
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/STTextView.git",
       "state" : {
-        "revision" : "041b1716756b4416aaaafa1022db4cefc9c42ccc",
-        "version" : "2.3.5"
+        "revision" : "a3596a27e16f7460ec70d1035c16f674556fde75",
+        "version" : "2.3.7"
       }
     },
     {

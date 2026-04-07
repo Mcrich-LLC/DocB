@@ -779,8 +779,8 @@ struct VariantOverride: Codable, Equatable, Hashable {
 }
 
 /// Reference metadata used for navigation, linking, and rendering across documentation payloads.
-struct Reference: Codable, Hashable, Identifiable, Sendable {
-    let id = UUID()
+public struct Reference: Codable, Hashable, Identifiable, Sendable {
+    public let id = UUID()
     
     /// Display title.
     let title: String?
@@ -881,7 +881,7 @@ struct Reference: Codable, Hashable, Identifiable, Sendable {
         case images
     }
     
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.title = try container.decodeIfPresent(String.self, forKey: .title)
         self.abstract = try container.decodeIfPresent([ContentStruct].self, forKey: .abstract)

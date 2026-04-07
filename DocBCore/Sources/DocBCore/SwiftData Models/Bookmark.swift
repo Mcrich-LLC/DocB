@@ -142,9 +142,9 @@ enum BookmarkErrors: Error {
 
 @Model
 /// Bookmark encapsulates app behavior and state.
-final class Bookmark: Identifiable {
+public final class Bookmark: Identifiable {
     /// Stable identifier for this persisted bookmark.
-    var id = UUID()
+    public var id = UUID()
     /// Optional display title of the bookmark target.
     var title: String?
     /// Canonical documentation identifier for deep linking.

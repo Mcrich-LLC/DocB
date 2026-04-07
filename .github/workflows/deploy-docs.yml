@@ -1,0 +1,58 @@
+name: Deploy DocC to Cloudflare Pages
+
+on:
+  push:
+    branches: ["main"] # Update this to your default branch if different
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: macos-latest
+    
+    environment:
+      name: production
+      url: ${{ steps.cloudflare_deploy.outputs.url }}
+      
+    permissions:
+      contents: read
+      deployments: write
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build DocC
+        run: |
+          xcodebuild docbuild \
+            -project DocB.xcodeproj \
+            -scheme DocB \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath .build
+            
+          # Find the generated archive and transform it for static hosting
+          ARCHIVE_PATH=$(find .build -type d -name '*.doccarchive' | head -n 1)
+          
+          if [ -z "$ARCHIVE_PATH" ]; then
+            echo "Error: Could not find .doccarchive file"
+            exit 1
+          fi
+          
+          echo "Found archive at: $ARCHIVE_PATH"
+          
+          $(xcrun --find docc) process-archive transform-for-static-hosting \
+            "$ARCHIVE_PATH" \
+            --output-path ./docs \
+            --hosting-base-path / # Update this string if you want to host on a subpath like /docs
+
+      - name: Deploy to Cloudflare Pages
+        id: cloudflare_deploy
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'docb' # Update this to your Cloudflare Pages project name
+          directory: './docs'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

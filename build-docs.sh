@@ -4,9 +4,6 @@ set -e
 # Disable Xcode macro fingerprint validation to prevent spurious build errors
 defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
 
-# Clean derived data to avoid stale explicit module caches
-rm -rf .build
-
 xcodebuild docbuild \
   -project DocB.xcodeproj \
   -scheme DocB \

@@ -95,7 +95,7 @@ private struct HeaderImage: View {
         ZStack(alignment: .top) {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.OIS_3)
+                    .fill(Color("OIS_3"))
                     .shadow(color: .black.opacity(baseShadowOpacity * 3), radius: 5)
                     .padding(.top, 60)
                     .offset(y: isVisible ? 0 : 50)
@@ -104,7 +104,7 @@ private struct HeaderImage: View {
                     .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: isVisible)
                 
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.OIS_2)
+                    .fill(Color("OIS_2"))
                     .shadow(color: .black.opacity(baseShadowOpacity), radius: 5)
                     .padding(20)
                     .padding(.top, 25)
@@ -114,7 +114,7 @@ private struct HeaderImage: View {
                     .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: isVisible)
                 
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.OIS_1)
+                    .fill(Color("OIS_1"))
                     .shadow(color: .black.opacity(baseShadowOpacity * 2), radius: 5)
                     .overlay {
                         VStack(alignment: .leading) {

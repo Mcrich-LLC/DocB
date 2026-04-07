@@ -61,7 +61,6 @@
 		2287E3FF2CBF6A8500090C9F /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2287E3DC2CBF6A8500090C9F /* NavigationViewModel.swift */; };
 		2287E4002CBF6A8500090C9F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3B82CBF6A8500090C9F /* Preview Assets.xcassets */; };
 		2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3D32CBF6A8500090C9F /* .swiftlint.yml */; };
-		2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2287E3D62CBF6A8500090C9F /* Assets.xcassets */; };
 		22A299F02CBF852A008EE3E5 /* WebEndpointRestBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299EF2CBF852A008EE3E5 /* WebEndpointRestBody.swift */; };
 		22A299F22CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F12CBF8A35008EE3E5 /* WebEndpointRestEndPoint.swift */; };
 		22A299F62CBF8C37008EE3E5 /* WebEndpointRestResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A299F52CBF8C37008EE3E5 /* WebEndpointRestResponse.swift */; };
@@ -123,7 +122,6 @@
 		2287E3D32CBF6A8500090C9F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		2287E3D42CBF6A8500090C9F /* DocB.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DocB.entitlements; sourceTree = "<group>"; };
 		2287E3D52CBF6A8500090C9F /* DocBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocBApp.swift; sourceTree = "<group>"; };
-		2287E3D62CBF6A8500090C9F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2287E3D72CBF6A8500090C9F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		2287E3D82CBF6A8500090C9F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2287E3D92CBF6A8500090C9F /* DocumentationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentationViewModel.swift; sourceTree = "<group>"; };
@@ -141,6 +139,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		224E236E2F620F7300FC7D19 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
+		22A9D6A72F85BDF200524B5F /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
 		22BD11292F09079C00D238BC /* SwiftUI Modifiers */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftUI Modifiers"; sourceTree = "<group>"; };
 		22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "SwiftData Models"; sourceTree = "<group>"; };
 		22C6B4DA2F6C86100077EAF5 /* Bookmarks */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Bookmarks; sourceTree = "<group>"; };
@@ -268,6 +267,7 @@
 		2287E3DD2CBF6A8500090C9F /* DocB */ = {
 			isa = PBXGroup;
 			children = (
+				22A9D6A72F85BDF200524B5F /* Resources */,
 				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
 				22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */,
 				2209FBB92CC9885900372F9E /* Protocols */,
@@ -278,7 +278,6 @@
 				2287E3D42CBF6A8500090C9F /* DocB.entitlements */,
 				2287E3D52CBF6A8500090C9F /* DocBApp.swift */,
 				2229DBB02CFEEF35009EB389 /* SettingsView.swift */,
-				2287E3D62CBF6A8500090C9F /* Assets.xcassets */,
 				224A5D2D2F843C280060C08E /* AppIcon_DEBUG.icon */,
 				22D1F1122F8203FC00FF240E /* AppIcon.icon */,
 				225A267D2F7DC76500C89E28 /* General Config.xcconfig */,
@@ -341,6 +340,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				224E236E2F620F7300FC7D19 /* Components */,
+				22A9D6A72F85BDF200524B5F /* Resources */,
 				22BD11292F09079C00D238BC /* SwiftUI Modifiers */,
 				22C6B4CE2F6C80A00077EAF5 /* SwiftData Models */,
 				22C6B4DA2F6C86100077EAF5 /* Bookmarks */,
@@ -410,7 +410,6 @@
 				2287E4012CBF6A8500090C9F /* .swiftlint.yml in Resources */,
 				225A267E2F7DC76500C89E28 /* General Config.xcconfig in Resources */,
 				224A5D2E2F843C280060C08E /* AppIcon_DEBUG.icon in Resources */,
-				2287E4022CBF6A8500090C9F /* Assets.xcassets in Resources */,
 				22D1F1132F8203FC00FF240E /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -638,6 +637,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 52;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
+				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
@@ -701,6 +701,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 52;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
+				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;

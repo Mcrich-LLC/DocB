@@ -40,7 +40,7 @@ private final class TechnologyRootManager {
     /// - Returns: `true` when visible according to cached and top-level filter checks.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return DocB.isTopReferencePartOfFilter(reference, with: activeFilters)
+            return SwiftDocB.isTopReferencePartOfFilter(reference, with: activeFilters)
         }
         
         return shownReference
@@ -520,7 +520,7 @@ private struct FrameworkDisclosureGroup: View {
     /// Determines whether a nested reference should be shown.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return DocB.isTopReferencePartOfFilter(reference, with: tagFilters)
+            return SwiftDocB.isTopReferencePartOfFilter(reference, with: tagFilters)
         }
         
         return shownReference
@@ -596,7 +596,7 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     for section in (framework.topicSections ?? []) {
         for subidentifier in section.identifiers {
             guard let subreference = framework.references[subidentifier] else { continue }
-            if DocB.isTopReferencePartOfFilter(subreference, with: filters) {
+            if SwiftDocB.isTopReferencePartOfFilter(subreference, with: filters) {
                 return true
             }
         }

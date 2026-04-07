@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import EnhancedCodable
+import SFSafeSymbols
 
 /// Condenses nested content blocks into render-friendly inline segments.
 private func getCondensedContent(_ content: [ContentSection.Content]) -> [ContentSection.Content] {

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-@_exported import SFSafeSymbols
+import SFSafeSymbols
 import SwiftData
 
 /// Scene and window identifiers used by the app.

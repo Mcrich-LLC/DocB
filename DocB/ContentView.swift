@@ -22,6 +22,8 @@ struct ContentView: View {
     @Environment(AppSettings.self) var appSettings
     /// Local navigation coordinator preserved for this root scene.
     @State var navigationViewModel = NavigationViewModel()
+    /// Preserved search state so it outlives sidebar transitions.
+    @State var searchText = ""
     
     /// Current color scheme for view styling.
     @Environment(\.colorScheme) var colorScheme
@@ -163,6 +165,10 @@ struct ContentView: View {
     struct SidebarView: View {
         /// Shared navigation state for sidebar and nested navigation transitions.
         @Environment(NavigationViewModel.self) var navigationViewModel
+        /// Propagated search text for nested TechView.
+        @Binding var searchText: String
+        /// Passed DocC sites to avoid expensive query instantiation.
+        var docCSites: [DocCSite]
         
         /// Binding that maps top-level sidebar presentation to the underlying navigation flags.
         var topLevelBinding: Binding<Bool> {
@@ -180,8 +186,9 @@ struct ContentView: View {
         var body: some View {
             @Bindable var navigationViewModel = navigationViewModel
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
-                TechView()
+                TechView(searchText: $searchText, docCSites: docCSites)
             } innerView: {
+                let _ = print("navigationViewModel.isShowingAllBookmarkCollections: \(navigationViewModel.isShowingAllBookmarkCollections)")
                 if navigationViewModel.isShowingAllBookmarkCollections {
                     SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
                         BookmarkCollectionsView()
@@ -199,7 +206,7 @@ struct ContentView: View {
     /// Split-view navigation presentation used on larger form factors.
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            SidebarView()
+            SidebarView(searchText: $searchText, docCSites: docCSites)
                 .frame(minWidth: 290)
                 .navigationSplitViewColumnWidth(min: 290, ideal: 380)
                 .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -243,7 +250,7 @@ struct ContentView: View {
     /// Stack-based navigation presentation used on compact layouts.
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            TechView()
+            TechView(searchText: $searchText, docCSites: docCSites)
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -271,7 +278,10 @@ struct ContentView: View {
 /// Sidebar technology browser with search, add-source actions, and source grouping.
 private struct TechView: View {
     /// Sidebar search query for technologies and symbols.
-    @State var searchText = ""
+    @Binding var searchText: String
+    /// Persisted custom DocC site list, passed from parent to avoid query hit during initialization.
+    var docCSites: [DocCSite]
+    
     /// Error state surfaced through shared alert helper.
     @State private var errorAlert: Error?
     /// Documentation model providing technologies and framework caches.
@@ -280,8 +290,6 @@ private struct TechView: View {
     @Environment(\.openWindow) private var openWindow
     /// SwiftData context used for technology deletion actions.
     @Environment(\.modelContext) private var modelContext
-    /// Persisted custom DocC site list.
-    @Query(sort: \DocCSite.timestamp) var docCSites: [DocCSite]
     
     // Add Documentation Alert
     /// Controls presentation of add-source UI on non-macOS platforms.
@@ -363,7 +371,7 @@ private struct TechView: View {
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
         #if !os(macOS)
-        .navigationTitle("Documentation")
+        .navigationTitle("DocB")
         #endif
         .toolbar {
             Button(action: showAddDocumentationView) {

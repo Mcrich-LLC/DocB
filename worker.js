@@ -7,16 +7,9 @@ export default {
       return Response.redirect(`${url.origin}/documentation/DocB`, 301);
     }
 
-    // Try to serve the static asset
-    let res = await env.ASSETS.fetch(request);
-
-    // Fall back to the SPA shell for DocC client-side routing
-    if (res.status === 404 || res.status === 403) {
-      return env.ASSETS.fetch(
-        new Request(new URL("/spa.html", request.url), request)
-      );
-    }
-
-    return res;
+    // Serve static assets — not_found_handling: "single-page-application" in
+    // wrangler.jsonc means unmatched paths automatically fall back to index.html,
+    // so DocC's client-side router handles deep links without a manual 404 check here.
+    return env.ASSETS.fetch(request);
   },
 };

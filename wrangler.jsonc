@@ -5,7 +5,11 @@
 
   // Serve the built DocC static assets
   "assets": {
-    "directory": "./docs"
+    "directory": "./docs",
+    // Run the worker before serving static assets so the / redirect fires first
+    "run_worker_first": true,
+    // Serve index.html for any path not matching a static file (DocC SPA routing)
+    "not_found_handling": "single-page-application"
   },
 
   // Enable Workers Observability (logs, traces, metrics)

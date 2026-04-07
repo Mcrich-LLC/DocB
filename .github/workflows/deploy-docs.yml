@@ -51,28 +51,6 @@ jobs:
             "$ARCHIVE_PATH" \
             --output-path ./docs \
             --hosting-base-path / # Update this string if you want to host on a subpath like /docs
-            
-          # Rename index.html to spa.html so it doesn't automatically capture the root path (/)
-          mv ./docs/index.html ./docs/spa.html
-          
-          # Generate a custom Cloudflare Worker script for SPA fallback and root redirect
-          cat << 'EOF' > worker.js
-          export default {
-            async fetch(request, env, ctx) {
-              const url = new URL(request.url);
-              
-              if (url.pathname === '/' || url.pathname === '') {
-                return Response.redirect(`${url.origin}/documentation/DocB`, 301);
-              }
-              
-              let res = await env.ASSETS.fetch(request);
-              if (res.status === 404 || res.status === 403) {
-                return env.ASSETS.fetch(new Request(new URL('/spa.html', request.url), request));
-              }
-              return res;
-            }
-          };
-          EOF
 
       - name: Deploy to Cloudflare Workers
         id: cloudflare_deploy
@@ -80,4 +58,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          wranglerVersion: "4"
+          command: deploy worker.js

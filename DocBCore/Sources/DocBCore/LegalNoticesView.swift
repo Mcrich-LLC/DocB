@@ -8,11 +8,15 @@
 import SwiftUI
 
 /// Displays legal notice text and links to privacy policy and terms of use.
-struct LegalNoticesView: View {
+public struct LegalNoticesView: View {
+    public init(legalNotices: LegalNotices) {
+        self.legalNotices = legalNotices
+    }
+    
     let legalNotices: LegalNotices
     @State private var text: AttributedString?
     
-    var body: some View {
+    public var body: some View {
         GroupBox {
             VStack(alignment: .center) {
                 if let text {

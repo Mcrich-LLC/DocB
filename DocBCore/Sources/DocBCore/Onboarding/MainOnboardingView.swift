@@ -19,7 +19,7 @@ final class OnboardingStepManager {
     var isBack = false
     
     /// Advances to the next onboarding step or dismisses when complete.
-    func next() {
+    @MainActor func next() {
         isBack = false
         guard step.rawValue < OnboardingSteps.allCases.count - 1 else {
             dismiss.action()

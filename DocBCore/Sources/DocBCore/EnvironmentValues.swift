@@ -9,7 +9,7 @@ import SwiftUI
 
 extension View {
     /// Injects a custom dismiss closure into environment values for descendant views.
-    public func customDismiss(_ action: @escaping () -> Void) -> some View {
+    public func customDismiss(_ action: @escaping @MainActor @Sendable () -> Void) -> some View {
         environment(\.customDismiss, .init(action: action))
     }
     
@@ -21,27 +21,38 @@ extension View {
 
 extension EnvironmentValues {
     /// Dismisses to select anchor view
-    @Entry var customDismiss: CustomDismissAction?
+    public var customDismiss: CustomDismissAction? {
+        get { self[CustomDismissKey.self] }
+        set { self[CustomDismissKey.self] = newValue }
+    }
     
     @MainActor
     /// Returns the injected dismiss action, or falls back to the system `dismiss` action.
-    var customEnabledDismissAction: CustomDismissAction {
+    public var customEnabledDismissAction: CustomDismissAction {
         customDismiss ?? CustomDismissAction(action: dismiss.callAsFunction)
     }
     
     @MainActor
     /// Convenience closure for invoking the effective dismiss behavior.
-    var customEnabledDismiss: () -> Void {
+    public var customEnabledDismiss: @MainActor @Sendable () -> Void {
         customEnabledDismissAction.action
     }
 }
 
+private struct CustomDismissKey: EnvironmentKey {
+    static let defaultValue: CustomDismissAction? = nil
+}
+
 /// Wraps a dismiss closure that can be propagated through environment values and compared by identity.
-public struct CustomDismissAction: Identifiable, Equatable {
+public struct CustomDismissAction: Identifiable, Equatable, Sendable {
     public static func == (lhs: CustomDismissAction, rhs: CustomDismissAction) -> Bool {
         lhs.id == rhs.id
     }
     
     public let id = UUID()
-    public let action: () -> Void
+    public let action: @MainActor @Sendable () -> Void
+    
+    public init(action: @escaping @MainActor @Sendable () -> Void) {
+        self.action = action
+    }
 }

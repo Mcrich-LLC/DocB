@@ -24,9 +24,9 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     }
     
     /// Base URL for this technology source.
-    var url: URL {
+    public var url: URL {
         switch self {
-        case .apple(let appleTechnologies):
+        case .apple:
             return URL(string: Constants.aDeveloperURLBase)!
         case .docC(let docCSiteDTO):
             return docCSiteDTO.url
@@ -34,7 +34,7 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     }
     
     /// Whether this value represents a custom DocC site.
-    var isDocC: Bool {
+    public var isDocC: Bool {
         switch self {
         case .apple:
             return false
@@ -44,7 +44,7 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     }
     
     /// Whether this value represents Apple Developer Documentation.
-    var isApple: Bool {
+    public var isApple: Bool {
         switch self {
         case .apple:
             return true
@@ -55,7 +55,7 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     
     /// Display names for technology grouping in the UI.
     @MainActor
-    var names: [String] {
+    public var names: [String] {
         switch self {
         case .apple:
             return ["Apple Developer Documentation"]
@@ -66,7 +66,7 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
     
     /// Preferred primary display name for this technology source.
     @MainActor
-    var primaryName: String {
+    public var primaryName: String {
         switch self {
         case .apple:
             return "Apple Developer Documentation"
@@ -78,7 +78,7 @@ public enum TechnologyTypes: Identifiable, Equatable, Sendable {
 
 extension [TechnologyTypes] {
     /// Custom DocC site values extracted from mixed technology arrays.
-    var docCSites: [DocCSiteDTO] {
+    public var docCSites: [DocCSiteDTO] {
         compactMap { tech in
             switch tech {
             case .apple: return nil
@@ -87,7 +87,7 @@ extension [TechnologyTypes] {
         }
     }
     /// Apple technology values extracted from mixed technology arrays.
-    var appleTechnologies: [AppleTechnologies] {
+    public var appleTechnologies: [AppleTechnologies] {
         compactMap { tech in
             switch tech {
             case .apple(let apple): return apple
@@ -103,16 +103,16 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
     public let id = UUID()
     
     /// Optional hero/header section metadata.
-    let header: Header?
+    public let header: Header?
     /// Grouped technology sections.
-    let groups: [Technology]?
+    public let groups: [Technology]?
     /// Reference metadata keyed by identifier.
-    let references: [String : Reference]
+    public let references: [String : Reference]
     /// Optional legal notices payload.
-    let legalNotices: LegalNotices?
+    public let legalNotices: LegalNotices?
     
     /// Coding keys used for decoding shared section payloads.
-    enum CodingKeys: CodingKey {
+    public enum CodingKeys: CodingKey {
         case sections, legalNotices, references
     }
     
@@ -138,59 +138,59 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
     }
     
     /// Raw section model used to decode mixed section content before normalization.
-    struct CommonTechnologiesSection: Codable {
-        let kind: String
+    public struct CommonTechnologiesSection: Codable {
+        public let kind: String
         
         // Header
-        let backgroundImage: String?
-        let image: String?
-        let title: String?
+        public let backgroundImage: String?
+        public let image: String?
+        public let title: String?
         
         // Technology
-        let groups: [Technology]?
+        public let groups: [Technology]?
     }
     
     /// Hero/header metadata shown at the top of the Apple technologies page.
-    struct Header: Codable, Equatable, Hashable {
-        let backgroundImage: String
-        let image: String
-        let title: String
-        let kind: String
+    public struct Header: Codable, Equatable, Hashable, Sendable {
+        public let backgroundImage: String
+        public let image: String
+        public let title: String
+        public let kind: String
     }
     
     @CodableIgnoreInitializedProperties
     /// Group of related frameworks under a single technology name.
-    struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
+    public struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
         /// Stable identifier for diffable/UI usage.
-        let id = UUID()
+        public let id = UUID()
         
         /// Group display name.
-        let name: String
+        public let name: String
         /// Framework entries in this group.
-        let technologies: [FrameworkSection]
+        public let technologies: [FrameworkSection]
     }
     
     @CodableIgnoreInitializedProperties
     /// Framework entry used for navigation from technology lists.
-    struct FrameworkSection: Codable, Identifiable, AppleDocumentation {
+    public struct FrameworkSection: Codable, Identifiable, AppleDocumentation, Sendable {
         /// Stable identifier for diffable/UI usage.
-        let id = UUID()
+        public let id = UUID()
         
         /// Supported interface languages for this framework.
-        let languages: [String]
+        public let languages: [String]
         /// Framework display title.
-        let title: String
+        public let title: String
         /// Tag metadata for filtering/grouping.
-        let tags: [String]
+        public let tags: [String]
         /// Navigation destination metadata.
-        let destination: Destination
+        public let destination: Destination
         /// Optional legal notices payload.
-        let legalNotices: LegalNotices?
+        public let legalNotices: LegalNotices?
         /// Optional custom DocC site context.
-        let docCSite: DocCSiteDTO?
+        public let docCSite: DocCSiteDTO?
         
         /// Path-based equality for framework sections to avoid identifier host differences.
-        func isEqual(to framework: FrameworkSection) -> Bool {
+        public func isEqual(to framework: FrameworkSection) -> Bool {
             guard let currentUrl = URL(string: destination.identifier),
                   let url = URL(string: framework.destination.identifier)
             else {
@@ -201,17 +201,17 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         }
         
         /// Destination metadata for a framework entry.
-        struct Destination: Codable, Hashable {
+        public struct Destination: Codable, Hashable, Sendable {
             /// Destination type discriminator.
-            let type: String
+            public let type: String
             /// Whether destination is currently active.
-            let isActive: Bool
+            public let isActive: Bool
             /// Canonical destination identifier.
-            let identifier: String
+            public let identifier: String
         }
         
         /// Synthetic reference representing this framework section in list UIs.
-        var frameworkReference: Reference {
+        public var frameworkReference: Reference {
             Reference(
                 title: title,
                 abstract: nil,

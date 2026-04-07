@@ -10,11 +10,16 @@ import SwiftUI
 /// Cross-platform tappable control that behaves like a button on all supported platforms.
 ///
 /// - Important: On macOS/Catalyst this uses `onTapGesture` to keep list-like row interactions visually consistent.
-struct MacOSAgnosticButton<Content: View>: View {
+public struct MacOSAgnosticButton<Content: View>: View {
+    public init(action: @escaping () -> Void, @ViewBuilder label: () -> Content) {
+        self.action = action
+        self.label = label()
+    }
+    
     let action: () -> Void
     @ViewBuilder let label: Content
     
-    var body: some View {
+    public var body: some View {
 #if os(macOS) || targetEnvironment(macCatalyst)
         label
             .onTapGesture(perform: action)
@@ -25,7 +30,12 @@ struct MacOSAgnosticButton<Content: View>: View {
 }
 
 /// Cross-platform link wrapper that opens URLs via gesture on macOS/Catalyst and `Link` elsewhere.
-struct MacOSAgnosticLink<Content: View>: View {
+public struct MacOSAgnosticLink<Content: View>: View {
+    public init(destination: URL, @ViewBuilder label: () -> Content) {
+        self.destination = destination
+        self.label = label()
+    }
+    
     /// Destination URL opened when the link is activated.
     let destination: URL
     /// Link label content.
@@ -33,7 +43,7 @@ struct MacOSAgnosticLink<Content: View>: View {
     /// Environment URL opener used on macOS/Catalyst gesture activation.
     @Environment(\.openURL) var openURL
     
-    var body: some View {
+    public var body: some View {
 #if os(macOS) || targetEnvironment(macCatalyst)
         label
             .onTapGesture {

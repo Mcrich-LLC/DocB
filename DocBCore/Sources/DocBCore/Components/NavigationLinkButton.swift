@@ -8,7 +8,11 @@
 import SwiftUI
 
 /// Reusable navigation button that routes to the homepage and updates navigation selection state.
-struct HomepageNavigationLinkButton<Content: View>: View {
+public struct HomepageNavigationLinkButton<Content: View>: View {
+    public init(@ViewBuilder label: () -> Content) {
+        self.label = label()
+    }
+    
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
     /// Documentation model (kept for parity/extension across navigation buttons).
@@ -16,27 +20,27 @@ struct HomepageNavigationLinkButton<Content: View>: View {
     
     /// Label content displayed by the button.
     @ViewBuilder
-    let label: Content
+    public let label: Content
     
     /// Whether selection background highlighting should be shown.
-    var shouldShowBackground: Bool = true
+    public var shouldShowBackground: Bool = true
     
     /// Renders the homepage navigation control.
-    var body: some View {
-        MacOSAgnosticButton {
+    public var body: some View {
+        MacOSAgnosticButton(action: {
             navigationViewModel.setReference(nil)
             navigationViewModel.setTechnology(nil)
             navigationViewModel.removeLastPath(navigationViewModel.path.count)
             
             navigationViewModel.appendPath(.homepage)
-        } label: {
+        }) {
             label
         }
         .selectedLineBackground(isSelected: navigationViewModel.reference == nil && shouldShowBackground)
     }
     
     /// Returns a copy configured to show or hide selection background.
-    func showBackground(_ bool: Bool) -> Self {
+    public func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
         
@@ -45,7 +49,7 @@ struct HomepageNavigationLinkButton<Content: View>: View {
 }
 
 /// Reusable navigation button for article/reference destinations with optional bookmark-specific behavior.
-struct ReferenceNavigationLinkButton<Content: View>: View {
+public struct ReferenceNavigationLinkButton<Content: View>: View {
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     /// Documentation model used to resolve technologies for a reference.
@@ -60,7 +64,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     private let label: Content
     
     /// Creates a reference navigation button with a destination and label.
-    init(reference: Reference, @ViewBuilder label: () -> Content) {
+    public init(reference: Reference, @ViewBuilder label: () -> Content) {
         self.reference = reference
         self.label = label()
     }
@@ -141,7 +145,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     
     /// Handles closest descendant group matching for custom DocC technologies.
     private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
-        var technologyGroup = group.allChildren.first(where: {
+        let technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
             })
@@ -156,7 +160,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Executes navigation behavior for this reference, including external-link fallback.
-    func action() {
+    public func action() {
         navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
         
         if let url = reference.externalURL, reference.isExternalReference {
@@ -186,7 +190,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Renders the reference navigation control.
-    var body: some View {
+    public var body: some View {
         Group {
             MacOSAgnosticButton(action: action) {
                 label
@@ -199,7 +203,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Returns a copy configured to show or hide selection background.
-    func showBackground(_ bool: Bool) -> Self {
+    public func showBackground(_ bool: Bool) -> Self {
         var view = self
         view.shouldShowBackground = bool
         
@@ -207,7 +211,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Returns a copy configured to pop one path element before pushing this destination.
-    func removeLastPathComponentFirst(_ bool: Bool) -> Self {
+    public func removeLastPathComponentFirst(_ bool: Bool) -> Self {
         var view = self
         view.removeLastPathComponentFirst = bool
         
@@ -215,7 +219,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Filters down to the lowest technology group and sets that as the side panel when enabled.
-    func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
+    public func alwaysShowClosestTechnologyGroup(_ isEnabled: Bool = true) -> Self {
         var view = self
         view.alwaysShowClosestTechnologyGroup = isEnabled
         
@@ -223,7 +227,7 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Navigates from the position a bookmark group.
-    func bookmarkNavigator(_ isEnabled: Bool = true) -> Self {
+    public func bookmarkNavigator(_ isEnabled: Bool = true) -> Self {
         var view = self
         view.isBookmarkNavigator = isEnabled
         
@@ -232,25 +236,30 @@ struct ReferenceNavigationLinkButton<Content: View>: View {
 }
 
 /// Reusable navigation button that selects and shows a technology section.
-struct TechnologyNavigationLinkButton<Content: View>: View {
+public struct TechnologyNavigationLinkButton<Content: View>: View {
+    public init(technology: AppleTechnologies.FrameworkSection, @ViewBuilder label: () -> Content) {
+        self.technology = technology
+        self.label = label()
+    }
+    
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
     /// Technology destination represented by this row.
-    let technology: AppleTechnologies.FrameworkSection
+    public let technology: AppleTechnologies.FrameworkSection
     
     /// Label content displayed by the button.
     @ViewBuilder
-    let label: Content
+    public let label: Content
     
     /// Whether this row is currently selected.
-    var isSelected: Bool {
+    public var isSelected: Bool {
         navigationViewModel.technology?.destination.identifier.lowercased() == technology.destination.identifier.lowercased() && navigationViewModel.technology?.docCSite == technology.docCSite
     }
     
     /// Renders the technology navigation control.
-    var body: some View {
+    public var body: some View {
         Group {
-            MacOSAgnosticButton {
+            MacOSAgnosticButton(action: {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 
                 withAnimation(.snappy) {
@@ -261,7 +270,7 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
                     let reference = technology.frameworkReference
                     navigationViewModel.setReference(reference)
                 }
-            } label: {
+            }) {
                 label
             }
             .selectedLineBackground(isSelected: isSelected)
@@ -273,34 +282,43 @@ struct TechnologyNavigationLinkButton<Content: View>: View {
 }
 
 /// Navigation button that selects a specific bookmark collection in the sidebar flow.
-struct BookmarkCollectionNavigationLink<Content: View>: View {
+public struct BookmarkCollectionNavigationLink<Content: View>: View {
+    public init(collection: BookmarkCollection, @ViewBuilder label: () -> Content) {
+        self.collection = collection
+        self.label = label()
+    }
+    
     /// Target bookmark collection selected when this control is activated.
-    let collection: BookmarkCollection
+    public let collection: BookmarkCollection
     /// Label content displayed by the control.
-    @ViewBuilder let label: Content
+    @ViewBuilder public let label: Content
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// Renders the bookmark collection navigation control.
-    var body: some View {
-        MacOSAgnosticButton {
+    public var body: some View {
+        MacOSAgnosticButton(action: {
             navigationViewModel.isNavigatingFromBookmarks = true
             navigationViewModel.setBookmarkCollection(collection)
-        } label: {
+        }) {
             label
         }
     }
 }
 
 /// Navigation button that routes to the top-level bookmark collections list.
-struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
+public struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
+    public init(@ViewBuilder label: () -> Content) {
+        self.label = label()
+    }
+    
     /// Label content displayed by the control.
-    @ViewBuilder let label: Content
+    @ViewBuilder public let label: Content
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// Renders the all-bookmarks navigation control.
-    var body: some View {
+    public var body: some View {
         Button {
             navigationViewModel.isNavigatingFromBookmarks = true
             navigationViewModel.isShowingAllBookmarkCollections = true

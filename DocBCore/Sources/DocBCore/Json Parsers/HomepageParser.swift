@@ -10,116 +10,116 @@ import SwiftUI
 import EnhancedCodable
 
 /// Decoded DocC homepage payload used to render the landing experience.
-struct HomepageParser: Codable, Hashable, AppleDocumentation {
+public struct HomepageParser: Codable, Hashable, AppleDocumentation {
     /// Homepage metadata including title and role.
-    let metadata: Metadata
+    public let metadata: Metadata
     /// Ordered homepage sections.
-    let sections: [Section]
+    public let sections: [Section]
     /// Reference lookup table used by section destinations.
-    let references: [String : Reference]
+    public let references: [String : Reference]
     /// Optional legal notices shown in footer contexts.
-    let legalNotices: LegalNotices?
+    public let legalNotices: LegalNotices?
     
     @CodableIgnoreInitializedProperties
     /// A top-level homepage section such as hero, content section, or resources.
-    struct Section: Codable, Identifiable, Hashable, Sendable {
-        let id = UUID()
+    public struct Section: Codable, Identifiable, Hashable, Sendable {
+        public let id = UUID()
         
-        let kind: Kind
-        let content: [ContentSection.Content]?
-        let resources: [Resource]?
-        let body: Body?
-        let title: String?
-        let video: String?
-        let image: String?
+        public let kind: Kind
+        public let content: [ContentSection.Content]?
+        public let resources: [Resource]?
+        public let body: Body?
+        public let title: String?
+        public let video: String?
+        public let image: String?
         
         /// Supported homepage section kinds.
-        enum Kind: String, Codable {
+        public enum Kind: String, Codable, Sendable {
             case hero, section, homepageResources
         }
     }
     
     /// Metadata for homepage identity and role.
-    struct Metadata: Codable, Hashable {
-        let title: String
-        let role: Role
+    public struct Metadata: Codable, Hashable, Sendable {
+        public let title: String
+        public let role: Role
     }
     
     @CodableIgnoreInitializedProperties
     /// Resource card model used by homepage resource sections.
-    struct Resource: Codable, Hashable, Identifiable, Sendable {
-        let id = UUID()
+    public struct Resource: Codable, Hashable, Identifiable, Sendable {
+        public let id = UUID()
         
-        let title: String
-        let image: String?
-        let destination: Reference
-        let content: [ContentSection.Content]
+        public let title: String
+        public let image: String?
+        public let destination: Reference
+        public let content: [ContentSection.Content]
     }
     
     /// Structured body payload used by complex homepage sections.
-    struct Body: Codable, Hashable {
-        let links: [LinkItem]?
-        let cards: [Card]?
-        let highlightedLinks: [HighlightedLinks]?
-        let homepageLinks: [Reference]?
-        let kind: Kind
-        let image: String?
+    public struct Body: Codable, Hashable, Sendable {
+        public let links: [LinkItem]?
+        public let cards: [Card]?
+        public let highlightedLinks: [HighlightedLinks]?
+        public let homepageLinks: [Reference]?
+        public let kind: Kind
+        public let image: String?
         
         @CodableIgnoreInitializedProperties
         /// Link list section payload.
-        struct LinkItem: Codable, Hashable, Identifiable {
-            let id = UUID()
+        public struct LinkItem: Codable, Hashable, Identifiable, Sendable {
+            public let id = UUID()
             
-            let items: [String]
-            let style: ContentSection.Content.Style
-            let type: Kind
+            public let items: [String]
+            public let style: ContentSection.Content.Style
+            public let type: Kind
         }
         
         /// Body subsection kinds available in homepage payloads.
-        enum Kind: String, Codable {
+        public enum Kind: String, Codable, Sendable {
             case links, homepageLinks, cards, highlightedLinks
         }
         
         @CodableIgnoreInitializedProperties
         /// Highlighted link card with optional call-to-action.
-        struct HighlightedLinks: Codable, Hashable, Identifiable {
-            let id = UUID()
+        public struct HighlightedLinks: Codable, Hashable, Identifiable, Sendable {
+            public let id = UUID()
             
-            let content: [ContentSection.Content]
-            let title: String
-            let callToActionText: String?
-            let destination: URL?
+            public let content: [ContentSection.Content]
+            public let title: String
+            public let callToActionText: String?
+            public let destination: URL?
         }
         
         @CodableIgnoreInitializedProperties
         /// Card group payload used for featured and standard homepage cards.
-        struct Card: Codable, Hashable, Identifiable {
-            let id = UUID()
+        public struct Card: Codable, Hashable, Identifiable, Sendable {
+            public let id = UUID()
             
-            let isFeatured: Bool
-            let cards: [Content]
+            public let isFeatured: Bool
+            public let cards: [Content]
 
             /// IDE and web call-to-action URLs.
-            struct CallToAction: Codable, Hashable {
-                let ide: String?
-                let web: String?
+            public struct CallToAction: Codable, Hashable, Sendable {
+                public let ide: String?
+                public let web: String?
             }
             
             @CodableIgnoreInitializedProperties
             /// Individual card entry displayed within a homepage card group.
-            struct Content: Codable, Hashable, Identifiable {
-                let id = UUID()
+            public struct Content: Codable, Hashable, Identifiable, Sendable {
+                public let id = UUID()
                 
-                let content: [ContentSection.Content]
-                let eyebrow: String?
-                let destination: Reference
-                let title: String
-                let image: String?
-                let callToAction: CallToAction?
-                let callToActionText: CallToAction?
+                public let content: [ContentSection.Content]
+                public let eyebrow: String?
+                public let destination: Reference
+                public let title: String
+                public let image: String?
+                public let callToAction: CallToAction?
+                public let callToActionText: CallToAction?
                 
                 /// Safe call-to-action accessor that handles schema variation.
-                var saferCallToAction: CallToAction? {
+                public var saferCallToAction: CallToAction? {
                     callToAction ?? callToActionText
                 }
             }

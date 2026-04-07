@@ -25,7 +25,7 @@ included:
 excluded: # case-sensitive paths to ignore during linting. Takes precedence over `included`
   - Carthage
   - Pods
-  - *.build
+  - .build
   - Sources/ExcludedFolder
   - Sources/ExcludedFile.swift
   - Sources/*/ExcludedFile.swift # exclude files with a wildcard

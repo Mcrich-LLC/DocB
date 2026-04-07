@@ -10,14 +10,14 @@ import SwiftUI
 /// A 2 piece navigation push/pop designed for the sidebar.
 ///
 /// - Warning: When not otherwise using the toolbar, the toolbar size may change between inner and outer views.
-struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
+public struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @Binding private var apiExposedisShowingInnerView: Bool
     private let unwrappedOptional: P?
     
     @ViewBuilder private let outerView: OuterView
     @ViewBuilder private let innerView: (P) -> InnerView
     
-    init(isShowingInnerView: Binding<Bool>, unwrapping: P?, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping (P) -> InnerView) {
+    public init(isShowingInnerView: Binding<Bool>, unwrapping: P?, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping (P) -> InnerView) {
         self._apiExposedisShowingInnerView = isShowingInnerView
         self.isShowingInnerView = isShowingInnerView.wrappedValue
         self.unwrappedOptional = unwrapping
@@ -25,7 +25,7 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
         self.innerView = innerView
     }
     
-    init(isShowingInnerView: Binding<Bool>, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping () -> InnerView) where P == Bool {
+    public init(isShowingInnerView: Binding<Bool>, @ViewBuilder outerView: () -> OuterView, @ViewBuilder innerView: @escaping () -> InnerView) where P == Bool {
         self._apiExposedisShowingInnerView = isShowingInnerView
         self.isShowingInnerView = isShowingInnerView.wrappedValue
         self.unwrappedOptional = true
@@ -37,7 +37,7 @@ struct SidebarNavigationView<OuterView: View, InnerView: View, P>: View {
     @State private var isShowingInnerView: Bool
     @State private var isBack: Bool = false
     
-    var body: some View {
+    public var body: some View {
         VStack {
             if isShowingInnerView, let unwrappedOptional {
                 innerView(unwrappedOptional)

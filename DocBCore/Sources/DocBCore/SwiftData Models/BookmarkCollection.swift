@@ -10,31 +10,31 @@ import SwiftData
 
 @MainActor
 /// BookmarkCollectionDTO encapsulates app behavior and state.
-final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
-    nonisolated static func == (lhs: BookmarkCollectionDTO, rhs: BookmarkCollectionDTO) -> Bool {
+public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
+    public nonisolated static func == (lhs: BookmarkCollectionDTO, rhs: BookmarkCollectionDTO) -> Bool {
         lhs.id == rhs.id
     }
     
     /// Hashes collection identity and key display content.
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(title)
         hasher.combine(bookmarks)
     }
     
     /// Stable identifier for the DTO instance.
-    let id: UUID
+    public let id: UUID
     /// Display title of the bookmark collection.
-    var title: String
+    public var title: String
     /// Last update timestamp used for sorting and recency.
-    var lastUpdatedDate: Date
+    public var lastUpdatedDate: Date
     /// Flattened bookmark DTOs contained by this collection.
-    var bookmarks: [BookmarkDTO]
+    public var bookmarks: [BookmarkDTO]
     /// Persistent SwiftData identifier used for delete-by-dto operations.
-    fileprivate var persistentModelID: PersistentIdentifier?
+    public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates a collection DTO from explicit fields.
-    init(title: String, lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
+    public init(title: String, lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
         self.id = UUID()
         self.title = title
         self.lastUpdatedDate = lastUpdatedDate
@@ -43,7 +43,7 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
     }
     
     /// Creates a collection DTO from a persisted `BookmarkCollection` model.
-    init(_ model: BookmarkCollection) throws {
+    public init(_ model: BookmarkCollection) throws {
         guard let title = model.title, let lastUpdatedDate = model.lastUpdatedDate else {
             throw SwiftDataErrors.invalidShape
         }
@@ -59,7 +59,7 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
     }
     
     /// Decodes a bookmark-collection DTO from persisted JSON payload data.
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
@@ -68,14 +68,14 @@ final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equata
     }
     
     /// Coding keys for bookmark-collection DTO serialization.
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case title
         case bookmarks
         case lastUpdatedDate
     }
     
     /// Deletes the underlying persisted collection if this DTO is backed by SwiftData.
-    func deleteSite(modelContext: ModelContext) throws {
+    public func deleteSite(modelContext: ModelContext) throws {
         guard let persistentModelID else { return }
         let model = modelContext.model(for: persistentModelID)
         modelContext.delete(model)
@@ -89,28 +89,28 @@ public final class BookmarkCollection: Identifiable {
     /// Stable identifier for the persisted collection.
     public var id = UUID()
     /// Optional display title for the collection.
-    var title: String?
+    public var title: String?
     /// Optional timestamp used to sort collections by recency.
-    var lastUpdatedDate: Date?
+    public var lastUpdatedDate: Date?
     /// Bookmark members belonging to the collection.
-    var bookmarks: [Bookmark]?
+    public var bookmarks: [Bookmark]?
     
     /// Creates a new bookmark collection model.
-    init(title: String, bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
+    public init(title: String, bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
         self.title = title
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
     }
     
     @MainActor
-    var dto: BookmarkCollectionDTO {
+    public var dto: BookmarkCollectionDTO {
         get throws {
             try BookmarkCollectionDTO(self)
         }
     }
     
     /// Groups bookmarks by their source base URL for sectioned presentation.
-    var bookmarksWithinUrls: [URL : [Bookmark]] {
+    public var bookmarksWithinUrls: [URL : [Bookmark]] {
         (bookmarks ?? []).reduce(into: [:]) { result, bookmark in
             guard let siteBaseURL = bookmark.siteBaseURL else { return }
             

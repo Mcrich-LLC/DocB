@@ -10,13 +10,13 @@ import SwiftData
 
 @MainActor
 /// BookmarkDTO encapsulates app behavior and state.
-final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
-    nonisolated static func == (lhs: BookmarkDTO, rhs: BookmarkDTO) -> Bool {
+public final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
+    public nonisolated static func == (lhs: BookmarkDTO, rhs: BookmarkDTO) -> Bool {
         lhs.id == rhs.id
     }
     
     /// Hashes bookmark identity and content fields for set/dictionary usage.
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(title)
         hasher.combine(identifier)
@@ -29,28 +29,28 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Stable identifier for the DTO instance.
-    let id: UUID
+    public let id: UUID
     /// Display title shown in bookmark lists.
-    var title: String
+    public var title: String
     /// Canonical documentation identifier (for example `doc://...`).
-    var identifier: String
+    public var identifier: String
     /// Optional kind metadata from the source reference.
-    var kind: String?
+    public var kind: String?
     /// Reference type metadata (article, symbol, etc.).
-    var type: String
+    public var type: String
     /// Optional role used for UI iconography and formatting.
-    var role: Role?
+    public var role: Role?
     /// Whether the referenced symbol/content is deprecated.
-    var deprecated: Bool
+    public var deprecated: Bool
     /// Whether the referenced symbol/content is marked beta.
-    var beta: Bool
+    public var beta: Bool
     /// Base source URL for the documentation site hosting this reference.
-    var siteBaseURL: URL
+    public var siteBaseURL: URL
     /// Persistent SwiftData identifier used for delete-by-dto operations.
-    fileprivate var persistentModelID: PersistentIdentifier?
+    public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates a DTO from explicit bookmark fields.
-    init(title: String, identifier: String, kind: String?, type: String, role: Role?, deprecated: Bool, beta: Bool, siteBaseURL: URL) {
+    public init(title: String, identifier: String, kind: String?, type: String, role: Role?, deprecated: Bool, beta: Bool, siteBaseURL: URL) {
         self.id = UUID()
         self.title = title
         self.identifier = identifier
@@ -64,7 +64,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Creates a DTO from a `Reference`, validating required values for bookmarking.
-    init(reference: Reference) throws {
+    public init(reference: Reference) throws {
         guard let title = reference.title, !title.isEmpty, let externalURLHost = reference.externalURL?.host(), let siteBaseURL = URL(string: externalURLHost) else {
             throw BookmarkErrors.invalidReference
         }
@@ -83,7 +83,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Creates a DTO from a persisted `Bookmark` model.
-    init(_ model: Bookmark) throws {
+    public init(_ model: Bookmark) throws {
         guard let title = model.title, let siteBaseURL = model.siteBaseURL, let identifier = model.identifier, let type = model.type else {
             throw SwiftDataErrors.invalidShape
         }
@@ -101,7 +101,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Decodes a bookmark DTO from persisted JSON payload data.
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
@@ -115,7 +115,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Coding keys for bookmark DTO serialization.
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case title
         case identifier
         case kind
@@ -127,7 +127,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
     }
     
     /// Deletes the underlying persisted bookmark when this DTO is backed by SwiftData.
-    func deleteSite(modelContext: ModelContext) throws {
+    public func deleteSite(modelContext: ModelContext) throws {
         guard let persistentModelID else { return }
         let model = modelContext.model(for: persistentModelID)
         modelContext.delete(model)
@@ -136,7 +136,7 @@ final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @prec
 }
 
 /// BookmarkErrors defines a constrained set of related values.
-enum BookmarkErrors: Error {
+public enum BookmarkErrors: Error {
     case invalidReference
 }
 
@@ -146,28 +146,28 @@ public final class Bookmark: Identifiable {
     /// Stable identifier for this persisted bookmark.
     public var id = UUID()
     /// Optional display title of the bookmark target.
-    var title: String?
+    public var title: String?
     /// Canonical documentation identifier for deep linking.
-    var identifier: String?
+    public var identifier: String?
     /// Optional kind metadata from source reference payload.
-    var kind: String?
+    public var kind: String?
     /// Reference type metadata (article, symbol, etc.).
-    var type: String?
+    public var type: String?
     /// Optional role metadata used for rendering semantics.
-    var role: Role?
+    public var role: Role?
     /// Optional deprecation state mirrored from reference payload.
-    var deprecated: Bool?
+    public var deprecated: Bool?
     /// Optional beta state mirrored from reference payload.
-    var beta: Bool?
+    public var beta: Bool?
     /// Base URL for the source documentation site.
-    var siteBaseURL: URL?
+    public var siteBaseURL: URL?
     
     @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
     /// Owning collection relationship; nullified if the collection is removed.
-    var collection: BookmarkCollection?
+    public var collection: BookmarkCollection?
     
     /// Creates a bookmark model from explicit persisted fields.
-    init(title: String? = nil, identifier: String, kind: String? = nil, type: String, role: Role? = nil, deprecated: Bool? = nil, beta: Bool? = nil, siteBaseURL: URL? = nil) {
+    public init(title: String? = nil, identifier: String, kind: String? = nil, type: String, role: Role? = nil, deprecated: Bool? = nil, beta: Bool? = nil, siteBaseURL: URL? = nil) {
         self.title = title
         self.identifier = identifier
         self.kind = kind
@@ -180,7 +180,7 @@ public final class Bookmark: Identifiable {
     }
     
     /// Creates a bookmark model from a parsed `Reference`.
-    init(reference: Reference) throws {
+    public init(reference: Reference) throws {
         guard let title = reference.title, !title.isEmpty, let externalURLHost = reference.externalURL?.host(), let siteBaseURL = URL(string: externalURLHost) else {
             throw BookmarkErrors.invalidReference
         }
@@ -196,21 +196,21 @@ public final class Bookmark: Identifiable {
     }
     
     @MainActor
-    var dto: BookmarkDTO {
+    public var dto: BookmarkDTO {
         get throws {
             try BookmarkDTO(self)
         }
     }
     
     /// Reconstructs a reference object from stored bookmark fields.
-    var asReference: Reference? {
+    public var asReference: Reference? {
         guard let identifier, let type else { return nil }
         
         return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta)
     }
     
     /// Reconstructs a reference and attaches a resolved DocC site from known technologies.
-    func asReferenceWithDocCSite(from technologies: [TechnologyTypes]) -> Reference? {
+    public func asReferenceWithDocCSite(from technologies: [TechnologyTypes]) -> Reference? {
         guard let identifier, let type, let siteBaseURL else { return nil }
         
         return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta, docCSite: technologies.docCSites.first(where: { $0.url.absoluteString.contains(siteBaseURL.absoluteString) }))

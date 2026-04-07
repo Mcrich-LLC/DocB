@@ -9,60 +9,60 @@ import Foundation
 import EnhancedCodable
 
 /// Decoded DocC framework payload used to render framework landing pages and symbol lists.
-struct Framework: Codable, AppleDocumentation {
+public struct Framework: Codable, AppleDocumentation {
     /// Grouped topic sections for framework navigation.
-    let topicSections: [TopicSection]?
+    public let topicSections: [TopicSection]?
     /// Core framework metadata.
-    let metadata: Metadata
+    public let metadata: Metadata
     /// Reference lookup table keyed by identifier.
-    let references: [String : Reference]
+    public let references: [String : Reference]
     /// Optional legal notices associated with the framework.
-    let legalNotices: LegalNotices?
+    public let legalNotices: LegalNotices?
     /// Available language/platform variants for this framework.
-    let variants: [Variant]?
+    public let variants: [Variant]?
     
     @CodableIgnoreInitializedProperties
     /// A topic bucket containing references for a subsection of framework content.
-    struct TopicSection: Codable, Identifiable, Equatable, Hashable {
-        let id = UUID()
+    public struct TopicSection: Codable, Identifiable, Equatable, Hashable, Sendable {
+        public let id = UUID()
         
-        let title: String?
-        let anchor: String?
-        let identifiers: [String]
+        public let title: String?
+        public let anchor: String?
+        public let identifiers: [String]
         
         /// Stable wrappers used by SwiftUI `ForEach` for plain identifier arrays.
-        var identifiersWithIDs: [IdentifiableIdentifier] {
+        public var identifiersWithIDs: [IdentifiableIdentifier] {
             identifiers.map { IdentifiableIdentifier($0) }
         }
         
         /// Identifiable wrapper for a raw documentation identifier.
-        struct IdentifiableIdentifier: Identifiable, Equatable, Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
-            let id = UUID()
-            let identifier: String
+        public struct IdentifiableIdentifier: Identifiable, Equatable, Hashable, ExpressibleByStringLiteral, CustomStringConvertible, Sendable {
+            public let id = UUID()
+            public let identifier: String
             
-            var description: String { identifier }
+            public var description: String { identifier }
             
-            init(_ identifier: String) {
+            public init(_ identifier: String) {
                 self.identifier = identifier
             }
             
-            init(stringLiteral value: StringLiteralType) {
+            public init(stringLiteral value: StringLiteralType) {
                 self.identifier = String(describing: value)
             }
         }
     }
 
     /// Metadata for framework-level title, role, and supported assets.
-    struct Metadata: Codable, Equatable, Hashable {
-        let title: String
-        let role: Role
-        let images: [ImageStruct]?
-        let platforms: [Platform]?
-        let modules: [Module]?
+    public struct Metadata: Codable, Equatable, Hashable, Sendable {
+        public let title: String
+        public let role: Role
+        public let images: [ImageStruct]?
+        public let platforms: [Platform]?
+        public let modules: [Module]?
         
         /// Module declaration included in framework metadata.
-        struct Module: Codable, Equatable, Hashable {
-            let name: String
+        public struct Module: Codable, Equatable, Hashable, Sendable {
+            public let name: String
             
         }
     }

@@ -8,10 +8,11 @@
 import SwiftUI
 
 /// Renders a platform-styled chevron indicator used in list rows and navigation affordances.
-struct ChevronView: View {
+public struct ChevronView: View {
+    public init() {}
     @Environment(\.colorScheme) var colorScheme
     
-    var body: some View {
+    public var body: some View {
         Image(systemSymbol: .chevronRight)
             .resizable()
             .frame(width: 8, height: 12)

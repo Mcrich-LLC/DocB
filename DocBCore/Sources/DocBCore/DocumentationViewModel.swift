@@ -10,13 +10,13 @@ import SwiftUI
 import SwiftData
 
 /// Represents the preferred programming language used when requesting language-specific DocC content.
-enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
+public enum PreferedProgrammingLanguage: String, Codable, CaseIterable, Sendable {
     case swift
     case objectivec = "objc"
     case data
     
     /// A user-facing language label used in UI surfaces.
-    var humanReadable: String? {
+    public var humanReadable: String? {
         switch self {
         case .swift:
             "Swift"
@@ -28,7 +28,7 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     }
     
     /// The language token expected in certain DocC variant payloads.
-    var jsonCodingValue: String {
+    public var jsonCodingValue: String {
         switch self {
         case .swift:
             "swift"
@@ -42,7 +42,7 @@ enum PreferedProgrammingLanguage: String, Codable, CaseIterable {
     /// Creates a language from persisted and legacy raw values.
     ///
     /// This initializer accepts both current and historical values such as `objc` and `occ`.
-    init?(rawValue: String) {
+    public init?(rawValue: String) {
         switch rawValue.lowercased() {
         case "swift":
             self = .swift
@@ -63,7 +63,7 @@ public class DocumentationViewModel {
     public init() {}
     
     /// The currently selected language used for language-specific DocC requests.
-    var preferedProgrammingLanguage: PreferedProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift {
+    public var preferedProgrammingLanguage: PreferedProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferedProgrammingLanguage.init(rawValue:)) ?? .swift {
         didSet {
             UserDefaults.standard.set(preferedProgrammingLanguage.rawValue, forKey: "preferedProgrammingLanguage")
         }
@@ -76,7 +76,7 @@ public class DocumentationViewModel {
     ///   - identifier: A documentation identifier or URL-like identifier.
     ///   - site: The custom DocC site context when resolving non-Apple documentation.
     /// - Returns: A JSON URL for the requested identifier, or `nil` if the identifier is invalid.
-    func jsonUrl(for identifier: String, site: DocCSiteDTO?) -> URL? {
+    public func jsonUrl(for identifier: String, site: DocCSiteDTO?) -> URL? {
         if let site {
             var identifier: String = identifier.lowercased()
             if let index = identifier.firstRange(of: "/documentation") {
@@ -111,7 +111,7 @@ public class DocumentationViewModel {
     /// - Parameter url: The URL to request.
     /// - Returns: The final URL returned by the server response.
     /// - Throws: `URLError.badServerResponse` when no valid HTTP response URL is available.
-    func getRedirectedURL(for url: URL) async throws -> URL {
+    public func getRedirectedURL(for url: URL) async throws -> URL {
         let (_, response) = try await URLSession.shared.data(from: url)
         
         guard let httpResponse = response as? HTTPURLResponse, let url = httpResponse.url else {
@@ -124,9 +124,9 @@ public class DocumentationViewModel {
     // MARK: Homepage
     private let homepageUrl = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data/documentation.json")!
     /// Parsed homepage payload for Apple documentation.
-    var homepage: HomepageParser?
+    public var homepage: HomepageParser?
     
-    private func fetchHomepage() async {
+    public func fetchHomepage() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: homepageUrl)
             
@@ -143,11 +143,11 @@ public class DocumentationViewModel {
     private let technologiesUrl = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data/documentation/technologies.json")!
     
     /// The in-memory list of loaded technologies from Apple and custom DocC sources.
-    private(set) var technologies: [TechnologyTypes] = []
+    public private(set) var technologies: [TechnologyTypes] = []
     /// Stored reference to the Apple site entry persisted in SwiftData.
-    private(set) var appleDocCSiteRef: DocCSiteDTO?
+    public private(set) var appleDocCSiteRef: DocCSiteDTO?
     
-    private func fetchTechnologies() async {
+    public func fetchTechnologies() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: technologiesUrl)
             
@@ -169,7 +169,7 @@ public class DocumentationViewModel {
     ///   - baseUrl: Root URL of the DocC site.
     ///   - modelContext: SwiftData context used for persistence.
     ///   - overrideName: Optional custom display name for the site.
-    func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
+    public func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
         guard !baseUrl.absoluteString.lowercased().contains("developer.apple.com") else {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
@@ -263,7 +263,7 @@ public class DocumentationViewModel {
     // MARK: Frameworks
     
     /// Cache of framework payloads keyed by their documentation identifier.
-    var frameworks: [String : Framework] = [:]
+    public var frameworks: [String : Framework] = [:]
     
     /// Fetches a framework and invokes a completion closure when finished.
     ///
@@ -271,7 +271,7 @@ public class DocumentationViewModel {
     ///   - identifier: Documentation identifier for the framework.
     ///   - site: Optional custom DocC site used for URL resolution.
     ///   - completion: Closure called after the fetch attempt completes.
-    func fetchFramework(for identifier: String, site: DocCSiteDTO?, completion: @escaping () -> Void) {
+    public func fetchFramework(for identifier: String, site: DocCSiteDTO?, completion: @escaping () -> Void) {
         Task {
             await fetchFramework(for: identifier, site: site)
             completion()
@@ -283,7 +283,7 @@ public class DocumentationViewModel {
     /// - Parameters:
     ///   - identifier: Documentation identifier for the framework.
     ///   - site: Optional custom DocC site used for URL resolution.
-    func fetchFramework(for identifier: String, site: DocCSiteDTO?) async {
+    public func fetchFramework(for identifier: String, site: DocCSiteDTO?) async {
         do {
             guard let url = jsonUrl(for: identifier, site: site) else { return }
             
@@ -307,7 +307,7 @@ public class DocumentationViewModel {
     ///   - identifier: Documentation identifier for the article.
     ///   - site: Optional custom DocC site used for URL resolution.
     ///   - completion: Closure receiving the decoded article.
-    func fetchArticle(for identifier: String, site: DocCSiteDTO?, completion: @escaping (Article) -> Void) {
+    public func fetchArticle(for identifier: String, site: DocCSiteDTO?, completion: @escaping (Article) -> Void) {
         Task {
             do {
                 let article = try await fetchArticle(for: identifier, site: site)
@@ -328,7 +328,7 @@ public class DocumentationViewModel {
     ///   - site: Optional custom DocC site used for URL resolution.
     /// - Returns: A decoded article with applicable language-specific declaration overrides applied.
     /// - Throws: URL and decoding errors encountered while fetching or parsing the article.
-    func fetchArticle(for identifier: String, site: DocCSiteDTO?) async throws -> Article {
+    public func fetchArticle(for identifier: String, site: DocCSiteDTO?) async throws -> Article {
 //        do {
         guard let url = jsonUrl(for: identifier, site: site) else { throw URLError(.badURL) }
         
@@ -361,7 +361,7 @@ extension [TechnologyTypes] {
     /// Appends a technology when absent, or replaces the existing matching item by identifier.
     ///
     /// - Parameter new: The technology entry to insert or update.
-    mutating func appendOrUpdate(_ new: TechnologyTypes) {
+    public mutating func appendOrUpdate(_ new: TechnologyTypes) {
         guard let index = firstIndex(where: { $0.id == new.id }) else {
             append(new)
             return

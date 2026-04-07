@@ -24,33 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build DocC
-        run: |
-          # Disable Xcode macro fingerprint validation to prevent spurious build errors
-          defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
-
-          xcodebuild docbuild \
-            -project DocB.xcodeproj \
-            -scheme DocB \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath .build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
-            
-          # Find the generated archive and transform it for static hosting
-          ARCHIVE_PATH=$(find .build -type d -name '*.doccarchive' | head -n 1)
-          
-          if [ -z "$ARCHIVE_PATH" ]; then
-            echo "Error: Could not find .doccarchive file"
-            exit 1
-          fi
-          
-          echo "Found archive at: $ARCHIVE_PATH"
-          
-          $(xcrun --find docc) process-archive transform-for-static-hosting \
-            "$ARCHIVE_PATH" \
-            --output-path ./docs \
-            --hosting-base-path / # Update this string if you want to host on a subpath like /docs
+        run: bash build-docs.sh
 
       - name: Deploy to Cloudflare Workers
         id: cloudflare_deploy

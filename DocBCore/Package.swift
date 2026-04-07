@@ -11,7 +11,7 @@ let package = Package(
         .library(
             name: "DocBCore",
             targets: ["DocBCore"]
-        ),
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/Mcrich23/EnhancedCodable", branch: "main"),
@@ -20,7 +20,7 @@ let package = Package(
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.3"),
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
         .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols", from: "5.3.0"),
-        .package(url: "https://github.com/krzyzanowskim/STTextView.git", from: "2.0.0"),
+        .package(url: "https://github.com/krzyzanowskim/STTextView.git", from: "2.0.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -31,6 +31,6 @@ let package = Package(
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]
-        ),
+        )
     ]
 )

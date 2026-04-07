@@ -1,0 +1,15 @@
+{
+  "name": "docb",
+  "main": "worker.js",
+  "compatibility_date": "2026-04-07",
+
+  // Serve the built DocC static assets
+  "assets": {
+    "directory": "./docs"
+  },
+
+  // Enable Workers Observability (logs, traces, metrics)
+  "observability": {
+    "enabled": true
+  }
+}

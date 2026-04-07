@@ -32,7 +32,10 @@ jobs:
             -project DocB.xcodeproj \
             -scheme DocB \
             -destination 'generic/platform=iOS' \
-            -derivedDataPath .build
+            -derivedDataPath .build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
             
           # Find the generated archive and transform it for static hosting
           ARCHIVE_PATH=$(find .build -type d -name '*.doccarchive' | head -n 1)

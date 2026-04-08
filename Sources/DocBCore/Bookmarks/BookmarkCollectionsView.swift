@@ -10,16 +10,13 @@ import SwiftData
 
 /// Displays saved bookmark collections and supports creating, deleting, and opening collections.
 struct BookmarkCollectionsView: View {
-    /// Navigation state used to synchronize split-view and stack navigation behavior.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// The collections saved in SwiftData
     @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
     
-    /// SwiftData context used to create and delete collections.
     @Environment(\.modelContext) private var modelContext
     #if !os(macOS)
-    /// The current edit mode of the ui.
     @Environment(\.editMode) private var editMode
     #endif
     /// Controls presentation of the create-collection sheet.

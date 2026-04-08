@@ -40,7 +40,6 @@ public struct MacOSAgnosticLink<Content: View>: View {
     let destination: URL
     /// Link label content.
     @ViewBuilder let label: Content
-    /// Environment URL opener used on macOS/Catalyst gesture activation.
     @Environment(\.openURL) var openURL
     
     public var body: some View {

@@ -40,9 +40,7 @@ private struct HighlightedLinks: View {
     let section: HomepageParser.Section
     /// Parsed homepage data used for references and media.
     let homepage: HomepageParser
-    /// Current color scheme used to choose media variants.
     @Environment(\.colorScheme) var colorScheme
-    /// Active DocC site used to expand relative media URLs when needed.
     @Environment(\.docCSite) var docCSite
     /// Runtime measured card frame used to switch between horizontal and vertical layouts.
     @State var cardFrame: CGSize?
@@ -170,7 +168,6 @@ private struct Links: View {
     let section: HomepageParser.Section
     /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
-    /// Navigation state used for list/grid behavior in links view.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
@@ -204,9 +201,7 @@ private struct Cards: View {
     let section: HomepageParser.Section
     /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
-    /// Current color scheme used when loading media variants.
     @Environment(\.colorScheme) var colorScheme
-    /// Navigation state used for spacing and split-view sizing.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Per-card measured text heights used to align card body heights.
@@ -335,7 +330,6 @@ private struct HomepageLinks: View {
     let section: HomepageParser.Section
     /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
-    /// Navigation state used to choose wrapped vs stacked layout.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
@@ -383,13 +377,11 @@ private struct HomepageLinks: View {
 
 /// Capsule-style link control used by homepage links sections.
 private struct LinkCapsule: View {
-    /// Current color scheme used by capsule styling.
     @Environment(\.colorScheme) var colorScheme
     /// Primary reference driving title and URL generation.
     let reference: Reference
     /// Reference lookup table for fallback title resolution.
     let references: [String : Reference]
-    /// Navigation state used for width behavior in compact layouts.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Best-effort title resolved from the primary or fallback reference map.

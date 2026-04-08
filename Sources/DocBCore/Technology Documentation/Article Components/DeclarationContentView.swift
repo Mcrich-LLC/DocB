@@ -14,7 +14,6 @@ struct DeclarationContentView: View {
     let content: ContentSection.Declaration
     /// Parent article payload (kept for future expansion and parity with sibling views).
     let article: Article
-    /// Current color scheme used by platform-specific background styling.
     @Environment(\.colorScheme) var colorScheme
     
     /// Joined declaration text rebuilt from token text/code fragments.

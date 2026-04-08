@@ -15,7 +15,6 @@ struct HomepageHero: View {
     /// Parsed homepage document containing shared references.
     let homepage: HomepageParser
     
-    /// Current color scheme used to select media variants.
     @Environment(\.colorScheme) var colorScheme
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.

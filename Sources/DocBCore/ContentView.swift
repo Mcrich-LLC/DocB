@@ -20,24 +20,17 @@ public struct ContentView: View {
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
     
-    /// Shared documentation model containing technologies, homepage, and fetched content.
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    /// User-configurable app settings that affect link handling behavior.
     @Environment(AppSettings.self) var appSettings
     /// Local navigation coordinator preserved for this root scene.
     @State var navigationViewModel = NavigationViewModel()
     /// Preserved search state so it outlives sidebar transitions.
     @State var searchText = ""
     
-    /// Current color scheme for view styling.
     @Environment(\.colorScheme) var colorScheme
-    /// Horizontal size class used for split/stack routing logic.
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    /// SwiftData context used by child views and deletion actions.
     @Environment(\.modelContext) var modelContext
-    /// Window-opening action for multi-window deep-link handling.
     @Environment(\.openWindow) var openWindow
-    /// Whether this platform/session supports multiple windows.
     @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
     /// Persisted DocC sites used for sidebar content and loading.
     @Query var docCSites: [DocCSite]
@@ -167,7 +160,6 @@ public struct ContentView: View {
     
     /// Sidebar container that switches between technologies and bookmark flows.
     struct SidebarView: View {
-        /// Shared navigation state for sidebar and nested navigation transitions.
         @Environment(NavigationViewModel.self) var navigationViewModel
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
@@ -288,11 +280,8 @@ private struct TechView: View {
     
     /// Error state surfaced through shared alert helper.
     @State private var errorAlert: Error?
-    /// Documentation model providing technologies and framework caches.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// Window open action used for add-source flow on macOS.
     @Environment(\.openWindow) private var openWindow
-    /// SwiftData context used for technology deletion actions.
     @Environment(\.modelContext) private var modelContext
     
     // Add Documentation Alert
@@ -468,7 +457,6 @@ private struct InterfaceLanguageSearchListing: View {
     /// Interface-language node being rendered recursively.
     let interfaceLanguage: DocCSite.InterfaceLanguageModel
     
-    /// Documentation state used to resolve site context for references.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
     /// Synthetic reference used for navigation when a node maps to a known path/type.
@@ -525,9 +513,7 @@ private struct DocCTechView: View {
     let technology: DocCSiteDTO
     /// Predicate used to filter visible interface-language children.
     let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSiteDTO, _ group: DocCIndex.InterfaceLanguage) -> Bool
-    /// Documentation state for navigation and site operations.
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    /// SwiftData context used for source modifications.
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
@@ -553,11 +539,8 @@ private struct AppleTechView: View {
     let isVisibleForSearch: (_ technology: AppleTechnologies.FrameworkSection) -> Bool
     /// Current search query.
     let searchText: String
-    /// Navigation state used for sidebar/label behavior.
     @Environment(NavigationViewModel.self) var navigationViewModel
-    /// Documentation state for delete operations.
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    /// SwiftData context used by delete operations.
     @Environment(\.modelContext) var modelContext
     /// Error state for alert presentation.
     @State var errorAlert: Error?
@@ -649,7 +632,6 @@ private struct ListItemLabel: View {
     /// Reference map used for beta/deprecation badges.
     let references: [String: Reference]
     
-    /// Navigation state used to show compact chevrons.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {

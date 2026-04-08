@@ -18,9 +18,7 @@ struct AddBookmarkView: View {
     /// All bookmarks saved in SwiftData
     @Query private var bookmarks: [Bookmark]
     
-    /// SwiftData context used to create/delete bookmark entities.
     @Environment(\.modelContext) private var modelContext
-    /// Dismiss action for closing the add-bookmark sheet.
     @Environment(\.dismiss) private var dismiss
     /// Controls presentation of the "Create Collection" sheet.
     @State private var isShowingCreateCollectionSheet: Bool = false

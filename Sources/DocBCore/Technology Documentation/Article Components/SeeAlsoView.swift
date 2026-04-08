@@ -11,7 +11,6 @@ import SwiftUI
 struct SeeAlsoView: View {
     /// Article payload containing "See Also" sections.
     let article: Article
-    /// Navigation state used by nested links list rows.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {

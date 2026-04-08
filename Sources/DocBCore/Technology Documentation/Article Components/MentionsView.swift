@@ -13,7 +13,6 @@ struct MentionsView: View {
     let mentions: [String]
     /// Parent article containing reference metadata.
     let article: Article
-    /// Active DocC site used to fill missing reference site context.
     @Environment(\.docCSite) var docCSite
     /// Ensures mention references include the current DocC site context when absent.
     func conditionReference(_ reference: Reference?) -> Reference? {

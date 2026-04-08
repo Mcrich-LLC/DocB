@@ -22,7 +22,6 @@ struct EnlargedImageSheetIdentifier: Identifiable {
 struct EnlargedImageView: View {
     /// Selected media descriptor used for enlarged rendering.
     let identifier: EnlargedImageSheetIdentifier
-    /// Dismiss action for closing the enlarged media sheet.
     @Environment(\.dismiss) var dismiss
     
     /// Whether current device idiom is phone (used for tighter layout constraints).

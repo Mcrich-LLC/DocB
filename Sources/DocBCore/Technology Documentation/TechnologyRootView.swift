@@ -50,9 +50,7 @@ private final class TechnologyRootManager {
 /// Root technology browser for a selected framework section.
 struct TechnologyRootView: View {
     
-    /// Shared navigation state coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
-    /// Shared documentation data/model coordinator.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
     /// Creates a technology root view for a framework section.
@@ -60,7 +58,6 @@ struct TechnologyRootView: View {
         self.manager = TechnologyRootManager(frameworkSection: frameworkSection)
     }
     
-    /// Current interface color scheme.
     @Environment(\.colorScheme) var colorScheme
     /// Stateful manager containing local filtering/rendering state.
     @State private var manager: TechnologyRootManager
@@ -197,9 +194,7 @@ struct TechnologyRootView: View {
         let frameworkSection: AppleTechnologies.FrameworkSection
         /// Topic sections already filtered for display.
         let topicSections: [Framework.TopicSection]
-        /// Shared local manager from parent view.
         @Environment(TechnologyRootManager.self) private var manager
-        /// Shared documentation data/model coordinator.
         @Environment(DocumentationViewModel.self) var documentationViewModel
         
         /// Renders the framework + topics list.

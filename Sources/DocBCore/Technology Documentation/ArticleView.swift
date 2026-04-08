@@ -11,15 +11,10 @@ import SwiftData
 /// ArticleView renders a reusable SwiftUI view.
 struct ArticleView: View {
     
-    /// Current color scheme used for article accent and gradient behavior.
     @Environment(\.colorScheme) var colorScheme
-    /// SwiftData context used for bookmark lookup and updates.
     @Environment(\.modelContext) private var modelContext
-    /// Horizontal size class used to tune popover sizing.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    /// Shared navigation coordinator for history and selection state.
     @Environment(NavigationViewModel.self) var navigationViewModel
-    /// Documentation data source used to fetch article payloads.
     @Environment(DocumentationViewModel.self) var documentationViewModel
     /// Reference currently being displayed.
     let reference: Reference

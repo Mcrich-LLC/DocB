@@ -24,7 +24,6 @@ public struct SettingsView: View {
 
 /// Shows general app preferences, including default article window behavior.
 struct GeneralSettingsView: View {
-    /// Global app settings model bound to controls in this view.
     @Environment(AppSettings.self) var appSettings
     
     var body: some View {

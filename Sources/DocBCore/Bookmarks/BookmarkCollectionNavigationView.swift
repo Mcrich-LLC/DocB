@@ -9,11 +9,8 @@ import SwiftUI
 
 /// Shows bookmarks in a single collection grouped by source technology and provides per-item navigation.
 struct BookmarkCollectionNavigationView: View {
-    /// Documentation source state used to resolve bookmark URLs to known technologies.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// Navigation state used when returning from this collection detail view.
     @Environment(NavigationViewModel.self) private var navigationViewModel
-    /// SwiftData context used for deleting bookmarks from the collection.
     @Environment(\.modelContext) private var modelContext
     /// Collection whose bookmarks are presented in grouped sections.
     let collection: BookmarkCollection
@@ -71,9 +68,7 @@ private struct SectionView: View {
     let collection: BookmarkCollection
     /// Grouped source URL represented by this section.
     let url: URL
-    /// Documentation source state used to resolve source labels.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// Navigation state used to adapt row affordances in split view.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// Resolves the matching technology entry for a grouped URL.
@@ -105,7 +100,6 @@ private struct SectionView: View {
     private struct Label: View {
         /// Row title shown for a bookmark entry.
         let text: String
-        /// Navigation state used to decide whether chevron affordance is shown.
         @Environment(NavigationViewModel.self) private var navigationViewModel
         
         var body: some View {
@@ -129,11 +123,8 @@ private struct AddSourceButton<Content: View>: View {
     @ViewBuilder let label: Content
     /// Controls presentation of the add-source confirmation dialog.
     @State private var isShowingAddPopover = false
-    /// Documentation model used to add the missing DocC source.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// SwiftData context used by add-technology operations.
     @Environment(\.modelContext) private var modelContext
-    /// Size class reserved for future presentation branching.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     /// Captures add-source failures for alert presentation.
     @State private var errorAlert: Error?

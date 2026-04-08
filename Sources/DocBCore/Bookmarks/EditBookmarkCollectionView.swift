@@ -9,9 +9,8 @@ import SFSymbols
 
 /// A view for creating or editing a bookmark collection.
 public struct EditBookmarkCollectionView: View {
-    /// The dismiss action provided by the environment.
+    
     @Environment(\.dismiss) private var dismiss
-    /// The SwiftData model context used to save collections.
     @Environment(\.modelContext) private var modelContext
     
     /// The collection currently being edited, or nil if creating a new collection.

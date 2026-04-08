@@ -9,7 +9,6 @@ import SwiftUI
 
 /// Displays the onboarding step where users add documentation sources before finishing setup.
 struct OnboardingAddSourcesView: View {
-    /// Shared onboarding step coordinator used to complete the flow.
     @Environment(OnboardingStepManager.self) var stepManager
     @State private var isVisible = false
     

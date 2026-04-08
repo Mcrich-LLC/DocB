@@ -48,7 +48,6 @@ enum OnboardingSteps: Int, ViewSteps {
 public struct MainOnboardingView: View {
     /// Local step manager controlling onboarding flow state.
     @State var stepManager = OnboardingStepManager()
-    /// Effective dismiss action resolved from environment.
     @Environment(\.customEnabledDismissAction) var customEnabledDismissAction
     
     public init() {}

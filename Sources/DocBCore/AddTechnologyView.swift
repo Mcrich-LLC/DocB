@@ -41,9 +41,7 @@ public struct AddTechnologySheetView: View {
 public struct AddTechnologyView: View {
     public init() {}
     
-    /// Shared documentation state for adding/removing technologies.
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    /// SwiftData context used for persistence-backed source changes.
     @Environment(\.modelContext) var modelContext
     /// Persisted DocC site models currently available in local storage.
     @Query var docCSites: [DocCSite]

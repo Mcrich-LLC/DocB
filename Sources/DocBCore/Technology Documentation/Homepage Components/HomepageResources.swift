@@ -14,7 +14,6 @@ struct HomepageResources: View {
     let section: HomepageParser.Section
     /// Parsed homepage data containing shared references.
     let homepage: HomepageParser
-    /// Current color scheme used to resolve media variants.
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {

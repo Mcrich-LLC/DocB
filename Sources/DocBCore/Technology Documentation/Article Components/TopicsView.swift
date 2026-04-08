@@ -11,7 +11,6 @@ import SwiftUI
 struct TopicsView: View {
     /// Article payload containing topic sections and style metadata.
     let article: Article
-    /// Navigation state used by nested links/grid rows.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {

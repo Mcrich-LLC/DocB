@@ -19,7 +19,6 @@ struct DocBApp: App {
     @State var appSettings = AppSettings()
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
-    /// Window opener used for command-driven scene creation.
     @Environment(\.openWindow) var openWindow
     /// Primary SwiftData container for docs, bookmarks, and collections.
     let docCSiteModelContainer: ModelContainer
@@ -98,11 +97,8 @@ private struct MainView: View {
     /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
     
-    /// Shared documentation model used for loading technologies and delete sync.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// SwiftData context for local technology deletion reconciliation.
     @Environment(\.modelContext) var modelContext
-    /// Whether the scene is currently active.
     @Environment(\.appearsActive) var appearsActive
     /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]

@@ -33,7 +33,6 @@ struct LinksGridListView: View {
         }
     }
     
-    /// Shared navigation state for split-view dependent layout behavior.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Creates a links renderer with style/reference payload and initial alignment from navigation mode.
@@ -44,7 +43,6 @@ struct LinksGridListView: View {
         self.alignment = !navigationViewModel.isUsingSplitView ? .top : .topLeading
     }
     
-    /// Current color scheme used for image variant resolution.
     @Environment(\.colorScheme) var colorScheme
     
     /// Returns a copy of this view with updated overall content alignment.
@@ -63,7 +61,6 @@ struct LinksGridListView: View {
         return view
     }
     
-    /// Active DocC site used to fill in missing reference site context.
     @Environment(\.docCSite) var docCSite
     /// Ensures references inherit the current DocC site when one is not already assigned.
     func conditionReference(_ reference: Reference?) -> Reference? {

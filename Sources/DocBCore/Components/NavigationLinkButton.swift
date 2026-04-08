@@ -13,9 +13,7 @@ public struct HomepageNavigationLinkButton<Content: View>: View {
         self.label = label()
     }
     
-    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
-    /// Documentation model (kept for parity/extension across navigation buttons).
     @Environment(DocumentationViewModel.self) var documentationViewModel
     
     /// Label content displayed by the button.
@@ -50,11 +48,8 @@ public struct HomepageNavigationLinkButton<Content: View>: View {
 
 /// Reusable navigation button for article/reference destinations with optional bookmark-specific behavior.
 public struct ReferenceNavigationLinkButton<Content: View>: View {
-    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
-    /// Documentation model used to resolve technologies for a reference.
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    /// URL opener for external links.
     @Environment(\.openURL) private var openURL
     /// Destination reference for navigation.
     private let reference: Reference
@@ -242,7 +237,6 @@ public struct TechnologyNavigationLinkButton<Content: View>: View {
         self.label = label()
     }
     
-    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) var navigationViewModel
     /// Technology destination represented by this row.
     public let technology: AppleTechnologies.FrameworkSection
@@ -292,7 +286,6 @@ public struct BookmarkCollectionNavigationLink<Content: View>: View {
     public let collection: BookmarkCollection
     /// Label content displayed by the control.
     @ViewBuilder public let label: Content
-    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// The action run instead. A navigate function is passed in to the override action. Running this will navigate to the collection as normal.
@@ -329,7 +322,6 @@ public struct AllBookmarkCollectionsNavigationLink<Content: View>: View {
     
     /// Label content displayed by the control.
     @ViewBuilder public let label: Content
-    /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
     /// Renders the all-bookmarks navigation control.

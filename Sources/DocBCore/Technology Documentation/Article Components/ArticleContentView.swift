@@ -170,11 +170,8 @@ private class ArticleContentManager {
 struct ArticleContentView: View {
     /// Shared renderer state for this content node and its descendants.
     @State private var manager: ArticleContentManager
-    /// Active DocC site configuration used to resolve relative media URLs.
     @Environment(\.docCSite) var docCSite
-    /// The current tint passed into the view.
     @Environment(\.tintColor) var tintColor
-    /// Navigation model passed to link-based content views.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Creates a content renderer for a content node and its references.
@@ -189,7 +186,6 @@ struct ArticleContentView: View {
     /// Latest measured size of this view, used for adaptive row/grid layout.
     @State private var viewSize: CGSize?
     
-    /// Active color scheme used for platform-specific visual choices.
     @Environment(\.colorScheme) var colorScheme
     
     /// Main content body that renders either inline fragments or type-specific block content.
@@ -517,14 +513,10 @@ struct ArticleContentView: View {
         /// Optional alignment override for emitted text blocks.
         let alignment: Alignment?
         
-        /// Current appearance used when resolving media variants.
         @Environment(\.colorScheme) private var colorScheme
-        /// Active DocC site used to expand relative media URLs.
         @Environment(\.docCSite) private var docCSite
-        /// The current tint passed into the view.
         @Environment(\.tintColor) var tintColor
         
-        /// Parent manager injected from ``ArticleContentView`` for shared references and style context.
         @Environment(ArticleContentManager.self) private var manager
         
         /// Creates an inline content renderer for a sequence of inline nodes.

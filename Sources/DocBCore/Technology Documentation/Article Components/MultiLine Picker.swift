@@ -34,7 +34,6 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
     
     /// Corner radius used by segment backgrounds.
     private let cornerRadius: CGFloat = 6
-    /// Current color scheme used by selection background color logic.
     @Environment(\.colorScheme) var colorScheme
     
     /// Filled background color for the currently selected segment.

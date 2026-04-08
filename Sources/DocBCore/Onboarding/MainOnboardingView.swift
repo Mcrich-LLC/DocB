@@ -68,7 +68,7 @@ public struct MainOnboardingView: View {
                     .backForward(isBack: stepManager.isBack)
             }
         }
-        .tint(Color.accentColor.mix(with: .black, by: 0.1))
+        .tintColor(Color.accentColor.mix(with: .black, by: 0.1))
         .environment(stepManager)
         .onChange(of: customEnabledDismissAction, initial: true) { _, newValue in
             stepManager.dismiss = newValue

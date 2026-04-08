@@ -46,7 +46,7 @@ struct AddBookmarkView: View {
                             } label: {
                                 Label(title, systemSymbol: .folder)
                             }
-                            .tint(Color.primary)
+                            .tintColor(Color.primary)
                             
                             Spacer()
                             

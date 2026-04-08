@@ -96,7 +96,7 @@ private struct SectionView: View {
                         .bookmarkNavigator()
                     }
                 }
-                .tint(Color.primary)
+                .tintColor(Color.primary)
             }
         }
     }

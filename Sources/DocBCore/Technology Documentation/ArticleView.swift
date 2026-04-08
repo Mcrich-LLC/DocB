@@ -173,7 +173,7 @@ struct ArticleView: View {
                                 LanguagePicker(variants: variants)
                             }
                         }
-                        .tint(color)
+                        .tintColor(color)
                     }
                 }
                 .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
@@ -229,7 +229,8 @@ struct ArticleView: View {
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }
-        .accentColor(Color.accentColor)
+        .accentColor(article?.metadata.role.accentColor)
+        .tintColor(article?.metadata.role.accentColor)
     }
     
     /// Refreshes bookmark state for the currently displayed reference.

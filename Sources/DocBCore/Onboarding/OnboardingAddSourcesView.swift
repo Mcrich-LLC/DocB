@@ -51,7 +51,7 @@ struct OnboardingAddSourcesView: View {
                     .colorInvert()
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color.primary)
+            .tintColor(Color.primary)
             .buttonBorderShape(.capsule)
             .controlSize(.large)
             .shadow(color: .primary.opacity(0.15), radius: 8, y: 4)

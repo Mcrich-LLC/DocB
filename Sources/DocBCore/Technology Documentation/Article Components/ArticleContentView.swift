@@ -80,7 +80,7 @@ private class ArticleContentManager {
     }
     
     /// Builds attributed reference text for a documentation identifier, including link styling when possible.
-    func getReferenceText(for identifier: String) -> AttributedString? {
+    func getReferenceText(for identifier: String, tintColor: Color?) -> AttributedString? {
         guard let reference = references[identifier], let title = reference.title else {
             return nil
         }
@@ -92,14 +92,14 @@ private class ArticleContentManager {
             
             if role == .symbol {
                 attributes = [
-                    .foregroundColor: PlatformColor.accent,
+                    .foregroundColor: tintColor ?? PlatformColor.accent,
                     .font: PlatformFont.monospacedSystemFont(ofSize: PlatformFont.labelFontSize, weight: .medium),
                     .underlineStyle : 0,
                     .link: url
                 ]
             } else {
                 attributes = [
-                    .foregroundColor: PlatformColor.accent,
+                    .foregroundColor: tintColor ?? PlatformColor.accent,
                     .underlineStyle : 0,
                     .link: url
                 ]
@@ -172,6 +172,8 @@ struct ArticleContentView: View {
     @State private var manager: ArticleContentManager
     /// Active DocC site configuration used to resolve relative media URLs.
     @Environment(\.docCSite) var docCSite
+    /// The current tint passed into the view.
+    @Environment(\.tintColor) var tintColor
     /// Navigation model passed to link-based content views.
     @Environment(NavigationViewModel.self) var navigationViewModel
     
@@ -361,7 +363,7 @@ struct ArticleContentView: View {
                 }
             }
         case .reference:
-            if let identifier = content.identifier, let referenceText = manager.getReferenceText(for: identifier) {
+            if let identifier = content.identifier, let referenceText = manager.getReferenceText(for: identifier, tintColor: tintColor) {
                 Text(referenceText)
             }
         case .table:
@@ -519,6 +521,8 @@ struct ArticleContentView: View {
         @Environment(\.colorScheme) private var colorScheme
         /// Active DocC site used to expand relative media URLs.
         @Environment(\.docCSite) private var docCSite
+        /// The current tint passed into the view.
+        @Environment(\.tintColor) var tintColor
         
         /// Parent manager injected from ``ArticleContentView`` for shared references and style context.
         @Environment(ArticleContentManager.self) private var manager
@@ -627,7 +631,7 @@ struct ArticleContentView: View {
                         
                         text = text + attributedString
                     case .reference:
-                        if let identifier = inline.identifier, let referenceText = manager.getReferenceText(for: identifier) {
+                        if let identifier = inline.identifier, let referenceText = manager.getReferenceText(for: identifier, tintColor: tintColor) {
                             text = text + referenceText
                         }
                     case .image:

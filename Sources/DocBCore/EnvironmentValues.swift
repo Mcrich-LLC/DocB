@@ -17,6 +17,13 @@ extension View {
     public func customDismiss(_ action: CustomDismissAction) -> some View {
         environment(\.customDismiss, action)
     }
+    
+    /// Sets the tint for SwiftUI and includes our custom `EnvironmentValues.tintcolor`
+    public func tintColor(_ color: Color?) -> some View {
+        self
+            .environment(\.tintColor, color)
+            .tint(color)
+    }
 }
 
 extension EnvironmentValues {
@@ -37,6 +44,9 @@ extension EnvironmentValues {
     public var customEnabledDismiss: @MainActor @Sendable () -> Void {
         customEnabledDismissAction.action
     }
+    
+    /// The color set as the tint for subsequent views. This value can be nil when the system is unsure what color is being used as tint.
+    @Entry public var tintColor: Color? = Color.accentColor
 }
 
 private struct CustomDismissKey: EnvironmentKey {

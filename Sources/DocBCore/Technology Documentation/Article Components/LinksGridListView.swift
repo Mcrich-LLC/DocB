@@ -170,7 +170,7 @@ struct LinksGridListView: View {
                         }
                     }
                     .disabled(reference.type == "unresolvable")
-                    .tint(reference.type == "unresolvable" ? Color.primary : nil)
+                    .tintColor(reference.type == "unresolvable" ? Color.primary : nil)
                 }
             }
         default:

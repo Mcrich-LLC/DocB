@@ -158,8 +158,8 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         public let kind: String
     }
     
-    @CodableIgnoreInitializedProperties
     /// Group of related frameworks under a single technology name.
+    @CodableIgnoreInitializedProperties
     public struct Technology: Codable, Identifiable, Hashable, Equatable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()
@@ -170,8 +170,8 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         public let technologies: [FrameworkSection]
     }
     
-    @CodableIgnoreInitializedProperties
     /// Framework entry used for navigation from technology lists.
+    @CodableIgnoreInitializedProperties
     public struct FrameworkSection: Codable, Identifiable, AppleDocumentation, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()

@@ -64,8 +64,8 @@ private func getCondensedContent(_ content: [ContentSection.Content]) -> [Conten
     return newContent
 }
 
-@CodableIgnoreInitializedProperties
 /// Image metadata for DocC references and content blocks.
+@CodableIgnoreInitializedProperties
 public struct ImageStruct: Codable, Identifiable, Equatable, Hashable, Sendable {
     public let id = UUID()
     
@@ -150,8 +150,8 @@ public enum CodableFontWeight: String, CaseIterable, Codable, Sendable {
     }
 }
 
-@CodableIgnoreInitializedProperties
 /// Recursive inline content fragment used to render text, lists, emphasis, and metadata.
+@CodableIgnoreInitializedProperties
 public struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendable {
     public let id = UUID()
     
@@ -212,8 +212,8 @@ public struct ContentStruct: Codable, Hashable, Identifiable, Equatable, Sendabl
         return attributedString
     }
     
-    @CodableIgnoreInitializedProperties
     /// Supplemental metadata attached to an inline content fragment.
+    @CodableIgnoreInitializedProperties
     public struct Metadata: Codable, Hashable, Equatable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id: UUID = UUID()
@@ -295,8 +295,8 @@ public struct Fragment: Codable, Hashable, Sendable {
         case restParameters
     }
     
-    @CodableIgnoreInitializedProperties
     /// REST attribute model for endpoint documentation.
+    @CodableIgnoreInitializedProperties
     public struct Attribute: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()
@@ -305,8 +305,8 @@ public struct Fragment: Codable, Hashable, Sendable {
         public let name: String?
     }
     
-    @CodableIgnoreInitializedProperties
     /// REST response documentation block.
+    @CodableIgnoreInitializedProperties
     public struct RestResponse: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()
@@ -324,8 +324,8 @@ public struct Fragment: Codable, Hashable, Sendable {
         /// Optional item name (for properties/parameters).
         public let name: String?
         
-        @CodableIgnoreInitializedProperties
         /// Token metadata describing HTTP types and related identifiers.
+        @CodableIgnoreInitializedProperties
         public struct RestResponseType: Codable, Identifiable, Equatable, Hashable, Sendable {
             /// Stable identifier for diffable/UI usage.
             public let id = UUID()
@@ -341,8 +341,8 @@ public struct Fragment: Codable, Hashable, Sendable {
         }
     }
     
-    @CodableIgnoreInitializedProperties
     /// Key/value details section for symbol or endpoint metadata.
+    @CodableIgnoreInitializedProperties
     public struct Details: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()
@@ -359,8 +359,8 @@ public struct Fragment: Codable, Hashable, Sendable {
         }
     }
     
-    @CodableIgnoreInitializedProperties
     /// Language-specific declaration block for symbols.
+    @CodableIgnoreInitializedProperties
     public struct Declaration: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()
@@ -671,8 +671,8 @@ public struct Fragment: Codable, Hashable, Sendable {
             public let content: [Content]
         }
         
-        @CodableIgnoreInitializedProperties
         /// Tab content wrapper for tabbed content sections.
+        @CodableIgnoreInitializedProperties
         public struct Tab: Codable, Equatable, Identifiable, Hashable, Sendable {
             /// Stable identifier for diffable/UI usage.
             public let id = UUID()
@@ -687,8 +687,8 @@ public struct Fragment: Codable, Hashable, Sendable {
             /// Tab title shown in tab selectors.
             public let title: String
             
-            @CodableIgnoreInitializedProperties
             /// Item wrapper used within tab payloads.
+            @CodableIgnoreInitializedProperties
             public struct Item: Codable, Equatable, Identifiable, Hashable, Sendable {
                 /// Stable identifier for diffable/UI usage.
                 public let id = UUID()
@@ -698,8 +698,8 @@ public struct Fragment: Codable, Hashable, Sendable {
             }
         }
         
-        @CodableIgnoreInitializedProperties
         /// Term list entry with term and definition blocks.
+        @CodableIgnoreInitializedProperties
         public struct TermListItem: Codable, Identifiable, Equatable, Hashable, Sendable {
             /// Stable identifier for diffable/UI usage.
             public let id = UUID()
@@ -721,8 +721,8 @@ public struct Fragment: Codable, Hashable, Sendable {
             }
         }
         
-        @CodableIgnoreInitializedProperties
         /// Unordered/ordered list entry content wrapper.
+        @CodableIgnoreInitializedProperties
         public struct UnorderedListItem: Codable, Identifiable, Equatable, Hashable, Sendable {
             /// Stable identifier for diffable/UI usage.
             public let id = UUID()
@@ -1012,8 +1012,8 @@ public enum ContentType: String, Codable, Equatable, Hashable, Sendable {
 }
 
 // MARK: Platforms
-@CodableIgnoreInitializedProperties
 /// Platform availability metadata for symbols and articles.
+@CodableIgnoreInitializedProperties
 public struct Platform: Codable, Identifiable, Equatable, Hashable, Sendable {
     public let id = UUID()
     

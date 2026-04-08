@@ -94,8 +94,8 @@ private struct HighlightedLinks: View {
         }
     }
     
-    @ViewBuilder
     /// Shared image view used in the highlighted links layout.
+    @ViewBuilder
     var image: some View {
         if let image = section.body?.image {
             LazyImage(url: fetchPhotoVideoURL(for: image)) { state in
@@ -117,8 +117,8 @@ private struct HighlightedLinks: View {
         return url
     }
     
-    @ViewBuilder
     /// Conditionally renders `HStack` or `VStack` for highlighted links composition.
+    @ViewBuilder
     func VHStack<Content: View>(spacing: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
         switch isVertical {
         case false:
@@ -242,8 +242,8 @@ private struct Cards: View {
         }
     }
     
-    @ViewBuilder
     /// Placeholder shown while a card hero image is loading.
+    @ViewBuilder
     var cardImagePlaceholder: some View {
         UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
             .fill(Color.clear)
@@ -254,8 +254,8 @@ private struct Cards: View {
             }
     }
     
-    @ViewBuilder
     /// Renders a single homepage card including image, content, and call to action.
+    @ViewBuilder
     func card(_ content: HomepageParser.Body.Card.Content) -> some View {
         if let url = URL(string: content.destination.identifier) {
             MacOSAgnosticLink(destination: url) {

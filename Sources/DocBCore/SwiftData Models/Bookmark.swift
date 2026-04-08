@@ -8,8 +8,8 @@
 import Foundation
 import SwiftData
 
-@MainActor
 /// BookmarkDTO encapsulates app behavior and state.
+@MainActor
 public final class BookmarkDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     public nonisolated static func == (lhs: BookmarkDTO, rhs: BookmarkDTO) -> Bool {
         lhs.id == rhs.id
@@ -140,8 +140,8 @@ public enum BookmarkErrors: Error {
     case invalidReference
 }
 
-@Model
 /// Bookmark encapsulates app behavior and state.
+@Model
 public final class Bookmark: Identifiable {
     /// Stable identifier for this persisted bookmark.
     public var id = UUID()
@@ -162,8 +162,8 @@ public final class Bookmark: Identifiable {
     /// Base URL for the source documentation site.
     public var siteBaseURL: URL?
     
-    @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
     /// Owning collection relationship; nullified if the collection is removed.
+    @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
     public var collection: BookmarkCollection?
     
     /// Creates a bookmark model from explicit persisted fields.

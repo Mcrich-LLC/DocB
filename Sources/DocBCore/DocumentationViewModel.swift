@@ -56,9 +56,9 @@ public enum PreferedProgrammingLanguage: String, Codable, CaseIterable, Sendable
     }
 }
 
+/// Central state and networking coordinator for DocC technologies, frameworks, and articles.
 @Observable
 @MainActor
-/// Central state and networking coordinator for DocC technologies, frameworks, and articles.
 public class DocumentationViewModel {
     public init() {}
     

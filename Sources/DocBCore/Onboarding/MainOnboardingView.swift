@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-@Observable
 /// Tracks onboarding step progression and controls forward/back navigation and dismissal.
+@Observable
 final class OnboardingStepManager {
     /// Dismiss action called when onboarding reaches its final step.
     fileprivate var dismiss: CustomDismissAction = .init(action: {})

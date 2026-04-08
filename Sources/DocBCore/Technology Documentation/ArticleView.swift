@@ -248,8 +248,8 @@ struct ArticleView: View {
         }
     }
     
-    @ViewBuilder
     /// Renders the article heading block including badges, abstract, and platforms.
+    @ViewBuilder
     func Heading(_ article: Article) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             if (article.metadata.roleHeading != nil || article.metadata.platforms != nil) && article.topicSectionsStyle != .hidden {
@@ -307,8 +307,8 @@ struct ArticleView: View {
         }
     }
     
-    @ViewBuilder
     /// Renders beta/deprecation badges for article metadata.
+    @ViewBuilder
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
             if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true || article?.betaSummary != nil {

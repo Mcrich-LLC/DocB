@@ -9,11 +9,11 @@
 import Foundation
 import SwiftUI
 
-@Observable
-@MainActor
 /// Central navigation state coordinator that drives history, deep links, and path synchronization.
 ///
 /// - Important: `isNavigating` guards history writes during internal state transitions to prevent recursive history mutations.
+@Observable
+@MainActor
 public class NavigationViewModel: @MainActor Equatable {
     public init() {}
     /// Enables selective in-place history updates for technology transitions.

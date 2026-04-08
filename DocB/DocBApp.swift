@@ -10,8 +10,8 @@ import SFSafeSymbols
 import SwiftData
 import DocBCore
 
-@main
 /// Application entry point that configures model containers, scenes, and global environments.
+@main
 struct DocBApp: App {
     /// Shared documentation model injected into app scenes.
     @State var documentationViewModel = DocumentationViewModel()

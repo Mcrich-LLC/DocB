@@ -8,8 +8,8 @@
 import Foundation
 import SwiftData
 
-@MainActor
 /// BookmarkCollectionDTO encapsulates app behavior and state.
+@MainActor
 public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     public nonisolated static func == (lhs: BookmarkCollectionDTO, rhs: BookmarkCollectionDTO) -> Bool {
         lhs.id == rhs.id
@@ -89,8 +89,8 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     }
 }
 
-@Model
 /// BookmarkCollection encapsulates app behavior and state.
+@Model
 public final class BookmarkCollection: Identifiable {
     /// Stable identifier for the persisted collection.
     public var id = UUID()

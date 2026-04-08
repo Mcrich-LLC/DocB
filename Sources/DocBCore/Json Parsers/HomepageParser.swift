@@ -20,8 +20,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
     /// Optional legal notices shown in footer contexts.
     public let legalNotices: LegalNotices?
     
-    @CodableIgnoreInitializedProperties
     /// A top-level homepage section such as hero, content section, or resources.
+    @CodableIgnoreInitializedProperties
     public struct Section: Codable, Identifiable, Hashable, Sendable {
         public let id = UUID()
         
@@ -45,8 +45,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
         public let role: Role
     }
     
-    @CodableIgnoreInitializedProperties
     /// Resource card model used by homepage resource sections.
+    @CodableIgnoreInitializedProperties
     public struct Resource: Codable, Hashable, Identifiable, Sendable {
         public let id = UUID()
         
@@ -65,8 +65,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
         public let kind: Kind
         public let image: String?
         
-        @CodableIgnoreInitializedProperties
         /// Link list section payload.
+        @CodableIgnoreInitializedProperties
         public struct LinkItem: Codable, Hashable, Identifiable, Sendable {
             public let id = UUID()
             
@@ -80,8 +80,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
             case links, homepageLinks, cards, highlightedLinks
         }
         
-        @CodableIgnoreInitializedProperties
         /// Highlighted link card with optional call-to-action.
+        @CodableIgnoreInitializedProperties
         public struct HighlightedLinks: Codable, Hashable, Identifiable, Sendable {
             public let id = UUID()
             
@@ -91,8 +91,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
             public let destination: URL?
         }
         
-        @CodableIgnoreInitializedProperties
         /// Card group payload used for featured and standard homepage cards.
+        @CodableIgnoreInitializedProperties
         public struct Card: Codable, Hashable, Identifiable, Sendable {
             public let id = UUID()
             
@@ -105,8 +105,8 @@ public struct HomepageParser: Codable, Hashable, AppleDocumentation {
                 public let web: String?
             }
             
-            @CodableIgnoreInitializedProperties
             /// Individual card entry displayed within a homepage card group.
+            @CodableIgnoreInitializedProperties
             public struct Content: Codable, Hashable, Identifiable, Sendable {
                 public let id = UUID()
                 

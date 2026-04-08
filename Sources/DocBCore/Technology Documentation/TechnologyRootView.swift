@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-@Observable
 /// Internal coordinator that keeps filtering and reference-visibility state for `TechnologyRootView`.
+@Observable
 private final class TechnologyRootManager {
     /// Currently selected framework section driving this screen.
     var frameworkSection: AppleTechnologies.FrameworkSection

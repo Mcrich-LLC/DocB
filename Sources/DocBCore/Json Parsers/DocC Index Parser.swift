@@ -9,8 +9,8 @@ import Foundation
 import EnhancedCodable
 import SwiftData
 
-@CodableIgnoreInitializedProperties
 /// Top-level DocC index payload describing available interface-language trees.
+@CodableIgnoreInitializedProperties
 public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Stable identifier for diffable/UI usage.
     public let id = UUID()
@@ -18,8 +18,8 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Interface-language entries keyed by language token (for example, `swift`).
     public let interfaceLanguages: [String : [InterfaceLanguage]]
     
-    @CodableIgnoreInitializedProperties
     /// A node in a DocC index tree representing modules, frameworks, and related groups.
+    @CodableIgnoreInitializedProperties
     public struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Stable identifier for diffable/UI usage.
         public let id = UUID()

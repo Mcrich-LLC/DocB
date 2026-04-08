@@ -33,14 +33,14 @@ extension EnvironmentValues {
         set { self[CustomDismissKey.self] = newValue }
     }
     
-    @MainActor
     /// Returns the injected dismiss action, or falls back to the system `dismiss` action.
+    @MainActor
     public var customEnabledDismissAction: CustomDismissAction {
         customDismiss ?? CustomDismissAction(action: dismiss.callAsFunction)
     }
     
-    @MainActor
     /// Convenience closure for invoking the effective dismiss behavior.
+    @MainActor
     public var customEnabledDismiss: @MainActor @Sendable () -> Void {
         customEnabledDismissAction.action
     }

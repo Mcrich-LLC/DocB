@@ -95,8 +95,8 @@ struct AddBookmarkView: View {
         .alert(for: $errorAlert)
     }
     
-    @ViewBuilder
     /// Toolbar action that closes the current view.
+    @ViewBuilder
     var doneButton: some View {
         Button {
             dismiss()
@@ -106,8 +106,8 @@ struct AddBookmarkView: View {
         .labelStyle(.iconOnly)
     }
     
-    @ViewBuilder
     /// Floating action used to start creating a new collection.
+    @ViewBuilder
     var addButton: some View {
         Button {
             isShowingCreateCollectionSheet.toggle()

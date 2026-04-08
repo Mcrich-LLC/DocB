@@ -11,8 +11,8 @@ import NukeUI
 import AVKit
 import HighlightSwift
 
-@Observable
 /// Coordinates content transformation and style decisions used while rendering article content blocks.
+@Observable
 private class ArticleContentManager {
     /// The content node currently being rendered.
     var content: ContentSection.Content
@@ -219,8 +219,8 @@ struct ArticleContentView: View {
         .environment(manager)
     }
     
-    @ViewBuilder
     /// Produces type-specific UI for the current content node.
+    @ViewBuilder
     var typeBody: some View {
         let content = manager.content
         
@@ -463,8 +463,8 @@ struct ArticleContentView: View {
         }
     }
     
-    @ViewBuilder
     /// Renders one table row where each cell is represented by a content slice.
+    @ViewBuilder
     func tableRow(content: [[ContentSection.Content]]) -> some View {
         HStack {
             ForEach(content, id: \.self) { contentSlice in
@@ -484,8 +484,8 @@ struct ArticleContentView: View {
         }
     }
     
-    @ViewBuilder
     /// Renders a full table from parsed row and cell content blocks.
+    @ViewBuilder
     func tableView(rows: [[[ContentSection.Content]]]) -> some View {
         VStack(spacing: 0) {
             if let firstRow = rows.first {

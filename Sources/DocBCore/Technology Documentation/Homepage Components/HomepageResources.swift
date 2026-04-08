@@ -27,8 +27,8 @@ struct HomepageResources: View {
         }
     }
     
-    @ViewBuilder
     /// Renders a single resource card with optional image, content, and destination link.
+    @ViewBuilder
     func item(_ item: HomepageParser.Resource) -> some View {
         VStack {
             if let imageId = item.image, let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: homepage.references, colorScheme: colorScheme, docCSite: nil) {

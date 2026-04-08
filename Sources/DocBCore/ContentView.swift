@@ -198,8 +198,8 @@ public struct ContentView: View {
         }
     }
     
-    @ViewBuilder
     /// Split-view navigation presentation used on larger form factors.
+    @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             SidebarView(searchText: $searchText, docCSites: docCSites)
@@ -242,8 +242,8 @@ public struct ContentView: View {
         .frame(minWidth: minWindowFrame?.width, minHeight: minWindowFrame?.height)
     }
     
-    @ViewBuilder
     /// Stack-based navigation presentation used on compact layouts.
+    @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
             TechView(searchText: $searchText, docCSites: docCSites)
@@ -328,8 +328,8 @@ private struct TechView: View {
         return !filteredTech.isEmpty
     }
     
-    @ViewBuilder
     /// Routes a technology source type to its corresponding sidebar section view.
+    @ViewBuilder
     func technologyView(for technology: TechnologyTypes) -> some View {
         switch technology {
         case .apple(let technologies):
@@ -390,8 +390,8 @@ private struct TechView: View {
         #endif
     }
     
-    @ViewBuilder
     /// Search-result list for both DocC and Apple technologies.
+    @ViewBuilder
     private var searchList: some View {
         ForEach(docCSites) { site in
             if let index = site.indexV2, site.hasResultsForSearch(searchText) {
@@ -409,8 +409,8 @@ private struct TechView: View {
         }
     }
     
-    @ViewBuilder
     /// Default technology listing grouped by custom and Apple sources.
+    @ViewBuilder
     private var technologiesList: some View {
         if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
             Section {
@@ -473,8 +473,8 @@ private struct InterfaceLanguageSearchListing: View {
         return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
     }
     
-    @ViewBuilder
     /// Renders symbol-like text with code styling, otherwise plain text.
+    @ViewBuilder
     func text(_ text: String) -> some View {
         let role = Role(rawValue: interfaceLanguage.type ?? "") ?? .codeListing
         
@@ -550,8 +550,8 @@ private struct AppleTechView: View {
             .alert(for: $errorAlert)
     }
     
-    @ViewBuilder
     /// Main Apple technologies listing body, including discover and framework groups.
+    @ViewBuilder
     var internalBody: some View {
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
             Section("Apple Documentation") {

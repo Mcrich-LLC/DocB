@@ -21,8 +21,8 @@ public struct Framework: Codable, AppleDocumentation {
     /// Available language/platform variants for this framework.
     public let variants: [Variant]?
     
-    @CodableIgnoreInitializedProperties
     /// A topic bucket containing references for a subsection of framework content.
+    @CodableIgnoreInitializedProperties
     public struct TopicSection: Codable, Identifiable, Equatable, Hashable, Sendable {
         public let id = UUID()
         

@@ -9,10 +9,10 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-@MainActor
 /// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
 ///
 /// DTO identity and equality are based on `id`, while hashing also includes timestamp, URL, and index.
+@MainActor
 public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
     public nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
         lhs.id == rhs.id
@@ -139,10 +139,10 @@ public enum SwiftDataErrors: Error {
     case invalidShape
 }
 
-@Model
 /// Persisted SwiftData model representing a DocC site source.
 ///
 /// Persisted properties are optional to tolerate schema evolution, and `dto` provides validated access for app-layer usage.
+@Model
 public final class DocCSite: Identifiable {
     /// Stable identifier for the persisted site model.
     public var id: UUID = UUID()
@@ -222,10 +222,10 @@ extension EnvironmentValues {
 }
 
 extension DocCSite {
-    @Model
     /// Persisted representation of a DocC index grouped by interface language.
     ///
     /// - Important: Child relationships use cascading deletes to keep nested index trees in sync with their parent index.
+    @Model
     public final class DocCIndexModel: Identifiable {
         /// Stable identifier for this persisted index model.
         public var id: UUID = UUID()
@@ -258,8 +258,8 @@ extension DocCSite {
         }
     }
     
-    @Model
     /// Named set of interface-language entries for a single language key (for example, Swift).
+    @Model
     public final class InterfaceLanguageSetModel: Identifiable {
         /// Stable identifier for this language-set record.
         public var id = UUID()
@@ -285,8 +285,8 @@ extension DocCSite {
         }
     }
     
-    @Model
     /// Persisted tree node for a DocC interface-language entry.
+    @Model
     public final class InterfaceLanguageModel: Identifiable {
         /// Stable identifier for this interface-language node.
         public var id = UUID()
@@ -303,8 +303,8 @@ extension DocCSite {
         private var set: InterfaceLanguageSetModel?
         
         // parent relationship
-        @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
         /// Parent node relationship for nested interface-language entries.
+        @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageModel.children)
         public var parent: InterfaceLanguageModel?
         
         /// Child nodes representing nested documentation hierarchy.

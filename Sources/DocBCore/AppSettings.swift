@@ -7,9 +7,9 @@
 import SwiftUI
 import Foundation
 
+/// App-wide persisted preferences used to control runtime behavior.
 @Observable
 @MainActor
-/// App-wide persisted preferences used to control runtime behavior.
 public class AppSettings {
     public init() {}
     

@@ -38,8 +38,8 @@ struct AsideView: View {
         }
     }
         
-    @ViewBuilder
     /// Shared renderer for aside content with a style-specific accent color.
+    @ViewBuilder
     func asideView(color: Color) -> some View {
         VStack(alignment: .leading) {
             Text(title.capitalized)

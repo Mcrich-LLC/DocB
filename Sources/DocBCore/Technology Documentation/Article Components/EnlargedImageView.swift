@@ -35,7 +35,7 @@ struct EnlargedImageView: View {
     }
     
     var body: some View {
-        VStack {
+        NavigationStack {
             LazyImage(url: identifier.url) { state in
                 if let image = state.image {
                     image
@@ -49,11 +49,11 @@ struct EnlargedImageView: View {
             }
             .zoomable()
             .padding(.top, isPhone ? 0 : nil)
+            .padding()
+            .toolbar {
+                ToolbarCloseButton()
+            }
         }
         .frame(minWidth: isPhone ? nil : 600, maxWidth: .infinity, minHeight: isPhone ? nil : 300, maxHeight: .infinity)
-        .overlay(alignment: .topTrailing, content: {
-            ToolbarCloseButton()
-        })
-        .padding()
     }
 }

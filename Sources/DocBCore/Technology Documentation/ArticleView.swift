@@ -46,6 +46,11 @@ struct ArticleView: View {
         case seeAlso
     }
     
+    /// The general accent color
+    var accentColor: Color? {
+        article?.metadata.color?.standardColorIdentifier.swiftUIColor ?? article?.metadata.role.color
+    }
+    
     /// Gradient colors resolved from article metadata role/color.
     var topColorGradient: [Color] {
         article?.metadata.color?.gradientColors ?? article?.metadata.role.gradientColors ?? []
@@ -142,9 +147,6 @@ struct ArticleView: View {
                 .padding(.top, 15)
                 .padding([.horizontal, .bottom], 30)
                 .toolbar {
-                    let role = article.metadata.role
-                    let color: Color = role.accentColor
-                    
                     ToolbarItemGroup(placement: .primaryAction) {
                         
                         Group {
@@ -173,7 +175,7 @@ struct ArticleView: View {
                                 LanguagePicker(variants: variants)
                             }
                         }
-                        .tintColor(color)
+                        .tintColor(accentColor)
                     }
                 }
                 .toolbarBackgroundVisibility(showToolbarBG ? .visible : .hidden, for: .navigationBar)
@@ -230,8 +232,8 @@ struct ArticleView: View {
         .onDisappear {
             navigationViewModel.handleHistoryRemoval(for: reference)
         }
-        .accentColor(article?.metadata.role.accentColor)
-        .tintColor(article?.metadata.role.accentColor)
+        .tintColor(accentColor)
+        .accentColor(accentColor)
     }
     
     /// Refreshes bookmark state for the currently displayed reference.

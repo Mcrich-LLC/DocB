@@ -39,7 +39,7 @@ struct BookmarkCollectionsView: View {
                     if let title = collection.title {
                         BookmarkCollectionNavigationLink(collection: collection) {
                             HStack {
-                                Label(title, systemSymbol: .folder)
+                                Label(title, systemImage: collection.sfSymbolName ?? "folder")
                                 
                                 if !navigationViewModel.isUsingSplitView {
                                     Spacer()

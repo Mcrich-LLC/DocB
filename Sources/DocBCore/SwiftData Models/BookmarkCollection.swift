@@ -26,6 +26,8 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     public let id: UUID
     /// Display title of the bookmark collection.
     public var title: String
+    /// String of an SFSymbol treated as an icon for the collection
+    public var sfSymbolName: String
     /// Last update timestamp used for sorting and recency.
     public var lastUpdatedDate: Date
     /// Flattened bookmark DTOs contained by this collection.
@@ -34,9 +36,10 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates a collection DTO from explicit fields.
-    public init(title: String, lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
+    public init(title: String, sfSymbolName: String = "folder", lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
         self.id = UUID()
         self.title = title
+        self.sfSymbolName = sfSymbolName
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
         self.persistentModelID = nil
@@ -53,6 +56,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
         
         self.id = model.id
         self.title = title
+        self.sfSymbolName = model.sfSymbolName ?? "folder"
         self.bookmarks = bookmarks
         self.lastUpdatedDate = lastUpdatedDate
         self.persistentModelID = model.persistentModelID
@@ -63,6 +67,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
+        self.sfSymbolName = try container.decode(String.self, forKey: .sfSymbolName)
         self.lastUpdatedDate = try container.decode(Date.self, forKey: .lastUpdatedDate)
         self.bookmarks = try container.decode([BookmarkDTO].self, forKey: .bookmarks)
     }
@@ -70,6 +75,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     /// Coding keys for bookmark-collection DTO serialization.
     public enum CodingKeys: String, CodingKey {
         case title
+        case sfSymbolName
         case bookmarks
         case lastUpdatedDate
     }
@@ -90,14 +96,17 @@ public final class BookmarkCollection: Identifiable {
     public var id = UUID()
     /// Optional display title for the collection.
     public var title: String?
+    /// Optional string of an SFSymbol treated as an icon for the collection
+    public var sfSymbolName: String?
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
     /// Bookmark members belonging to the collection.
     public var bookmarks: [Bookmark]?
     
     /// Creates a new bookmark collection model.
-    public init(title: String, bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
+    public init(title: String, sfSymbolName: String = "folder", bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
         self.title = title
+        self.sfSymbolName = sfSymbolName
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
     }

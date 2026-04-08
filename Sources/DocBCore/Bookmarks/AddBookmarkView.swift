@@ -22,10 +22,8 @@ struct AddBookmarkView: View {
     @Environment(\.modelContext) private var modelContext
     /// Dismiss action for closing the add-bookmark sheet.
     @Environment(\.dismiss) private var dismiss
-    /// Controls presentation of the "Create Collection" alert.
-    @State private var isShowingCreateCollectionAlert: Bool = false
-    /// User-entered title for a new bookmark collection.
-    @State private var createCollectionTitleString = ""
+    /// Controls presentation of the "Create Collection" sheet.
+    @State private var isShowingCreateCollectionSheet: Bool = false
     /// Captures persistence or conversion failures for alert display.
     @State private var errorAlert: Error?
     
@@ -91,18 +89,10 @@ struct AddBookmarkView: View {
             }
             #endif
         })
-        .alert("Create Collection", isPresented: $isShowingCreateCollectionAlert) {
-            TextField("Collection Name", text: $createCollectionTitleString)
-            CancelButton {
-                createCollectionTitleString = ""
+        .sheet(isPresented: $isShowingCreateCollectionSheet) {
+            CreateBookmarkCollectionView { collection in
+                toggleBookmark(nil, collection: collection)
             }
-            Button("Create") {
-                Task {
-                    await createCollection()
-                }
-            }
-        } message: {
-            Text("Enter the name of your new collection.")
         }
         .alert(for: $errorAlert)
     }
@@ -122,7 +112,7 @@ struct AddBookmarkView: View {
     /// Floating action used to start creating a new collection.
     var addButton: some View {
         Button {
-            isShowingCreateCollectionAlert.toggle()
+            isShowingCreateCollectionSheet.toggle()
         } label: {
             Label {
                 Text("Add Collection")
@@ -160,26 +150,6 @@ struct AddBookmarkView: View {
         }
     }
     
-    /// Creates a new collection from the entered title, then immediately adds the current reference to it.
-    func createCollection() async {
-        guard !createCollectionTitleString.isEmpty else {
-            return
-        }
-        
-        let collection = BookmarkCollection(title: createCollectionTitleString, bookmarks: [])
-        createCollectionTitleString = ""
-        
-        do {
-            modelContext.insert(collection)
-            try modelContext.save()
-            
-            try? await Task.sleep(nanoseconds: 25)
-            toggleBookmark(nil, collection: collection)
-        } catch {
-            print(error)
-            self.errorAlert = error
-        }
-    }
 }
 
 #Preview {

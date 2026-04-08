@@ -18,10 +18,8 @@ struct BookmarkCollectionsView: View {
     
     /// SwiftData context used to create and delete collections.
     @Environment(\.modelContext) private var modelContext
-    /// Controls presentation of the create-collection alert.
-    @State private var isShowingCreateCollectionAlert = false
-    /// User-entered collection title for creation flow.
-    @State private var createCollectionTitleString = ""
+    /// Controls presentation of the create-collection sheet.
+    @State private var isShowingCreateCollectionSheet = false
     /// Captures persistence failures for alert presentation.
     @State private var errorAlert: Error?
     /// Controls presentation of the delete-confirmation alert.
@@ -72,19 +70,13 @@ struct BookmarkCollectionsView: View {
             EditButton()
             #endif
             Button {
-                isShowingCreateCollectionAlert.toggle()
+                isShowingCreateCollectionSheet.toggle()
             } label: {
                 Label("Add Collection", systemSymbol: .plus)
             }
         }
-        .alert("Create Collection", isPresented: $isShowingCreateCollectionAlert) {
-            TextField("Collection Name", text: $createCollectionTitleString)
-            CancelButton {
-                createCollectionTitleString = ""
-            }
-            Button("Create", action: createCollection)
-        } message: {
-            Text("Enter the name of your new collection.")
+        .sheet(isPresented: $isShowingCreateCollectionSheet) {
+            CreateBookmarkCollectionView()
         }
         .alert(for: $errorAlert)
         .alert("Are You Sure?", isPresented: $showDeleteCollectionAlert, presenting: currentCollection) { collection in
@@ -107,24 +99,6 @@ struct BookmarkCollectionsView: View {
             if navigationViewModel.bookmarkCollection == nil && !navigationViewModel.isUsingSplitView {
                 navigationViewModel.goBackward(updatePath: false)
             }
-        }
-    }
-    
-    /// Creates and persists a new bookmark collection from the alert input.
-    func createCollection() {
-        guard !createCollectionTitleString.isEmpty else {
-            return
-        }
-        
-        let collection = BookmarkCollection(title: createCollectionTitleString, bookmarks: [])
-        createCollectionTitleString = ""
-        
-        do {
-            modelContext.insert(collection)
-            try modelContext.save()
-        } catch {
-            print(error)
-            self.errorAlert = error
         }
     }
 }

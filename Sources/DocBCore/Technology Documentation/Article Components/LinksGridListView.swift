@@ -166,6 +166,8 @@ struct LinksGridListView: View {
                             .multilineTextAlignment(textAlignment)
                         }
                     }
+                    .disabled(reference.type == "unresolvable")
+                    .tint(reference.type == "unresolvable" ? Color.primary : nil)
                 }
             }
         default:

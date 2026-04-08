@@ -1,15 +1,6 @@
 {
-  "originHash" : "df6681785bfe68e37bae94b84aa720b19ad92b7ceac1dad6766bc8df31203395",
+  "originHash" : "d6e82d331136f705ade0ca9c81856bc269cff11969652c03e520605015fc08b0",
   "pins" : [
-    {
-      "identity" : "coretextswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/krzyzanowskim/CoreTextSwift",
-      "state" : {
-        "revision" : "833177201d6421e6322296f39fce6ff6ae52618a",
-        "version" : "0.2.0"
-      }
-    },
     {
       "identity" : "enhancedcodable",
       "kind" : "remoteSourceControl",
@@ -26,15 +17,6 @@
       "state" : {
         "revision" : "784ca3ccfc8a2cf724fbb2f06cb6ec3329424da3",
         "version" : "1.1.0"
-      }
-    },
-    {
-      "identity" : "kingfisher",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/onevcat/Kingfisher.git",
-      "state" : {
-        "revision" : "c152c1915f60c51e4afa0752656993ee5b3c63db",
-        "version" : "8.8.1"
       }
     },
     {
@@ -62,24 +44,6 @@
       "state" : {
         "revision" : "e01b3d4f861412f8dcee8d93c417d2c2b0cdfd77",
         "version" : "7.0.0"
-      }
-    },
-    {
-      "identity" : "sttextkitplus",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/krzyzanowskim/STTextKitPlus",
-      "state" : {
-        "revision" : "2ee74906f4d753458eeaa9a2f6d4538aacb86a1d",
-        "version" : "0.3.0"
-      }
-    },
-    {
-      "identity" : "sttextview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/krzyzanowskim/STTextView.git",
-      "state" : {
-        "revision" : "a3596a27e16f7460ec70d1035c16f674556fde75",
-        "version" : "2.3.7"
       }
     },
     {

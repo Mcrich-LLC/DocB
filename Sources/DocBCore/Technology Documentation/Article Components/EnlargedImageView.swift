@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 
 /// EnlargedImageSheetIdentifier represents reusable app data or behavior.
 struct EnlargedImageSheetIdentifier: Identifiable {
@@ -36,16 +36,19 @@ struct EnlargedImageView: View {
     
     var body: some View {
         VStack {
-            KFImage(identifier.url)
-                .placeholder({
+            LazyImage(url: identifier.url) { state in
+                if let image = state.image {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } else {
                     Image(systemSymbol: .photo)
                         .resizable()
                         .scaledToFit()
-                })
-                .resizable()
-                .scaledToFit()
-                .zoomable()
-                .padding(.top, isPhone ? 0 : nil)
+                }
+            }
+            .zoomable()
+            .padding(.top, isPhone ? 0 : nil)
         }
         .frame(minWidth: isPhone ? nil : 600, maxWidth: .infinity, minHeight: isPhone ? nil : 300, maxHeight: .infinity)
         .overlay(alignment: .topTrailing, content: {

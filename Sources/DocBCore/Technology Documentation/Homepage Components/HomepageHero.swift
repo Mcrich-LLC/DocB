@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 
 /// HomepageHero renders a reusable SwiftUI view.
 struct HomepageHero: View {
@@ -34,8 +34,12 @@ struct HomepageHero: View {
     var body: some View {
         ZStack {
             if let heroContentURL = fetchPhotoVideoURL() {
-                KFImage(heroContentURL)
-                    .placeholder({
+                LazyImage(url: heroContentURL) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    } else {
                         RoundedRectangle(cornerRadius: 25)
                             .fill(Color.clear)
                             .stroke(Color.primary, lineWidth: 2)
@@ -43,9 +47,8 @@ struct HomepageHero: View {
                             .overlay {
                                 ProgressView()
                             }
-                    })
-                    .resizable()
-                    .scaledToFit()
+                    }
+                }
             }
             VStack {
                 if let text = section.title {

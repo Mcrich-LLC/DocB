@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 
 /// HomepageResources renders a reusable SwiftUI view.
 struct HomepageResources: View {
@@ -33,8 +33,12 @@ struct HomepageResources: View {
     func item(_ item: HomepageParser.Resource) -> some View {
         VStack {
             if let imageId = item.image, let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: homepage.references, colorScheme: colorScheme, docCSite: nil) {
-                KFImage(imageUrl)
-                    .placeholder({
+                LazyImage(url: imageUrl) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    } else {
                         RoundedRectangle(cornerRadius: 25)
                             .fill(Color.clear)
                             .stroke(Color.primary, lineWidth: 2)
@@ -42,10 +46,9 @@ struct HomepageResources: View {
                             .overlay {
                                 ProgressView()
                             }
-                    })
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 50)
+                    }
+                }
+                .frame(maxHeight: 50)
             }
             
             Text(item.title)

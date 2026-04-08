@@ -5,7 +5,7 @@
 //  Created by Morris Richman on 2/28/26.
 //
 
-import Kingfisher
+import NukeUI
 import SwiftUI
 import SwiftData
 
@@ -276,9 +276,14 @@ private struct SuggestedTechnologyRow: View {
             }
             Spacer()
             if let image = technology.image {
-                KFImage(image)
-                    .resizable()
-                    .frame(width: 50, height: 50)
+                LazyImage(url: image) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    }
+                }
+                .frame(width: 50, height: 50)
             }
         }
     }

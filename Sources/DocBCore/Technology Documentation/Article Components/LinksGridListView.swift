@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 
 /// LinksGridListView renders a reusable SwiftUI view.
 struct LinksGridListView: View {
@@ -98,19 +98,22 @@ struct LinksGridListView: View {
                             VStack(alignment: textFrameAlignment) {
                                 if let imageId = reference.images?.first(where: { $0.type == .card || $0.type == .icon })?.identifier,
                                    let imageUrl = Constants.fetchPhotoVideoURL(for: imageId, references: references, colorScheme: colorScheme, docCSite: docCSite) {
-                                    KFImage(imageUrl)
-                                        .placeholder({
+                                    LazyImage(url: imageUrl) { state in
+                                        if let image = state.image {
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                        } else {
                                             RoundedRectangle(cornerRadius: 25)
                                                 .fill(Color.clear)
                                                 .stroke(Color.primary, lineWidth: 2)
-                                                .scaledToFit()
+                                                .aspectRatio(contentMode: .fit)
                                                 .overlay {
                                                     ProgressView()
                                                 }
-                                        })
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                                        }
+                                    }
+                                    .clipShape(RoundedRectangle(cornerRadius: 25))
                                 } else {
                                     RoundedRectangle(cornerRadius: 25)
                                         .fill(.background.secondary)

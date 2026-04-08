@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Kingfisher
+import NukeUI
 
 /// HomepageSection renders a reusable SwiftUI view.
 struct HomepageSection: View {
@@ -100,9 +100,13 @@ private struct HighlightedLinks: View {
     /// Shared image view used in the highlighted links layout.
     var image: some View {
         if let image = section.body?.image {
-            KFImage(fetchPhotoVideoURL(for: image))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+            LazyImage(url: fetchPhotoVideoURL(for: image)) { state in
+                if let image = state.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                }
+            }
         }
     }
     
@@ -262,15 +266,18 @@ private struct Cards: View {
             MacOSAgnosticLink(destination: url) {
                 VStack {
                     if let image = content.image, let imageUrl = Constants.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme, docCSite: nil) {
-                        KFImage(imageUrl)
-                            .placeholder({
+                        LazyImage(url: imageUrl) { state in
+                            if let image = state.image {
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            } else {
                                 cardImagePlaceholder
-                            })
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(
-                                UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
-                            )
+                            }
+                        }
+                        .clipShape(
+                            UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                        )
                     }
                     
                     VStack(alignment: .leading) {

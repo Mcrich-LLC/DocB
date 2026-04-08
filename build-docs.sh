@@ -3,7 +3,7 @@ set -e
 
 # Generate documentation for DocBCore package using Swift Package Manager
 # This bypasses xcodebuild and docc archive processing, simplifying CI deployment.
-swift package --package-path DocBCore \
+swift package \
     --allow-writing-to-directory ./docs \
     generate-documentation --target DocBCore \
     --disable-indexing \

@@ -21,7 +21,7 @@ analyzer_rules: # rules run by `swiftlint analyze`
 # Case-sensitive paths to include during linting. Directory paths supplied on the
 # command line will be ignored.
 included: 
-  - DocBCore
+  - Sources
   - DocB
 excluded: # case-sensitive paths to ignore during linting. Takes precedence over `included`
   - Carthage

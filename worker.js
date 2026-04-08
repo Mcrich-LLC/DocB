@@ -4,7 +4,7 @@ export default {
 
     // Redirect root to the DocC landing page
     if (url.pathname === "/" || url.pathname === "") {
-      return Response.redirect(`${url.origin}/documentation/DocBCore`, 301);
+      return Response.redirect(`${url.origin}/documentation/docbcore`, 301);
     }
 
     // Serve static assets — not_found_handling: "single-page-application" in

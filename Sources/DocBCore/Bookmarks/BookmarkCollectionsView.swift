@@ -55,6 +55,7 @@ struct BookmarkCollectionsView: View {
                                 Label("Delete", systemSymbol: .trash)
                             }
                         }
+                        .tint(Color.primary)
                     }
                 }
                 .onDelete { indexSet in

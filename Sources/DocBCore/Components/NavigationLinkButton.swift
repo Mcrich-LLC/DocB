@@ -295,14 +295,29 @@ public struct BookmarkCollectionNavigationLink<Content: View>: View {
     /// Shared navigation coordinator.
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    /// The action run instead. A navigate function is passed in to the override action. Running this will navigate to the collection as normal.
+    private var overrideAction: (_ navigate: () -> Void) -> Void = { $0() }
+    
     /// Renders the bookmark collection navigation control.
     public var body: some View {
         MacOSAgnosticButton(action: {
-            navigationViewModel.isNavigatingFromBookmarks = true
-            navigationViewModel.setBookmarkCollection(collection)
+            overrideAction {
+                navigationViewModel.isNavigatingFromBookmarks = true
+                navigationViewModel.setBookmarkCollection(collection)
+            }
         }) {
             label
         }
+    }
+    
+    /// Overrides the default action when set
+    ///
+    /// - Parameters:
+    ///    - action: The action run instead. A navigate function is passed in to the override action. Running this will navigate to the collection as normal.
+    public func overriddenAction(_ action: @escaping (_ navigate: () -> Void) -> Void) -> Self {
+        var view = self
+        view.overrideAction = action
+        return view
     }
 }
 

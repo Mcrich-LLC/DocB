@@ -18,14 +18,29 @@ struct BookmarkCollectionsView: View {
     
     /// SwiftData context used to create and delete collections.
     @Environment(\.modelContext) private var modelContext
+    #if !os(macOS)
+    /// The current edit mode of the ui.
+    @Environment(\.editMode) private var editMode
+    #endif
     /// Controls presentation of the create-collection sheet.
     @State private var isShowingCreateCollectionSheet = false
+    /// Collection currently targeted for editing.
+    @State private var collectionToEdit: BookmarkCollection?
     /// Captures persistence failures for alert presentation.
     @State private var errorAlert: Error?
     /// Controls presentation of the delete-confirmation alert.
     @State private var showDeleteCollectionAlert = false
     /// Collection currently targeted for deletion confirmation.
     @State private var currentCollection: BookmarkCollection?
+    
+    /// A platform agnostic variable describing the edit state for the UI
+    var isEditing: Bool {
+        #if os(macOS)
+        return false
+        #else
+        return editMode?.wrappedValue.isEditing ?? false
+        #endif
+    }
     
     var body: some View {
         List {
@@ -39,19 +54,41 @@ struct BookmarkCollectionsView: View {
                             HStack {
                                 Label(title, systemImage: collection.sfSymbolName ?? "folder")
                                 
-                                if !navigationViewModel.isUsingSplitView {
+                                if !navigationViewModel.isUsingSplitView && isEditing != true {
                                     Spacer()
                                     ChevronView()
                                 }
                             }
                         }
+                        #if !os(macOS)
+                        .overriddenAction { navigate in
+                            if editMode?.wrappedValue.isEditing == true {
+                                collectionToEdit = collection
+                            } else {
+                                navigate()
+                            }
+                        }
+                        #endif
                         .contextMenu {
+                            Button {
+                                collectionToEdit = collection
+                            } label: {
+                                Label("Edit", systemSymbol: .pencil)
+                            }
                             Button(role: .destructive) {
                                 currentCollection = collection
                                 showDeleteCollectionAlert = true
                             } label: {
                                 Label("Delete", systemSymbol: .trash)
                             }
+                        }
+                        .swipeActions(edge: .leading) {
+                            Button {
+                                collectionToEdit = collection
+                            } label: {
+                                Label("Edit", systemSymbol: .pencil)
+                            }
+                            .tint(.blue)
                         }
                         .tint(Color.primary)
                     }
@@ -76,7 +113,10 @@ struct BookmarkCollectionsView: View {
             }
         }
         .sheet(isPresented: $isShowingCreateCollectionSheet) {
-            CreateBookmarkCollectionView()
+            EditBookmarkCollectionView()
+        }
+        .sheet(item: $collectionToEdit) { collection in
+            EditBookmarkCollectionView(collectionToEdit: collection)
         }
         .alert(for: $errorAlert)
         .alert("Are You Sure?", isPresented: $showDeleteCollectionAlert, presenting: currentCollection) { collection in

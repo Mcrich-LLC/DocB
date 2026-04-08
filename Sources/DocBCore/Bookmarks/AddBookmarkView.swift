@@ -90,7 +90,7 @@ struct AddBookmarkView: View {
             #endif
         })
         .sheet(isPresented: $isShowingCreateCollectionSheet) {
-            CreateBookmarkCollectionView { collection in
+            EditBookmarkCollectionView { collection in
                 toggleBookmark(nil, collection: collection)
             }
         }

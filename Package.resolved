@@ -1,5 +1,5 @@
 {
-  "originHash" : "d6e82d331136f705ade0ca9c81856bc269cff11969652c03e520605015fc08b0",
+  "originHash" : "58528e4fc3100c4a89d9f922acaf70c7dea448bf1f0deefb9b672ec14419e139",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "e01b3d4f861412f8dcee8d93c417d2c2b0cdfd77",
         "version" : "7.0.0"
+      }
+    },
+    {
+      "identity" : "sfsymbols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/simonbs/SFSymbols",
+      "state" : {
+        "revision" : "119b5312f3c4a3a7febbcd5a2ef88c59a4c89bbb",
+        "version" : "1.4.0"
       }
     },
     {

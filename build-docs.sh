@@ -9,6 +9,7 @@ swift package --package-path DocBCore \
     --disable-indexing \
     --transform-for-static-hosting \
     --hosting-base-path / \
+    --experimental-skip-synthesized-symbols \
     --output-path ./docs
 
 echo "Documentation generated successfully in ./docs"

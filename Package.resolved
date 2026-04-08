@@ -1,5 +1,5 @@
 {
-  "originHash" : "572dee64501a4dc1bc301fc05985900767e9adeb5b13ed6e81a5e32914fdca32",
+  "originHash" : "df6681785bfe68e37bae94b84aa720b19ad92b7ceac1dad6766bc8df31203395",
   "pins" : [
     {
       "identity" : "coretextswift",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SFSafeSymbols/SFSafeSymbols",
       "state" : {
-        "revision" : "e2e28f4e56e1769c2ec3c61c9355fc64eb7a535a",
-        "version" : "5.3.0"
+        "revision" : "e01b3d4f861412f8dcee8d93c417d2c2b0cdfd77",
+        "version" : "7.0.0"
       }
     },
     {

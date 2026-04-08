@@ -123,7 +123,7 @@
 			mainGroup = 22F8CD5D2CB23D6C0081BB0A;
 			packageReferences = (
 				22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
-				22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "DocBCore" */,
+				22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */,
 			);
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
 			projectDirPath = "";
@@ -458,7 +458,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "DocBCore" */ = {
+		22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ./;
 		};
@@ -470,7 +470,7 @@
 			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.3.0;
+				minimumVersion = 7.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -483,7 +483,7 @@
 		};
 		22A9D6E72F85C55800524B5F /* DocBCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "DocBCore" */;
+			package = 22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */;
 			productName = DocBCore;
 		};
 /* End XCSwiftPackageProductDependency section */

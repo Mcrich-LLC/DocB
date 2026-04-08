@@ -82,6 +82,12 @@ extension Color {
     }
 }
 
+extension UIColor {
+    public convenience init?(named: String, bundle: Bundle = .main) {
+        self.init(named: named, in: bundle, compatibleWith: .current)
+    }
+}
+
 public typealias PlatformFont = UIFont
 #endif
 

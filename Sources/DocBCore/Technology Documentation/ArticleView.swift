@@ -206,6 +206,7 @@ struct ArticleView: View {
                 Color(platformColor: .systemBackground)
                 LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
                     .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
+                    .offset(y: -max(0, scrollOffset))
             }
             .ignoresSafeArea()
             .backgroundExtensionEffectIfAvailable()

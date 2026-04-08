@@ -21,8 +21,8 @@ struct AbstractView: View {
             switch content.type {
             case .text:
                 text = text + Text(content.text ?? "")
-            case .code:
-                text = text + Text(content.code ?? "")
+            case .code, .codeVoice:
+                text = text + Text(content.code ?? "").applyCodeFont()
             default: break
             }
         }

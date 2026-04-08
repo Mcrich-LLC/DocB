@@ -16,8 +16,21 @@ import SwiftUI
 extension View {
     /// Applies the app's monospaced code-style font at a platform-appropriate headline size.
     @ViewBuilder
-    func applyCodeFont() -> some View {
+    public func applyCodeFont() -> some View {
         self.modifier(CodeFontModifier())
+    }
+}
+
+extension Text {
+    public func applyCodeFont() -> Text {
+        self
+            .font(
+                .system(
+                    size: FontType.preferredFont(forTextStyle: .headline).pointSize,
+                    weight: .regular,
+                    design: .monospaced
+                )
+            )
     }
 }
 

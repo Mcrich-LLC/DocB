@@ -22,6 +22,7 @@ extension View {
 }
 
 extension Text {
+    /// Applies the app's monospaced code-style font at a platform-appropriate headline size.
     public func applyCodeFont() -> Text {
         self
             .font(

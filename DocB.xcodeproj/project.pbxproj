@@ -460,7 +460,7 @@
 /* Begin XCLocalSwiftPackageReference section */
 		22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "DocBCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = DocBCore;
+			relativePath = ./;
 		};
 /* End XCLocalSwiftPackageReference section */
 

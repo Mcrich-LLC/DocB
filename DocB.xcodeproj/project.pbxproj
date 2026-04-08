@@ -9,9 +9,11 @@
 /* Begin PBXBuildFile section */
 		22A9D6D52F85C4E300524B5F /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6D42F85C4E300524B5F /* SFSafeSymbols */; };
 		22A9D6E82F85C55800524B5F /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
+		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* DocB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DocB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -45,6 +47,7 @@
 				22A9D6AD2F85C39E00524B5F /* DocB */,
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
+				22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */,
 			);
 			sourceTree = "<group>";
 		};
@@ -126,6 +129,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

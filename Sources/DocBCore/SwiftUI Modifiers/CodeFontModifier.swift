@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-#if canImport(UIKit)
-    typealias FontType = UIFont
-#elseif canImport(AppKit)
-    typealias FontType = NSFont
-#endif
-
 extension View {
     /// Applies the app's monospaced code-style font at a platform-appropriate headline size.
     @ViewBuilder
@@ -27,7 +21,7 @@ extension Text {
         self
             .font(
                 .system(
-                    size: FontType.preferredFont(forTextStyle: .headline).pointSize,
+                    size: PlatformFont.preferredFont(forTextStyle: .headline).pointSize,
                     weight: .regular,
                     design: .monospaced
                 )
@@ -42,7 +36,7 @@ private struct CodeFontModifier: ViewModifier {
         content
             .font(
                 .system(
-                    size: FontType.preferredFont(forTextStyle: .headline).pointSize,
+                    size: PlatformFont.preferredFont(forTextStyle: .headline).pointSize,
                     weight: .regular,
                     design: .monospaced
                 )

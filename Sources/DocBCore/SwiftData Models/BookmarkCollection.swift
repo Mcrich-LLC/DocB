@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 /// BookmarkCollectionDTO encapsulates app behavior and state.
 @MainActor
@@ -28,6 +29,17 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     public var title: String
     /// String of an SFSymbol treated as an icon for the collection
     public var sfSymbolName: String
+    /// A codable structure representing a chosen color.
+    private var colorComponents: ColorComponents
+    /// The user's chosen accent color
+    public var color: Color {
+        get {
+            colorComponents.toColor()
+        }
+        set {
+            colorComponents = newValue.components()
+        }
+    }
     /// Last update timestamp used for sorting and recency.
     public var lastUpdatedDate: Date
     /// Flattened bookmark DTOs contained by this collection.
@@ -36,10 +48,11 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates a collection DTO from explicit fields.
-    public init(title: String, sfSymbolName: String = "folder", lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
+    public init(title: String, sfSymbolName: String = "folder", color: Color, lastUpdatedDate: Date = .now, bookmarks: [BookmarkDTO]) {
         self.id = UUID()
         self.title = title
         self.sfSymbolName = sfSymbolName
+        self.colorComponents = color.components()
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
         self.persistentModelID = nil
@@ -57,6 +70,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
         self.id = model.id
         self.title = title
         self.sfSymbolName = model.sfSymbolName ?? "folder"
+        self.colorComponents = model.colorComponents ?? Color.accentColor.components()
         self.bookmarks = bookmarks
         self.lastUpdatedDate = lastUpdatedDate
         self.persistentModelID = model.persistentModelID
@@ -68,6 +82,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
         self.id = UUID()
         self.title = try container.decode(String.self, forKey: .title)
         self.sfSymbolName = try container.decode(String.self, forKey: .sfSymbolName)
+        self.colorComponents = try container.decode(ColorComponents.self, forKey: .colorComponents)
         self.lastUpdatedDate = try container.decode(Date.self, forKey: .lastUpdatedDate)
         self.bookmarks = try container.decode([BookmarkDTO].self, forKey: .bookmarks)
     }
@@ -76,6 +91,7 @@ public final class BookmarkCollectionDTO: Identifiable, @preconcurrency Codable,
     public enum CodingKeys: String, CodingKey {
         case title
         case sfSymbolName
+        case colorComponents
         case bookmarks
         case lastUpdatedDate
     }
@@ -98,15 +114,28 @@ public final class BookmarkCollection: Identifiable {
     public var title: String?
     /// Optional string of an SFSymbol treated as an icon for the collection
     public var sfSymbolName: String?
+    /// Optional codable structure representing a chosen color.
+    fileprivate var colorComponents: ColorComponents?
+    /// The accent color for the collection
+    public var color: Color {
+        get {
+            colorComponents?.toColor() ?? .accentColor
+        }
+        set {
+            colorComponents = newValue.components()
+        }
+    }
+    
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
     /// Bookmark members belonging to the collection.
     public var bookmarks: [Bookmark]?
     
     /// Creates a new bookmark collection model.
-    public init(title: String, sfSymbolName: String = "folder", bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
+    public init(title: String, sfSymbolName: String = "folder", color: Color, bookmarks: [Bookmark], lastUpdatedDate: Date = .now) {
         self.title = title
         self.sfSymbolName = sfSymbolName
+        self.colorComponents = color.components()
         self.lastUpdatedDate = lastUpdatedDate
         self.bookmarks = bookmarks
     }

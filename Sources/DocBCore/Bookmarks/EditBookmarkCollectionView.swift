@@ -20,6 +20,8 @@ public struct EditBookmarkCollectionView: View {
     @State private var title: String
     /// The local state for the selected SF Symbol icon name.
     @State private var sfSymbolName: String
+    /// The local state for the selected collection accent color.
+    @State private var color: Color
     /// Holds any error that occurs during save for presentation in an alert.
     @State private var errorAlert: Error?
     
@@ -35,6 +37,7 @@ public struct EditBookmarkCollectionView: View {
         self.onCollectionSaved = onCollectionSaved
         self._title = State(initialValue: collectionToEdit?.title ?? "")
         self._sfSymbolName = State(initialValue: collectionToEdit?.sfSymbolName ?? "folder")
+        self._color = State(initialValue: collectionToEdit?.color ?? .accentColor)
     }
     
     /// The content and behavior of the view.
@@ -44,6 +47,7 @@ public struct EditBookmarkCollectionView: View {
                 Section {
                     TextField("Collection Name", text: $title)
                     SFSymbolPicker("Icon", selection: $sfSymbolName)
+                    ColorPicker("Accent Color", selection: $color, supportsOpacity: false)
                 }
             }
             .formStyle(.grouped)
@@ -82,6 +86,7 @@ public struct EditBookmarkCollectionView: View {
                 // Edit existing
                 collection.title = trimmedTitle
                 collection.sfSymbolName = sfSymbolName
+                collection.color = color
                 collection.lastUpdatedDate = .now
                 collectionToPass = collection
             } else {
@@ -89,6 +94,7 @@ public struct EditBookmarkCollectionView: View {
                 let newCollection = BookmarkCollection(
                     title: trimmedTitle,
                     sfSymbolName: sfSymbolName,
+                    color: color,
                     bookmarks: []
                 )
                 modelContext.insert(newCollection)

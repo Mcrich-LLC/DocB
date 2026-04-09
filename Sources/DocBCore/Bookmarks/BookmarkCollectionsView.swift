@@ -49,7 +49,13 @@ struct BookmarkCollectionsView: View {
                     if let title = collection.title {
                         BookmarkCollectionNavigationLink(collection: collection) {
                             HStack {
-                                Label(title, systemImage: collection.sfSymbolName ?? "folder")
+                                Label {
+                                    Text(title)
+                                        .foregroundStyle(Color.primary)
+                                } icon: {
+                                    Image(systemName: collection.sfSymbolName ?? "folder")
+                                        .foregroundStyle(collection.color)
+                                }
                                 
                                 if !navigationViewModel.isUsingSplitView && isEditing != true {
                                     Spacer()
@@ -87,7 +93,6 @@ struct BookmarkCollectionsView: View {
                             }
                             .tint(.blue)
                         }
-                        .tint(Color.primary)
                     }
                 }
                 .onDelete { indexSet in

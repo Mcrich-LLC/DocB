@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/simonbs/SFSymbols",
       "state" : {
-        "revision" : "119b5312f3c4a3a7febbcd5a2ef88c59a4c89bbb",
-        "version" : "1.4.0"
+        "revision" : "07c59068c52fb52c3a3223310a003b4ccd2a7a78",
+        "version" : "1.5.0"
       }
     },
     {

@@ -1,0 +1,36 @@
+name: Deploy DocC to Cloudflare Workers
+
+on:
+  push:
+    branches: [] # Update this to your default branch if different
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: macos-26
+    
+    environment:
+      name: production
+      url: https://DocB.mcrich23.workers.dev
+    permissions:
+      contents: read
+      deployments: write
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build DocC
+        run: bash build-docs.sh
+
+      - name: Deploy to Cloudflare Workers
+        id: cloudflare_deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          command: deploy worker.js

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-               BuildableName = "DocB.app"
-               BlueprintName = "DocB"
+               BlueprintIdentifier = "2295BBA92F8C16DD009B4E12"
+               BuildableName = "DocB Staging.app"
+               BlueprintName = "DocB Staging"
                ReferencedContainer = "container:DocB.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -51,15 +51,6 @@
             ReferencedContainer = "container:DocB.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-            BuildableName = "DocB.app"
-            BlueprintName = "DocB"
-            ReferencedContainer = "container:DocB.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-has_onboarded false"
@@ -73,16 +64,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "22F8CD652CB23D6C0081BB0A"
-            BuildableName = "DocB.app"
-            BlueprintName = "DocB"
+            BlueprintIdentifier = "2295BBA92F8C16DD009B4E12"
+            BuildableName = "DocB Staging.app"
+            BlueprintName = "DocB Staging"
             ReferencedContainer = "container:DocB.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

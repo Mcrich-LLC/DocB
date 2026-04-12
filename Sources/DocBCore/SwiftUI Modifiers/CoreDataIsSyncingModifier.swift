@@ -1,5 +1,5 @@
 //
-//  IsCoreDataSyncingModifier.swift
+//  CoreDataIsSyncingModifier.swift
 //  DocBCore
 //
 //  Created by Morris Richman on 4/12/26.

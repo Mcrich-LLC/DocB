@@ -347,39 +347,43 @@ private struct TechView: View {
         documentationViewModel.technologies.isEmpty && !docCSites.isEmpty
     }
     
+    @ViewBuilder
+    private var syncingView: some View {
+        if isCoreDataSyncing {
+            HStack {
+                Text("Syncing")
+                ProgressView()
+                #if os(macOS)
+                    .scaleEffect(0.5)
+                #endif
+                    .frame(width: 15, height: 15)
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .padding()
+            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
+            .animation(.default, value: isCoreDataSyncing)
+        }
+    }
+    
     var body: some View {
         List {
+            #if os(macOS)
+            syncingView
+            #else
+            if #unavailable(iOS 26), !isLoading {
+                syncingView
+            }
+            #endif
+            
             if docCSites.isEmpty && searchText.isEmpty {
-                Group {
-                    if isCoreDataSyncing {
-                        ContentUnavailableView {
-                            ProgressView("Syncing")
-                        }
-                    } else {
-                        ContentUnavailableView {
-                            Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
-                        }
-                    }
+                ContentUnavailableView {
+                    Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
                 .listRowSeparator(.hidden)
             } else {
-                if isCoreDataSyncing, !isLoading, #unavailable(iOS 26) {
-                    HStack {
-                        Text("Syncing")
-                        ProgressView()
-                        #if os(macOS)
-                            .scaleEffect(0.5)
-                        #endif
-                            .frame(width: 15, height: 15)
-                    }
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .padding()
-                    .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
-                    .animation(.default, value: isCoreDataSyncing)
-                }
                 if !searchText.isEmpty {
                     searchList
                 } else if searchHasResults {

@@ -14,7 +14,7 @@ private struct CoreDataIsSyncingModifier: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange).receive(on: DispatchQueue.main)) { notification in
+            .onReceive(NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange).receive(on: DispatchQueue.main)) { _ in
                 if !hasImported {
                     isSyncing = true
                 }

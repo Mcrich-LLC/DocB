@@ -344,13 +344,30 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if isCoreDataSyncing {
-                ContentUnavailableView {
-                    ProgressView("Syncing")
+            if !(docCSites.isEmpty && searchText.isEmpty) && isCoreDataSyncing {
+                HStack {
+                    Text("Syncing")
+                    ProgressView()
+                        .scaleEffect(0.5)
+                        .frame(width: 15, height: 15)
                 }
-            } else if docCSites.isEmpty && searchText.isEmpty {
-                ContentUnavailableView {
-                    Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .animation(.default, value: isCoreDataSyncing)
+                .foregroundStyle(.secondary)
+            }
+            if docCSites.isEmpty && searchText.isEmpty {
+                Group {
+                    if isCoreDataSyncing {
+                        ContentUnavailableView {
+                            ProgressView("Syncing")
+                        }
+                    } else {
+                        ContentUnavailableView {
+                            Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
+                        }
+                    }
                 }
                 .listRowSeparator(.hidden)
             } else if !searchText.isEmpty {

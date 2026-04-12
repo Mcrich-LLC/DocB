@@ -7,17 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */; };
+		2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAC2F8C16DD009B4E12 /* DocBCore */; };
+		2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
 		22A9D6D52F85C4E300524B5F /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6D42F85C4E300524B5F /* SFSafeSymbols */; };
 		22A9D6E82F85C55800524B5F /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
 		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2295BBB82F8C16DD009B4E12 /* DocB Staging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DocB Staging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2295BBB92F8C16DD009B4E12 /* DocB copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "DocB copy-Info.plist"; path = "/Users/mcrich/Xcode/Apple Documentation/DocB copy-Info.plist"; sourceTree = "<absolute>"; };
 		22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* DocB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DocB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2295BBBA2F8C16DD009B4E12 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"General Config.xcconfig",
+			);
+			target = 2295BBA92F8C16DD009B4E12 /* DocB Staging */;
+		};
 		22A9D6FD2F85D52300524B5F /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -28,10 +40,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		22A9D6AD2F85C39E00524B5F /* DocB */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (22A9D6FD2F85D52300524B5F /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = DocB; sourceTree = "<group>"; };
+		22A9D6AD2F85C39E00524B5F /* DocB */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (22A9D6FD2F85D52300524B5F /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 2295BBBA2F8C16DD009B4E12 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = DocB; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2295BBAF2F8C16DD009B4E12 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */,
+				2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		22F8CD632CB23D6C0081BB0A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -58,6 +79,7 @@
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
 				22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */,
+				2295BBB92F8C16DD009B4E12 /* DocB copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -65,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				22F8CD662CB23D6C0081BB0A /* DocB.app */,
+				2295BBB82F8C16DD009B4E12 /* DocB Staging.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,6 +95,31 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2295BBA92F8C16DD009B4E12 /* DocB Staging */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2295BBB52F8C16DD009B4E12 /* Build configuration list for PBXNativeTarget "DocB Staging" */;
+			buildPhases = (
+				2295BBAE2F8C16DD009B4E12 /* Sources */,
+				2295BBAF2F8C16DD009B4E12 /* Frameworks */,
+				2295BBB22F8C16DD009B4E12 /* Resources */,
+				2295BBB42F8C16DD009B4E12 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				22A9D6AD2F85C39E00524B5F /* DocB */,
+			);
+			name = "DocB Staging";
+			packageProductDependencies = (
+				2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */,
+				2295BBAC2F8C16DD009B4E12 /* DocBCore */,
+			);
+			productName = "Apple Documentation";
+			productReference = 2295BBB82F8C16DD009B4E12 /* DocB Staging.app */;
+			productType = "com.apple.product-type.application";
+		};
 		22F8CD652CB23D6C0081BB0A /* DocB */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 22F8CD742CB23D6E0081BB0A /* Build configuration list for PBXNativeTarget "DocB" */;
@@ -130,11 +178,20 @@
 			projectRoot = "";
 			targets = (
 				22F8CD652CB23D6C0081BB0A /* DocB */,
+				2295BBA92F8C16DD009B4E12 /* DocB Staging */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2295BBB22F8C16DD009B4E12 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		22F8CD642CB23D6C0081BB0A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -146,6 +203,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2295BBB42F8C16DD009B4E12 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Swift Lint\n\nif command -v swiftlint >/dev/null 2>&1\nthen\n    swiftlint\nelse\n    echo \"warning: `swiftlint` command not found - See https://github.com/realm/SwiftLint#installation for installation instructions.\"\nfi\n";
+		};
 		22D92D892CB648A1003E3FD1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -167,6 +242,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2295BBAE2F8C16DD009B4E12 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		22F8CD622CB23D6C0081BB0A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -177,6 +259,136 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		2295BBB62F8C16DD009B4E12 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 22A9D6AD2F85C39E00524B5F /* DocB */;
+			baseConfigurationReferenceRelativePath = "General Config.xcconfig";
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 57;
+				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
+				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DocB copy-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = DocB;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		2295BBB72F8C16DD009B4E12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 22A9D6AD2F85C39E00524B5F /* DocB */;
+			baseConfigurationReferenceRelativePath = "General Config.xcconfig";
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 57;
+				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
+				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "DocB copy-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = DocB;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = NO;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6,7";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
 		22F8CD722CB23D6E0081BB0A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 22A9D6AD2F85C39E00524B5F /* DocB */;
@@ -437,6 +649,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2295BBB52F8C16DD009B4E12 /* Build configuration list for PBXNativeTarget "DocB Staging" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2295BBB62F8C16DD009B4E12 /* Debug */,
+				2295BBB72F8C16DD009B4E12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		22F8CD612CB23D6C0081BB0A /* Build configuration list for PBXProject "DocB" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -458,6 +679,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		2295BBAD2F8C16DD009B4E12 /* XCLocalSwiftPackageReference "./" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ./;
+		};
 		22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ./;
@@ -465,6 +690,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2295BBAB2F8C16DD009B4E12 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 		22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
@@ -476,6 +709,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2295BBAB2F8C16DD009B4E12 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
+			productName = SFSafeSymbols;
+		};
+		2295BBAC2F8C16DD009B4E12 /* DocBCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2295BBAD2F8C16DD009B4E12 /* XCLocalSwiftPackageReference "./" */;
+			productName = DocBCore;
+		};
 		22A9D6D42F85C4E300524B5F /* SFSafeSymbols */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;

@@ -8,8 +8,14 @@
 import SwiftUI
 import CoreData
 
+/// A modifier that leverages several notifications to tell a bound variable if CoreData is syncing with CloudKit.
 private struct CoreDataIsSyncingModifier: ViewModifier {
+    /// Tracks if `NSPersistentCloudKitContainer.eventChangedNotification` has pushed a import ended notification.
+    ///
+    /// This is useful for when `NSPersistentStoreRemoteChange` is being tracked.
     @State private var hasImported: Bool = false
+    
+    /// The externally exposed boolean variable describing how the sync state.
     @Binding var isSyncing: Bool
     
     func body(content: Content) -> some View {
@@ -53,6 +59,7 @@ private struct CoreDataIsSyncingModifier: ViewModifier {
 }
 
 extension View {
+    /// A modifier that leverages several notifications to tell a bound variable if CoreData is syncing with CloudKit.
     public func isCoreDataSyncing(_ isSyncing: Binding<Bool>) -> some View {
         modifier(CoreDataIsSyncingModifier(isSyncing: isSyncing))
     }

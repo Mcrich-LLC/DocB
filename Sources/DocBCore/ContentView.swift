@@ -342,6 +342,11 @@ private struct TechView: View {
         }
     }
     
+    /// A UI display tag to show when the data is loading
+    private var isLoading: Bool {
+        documentationViewModel.technologies.isEmpty && !docCSites.isEmpty
+    }
+    
     var body: some View {
         List {
             if docCSites.isEmpty && searchText.isEmpty {
@@ -358,7 +363,7 @@ private struct TechView: View {
                 }
                 .listRowSeparator(.hidden)
             } else {
-                if isCoreDataSyncing {
+                if isCoreDataSyncing, !isLoading, #unavailable(iOS 26) {
                     HStack {
                         Text("Syncing")
                         ProgressView()
@@ -367,11 +372,13 @@ private struct TechView: View {
                         #endif
                             .frame(width: 15, height: 15)
                     }
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
+                    .padding()
+                    .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
                     .animation(.default, value: isCoreDataSyncing)
-                    .foregroundStyle(.secondary)
                 }
                 if !searchText.isEmpty {
                     searchList
@@ -385,7 +392,7 @@ private struct TechView: View {
         .isCoreDataSyncing($isCoreDataSyncing)
         .searchable(text: $searchText)
         .overlay(content: {
-            if documentationViewModel.technologies.isEmpty && !docCSites.isEmpty {
+            if isLoading {
                 ProgressView("Loading")
             }
         })
@@ -396,13 +403,29 @@ private struct TechView: View {
         .navigationTitle("DocB")
         #endif
         .toolbar {
-            Button(action: showAddDocumentationView) {
-                Image(systemSymbol: .plus)
+            ToolbarItemGroup(placement: .automatic) {
+                Button(action: showAddDocumentationView) {
+                    Image(systemSymbol: .plus)
+                }
+                AllBookmarkCollectionsNavigationLink {
+                    Label("Open Bookmarks", systemSymbol: .folder)
+                }
+                .labelStyle(.iconOnly)
             }
-            AllBookmarkCollectionsNavigationLink {
-                Label("Open Bookmarks", systemSymbol: .folder)
+            #if !os(macOS)
+            if #available(iOS 26, *), isCoreDataSyncing, !isLoading {
+                ToolbarItem(placement: .largeSubtitle) {
+                    HStack {
+                        Text("Syncing")
+                        ProgressView()
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding([.top, .leading], 2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .animation(.default, value: isCoreDataSyncing)
+                }
             }
-            .labelStyle(.iconOnly)
+            #endif
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
             AddTechnologySheetView()

@@ -66,10 +66,10 @@ public struct AddTechnologyView: View {
     /// Curated list of quick-add documentation sources.
     private let featuredTechnologies: [SuggestedTechnology] = [
         SuggestedTechnology(
-            title: "CubiomesKit",
-            subtitle: "Generate, inspect, and view Minecraft Java worlds.",
-            image: URL(string: "https://cubiomeskit.alidade.dev/images/CubiomesKit/Icon.png")!,
-            baseURL: URL(string: "https://cubiomeskit.alidade.dev")!
+            title: "RevenueCat",
+            subtitle: "😻 In-App Subscriptions Made Easy 😻",
+            image: nil,
+            baseURL: URL(string: "https://swiftpackageindex.com/RevenueCat/purchases-ios/main")!
         ),
         SuggestedTechnology(
             title: "Swift.org",

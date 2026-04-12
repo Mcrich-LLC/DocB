@@ -290,6 +290,9 @@ private struct TechView: View {
     /// Pending URL string used by add-source alerts/flows.
     @State var addDocumentationUrl: String = ""
     
+    /// A boolean that describes if CoreData is currently syncing with CloudKit
+    @State private var isCoreDataSyncing = false
+    
     /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO, group: DocCIndex.InterfaceLanguage) -> Bool {
         guard let frameworkSection = group.frameworkSection(for: interfaceLanguage, site: site) else {
@@ -341,7 +344,11 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if docCSites.isEmpty && searchText.isEmpty {
+            if isCoreDataSyncing {
+                ContentUnavailableView {
+                    ProgressView("Syncing")
+                }
+            } else if docCSites.isEmpty && searchText.isEmpty {
                 ContentUnavailableView {
                     Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
@@ -354,6 +361,7 @@ private struct TechView: View {
                 ContentUnavailableView.search(text: searchText)
             }
         }
+        .isCoreDataSyncing($isCoreDataSyncing)
         .searchable(text: $searchText)
         .overlay(content: {
             if documentationViewModel.technologies.isEmpty && !docCSites.isEmpty {

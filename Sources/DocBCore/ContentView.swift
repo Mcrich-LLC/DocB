@@ -344,19 +344,6 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            if !(docCSites.isEmpty && searchText.isEmpty) && isCoreDataSyncing {
-                HStack {
-                    Text("Syncing")
-                    ProgressView()
-                        .scaleEffect(0.5)
-                        .frame(width: 15, height: 15)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .animation(.default, value: isCoreDataSyncing)
-                .foregroundStyle(.secondary)
-            }
             if docCSites.isEmpty && searchText.isEmpty {
                 Group {
                     if isCoreDataSyncing {
@@ -370,12 +357,29 @@ private struct TechView: View {
                     }
                 }
                 .listRowSeparator(.hidden)
-            } else if !searchText.isEmpty {
-                searchList
-            } else if searchHasResults {
-                technologiesList
             } else {
-                ContentUnavailableView.search(text: searchText)
+                if isCoreDataSyncing {
+                    HStack {
+                        Text("Syncing")
+                        ProgressView()
+                        #if os(macOS)
+                            .scaleEffect(0.5)
+                        #endif
+                            .frame(width: 15, height: 15)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .animation(.default, value: isCoreDataSyncing)
+                    .foregroundStyle(.secondary)
+                }
+                if !searchText.isEmpty {
+                    searchList
+                } else if searchHasResults {
+                    technologiesList
+                } else {
+                    ContentUnavailableView.search(text: searchText)
+                }
             }
         }
         .isCoreDataSyncing($isCoreDataSyncing)

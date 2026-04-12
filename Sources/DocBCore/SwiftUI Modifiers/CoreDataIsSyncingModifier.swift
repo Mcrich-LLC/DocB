@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 private struct CoreDataIsSyncingModifier: ViewModifier {
     @State private var hasImported: Bool = false

@@ -290,6 +290,9 @@ private struct TechView: View {
     /// Pending URL string used by add-source alerts/flows.
     @State var addDocumentationUrl: String = ""
     
+    /// A boolean that describes if CoreData is currently syncing with CloudKit
+    @State private var isCoreDataSyncing = false
+    
     /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSiteDTO, group: DocCIndex.InterfaceLanguage) -> Bool {
         guard let frameworkSection = group.frameworkSection(for: interfaceLanguage, site: site) else {
@@ -339,24 +342,61 @@ private struct TechView: View {
         }
     }
     
+    /// A UI display tag to show when the data is loading
+    private var isLoading: Bool {
+        documentationViewModel.technologies.isEmpty && !docCSites.isEmpty
+    }
+    
+    @ViewBuilder
+    private var syncingView: some View {
+        if isCoreDataSyncing {
+            HStack {
+                Text("Syncing")
+                ProgressView()
+                #if os(macOS)
+                    .scaleEffect(0.5)
+                #endif
+                    .frame(width: 15, height: 15)
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .padding()
+            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
+            .animation(.default, value: isCoreDataSyncing)
+        }
+    }
+    
     var body: some View {
         List {
+            #if os(macOS)
+            syncingView
+            #else
+            if #unavailable(iOS 26), !isLoading {
+                syncingView
+            }
+            #endif
+            
             if docCSites.isEmpty && searchText.isEmpty {
                 ContentUnavailableView {
                     Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
                 .listRowSeparator(.hidden)
-            } else if !searchText.isEmpty {
-                searchList
-            } else if searchHasResults {
-                technologiesList
             } else {
-                ContentUnavailableView.search(text: searchText)
+                if !searchText.isEmpty {
+                    searchList
+                } else if searchHasResults {
+                    technologiesList
+                } else {
+                    ContentUnavailableView.search(text: searchText)
+                }
             }
         }
+        .isCoreDataSyncing($isCoreDataSyncing)
         .searchable(text: $searchText)
         .overlay(content: {
-            if documentationViewModel.technologies.isEmpty && !docCSites.isEmpty {
+            if isLoading {
                 ProgressView("Loading")
             }
         })
@@ -367,13 +407,29 @@ private struct TechView: View {
         .navigationTitle("DocB")
         #endif
         .toolbar {
-            Button(action: showAddDocumentationView) {
-                Image(systemSymbol: .plus)
+            ToolbarItemGroup(placement: .automatic) {
+                Button(action: showAddDocumentationView) {
+                    Image(systemSymbol: .plus)
+                }
+                AllBookmarkCollectionsNavigationLink {
+                    Label("Open Bookmarks", systemSymbol: .folder)
+                }
+                .labelStyle(.iconOnly)
             }
-            AllBookmarkCollectionsNavigationLink {
-                Label("Open Bookmarks", systemSymbol: .folder)
+            #if !os(macOS)
+            if #available(iOS 26, *), isCoreDataSyncing, !isLoading {
+                ToolbarItem(placement: .largeSubtitle) {
+                    HStack {
+                        Text("Syncing")
+                        ProgressView()
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding([.top, .leading], 2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .animation(.default, value: isCoreDataSyncing)
+                }
             }
-            .labelStyle(.iconOnly)
+            #endif
         }
         .sheet(isPresented: $showAddDocumentationAlert, content: {
             AddTechnologySheetView()

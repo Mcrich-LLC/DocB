@@ -43,7 +43,7 @@ struct ArticleView: View {
     
     /// The general accent color
     var accentColor: Color? {
-        article?.metadata.role.accentColor ?? article?.metadata.color?.standardColorIdentifier.swiftUIColor
+        article?.metadata.color?.standardColorIdentifier.swiftUIColor ?? article?.metadata.role.accentColor
     }
     
     /// Gradient colors resolved from article metadata role/color.

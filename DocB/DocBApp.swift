@@ -55,6 +55,7 @@ struct DocBApp: App {
         #if os(macOS)
         Window("Add Source", id: WindowTypes.addSites) {
             AddTechnologyView()
+                .frame(minWidth: 400, minHeight: 300)
         }
         .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)

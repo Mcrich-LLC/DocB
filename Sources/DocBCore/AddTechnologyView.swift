@@ -110,7 +110,7 @@ public struct AddTechnologyView: View {
                         toggleSuggestedTechnology(technology)
                     } label: {
                         HStack {
-                            Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkCircleFill : .circle)
+                            Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkSquareFill : .square)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 15, height: 15)

@@ -178,7 +178,7 @@ struct TechnologyRootView: View {
             }
         })
         .onDisappear {
-            if navigationViewModel.shouldRemoveTechnologyFromPath(manager.frameworkSection) && navigationViewModel.reference == nil && !navigationViewModel.isUsingSplitView {
+            if !navigationViewModel.isUsingSplitView && navigationViewModel.shouldRemoveTechnologyFromPath(manager.frameworkSection) && navigationViewModel.reference == nil {
                 navigationViewModel.goBackward(updatePath: false)
             }
         }

@@ -370,7 +370,7 @@ private struct TechView: View {
     
     var body: some View {
         List {
-            #if os(macOS)
+            #if os(macOS) || os(visionOS)
             syncingView
             #else
             if #unavailable(iOS 26), !isLoading {
@@ -416,7 +416,7 @@ private struct TechView: View {
                 }
                 .labelStyle(.iconOnly)
             }
-            #if !os(macOS)
+            #if !(os(macOS) || os(visionOS))
             if #available(iOS 26, *), isCoreDataSyncing, !isLoading {
                 ToolbarItem(placement: .largeSubtitle) {
                     HStack {

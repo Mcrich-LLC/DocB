@@ -709,6 +709,6 @@ private struct ListItemLabel: View {
                 ChevronView()
             }
         }
-        .contentShape(Rectangle())
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

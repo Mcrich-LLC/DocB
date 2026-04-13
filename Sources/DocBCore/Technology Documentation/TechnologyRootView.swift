@@ -316,6 +316,7 @@ private struct FrameworkListItem: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         } else {
             DefaultListItem(reference: reference, title: title)

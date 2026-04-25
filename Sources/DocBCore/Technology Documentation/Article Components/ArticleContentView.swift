@@ -519,8 +519,10 @@ struct ArticleContentView: View {
                 }
             }
             .onGeometryChange(for: CGFloat.self) { proxy in
-                proxy.size.width
+                proxy.size.width.rounded(.toNearestOrAwayFromZero)
             } action: { newValue in
+                guard viewWidth != newValue else { return }
+                
                 viewWidth = newValue
             }
         }
@@ -572,14 +574,21 @@ struct ArticleContentView: View {
         var body: some View {
             // Ordered stream of rendered inline segments (text blocks, images, video).
             var views: [InlineContent] = []
+            var nextInlineID = 0
             
             // Text accumulator that coalesces adjacent textual inlines into a single Text view.
             var text: AttributedString = manager.specialStyleString("", type: .text)
             
+            func nextID() -> Int {
+                defer { nextInlineID += 1 }
+                
+                return nextInlineID
+            }
+            
             func appendText() {
                 guard text != AttributedString("") else { return }
                 
-                views.append(.text(text))
+                views.append(.text(text, id: nextID()))
                 text = manager.specialStyleString("", type: .text)
             }
             
@@ -672,13 +681,13 @@ struct ArticleContentView: View {
                         appendText()
                         
                         if let identifier = inline.identifier {
-                            views.append(.image(identifier: identifier, abstract: inline.metadata?.abstract ?? []))
+                            views.append(.image(id: nextID(), identifier: identifier, abstract: inline.metadata?.abstract ?? []))
                         }
                     case .video:
                         appendText()
                         
                         if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
-                            views.append(.video(url))
+                            views.append(.video(url, id: nextID()))
                         }
                     default: break
                     }
@@ -749,7 +758,7 @@ struct ArticleContentView: View {
     /// Lightweight wrapper for inline-rendered child segments used in ordered composition.
     fileprivate struct InlineContent: Identifiable {
         /// Stable identifier for ordered inline view composition.
-        let id = UUID()
+        let id: Int
         
         /// Concrete inline segment payload.
         let kind: Kind
@@ -763,25 +772,28 @@ struct ArticleContentView: View {
         
         /// Creates a text segment.
         ///
+        /// - Parameter id: Stable identifier for this render pass.
         /// - Parameter text: Attributed text to render.
-        static func text(_ text: AttributedString) -> Self {
-            .init(kind: .text(text))
+        static func text(_ text: AttributedString, id: Int) -> Self {
+            .init(id: id, kind: .text(text))
         }
         
         /// Creates an image segment.
         ///
         /// - Parameters:
+        ///   - id: Stable identifier for this render pass.
         ///   - identifier: Reference identifier for the image.
         ///   - abstract: Optional caption content.
-        static func image(identifier: String, abstract: [ContentStruct]) -> Self {
-            .init(kind: .image(identifier: identifier, abstract: abstract))
+        static func image(id: Int, identifier: String, abstract: [ContentStruct]) -> Self {
+            .init(id: id, kind: .image(identifier: identifier, abstract: abstract))
         }
         
         /// Creates a video segment.
         ///
         /// - Parameter url: Media URL for the video player.
-        static func video(_ url: URL) -> Self {
-            .init(kind: .video(url))
+        /// - Parameter id: Stable identifier for this render pass.
+        static func video(_ url: URL, id: Int) -> Self {
+            .init(id: id, kind: .video(url))
         }
     }
 }

@@ -69,14 +69,20 @@ struct TechnologyRootView: View {
         documentationViewModel.frameworks[manager.frameworkSection.destination.identifier]
     }
     
-    /// Topic sections filtered to only those containing visible references.
-    var topicSections: [Framework.TopicSection] {
-        (framework?.topicSections ?? []).filter { section in
-            section.identifiers.contains { identifier in
-                guard let reference = framework?.references[identifier] else { return false }
+    /// Topic sections filtered to only rows that should be visible.
+    private var topicSections: [VisibleFrameworkTopicSection] {
+        (framework?.topicSections ?? []).compactMap { section in
+            let rows = section.identifiers.compactMap { identifier -> FrameworkReferenceRow? in
+                guard let reference = framework?.references[identifier], manager.isReferenceShown(reference), let title = reference.title else {
+                    return nil
+                }
                 
-                return manager.isReferenceShown(reference)
+                return FrameworkReferenceRow(id: identifier, reference: manager.getReference(from: reference), title: title)
             }
+            
+            guard !rows.isEmpty else { return nil }
+            
+            return VisibleFrameworkTopicSection(id: section.id, title: section.title, rows: rows)
         }
     }
     
@@ -166,7 +172,7 @@ struct TechnologyRootView: View {
         /// Framework section metadata for root list item/title.
         let frameworkSection: AppleTechnologies.FrameworkSection
         /// Topic sections already filtered for display.
-        let topicSections: [Framework.TopicSection]
+        let topicSections: [VisibleFrameworkTopicSection]
         
         /// Renders the framework + topics list.
         var body: some View {
@@ -257,6 +263,26 @@ private struct TechnologyFilterMenu: View {
     }
 }
 
+/// Precomputed visible topic section used by root and disclosure lists.
+private struct VisibleFrameworkTopicSection: Identifiable {
+    /// Stable section identifier from the decoded framework topic section.
+    let id: UUID
+    /// Optional section title.
+    let title: String?
+    /// Rows visible in this section.
+    let rows: [FrameworkReferenceRow]
+}
+
+/// Precomputed framework reference row.
+private struct FrameworkReferenceRow: Identifiable {
+    /// Stable row identifier.
+    let id: String
+    /// Navigation reference for the row.
+    let reference: Reference
+    /// Display title.
+    let title: String
+}
+
 /// Stable list shell for root framework rows.
 private struct FrameworkListContent: View {
     /// Framework payload currently being rendered.
@@ -264,7 +290,7 @@ private struct FrameworkListContent: View {
     /// Framework section metadata for root list item/title.
     let frameworkSection: AppleTechnologies.FrameworkSection
     /// Topic sections already filtered for display.
-    let topicSections: [Framework.TopicSection]
+    let topicSections: [VisibleFrameworkTopicSection]
     
     var body: some View {
         List {
@@ -276,7 +302,7 @@ private struct FrameworkListContent: View {
             }
             
             ForEach(topicSections) { section in
-                FrameworkTopicSectionView(section: section, framework: framework)
+                FrameworkTopicSectionView(section: section)
             }
             
             Section {} footer: {
@@ -292,28 +318,25 @@ private struct FrameworkListContent: View {
     }
 }
 
-/// Renders one root framework topic section.
+/// Renders one framework topic section from precomputed visible rows.
 private struct FrameworkTopicSectionView: View {
-    /// Source topic section.
-    let section: Framework.TopicSection
-    /// Parent framework payload.
-    let framework: Framework
-    
-    @Environment(TechnologyRootManager.self) private var manager
+    /// Source topic section with visible rows.
+    let section: VisibleFrameworkTopicSection
+    /// Whether the section header should use secondary styling.
+    var usesSecondaryHeader = false
     
     var body: some View {
         Section {
-            ForEach(section.identifiersWithIDs) { identifier in
-                if let reference = framework.references[identifier.identifier], manager.isReferenceShown(reference), let title = reference.title {
-                    FrameworkListItem(reference: manager.getReference(from: reference), title: title)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .id(identifier.identifier)
-                }
+            ForEach(section.rows) { row in
+                FrameworkListItem(reference: row.reference, title: row.title)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .id(row.id)
             }
         } header: {
             if let title = section.title {
                 Text(title)
+                    .foregroundStyle(usesSecondaryHeader ? .secondary : .primary)
             }
         }
         .headerProminence(.increased)
@@ -466,8 +489,9 @@ private struct FrameworkDisclosureGroup: View {
     let reference: Reference
     
     @Environment(\.tagFilters) var tagFilters
-    @State var shownReferences: [String : Bool] = [:]
-    @State var isLoading = false
+    @State private var shownReferences: [String : Bool] = [:]
+    @State private var isLoading = false
+    @State private var isExpanded = false
     
     /// Cached framework payload for this nested reference identifier.
     var framework: Framework? {
@@ -475,62 +499,39 @@ private struct FrameworkDisclosureGroup: View {
     }
     
     /// Topic sections filtered to references visible under the active tags.
-    var topicSections: [Framework.TopicSection] {
-        (framework?.topicSections ?? []).filter { section in
-            section.identifiers.contains { identifier in
-                guard let reference = framework?.references[identifier] else { return false }
+    private var topicSections: [VisibleFrameworkTopicSection] {
+        (framework?.topicSections ?? []).compactMap { section in
+            let rows = section.identifiers.compactMap { identifier -> FrameworkReferenceRow? in
+                guard let subreference = framework?.references[identifier], let subtitle = subreference.title, isReferenceShown(subreference) else {
+                    return nil
+                }
                 
-                return isReferenceShown(reference)
+                return FrameworkReferenceRow(id: identifier, reference: getReference(from: subreference), title: subtitle)
             }
+            
+            guard !rows.isEmpty else { return nil }
+            
+            return VisibleFrameworkTopicSection(id: section.id, title: section.title, rows: rows)
         }
     }
     
-    /// Section renderer that expands topic identifiers into visible framework list rows.
-    struct TopicSectionIdentifierWithID: View {
-        /// Source topic section.
-        let section: Framework.TopicSection
-        /// Parent framework payload.
-        let framework: Framework
-        /// Reference whose site context should be propagated to children.
-        let reference: Reference
-        /// Visibility predicate for child references.
-        let isReferenceShown: (Reference) -> Bool
+    /// Returns a copy of `reference` with inherited DocC site context.
+    func getReference(from reference: Reference) -> Reference {
+        var reference = reference
+        reference.docCSite = self.reference.docCSite
         
-        /// Returns a copy of `reference` with inherited DocC site context.
-        func getReference(from reference: Reference) -> Reference {
-            var reference = reference
-            reference.docCSite = self.reference.docCSite
-            
-            return reference
-        }
-        
-        /// Renders topic-section rows for visible child references.
-        var body: some View {
-            Section {
-                ForEach(section.identifiersWithIDs) { subidentifier in
-                    if let subreference = framework.references[subidentifier.identifier], let subtitle = subreference.title, isReferenceShown(subreference) {
-                        FrameworkListItem(reference: getReference(from: subreference), title: subtitle)
-//                            .hideDisclosureGroups()
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                    }
-                }
-            } header: {
-                if let title = section.title {
-                    Text(title)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
+        return reference
     }
     
     var body: some View {
-        DisclosureGroup {
+        DisclosureGroup(isExpanded: $isExpanded) {
             Group {
-                if let framework {
+                if let framework, isExpanded {
                     ForEach(topicSections) { section in
-                        TopicSectionIdentifierWithID(section: section, framework: framework, reference: reference, isReferenceShown: isReferenceShown)
+                        FrameworkTopicSectionView(section: section, usesSecondaryHeader: true)
                     }
+                } else if isExpanded {
+                    ProgressView("Loading")
                 }
             }
             .opacity(isLoading ? 0 : 1)
@@ -548,15 +549,17 @@ private struct FrameworkDisclosureGroup: View {
                         .padding(.leading, -10)
                 }
         }
-        .onAppear {
+        .onChange(of: isExpanded, initial: false) { _, isExpanded in
+            guard isExpanded else { return }
+            
             Task {
-                if framework == nil {
-                    await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
-                }
+                await loadFrameworkIfNeeded()
                 await getShownReferences()
             }
         }
         .onChange(of: tagFilters) {
+            guard isExpanded else { return }
+            
             Task {
                 await getShownReferences()
             }
@@ -575,6 +578,10 @@ private struct FrameworkDisclosureGroup: View {
     /// Recomputes deep-filter visibility for references in this disclosure group.
     @MainActor
     func getShownReferences() async {
+        guard isExpanded else {
+            return
+        }
+        
         guard !tagFilters.isEmpty else {
             shownReferences.removeAll()
             return
@@ -589,6 +596,17 @@ private struct FrameworkDisclosureGroup: View {
             }
         }
         
+        isLoading = false
+    }
+    
+    /// Loads the nested framework only once the disclosure content is needed.
+    private func loadFrameworkIfNeeded() async {
+        guard framework == nil else {
+            return
+        }
+        
+        isLoading = true
+        await documentationViewModel.fetchFramework(for: identifier, site: reference.docCSite)
         isLoading = false
     }
 }

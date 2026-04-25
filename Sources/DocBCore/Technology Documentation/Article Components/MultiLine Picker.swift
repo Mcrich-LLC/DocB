@@ -53,12 +53,14 @@ struct MultilinePicker<Cell, Data>: View where Cell: View, Data: RandomAccessCol
     let backgroundColor: Color = Color(platformColor: .secondarySystemFill)
 
     var body: some View {
+        let items = Array(data.enumerated())
+        let selectionIndex = items.first { _, item in
+            item == selection
+        }?.offset
+        
         HStack(spacing: 0) {
-            ForEach(data) { item in
-                let index = data.firstIndex(of: item) as? Int
-                let selectionIndex = data.firstIndex(of: selection) as? Int
-                
-                if let index, let selectionIndex, (index < selectionIndex || index > selectionIndex+1), data.first != item {
+            ForEach(items, id: \.element.id) { index, item in
+                if let selectionIndex, (index < selectionIndex || index > selectionIndex + 1), data.first != item {
                     Divider()
                 }
                 

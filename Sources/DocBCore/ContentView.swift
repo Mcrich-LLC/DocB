@@ -764,6 +764,8 @@ private struct AppleTechView: View {
     /// Main Apple technologies listing body, including discover and framework groups.
     @ViewBuilder
     var internalBody: some View {
+        let visibleGroups = visibleTechnologyGroups
+        
         if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
             Section("Apple Documentation") {
                 HomepageNavigationLinkButton {
@@ -791,49 +793,57 @@ private struct AppleTechView: View {
             }
         }
         
-        if let groups = technology.groups {
-            
-            let filtered = groups.flatMap { $0.technologies.filter(isVisibleForSearch) }
-            
-            if !filtered.isEmpty {
-                ForEach(groups) { group in
-                    
-                    let filtered = group.technologies.filter(isVisibleForSearch)
-                    
-                    if !filtered.isEmpty {
-                        Section(group.name) {
-                            
-                            ForEach(filtered) { framework in
-                                if framework.destination.isActive {
-                                    Group {
-                                        if framework.destination.identifier.lowercased().contains("/documentation") {
-                                            TechnologyNavigationLinkButton(technology: framework) {
-                                                ListItemLabel(framework: framework, references: technology.references)
-                                            }
-                                        } else if let url = URL(string: framework.destination.identifier) {
-                                            MacOSAgnosticLink(destination: url) {
-                                                ListItemLabel(framework: framework, references: technology.references)
-                                            }
-                                        }
+        if !visibleGroups.isEmpty {
+            ForEach(visibleGroups) { group in
+                Section(group.name) {
+                    ForEach(group.frameworks) { framework in
+                        if framework.destination.isActive {
+                            Group {
+                                if framework.destination.identifier.lowercased().contains("/documentation") {
+                                    TechnologyNavigationLinkButton(technology: framework) {
+                                        ListItemLabel(framework: framework, references: technology.references)
                                     }
-                                    .foregroundStyle(Color.primary)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
+                                } else if let url = URL(string: framework.destination.identifier) {
+                                    MacOSAgnosticLink(destination: url) {
+                                        ListItemLabel(framework: framework, references: technology.references)
+                                    }
                                 }
                             }
+                            .foregroundStyle(Color.primary)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                         }
                     }
                 }
-                Section {} footer: {
-                    if let legalNotices = technology.legalNotices {
-                        LegalNoticesView(legalNotices: legalNotices)
-                            .padding(.bottom)
-                    }
+            }
+            Section {} footer: {
+                if let legalNotices = technology.legalNotices {
+                    LegalNoticesView(legalNotices: legalNotices)
+                        .padding(.bottom)
                 }
             }
-            
         }
     }
+    
+    /// Technology groups filtered once for the current search state.
+    private var visibleTechnologyGroups: [VisibleAppleTechnologyGroup] {
+        (technology.groups ?? []).compactMap { group in
+            let frameworks = group.technologies.filter(isVisibleForSearch)
+            guard !frameworks.isEmpty else { return nil }
+            
+            return VisibleAppleTechnologyGroup(id: group.id, name: group.name, frameworks: frameworks)
+        }
+    }
+}
+
+/// Filtered Apple technology group used by the sidebar list.
+private struct VisibleAppleTechnologyGroup: Identifiable {
+    /// Stable group identifier.
+    let id: UUID
+    /// Group display name.
+    let name: String
+    /// Framework rows visible for the current search text.
+    let frameworks: [AppleTechnologies.FrameworkSection]
 }
 
 /// Standard list row label showing title, icon, and optional selection affordances.

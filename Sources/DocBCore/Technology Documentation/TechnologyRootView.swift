@@ -96,7 +96,7 @@ struct TechnologyRootView: View {
         VStack {
             if let framework {
                 ScrollViewReader { scrollProxy in
-                    FrameworkView(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
+                    FrameworkRootContent(framework: framework, frameworkSection: manager.frameworkSection, topicSections: topicSections)
                         .onAppear {
                             guard let reference = convertOutsideReferenceToIn() else { return }
                             scrollProxy.scrollTo(reference.identifier, anchor: .center)
@@ -108,34 +108,7 @@ struct TechnologyRootView: View {
                 .listRowSpacing(navigationViewModel.isUsingSplitView ? nil : 0)
                 #endif
                 .toolbar {
-                    ToolbarItemGroup(placement: .primaryAction) {
-                        if self.manager.frameworkSection.docCSite == nil {
-                            Menu {
-                                ForEach(TagFilters.allCases, id: \.self) { filter in
-                                    Button {
-                                        if manager.activeFilters.contains(filter) {
-                                            manager.activeFilters.remove(filter)
-                                        } else {
-                                            manager.activeFilters.insert(filter)
-                                        }
-                                    } label: {
-                                        if manager.activeFilters.contains(filter) {
-                                            Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
-                                        } else {
-                                            Text(filter.rawValue.capitalized)
-                                        }
-                                    }
-                                }
-                            } label: {
-                                Label("Filter", systemSymbol: .line3HorizontalDecrease)
-                                    .labelStyle(.iconOnly)
-                            }
-                        }
-                        
-                        if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
-                            LanguagePicker(variants: variants)
-                        }
-                    }
+                    TechnologyRootToolbar(framework: framework, frameworkSection: manager.frameworkSection)
                 }
             } else {
                 ProgressView("Loading")
@@ -187,57 +160,20 @@ struct TechnologyRootView: View {
     }
     
     /// Inner framework list renderer used once a framework payload is available.
-    private struct FrameworkView: View {
+    private struct FrameworkRootContent: View {
         /// Framework payload currently being rendered.
         let framework: Framework
         /// Framework section metadata for root list item/title.
         let frameworkSection: AppleTechnologies.FrameworkSection
         /// Topic sections already filtered for display.
         let topicSections: [Framework.TopicSection]
-        @Environment(TechnologyRootManager.self) private var manager
-        @Environment(DocumentationViewModel.self) var documentationViewModel
         
         /// Renders the framework + topics list.
         var body: some View {
             if framework.topicSections?.isEmpty == true {
                 Text("No documentation available for \(framework.metadata.title)")
             } else {
-                List {
-                    Section {
-                        FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .id(frameworkSection.frameworkReference.identifier)
-                    }
-                    
-                    ForEach(topicSections) { section in
-                        Section {
-                            ForEach(section.identifiersWithIDs) { identifier in
-                                if let reference = framework.references[identifier.identifier], manager.isReferenceShown(reference), let title = reference.title {
-                                    FrameworkListItem(reference: manager.getReference(from: reference), title: title)
-                                        .listRowBackground(Color.clear)
-                                        .listRowSeparator(.hidden)
-                                        .id(identifier.identifier)
-                                }
-                            }
-                        } header: {
-                            if let title = section.title {
-                                Text(title)
-                            }
-                        }
-                        .headerProminence(.increased)
-                    }
-                    
-                    Section {} footer: {
-                        if let legalNotices = framework.legalNotices {
-                            LegalNoticesView(legalNotices: legalNotices)
-                                .padding(.bottom)
-                        }
-                    }
-                }
-                .listStyle(.inset)
-                .scrollContentBackground(.hidden)
-                .background(Color(platformColor: .systemBackground))
+                FrameworkListContent(framework: framework, frameworkSection: frameworkSection, topicSections: topicSections)
             }
         }
     }
@@ -267,6 +203,120 @@ struct TechnologyRootView: View {
         }
         
         isLoading = false
+    }
+}
+
+/// Toolbar controls for root technology screens.
+private struct TechnologyRootToolbar: ToolbarContent {
+    /// Framework payload currently being rendered.
+    let framework: Framework
+    /// Framework section metadata for filtering behavior.
+    let frameworkSection: AppleTechnologies.FrameworkSection
+    
+    @Environment(TechnologyRootManager.self) private var manager
+    @Environment(NavigationViewModel.self) private var navigationViewModel
+    
+    var body: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            if frameworkSection.docCSite == nil {
+                TechnologyFilterMenu()
+            }
+            
+            if let variants = framework.variants, !navigationViewModel.isUsingSplitView {
+                LanguagePicker(variants: variants)
+            }
+        }
+    }
+}
+
+/// Filter menu for technology root topic lists.
+private struct TechnologyFilterMenu: View {
+    @Environment(TechnologyRootManager.self) private var manager
+    
+    var body: some View {
+        Menu {
+            ForEach(TagFilters.allCases, id: \.self) { filter in
+                Button {
+                    if manager.activeFilters.contains(filter) {
+                        manager.activeFilters.remove(filter)
+                    } else {
+                        manager.activeFilters.insert(filter)
+                    }
+                } label: {
+                    if manager.activeFilters.contains(filter) {
+                        Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
+                    } else {
+                        Text(filter.rawValue.capitalized)
+                    }
+                }
+            }
+        } label: {
+            Label("Filter", systemSymbol: .line3HorizontalDecrease)
+                .labelStyle(.iconOnly)
+        }
+    }
+}
+
+/// Stable list shell for root framework rows.
+private struct FrameworkListContent: View {
+    /// Framework payload currently being rendered.
+    let framework: Framework
+    /// Framework section metadata for root list item/title.
+    let frameworkSection: AppleTechnologies.FrameworkSection
+    /// Topic sections already filtered for display.
+    let topicSections: [Framework.TopicSection]
+    
+    var body: some View {
+        List {
+            Section {
+                FrameworkListItem(reference: frameworkSection.frameworkReference, title: frameworkSection.title)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .id(frameworkSection.frameworkReference.identifier)
+            }
+            
+            ForEach(topicSections) { section in
+                FrameworkTopicSectionView(section: section, framework: framework)
+            }
+            
+            Section {} footer: {
+                if let legalNotices = framework.legalNotices {
+                    LegalNoticesView(legalNotices: legalNotices)
+                        .padding(.bottom)
+                }
+            }
+        }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(Color(platformColor: .systemBackground))
+    }
+}
+
+/// Renders one root framework topic section.
+private struct FrameworkTopicSectionView: View {
+    /// Source topic section.
+    let section: Framework.TopicSection
+    /// Parent framework payload.
+    let framework: Framework
+    
+    @Environment(TechnologyRootManager.self) private var manager
+    
+    var body: some View {
+        Section {
+            ForEach(section.identifiersWithIDs) { identifier in
+                if let reference = framework.references[identifier.identifier], manager.isReferenceShown(reference), let title = reference.title {
+                    FrameworkListItem(reference: manager.getReference(from: reference), title: title)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .id(identifier.identifier)
+                }
+            }
+        } header: {
+            if let title = section.title {
+                Text(title)
+            }
+        }
+        .headerProminence(.increased)
     }
 }
 

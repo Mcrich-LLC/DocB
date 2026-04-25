@@ -1,0 +1,15 @@
+schemaVersion: 1
+enabledWorkflows:
+  - simulator
+  - xcode-ide
+  - project-discovery
+  - macos
+  - debugging
+  - swift-package
+debug: false
+sentryDisabled: true
+sessionDefaults:
+  projectPath: DocB.xcodeproj
+  scheme: DocB
+  simulatorId: 69DC5FCF-B1A6-456B-81F0-FD5EB267318E
+  simulatorName: iPhone 17 Pro

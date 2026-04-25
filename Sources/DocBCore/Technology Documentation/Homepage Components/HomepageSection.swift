@@ -42,15 +42,8 @@ private struct HighlightedLinks: View {
     let homepage: HomepageParser
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.docCSite) var docCSite
-    /// Runtime measured card frame used to switch between horizontal and vertical layouts.
-    @State var cardFrame: CGSize?
-    
     /// Whether highlighted content should stack vertically based on available width.
-    var isVertical: Bool {
-        guard let cardFrame else { return false }
-        
-        return cardFrame.width < 800
-    }
+    @State private var isVertical = false
     
     var body: some View {
         if let highlightedLinks = section.body?.highlightedLinks {
@@ -84,10 +77,12 @@ private struct HighlightedLinks: View {
                 .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
                 .clipShape(RoundedRectangle(cornerRadius: 25))
                 .frame(maxWidth: 800)
-                .onGeometryChange(for: CGSize.self, of: { proxy in
-                    proxy.size
+                .onGeometryChange(for: Bool.self, of: { proxy in
+                    proxy.size.width.rounded(.toNearestOrAwayFromZero) < 800
                 }, action: { newValue in
-                    self.cardFrame = newValue
+                    guard isVertical != newValue else { return }
+                    
+                    isVertical = newValue
                 })
                 .padding(.horizontal)
             }
@@ -205,9 +200,14 @@ private struct Cards: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     /// Per-card measured text heights used to align card body heights.
-    @State var cardHeights: [UUID : CGFloat] = [:]
-    /// Measured container size used to adjust card max width.
-    @State var viewSize: CGSize?
+    @State private var cardHeights: [UUID : CGFloat] = [:]
+    /// Maximum card width for the current container size.
+    @State private var cardMaxWidth: CGFloat = 300
+    
+    /// Maximum measured card body height.
+    private var maxCardBodyHeight: CGFloat? {
+        cardHeights.values.max()
+    }
     
     var body: some View {
         VStack {
@@ -229,16 +229,18 @@ private struct Cards: View {
                     ForEach(outerCards) { outerCard in
                         ForEach(outerCard.cards) { card in
                             self.card(card)
-                                .frame(maxWidth: (viewSize?.width ?? 0) > 1300 ? 400 : 300, maxHeight: 600)
+                                .frame(maxWidth: cardMaxWidth, maxHeight: 600)
                         }
                     }
                 }
             }
         }
-        .onGeometryChange(for: CGSize.self) { proxy in
-            proxy.size
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width.rounded(.toNearestOrAwayFromZero) > 1300 ? 400 : 300
         } action: { newValue in
-            viewSize = newValue
+            guard cardMaxWidth != newValue else { return }
+            
+            cardMaxWidth = newValue
         }
     }
     
@@ -308,10 +310,12 @@ private struct Cards: View {
                     .multilineTextAlignment(.leading)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: Set(cardHeights.values).sorted(by: >).first, alignment: .top)
+                    .frame(height: maxCardBodyHeight, alignment: .top)
                     .onGeometryChange(for: CGFloat.self) { proxy in
-                        proxy.size.height
+                        proxy.size.height.rounded(.toNearestOrAwayFromZero)
                     } action: { newValue in
+                        guard cardHeights[content.id] != newValue else { return }
+                        
                         cardHeights[content.id] = newValue
                     }
                 }

@@ -367,7 +367,7 @@ private struct TechView: View {
             }
             #endif
             
-            if docCSites.isEmpty && searchText.isEmpty {
+            if preparedData.isEmpty && searchText.isEmpty {
                 ContentUnavailableView {
                     Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                 }
@@ -439,12 +439,10 @@ private struct TechView: View {
     @ViewBuilder
     private func searchList(_ preparedData: PreparedTechnologyData) -> some View {
         ForEach(preparedData.searchableDocCSites) { site in
-            if let index = site.indexV2 {
-                Section(site.overrideName ?? site.groups.first?.title ?? "Unknown") {
-                    ForEach(index.interfaceLanguages ?? []) { interface in
-                        ForEach(interface.languages ?? []) { language in
-                            InterfaceLanguageSearchListing(searchText: searchText, interfaceLanguage: language)
-                        }
+            Section(site.overrideName ?? site.groups.first?.title ?? "Unknown") {
+                ForEach(site.index.interfaceLanguages.keys.sorted(), id: \.self) { interfaceLanguage in
+                    ForEach(site.index.interfaceLanguages[interfaceLanguage] ?? []) { language in
+                        InterfaceLanguageDTOSearchListing(searchText: searchText, interfaceLanguage: language, site: site)
                     }
                 }
             }
@@ -457,7 +455,7 @@ private struct TechView: View {
     /// Default technology listing grouped by custom and Apple sources.
     @ViewBuilder
     private func technologiesList(_ preparedData: PreparedTechnologyData) -> some View {
-        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !preparedData.visibleDocCSites.isEmpty {
+        if !preparedData.docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !preparedData.visibleDocCSites.isEmpty {
             Section {
                 ForEach(preparedData.simpleDocCSites) { technology in
                     DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
@@ -499,7 +497,9 @@ private struct TechView: View {
 @MainActor
 private struct PreparedTechnologyData {
     /// Persisted DocC sites matching the current search text.
-    let searchableDocCSites: [DocCSite]
+    let searchableDocCSites: [DocCSiteDTO]
+    /// Custom DocC sites used for sidebar rendering.
+    let docCSites: [DocCSiteDTO]
     /// Custom DocC sites that have at least one visible framework.
     let visibleDocCSites: [DocCSiteDTO]
     /// Custom DocC sites with a single display group.
@@ -510,6 +510,8 @@ private struct PreparedTechnologyData {
     let nonDocCTechnologies: [TechnologyTypes]
     /// Indicates whether the current search can show at least one row.
     let hasSearchResults: Bool
+    /// Indicates whether any source data is available.
+    let isEmpty: Bool
     
     /// Builds prepared sidebar data for the current search and technology state.
     ///
@@ -524,14 +526,17 @@ private struct PreparedTechnologyData {
         technologies: [TechnologyTypes],
         isVisibleForSearch: (AppleTechnologies.FrameworkSection) -> Bool
     ) {
-        let docCSiteDTOs = docCSites.asDTOs
+        let docCSiteDTOs = Self.mergedDocCSites(persistedSites: docCSites.asDTOs, loadedSites: technologies.docCSites)
         let visibleDocCSites = docCSiteDTOs.filter { site in
             !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
         }
         
-        self.searchableDocCSites = searchText.isEmpty ? docCSites : docCSites.filter { site in
-            site.hasResultsForSearch(searchText)
+        self.searchableDocCSites = searchText.isEmpty ? docCSiteDTOs : docCSiteDTOs.filter { site in
+            site.groups.contains { interfaceLanguage in
+                Self.matchesSearch(interfaceLanguage, searchText: searchText)
+            }
         }
+        self.docCSites = docCSiteDTOs
         self.visibleDocCSites = visibleDocCSites
         self.simpleDocCSites = docCSiteDTOs.filter { site in
             site.nonSampleCodeGroups.count <= 1
@@ -542,6 +547,7 @@ private struct PreparedTechnologyData {
                 || !(site.overrideName == nil || site.overrideName == site.nonSampleCodeGroups.first?.title)
         }
         self.nonDocCTechnologies = technologies.filter { !$0.isDocC }
+        self.isEmpty = docCSiteDTOs.isEmpty && nonDocCTechnologies.isEmpty
         
         guard !searchText.isEmpty else {
             self.hasSearchResults = true
@@ -558,6 +564,43 @@ private struct PreparedTechnologyData {
         }
         
         self.hasSearchResults = mappedTech.contains(where: isVisibleForSearch)
+    }
+    
+    /// Merges persisted source records with loaded in-memory sources, preferring loaded indexes.
+    ///
+    /// - Parameters:
+    ///   - persistedSites: Sites reconstructed from SwiftData.
+    ///   - loadedSites: Fully loaded in-memory sites.
+    /// - Returns: A stable list of merged DocC sites.
+    private static func mergedDocCSites(persistedSites: [DocCSiteDTO], loadedSites: [DocCSiteDTO]) -> [DocCSiteDTO] {
+        var sitesByURL: [URL: DocCSiteDTO] = [:]
+        
+        for site in persistedSites {
+            sitesByURL[site.url] = site
+        }
+        for site in loadedSites {
+            sitesByURL[site.url] = site
+        }
+        
+        return sitesByURL.values.sorted { lhs, rhs in
+            lhs.timestamp < rhs.timestamp
+        }
+    }
+    
+    /// Recursively tests an in-memory DocC index node against the current search.
+    ///
+    /// - Parameters:
+    ///   - interfaceLanguage: Index node to inspect.
+    ///   - searchText: Search query to match.
+    /// - Returns: `true` if this node or a descendant should appear in search.
+    private static func matchesSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, searchText: String) -> Bool {
+        if interfaceLanguage.title.lowercased().contains(searchText.lowercased()) && interfaceLanguage.type.lowercased() != "module" {
+            return true
+        }
+        
+        return interfaceLanguage.children?.contains { child in
+            matchesSearch(child, searchText: searchText)
+        } == true
     }
 }
 
@@ -614,6 +657,63 @@ private struct InterfaceLanguageSearchListing: View {
         
         ForEach(interfaceLanguage.children ?? []) { child in
             InterfaceLanguageSearchListing(searchText: searchText, interfaceLanguage: child)
+        }
+    }
+}
+
+/// Recursive search-result renderer for in-memory DocC interface-language nodes.
+private struct InterfaceLanguageDTOSearchListing: View {
+    /// Current user-entered search text.
+    let searchText: String
+    /// Interface-language node being rendered recursively.
+    let interfaceLanguage: DocCIndex.InterfaceLanguage
+    /// Custom DocC site that owns the index node.
+    let site: DocCSiteDTO
+    
+    /// Synthetic reference used for navigation when a node maps to a known path/type.
+    var reference: Reference? {
+        guard let path = interfaceLanguage.path else {
+            return nil
+        }
+        
+        return Reference(
+            title: interfaceLanguage.title,
+            identifier: "\(Constants.deeplinkScheme)nav\(path)",
+            type: interfaceLanguage.type,
+            docCSite: site
+        )
+    }
+    
+    /// Renders symbol-like text with code styling, otherwise plain text.
+    @ViewBuilder
+    func text(_ text: String) -> some View {
+        let role = Role(rawValue: interfaceLanguage.type) ?? .codeListing
+        
+        if [Role.codeListing, .pseudoSymbol, .restRequestSymbol, .collection, .collectionGroup, .symbol].contains(role) {
+            CodeText(text)
+                .highlightLanguage(.swift)
+                .codeTextColors(.theme(.xcode))
+        } else {
+            Text(text)
+        }
+    }
+    
+    var body: some View {
+        if interfaceLanguage.title.lowercased().contains(searchText.lowercased()) {
+            if let reference {
+                ReferenceNavigationLinkButton(reference: reference) {
+                    text(interfaceLanguage.title)
+                }
+                .alwaysShowClosestTechnologyGroup()
+            } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
+                MacOSAgnosticLink(destination: url) {
+                    text(interfaceLanguage.title)
+                }
+            }
+        }
+        
+        ForEach(interfaceLanguage.children ?? []) { child in
+            InterfaceLanguageDTOSearchListing(searchText: searchText, interfaceLanguage: child, site: site)
         }
     }
 }

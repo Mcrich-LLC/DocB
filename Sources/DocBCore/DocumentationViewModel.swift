@@ -191,10 +191,17 @@ public class DocumentationViewModel {
             }
             let indexUrl = baseUrl.appending(path: "index/index.json")
             let index = try await Self.fetchDocCIndex(from: indexUrl)
-            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
+            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()
-            let dto = try site.dto
+            let dto = DocCSiteDTO(
+                id: site.id,
+                timestamp: site.timestamp ?? .init(),
+                url: baseUrl,
+                overrideName: overrideName,
+                index: index,
+                persistentModelID: site.persistentModelID
+            )
             technologies.appendOrUpdate(.docC(dto))
         } catch {
             print(error)
@@ -246,6 +253,68 @@ public class DocumentationViewModel {
         let (data, _) = try await URLSession.shared.data(from: indexUrl)
         
         return try JSONDecoder().decode(DocCIndex.self, from: data)
+    }
+    
+    /// Removes a technology from memory and deletes persisted source data using a background context.
+    ///
+    /// - Parameters:
+    ///   - site: The technology to remove.
+    ///   - modelContainer: SwiftData container used to create a background deletion context.
+    public func deleteTechnology(_ site: TechnologyTypes, modelContainer: ModelContainer) async throws {
+        guard technologies.contains(where: { $0.id == site.id }) else {
+            return
+        }
+        
+        switch site {
+        case .apple:
+            technologies.removeAll { $0.id == site.id }
+            if let site = appleDocCSiteRef {
+                try await Self.deleteDocCSite(
+                    persistentModelID: site.persistentModelID,
+                    url: site.url,
+                    modelContainer: modelContainer
+                )
+            }
+        case .docC(let docCSiteDTO):
+            technologies.removeAll { $0.id == site.id }
+            try await Self.deleteDocCSite(
+                persistentModelID: docCSiteDTO.persistentModelID,
+                url: docCSiteDTO.url,
+                modelContainer: modelContainer
+            )
+        }
+    }
+    
+    /// Deletes a persisted DocC site away from the main actor.
+    ///
+    /// - Parameters:
+    ///   - persistentModelID: Preferred persistent identifier for the site.
+    ///   - url: Source URL used as a fallback lookup.
+    ///   - modelContainer: Container used to create the background context.
+    private nonisolated static func deleteDocCSite(
+        persistentModelID: PersistentIdentifier?,
+        url: URL,
+        modelContainer: ModelContainer
+    ) async throws {
+        try await Task.detached(priority: .userInitiated) {
+            let context = ModelContext(modelContainer)
+            
+            if let persistentModelID {
+                let model = context.model(for: persistentModelID)
+                context.delete(model)
+            } else {
+                let descriptor = FetchDescriptor<DocCSite>(
+                    predicate: #Predicate { site in
+                        site.url == url
+                    }
+                )
+                for site in try context.fetch(descriptor) {
+                    context.delete(site)
+                }
+            }
+            
+            try context.save()
+        }.value
     }
     
     /// Removes a technology from memory and persistence.

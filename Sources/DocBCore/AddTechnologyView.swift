@@ -53,6 +53,8 @@ public struct AddTechnologyView: View {
     @State private var technologiesAddInProgress: Set<SuggestedTechnology> = []
     /// Tracks custom source insertion so the add controls do not enqueue duplicate work.
     @State private var isAddingCustomDocCSite = false
+    /// Source URLs currently being removed.
+    @State private var sourceRemovalsInProgress: Set<URL> = []
     
     /// Non-featured technologies currently configured by the user.
     private var customSites: [TechnologyTypes] {
@@ -99,9 +101,15 @@ public struct AddTechnologyView: View {
         )
     ]
     
-    /// Returns whether a featured technology is already added or currently being added.
+    /// Returns whether a featured technology is currently being added.
+    private func isSuggestedLoading(_ technology: SuggestedTechnology) -> Bool {
+        technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
+            || sourceRemovalsInProgress.contains(technology.baseURL)
+    }
+    
+    /// Returns whether a featured technology is already added.
     private func isSuggestedAdded(_ technology: SuggestedTechnology) -> Bool {
-        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL }) || technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
+        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL })
     }
 
     public var body: some View {
@@ -112,18 +120,26 @@ public struct AddTechnologyView: View {
                         toggleSuggestedTechnology(technology)
                     } label: {
                         HStack {
-                            Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkSquareFill : .square)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 15, height: 15)
-                                .animation(.easeInOut, value: documentationViewModel.technologies)
-                                .contentTransition(.symbolEffect(.replace))
-                                .foregroundStyle(isSuggestedAdded(technology) ? Color.accentColor : .primary)
+                            if isSuggestedLoading(technology) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .frame(width: 15, height: 15)
+                            } else {
+                                Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkSquareFill : .square)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 15, height: 15)
+                                    .contentTransition(.symbolEffect(.replace))
+                                    .foregroundStyle(isSuggestedAdded(technology) ? Color.accentColor : .primary)
+                            }
                             SuggestedTechnologyRow(technology: technology)
                                 .frame(minHeight: 50)
                             Spacer()
                         }
                     }
+                    .disabled(isSuggestedLoading(technology))
+                    .animation(.easeInOut, value: isSuggestedAdded(technology))
+                    .animation(.easeInOut, value: isSuggestedLoading(technology))
                 }
             }
             .buttonStyle(.plain)
@@ -134,36 +150,37 @@ public struct AddTechnologyView: View {
                         EnteredTechnologyRow(technology: technology)
                         Spacer()
                         Button {
-                            do {
-                                try documentationViewModel.deleteTechnology(technology, modelContext: modelContext)
-                            } catch {
-                                self.errorAlert = error
-                            }
+                            removeTechnology(technology)
                         } label: {
-                            Label("Remove", systemSymbol: .trash)
+                            if isRemovingTechnology(technology) {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Label("Remove", systemSymbol: .trash)
+                            }
                         }
                         .labelStyle(.iconOnly)
+                        .disabled(isRemovingTechnology(technology))
                     }
                 }
                 HStack {
                     TextField("https://docs.example.com", text: $addDocumentationUrl)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit {
-                            Task {
-                                await addCustomDocCSite()
-                            }
+                            startCustomDocCSiteAdd()
                         }
-                    Button("Add") {
-                        Task {
-                            await addCustomDocCSite()
+                    Button {
+                        startCustomDocCSiteAdd()
+                    } label: {
+                        if isAddingCustomDocCSite {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("Add")
                         }
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(isAddingCustomDocCSite)
-                    if isAddingCustomDocCSite {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
                 }
             }
         }
@@ -174,21 +191,59 @@ public struct AddTechnologyView: View {
     /// Adds or removes a featured technology depending on current selection state.
     private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
         if isSuggestedAdded(technology) {
-            technologiesAddInProgress.remove(technology)
             removeDocCSite(url: technology.baseURL)
         } else {
+            technologiesAddInProgress.insert(technology)
             Task {
-                technologiesAddInProgress.insert(technology)
+                await Task.yield()
                 await addDocCSite(url: technology.baseURL, overrideName: technology.title)
                 technologiesAddInProgress.remove(technology)
             }
         }
     }
     
-    /// Normalizes and validates the entered custom URL, then adds it as a DocC source.
-    private func addCustomDocCSite() async {
+    /// Returns whether a technology is currently being removed.
+    ///
+    /// - Parameter technology: Technology source to check.
+    /// - Returns: `true` when a removal task is active for this source.
+    private func isRemovingTechnology(_ technology: TechnologyTypes) -> Bool {
+        sourceRemovalsInProgress.contains(technology.url)
+    }
+    
+    /// Removes a technology while keeping the Add Sources UI responsive.
+    ///
+    /// - Parameter technology: Technology source to remove.
+    private func removeTechnology(_ technology: TechnologyTypes) {
+        guard !sourceRemovalsInProgress.contains(technology.url) else { return }
+        
+        sourceRemovalsInProgress.insert(technology.url)
+        
+        Task {
+            await Task.yield()
+            do {
+                try await documentationViewModel.deleteTechnology(technology, modelContainer: modelContext.container)
+            } catch {
+                self.errorAlert = error
+            }
+            sourceRemovalsInProgress.remove(technology.url)
+        }
+    }
+    
+    /// Starts a custom source add after immediately updating loading state.
+    private func startCustomDocCSiteAdd() {
         guard !isAddingCustomDocCSite else { return }
         
+        isAddingCustomDocCSite = true
+        
+        Task {
+            await Task.yield()
+            await addCustomDocCSite()
+            isAddingCustomDocCSite = false
+        }
+    }
+    
+    /// Normalizes and validates the entered custom URL, then adds it as a DocC source.
+    private func addCustomDocCSite() async {
         var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
         
         if !addDocumentationUrl.contains("://") {
@@ -199,25 +254,21 @@ public struct AddTechnologyView: View {
             return
         }
         
-        isAddingCustomDocCSite = true
-        defer {
-            isAddingCustomDocCSite = false
-        }
-        
         await addDocCSite(url: url)
         self.addDocumentationUrl = ""
     }
     
     /// Removes a persisted DocC source that matches the provided base URL.
     private func removeDocCSite(url: URL) {
+        if let site = documentationViewModel.technologies.docCSites.first(where: { $0.url == url }) {
+            removeTechnology(.docC(site))
+            return
+        }
+        
         guard let site = try? docCSites.first(where: { $0.url == url })?.dto else {
             return
         }
-        do {
-            try documentationViewModel.deleteTechnology(.docC(site), modelContext: modelContext)
-        } catch {
-            self.errorAlert = error
-        }
+        removeTechnology(.docC(site))
     }
     
     /// Adds a DocC source by extracting a normalized base URL and loading its index.

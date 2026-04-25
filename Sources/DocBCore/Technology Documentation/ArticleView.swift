@@ -25,8 +25,6 @@ struct ArticleView: View {
     @State var article: Article?
     /// Whether to show a toolbar background while scrolling.
     @State var showToolbarBG: Bool = false
-    /// Current vertical scroll offset used by header effects.
-    @State var scrollOffset: CGFloat = 0
     /// Controls Add Bookmark popover presentation.
     @State var isShowingAddBookmark = false
     /// Cached header size used to size the top gradient.
@@ -188,11 +186,6 @@ struct ArticleView: View {
         .task(id: navigationViewModel.reference) {
             await loadArticle()
         }
-        .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
-            proxy.contentOffset.y
-        }, action: { _, newValue in
-            self.scrollOffset = newValue
-        })
         .id(reference)
         .scrollContentBackground(.hidden)
 //        .background(Color(platformColor: .systemBackground)
@@ -202,8 +195,7 @@ struct ArticleView: View {
             ZStack(alignment: .top) {
                 Color(platformColor: .systemBackground)
                 LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
-                    .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
-                    .offset(y: -max(0, scrollOffset))
+                    .frame(height: (headerSize?.height ?? 0) + 50)
             }
             .ignoresSafeArea()
             .backgroundExtensionEffectIfAvailable()
@@ -302,6 +294,8 @@ struct ArticleView: View {
     
     /// Animates toolbar background visibility changes based on heading visibility.
     func setToolbarVisibility(_ isVisible: Bool) {
+        guard showToolbarBG != isVisible else { return }
+        
         withAnimation {
             self.showToolbarBG = isVisible
         }

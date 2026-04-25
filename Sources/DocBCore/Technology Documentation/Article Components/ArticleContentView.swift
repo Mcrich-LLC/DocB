@@ -183,9 +183,6 @@ struct ArticleContentView: View {
     @State var player: AVPlayer?
     /// Current tab selection for `.tabNavigator` content.
     @State private var tabSelection: ContentSection.Content.Tab = .init(content: [], title: "")
-    /// Latest measured size of this view, used for adaptive row/grid layout.
-    @State private var viewSize: CGSize?
-    
     @Environment(\.colorScheme) var colorScheme
     
     /// Main content body that renders either inline fragments or type-specific block content.
@@ -210,11 +207,6 @@ struct ArticleContentView: View {
             if content.type == .tabNavigator, let tab = content.tabs?.first {
                 self.tabSelection = tab
             }
-        }
-        .onGeometryChange(for: CGSize.self) { proxy in
-            proxy.size
-        } action: { newValue in
-            viewSize = newValue
         }
         .environment(manager)
     }
@@ -316,7 +308,7 @@ struct ArticleContentView: View {
             }
         case .orderedList:
             if let orderedListItems = content.orderedListItems {
-                ForEach(orderedListItems) { item in
+                ForEach(Array(orderedListItems.enumerated()), id: \.element.id) { index, item in
                     if let content = item.content {
                         VStack(spacing: 5) {
                             ForEach(content) { subcontent in
@@ -324,7 +316,7 @@ struct ArticleContentView: View {
                                     content: subcontent,
                                     references: self.manager.references,
                                     from: .orderedList,
-                                    orderedListIndex: (orderedListItems.firstIndex(where: { $0 == item }) ?? 0) + 1
+                                    orderedListIndex: index + 1
                                 )
                                     .padding(.bottom, content.last == subcontent ? 10 : 0)
                             }
@@ -416,48 +408,7 @@ struct ArticleContentView: View {
                 LinksGridListView(identifiers: linkItems, style: Style, references: manager.references, navigationViewModel: navigationViewModel)
             }
         case .row:
-            if (content.columns ?? []).filter({ $0.size > 1 }).isEmpty {
-                // Derive how many columns can fit at a readable minimum width (~350pt each).
-                let widthDeterminedColumns: Int = if let viewSize {
-                    max(1, Int(viewSize.width / 350))
-                } else {
-                    content.columns?.count ?? 1
-                }
-                
-                LazyVGrid(columns: .init(repeating: .init(.flexible(minimum: 50)), count: min(content.columns?.count ?? 1, widthDeterminedColumns)), alignment: self.manager.alignment.horizontal, spacing: 20) {
-                    ForEach(content.columns ?? [], id: \.self) { column in
-                        VStack(alignment: .center) {
-                            ForEach(column.content) { content in
-                                ArticleContentView(content: content, references: manager.references)
-                            }
-                        }
-                        .frame(maxHeight: .infinity, alignment: .top)
-                    }
-                }
-            } else {
-                HStack {
-                    // Effective grid units in this row (explicit value if supplied, else sum of per-column sizes).
-                    let columnNumber = content.numberOfColumns ?? (content.columns ?? []).reduce(0, { partialResult, column in
-                        partialResult.advanced(by: column.size)
-                    })
-                    // Width for one grid unit; each column multiplies this by its declared size.
-                    let columnWidth = if let viewSize {
-                        viewSize.width/CGFloat(columnNumber)
-                    } else {
-                        // Should not be shown because viewSize is set instantly
-                        50.0
-                    }
-                    
-                    ForEach(content.columns ?? [], id: \.self) { column in
-                        VStack(alignment: .center) {
-                            ForEach(column.content) { content in
-                                ArticleContentView(content: content, references: manager.references)
-                            }
-                        }
-                        .frame(maxWidth: columnWidth*CGFloat(column.size), maxHeight: .infinity, alignment: .top)
-                    }
-                }
-            }
+            RowContentView(content: content, references: manager.references, alignment: manager.alignment)
         case .none:
             EmptyView()
         }
@@ -505,6 +456,88 @@ struct ArticleContentView: View {
         manager.fetchPhotoVideoURL(for: identifier, colorScheme: colorScheme, docCSite: docCSite)
     }
     
+    /// Renders adaptive row content and scopes geometry tracking to rows that need it.
+    private struct RowContentView: View {
+        /// Row content that owns column metadata.
+        let content: ContentSection.Content
+        /// Reference metadata for nested content.
+        let references: [String : Reference]
+        /// Alignment used by nested row content.
+        let alignment: Alignment
+        
+        /// Latest measured row width used for adaptive column widths.
+        @State private var viewWidth: CGFloat?
+        
+        var body: some View {
+            let columns = content.columns ?? []
+            
+            Group {
+                if columns.filter({ $0.size > 1 }).isEmpty {
+                    let widthDeterminedColumns: Int = if let viewWidth {
+                        max(1, Int(viewWidth / 350))
+                    } else {
+                        columns.count
+                    }
+                    
+                    LazyVGrid(
+                        columns: .init(
+                            repeating: .init(.flexible(minimum: 50)),
+                            count: min(columns.count, widthDeterminedColumns)
+                        ),
+                        alignment: alignment.horizontal,
+                        spacing: 20
+                    ) {
+                        ForEach(columns, id: \.self) { column in
+                            ColumnContentView(column: column, references: references)
+                        }
+                    }
+                } else {
+                    HStack {
+                        let columnNumber = content.numberOfColumns ?? columns.reduce(0) { partialResult, column in
+                            partialResult.advanced(by: column.size)
+                        }
+                        let columnWidth = if let viewWidth {
+                            viewWidth / CGFloat(columnNumber)
+                        } else {
+                            50.0
+                        }
+                        
+                        ForEach(columns, id: \.self) { column in
+                            ColumnContentView(column: column, references: references)
+                                .frame(
+                                    maxWidth: columnWidth * CGFloat(column.size),
+                                    maxHeight: .infinity,
+                                    alignment: .top
+                                )
+                        }
+                    }
+                }
+            }
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.width
+            } action: { newValue in
+                viewWidth = newValue
+            }
+        }
+    }
+    
+    /// Renders all content blocks inside a row column.
+    private struct ColumnContentView: View {
+        /// Column metadata and child content.
+        let column: ContentSection.Content.Column
+        /// Reference metadata for nested content.
+        let references: [String : Reference]
+        
+        var body: some View {
+            VStack(alignment: .center) {
+                ForEach(column.content) { content in
+                    ArticleContentView(content: content, references: references)
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+    
     // swiftlint:disable shorthand_operator cyclomatic_complexity
     /// Renders inline content fragments (text, emphasis, code, media, and references) into composed views.
     struct InlineContentView: View {
@@ -539,7 +572,9 @@ struct ArticleContentView: View {
             var text: AttributedString = manager.specialStyleString("", type: .text)
             
             func appendText() {
-                views.append(.init(Text(text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: alignment ?? self.manager.alignment)))
+                guard text != AttributedString("") else { return }
+                
+                views.append(.text(text))
                 text = manager.specialStyleString("", type: .text)
             }
             
@@ -630,43 +665,13 @@ struct ArticleContentView: View {
                         appendText()
                         
                         if let identifier = inline.identifier {
-                            let image = LazyImage(url: fetchPhotoVideoURL(for: identifier)) { state in
-                                if state.isLoading {
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(Color.clear)
-                                        .stroke(Color.primary, lineWidth: 2)
-                                        .scaledToFit()
-                                        .overlay {
-                                            ProgressView()
-                                        }
-                                } else if let image = state.image {
-                                    image
-                                    .resizable()
-                                    .scaledToFit()
-                                }
-                            }
-                                .frame(maxWidth: 700, maxHeight: 700, alignment: self.manager.alignment)
-                                .padding(.bottom)
-                                .onTapGesture {
-                                    if let url = fetchPhotoVideoURL(for: identifier) {
-                                        self.manager.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
-                                    }
-                                }
-
-                            views.append(image)
-                            for ref in inline.metadata?.abstract ?? [] {
-                                views.append(InlineContentView(for: [ref], alignment: .top).multilineTextAlignment(.center))
-                            }
+                            views.append(.image(identifier: identifier, abstract: inline.metadata?.abstract ?? []))
                         }
                     case .video:
                         appendText()
                         
                         if let identifier = inline.identifier, let url = fetchPhotoVideoURL(for: identifier) {
-                            let player = AVPlayer(url: url)
-                            let playerView = VideoPlayer(player: player)
-                                .scaledToFit()
-                            
-                            views.append(.init(playerView))
+                            views.append(.video(url))
                         }
                     default: break
                     }
@@ -684,32 +689,93 @@ struct ArticleContentView: View {
             
             return VStack {
                 ForEach(views) { inlineContent in
-                    inlineContent.view
+                    segmentView(inlineContent)
                 }
             }
             .padding(.bottom, [ContentType.unorderedList, .orderedList].contains(manager.type) ? 5 : 0)
         }
+        
+        /// Renders one inline segment without type-erasing every fragment during body construction.
+        @ViewBuilder
+        private func segmentView(_ segment: InlineContent) -> some View {
+            switch segment.kind {
+            case .text(let text):
+                Text(text)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: alignment ?? manager.alignment)
+            case .image(let identifier, let abstract):
+                LazyImage(url: fetchPhotoVideoURL(for: identifier)) { state in
+                    if state.isLoading {
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.clear)
+                            .stroke(Color.primary, lineWidth: 2)
+                            .scaledToFit()
+                            .overlay {
+                                ProgressView()
+                            }
+                    } else if let image = state.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    }
+                }
+                .frame(maxWidth: 700, maxHeight: 700, alignment: manager.alignment)
+                .padding(.bottom)
+                .onTapGesture {
+                    if let url = fetchPhotoVideoURL(for: identifier) {
+                        manager.enlargedImageSheetIdentifier = .init(identifier: identifier, url: url)
+                    }
+                }
+                
+                ForEach(abstract) { ref in
+                    InlineContentView(for: [ref], alignment: .top)
+                        .multilineTextAlignment(.center)
+                }
+            case .video(let url):
+                VideoPlayer(player: AVPlayer(url: url))
+                    .scaledToFit()
+            }
+        }
     }
     // swiftlint:enable shorthand_operator cyclomatic_complexity
     
-    /// Type-erased wrapper for inline-rendered child views used in ordered composition.
+    /// Lightweight wrapper for inline-rendered child segments used in ordered composition.
     fileprivate struct InlineContent: Identifiable {
         /// Stable identifier for ordered inline view composition.
         let id = UUID()
         
-        /// Type-erased inline view payload.
-        let view: AnyView
+        /// Concrete inline segment payload.
+        let kind: Kind
         
-        init(_ view: any View) {
-            self.view = AnyView(view)
+        /// Inline segment variants.
+        enum Kind {
+            case text(AttributedString)
+            case image(identifier: String, abstract: [ContentStruct])
+            case video(URL)
         }
-    }
-}
-
-private extension [ArticleContentView.InlineContent] {
-    /// Appends any view by wrapping it in ``ArticleContentView/InlineContent``.
-    mutating func append(_ view: any View) {
-        self.append(.init(view))
+        
+        /// Creates a text segment.
+        ///
+        /// - Parameter text: Attributed text to render.
+        static func text(_ text: AttributedString) -> Self {
+            .init(kind: .text(text))
+        }
+        
+        /// Creates an image segment.
+        ///
+        /// - Parameters:
+        ///   - identifier: Reference identifier for the image.
+        ///   - abstract: Optional caption content.
+        static func image(identifier: String, abstract: [ContentStruct]) -> Self {
+            .init(kind: .image(identifier: identifier, abstract: abstract))
+        }
+        
+        /// Creates a video segment.
+        ///
+        /// - Parameter url: Media URL for the video player.
+        static func video(_ url: URL) -> Self {
+            .init(kind: .video(url))
+        }
     }
 }
 

@@ -184,7 +184,6 @@ public struct ContentView: View {
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
                 TechView(searchText: $searchText, docCSites: docCSites)
             } innerView: {
-                let _ = print("navigationViewModel.isShowingAllBookmarkCollections: \(navigationViewModel.isShowingAllBookmarkCollections)")
                 if navigationViewModel.isShowingAllBookmarkCollections {
                     SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
                         BookmarkCollectionsView()
@@ -314,23 +313,6 @@ private struct TechView: View {
         return technology.title.lowercased().contains(searchText.lowercased()) || technology.tags.contains(searchText)
     }
     
-    /// Indicates whether current search has any matching technology results.
-    var searchHasResults: Bool {
-        guard !searchText.isEmpty else { return true }
-        
-        let mappedTech = documentationViewModel.technologies.flatMap { tech in
-            switch tech {
-            case .apple(let technologies):
-                return (technologies.groups ?? []).flatMap(\.technologies)
-            case .docC(let site):
-                return site.groups.flatMap({ $0.allFrameworkSections(for: site) })
-            }
-        }
-        
-        let filteredTech = mappedTech.filter({ isVisibleForSearch($0) })
-        return !filteredTech.isEmpty
-    }
-    
     /// Routes a technology source type to its corresponding sidebar section view.
     @ViewBuilder
     func technologyView(for technology: TechnologyTypes) -> some View {
@@ -369,6 +351,13 @@ private struct TechView: View {
     }
     
     var body: some View {
+        let preparedData = PreparedTechnologyData(
+            searchText: searchText,
+            docCSites: docCSites,
+            technologies: documentationViewModel.technologies,
+            isVisibleForSearch: isVisibleForSearch
+        )
+        
         List {
             #if os(macOS) || os(visionOS)
             syncingView
@@ -385,9 +374,9 @@ private struct TechView: View {
                 .listRowSeparator(.hidden)
             } else {
                 if !searchText.isEmpty {
-                    searchList
-                } else if searchHasResults {
-                    technologiesList
+                    searchList(preparedData)
+                } else if preparedData.hasSearchResults {
+                    technologiesList(preparedData)
                 } else {
                     ContentUnavailableView.search(text: searchText)
                 }
@@ -448,9 +437,9 @@ private struct TechView: View {
     
     /// Search-result list for both DocC and Apple technologies.
     @ViewBuilder
-    private var searchList: some View {
-        ForEach(docCSites) { site in
-            if let index = site.indexV2, site.hasResultsForSearch(searchText) {
+    private func searchList(_ preparedData: PreparedTechnologyData) -> some View {
+        ForEach(preparedData.searchableDocCSites) { site in
+            if let index = site.indexV2 {
                 Section(site.overrideName ?? site.groups.first?.title ?? "Unknown") {
                     ForEach(index.interfaceLanguages ?? []) { interface in
                         ForEach(interface.languages ?? []) { language in
@@ -460,17 +449,17 @@ private struct TechView: View {
                 }
             }
         }
-        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+        ForEach(preparedData.nonDocCTechnologies) { technology in
             technologyView(for: technology)
         }
     }
     
     /// Default technology listing grouped by custom and Apple sources.
     @ViewBuilder
-    private var technologiesList: some View {
-        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !docCSites.asDTOs.filter(isVisibleForSearch).isEmpty {
+    private func technologiesList(_ preparedData: PreparedTechnologyData) -> some View {
+        if !docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !preparedData.visibleDocCSites.isEmpty {
             Section {
-                ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count <= 1  && ($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+                ForEach(preparedData.simpleDocCSites) { technology in
                     DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                         .contextMenu {
                             Button("Delete", systemImage: "trash", role: .destructive) {
@@ -483,7 +472,7 @@ private struct TechView: View {
                         }
                 }
             }
-            ForEach(docCSites.asDTOs.filter({ $0.nonSampleCodeGroups.count > 1 || !($0.overrideName == nil || $0.overrideName == $0.nonSampleCodeGroups.first?.title) })) { technology in
+            ForEach(preparedData.groupedDocCSites) { technology in
                 Section {
                     DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                 } header: {
@@ -500,9 +489,75 @@ private struct TechView: View {
                 }
             }
         }
-        ForEach(documentationViewModel.technologies.filter({ !$0.isDocC })) { technology in
+        ForEach(preparedData.nonDocCTechnologies) { technology in
             technologyView(for: technology)
         }
+    }
+}
+
+/// Precomputed sidebar data that avoids repeating DTO conversion and filtering across list branches.
+@MainActor
+private struct PreparedTechnologyData {
+    /// Persisted DocC sites matching the current search text.
+    let searchableDocCSites: [DocCSite]
+    /// Custom DocC sites that have at least one visible framework.
+    let visibleDocCSites: [DocCSiteDTO]
+    /// Custom DocC sites with a single display group.
+    let simpleDocCSites: [DocCSiteDTO]
+    /// Custom DocC sites that need grouped sections.
+    let groupedDocCSites: [DocCSiteDTO]
+    /// Non-DocC technology entries.
+    let nonDocCTechnologies: [TechnologyTypes]
+    /// Indicates whether the current search can show at least one row.
+    let hasSearchResults: Bool
+    
+    /// Builds prepared sidebar data for the current search and technology state.
+    ///
+    /// - Parameters:
+    ///   - searchText: Current sidebar search query.
+    ///   - docCSites: Persisted DocC site models.
+    ///   - technologies: Loaded technology sources.
+    ///   - isVisibleForSearch: Predicate used for framework filtering.
+    init(
+        searchText: String,
+        docCSites: [DocCSite],
+        technologies: [TechnologyTypes],
+        isVisibleForSearch: (AppleTechnologies.FrameworkSection) -> Bool
+    ) {
+        let docCSiteDTOs = docCSites.asDTOs
+        let visibleDocCSites = docCSiteDTOs.filter { site in
+            !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
+        }
+        
+        self.searchableDocCSites = searchText.isEmpty ? docCSites : docCSites.filter { site in
+            site.hasResultsForSearch(searchText)
+        }
+        self.visibleDocCSites = visibleDocCSites
+        self.simpleDocCSites = docCSiteDTOs.filter { site in
+            site.nonSampleCodeGroups.count <= 1
+                && (site.overrideName == nil || site.overrideName == site.nonSampleCodeGroups.first?.title)
+        }
+        self.groupedDocCSites = docCSiteDTOs.filter { site in
+            site.nonSampleCodeGroups.count > 1
+                || !(site.overrideName == nil || site.overrideName == site.nonSampleCodeGroups.first?.title)
+        }
+        self.nonDocCTechnologies = technologies.filter { !$0.isDocC }
+        
+        guard !searchText.isEmpty else {
+            self.hasSearchResults = true
+            return
+        }
+        
+        let mappedTech = technologies.flatMap { tech in
+            switch tech {
+            case .apple(let technologies):
+                return (technologies.groups ?? []).flatMap(\.technologies)
+            case .docC(let site):
+                return site.groups.flatMap { $0.allFrameworkSections(for: site) }
+            }
+        }
+        
+        self.hasSearchResults = mappedTech.contains(where: isVisibleForSearch)
     }
 }
 

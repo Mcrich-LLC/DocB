@@ -230,27 +230,32 @@ struct ArticleContentView: View {
                 
                 Text(manager.specialStyleString(text))
                     .font(font)
-                    .bold().textSelection(.enabled)
+                    .bold()
+                    .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: self.manager.alignment)
                     .padding(.top, 10)
             }
         case .paragraph:
             if let text = content.text {
-                Text(manager.specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text))
+                    .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: self.manager.alignment)
             }
         case .text:
             if let text = content.text {
-                Text(manager.specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text))
+                    .textSelection(.enabled)
             }
         case .strong:
             if let text = content.text {
-                Text(manager.specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text))
+                    .textSelection(.enabled)
                     .bold()
             }
         case .small:
             if let text = content.text {
-                Text(manager.specialStyleString(text)).textSelection(.enabled)
+                Text(manager.specialStyleString(text))
+                    .textSelection(.enabled)
                     .font(.caption)
             }
         case .image:
@@ -472,7 +477,7 @@ struct ArticleContentView: View {
             let columns = content.columns ?? []
             
             Group {
-                if columns.filter({ $0.size > 1 }).isEmpty {
+                if !columns.contains(where: { $0.size > 1 }) {
                     let widthDeterminedColumns: Int = if let viewWidth {
                         max(1, Int(viewWidth / 350))
                     } else {
@@ -579,6 +584,8 @@ struct ArticleContentView: View {
             }
             
             func appendContent(_ content: [ContentStruct]) {
+                let firstNonEmptyTextID = content.first { !($0.text ?? "").isEmpty }?.id
+                
                 for inline in content {
                     switch inline.type {
                     case .text, .orderedList, .unorderedList, .paragraph, .heading:
@@ -600,7 +607,7 @@ struct ArticleContentView: View {
                             inlineText = ""
                         }
                         
-                        if !(inline.text == " " && content.filter({ !($0.text ?? "").isEmpty }).first == inline) {
+                        if !(inline.text == " " && firstNonEmptyTextID == inline.id) {
                             var attributedString = manager.specialStyleString(inlineText, type: inline.type, orderedListIndex: inline.orderedListInt)
                             
                             if let font = inline.font?.font {

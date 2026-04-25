@@ -27,8 +27,8 @@ struct ArticleView: View {
     @State var showToolbarBG: Bool = false
     /// Controls Add Bookmark popover presentation.
     @State var isShowingAddBookmark = false
-    /// Current vertical scroll offset used by header effects.
-    @State var scrollOffset: CGFloat = 0
+    /// Scroll offset used only for the elastic top gradient.
+    @State private var gradientScrollOffset: CGFloat = 0
     /// Cached header size used to size the top gradient.
     @State var headerSize: CGSize?
     
@@ -62,6 +62,8 @@ struct ArticleView: View {
                         .onGeometryChange(for: CGSize.self) { proxy in
                             proxy.size
                         } action: { size in
+                            guard headerSize != size else { return }
+                            
                             headerSize = size
                         }
 
@@ -194,16 +196,18 @@ struct ArticleView: View {
 //            .ignoresSafeArea()
 //        )
         .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
-            proxy.contentOffset.y
+            elasticGradientOffset(for: proxy.contentOffset.y)
         }, action: { _, newValue in
-            self.scrollOffset = newValue
+            guard gradientScrollOffset != newValue else { return }
+            
+            gradientScrollOffset = newValue
         })
         .background {
             ZStack(alignment: .top) {
                 Color(platformColor: .systemBackground)
                 LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
-                    .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
-                    .offset(y: -max(0, scrollOffset))
+                    .frame(height: gradientHeight)
+                    .offset(y: -max(0, gradientScrollOffset))
             }
             .ignoresSafeArea()
             .backgroundExtensionEffectIfAvailable()
@@ -229,6 +233,25 @@ struct ArticleView: View {
         }
         .tintColor(accentColor)
         .accentColor(accentColor)
+    }
+    
+    /// Current gradient height, including pull-down stretch.
+    private var gradientHeight: CGFloat {
+        (headerSize?.height ?? 0) + 50 - min(0, gradientScrollOffset)
+    }
+    
+    /// Returns the scroll offset needed for the elastic gradient while limiting unnecessary churn.
+    ///
+    /// - Parameter rawOffset: Current vertical content offset.
+    /// - Returns: A rounded offset capped once normal upward scrolling has moved the gradient out of view.
+    private func elasticGradientOffset(for rawOffset: CGFloat) -> CGFloat {
+        let roundedOffset = rawOffset.rounded(.toNearestOrAwayFromZero)
+        
+        guard roundedOffset > 0 else {
+            return roundedOffset
+        }
+        
+        return min(roundedOffset, (headerSize?.height ?? 0) + 50)
     }
     
     /// Refreshes bookmark state for the currently displayed reference.
@@ -304,7 +327,7 @@ struct ArticleView: View {
     func setToolbarVisibility(_ isVisible: Bool) {
         guard showToolbarBG != isVisible else { return }
         
-        withAnimation {
+        withAnimation(.easeInOut(duration: 0.12)) {
             self.showToolbarBG = isVisible
         }
     }
@@ -313,10 +336,10 @@ struct ArticleView: View {
     @ViewBuilder
     func HeadingBadge(_ metadata: Article.Metadata) -> some View {
         if let platforms = metadata.platforms {
-            if platforms.filter({ $0.beta == true }).count == platforms.count || reference.beta == true || article?.betaSummary != nil {
+            if platforms.allSatisfy({ $0.beta == true }) || reference.beta == true || article?.betaSummary != nil {
                 ArticleBadge(badge: .beta)
             }
-            if platforms.filter({ $0.deprecated == true || $0.deprecatedAt != nil }).count == platforms.count || article?.deprecationSummary != nil || reference.deprecated == true {
+            if platforms.allSatisfy({ $0.deprecated == true || $0.deprecatedAt != nil }) || article?.deprecationSummary != nil || reference.deprecated == true {
                 ArticleBadge(badge: .deprecated)
             }
         }

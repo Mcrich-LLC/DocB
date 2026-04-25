@@ -99,7 +99,6 @@ private struct MainView: View {
     @Binding var showAddSource: Bool
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     @Environment(\.appearsActive) var appearsActive
     /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
@@ -140,10 +139,17 @@ private struct MainView: View {
     
     /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
-        Task {
-            await documentationViewModel.loadTechnologies(newValue.asDTOs)
+        let oldIDs = Set(oldValue.map(\.id))
+        let newIDs = Set(newValue.map(\.id))
+        let insertedSites = newValue.filter { !oldIDs.contains($0.id) }
+        
+        if !insertedSites.isEmpty {
+            Task {
+                await documentationViewModel.loadTechnologies(insertedSites.asDTOs)
+            }
         }
-        for value in oldValue where !newValue.contains(where: { $0.id == value.id }) {
+        
+        for value in oldValue where !newIDs.contains(value.id) {
             documentationViewModel.removeTechnologyFromMemory(id: value.id, url: value.url)
         }
     }

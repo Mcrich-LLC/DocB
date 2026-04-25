@@ -303,7 +303,7 @@ private struct TechView: View {
     
     /// Determines whether a custom DocC site has at least one visible framework for search.
     func isVisibleForSearch(_ site: DocCSiteDTO) -> Bool {
-        return !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
+        return site.allFrameworkSections.contains(where: isVisibleForSearch)
     }
     
     /// Determines whether a framework section matches current search criteria.
@@ -528,7 +528,7 @@ private struct PreparedTechnologyData {
     ) {
         let docCSiteDTOs = Self.mergedDocCSites(persistedSites: docCSites.asDTOs, loadedSites: technologies.docCSites)
         let visibleDocCSites = docCSiteDTOs.filter { site in
-            !site.allFrameworkSections.filter(isVisibleForSearch).isEmpty
+            site.allFrameworkSections.contains(where: isVisibleForSearch)
         }
         
         self.searchableDocCSites = searchText.isEmpty ? docCSiteDTOs : docCSiteDTOs.filter { site in
@@ -538,14 +538,22 @@ private struct PreparedTechnologyData {
         }
         self.docCSites = docCSiteDTOs
         self.visibleDocCSites = visibleDocCSites
-        self.simpleDocCSites = docCSiteDTOs.filter { site in
-            site.nonSampleCodeGroups.count <= 1
-                && (site.overrideName == nil || site.overrideName == site.nonSampleCodeGroups.first?.title)
+        
+        var simpleDocCSites: [DocCSiteDTO] = []
+        var groupedDocCSites: [DocCSiteDTO] = []
+        for site in docCSiteDTOs {
+            let nonSampleCodeGroups = site.nonSampleCodeGroups
+            let isSimpleSite = nonSampleCodeGroups.count <= 1
+                && (site.overrideName == nil || site.overrideName == nonSampleCodeGroups.first?.title)
+            
+            if isSimpleSite {
+                simpleDocCSites.append(site)
+            } else {
+                groupedDocCSites.append(site)
+            }
         }
-        self.groupedDocCSites = docCSiteDTOs.filter { site in
-            site.nonSampleCodeGroups.count > 1
-                || !(site.overrideName == nil || site.overrideName == site.nonSampleCodeGroups.first?.title)
-        }
+        self.simpleDocCSites = simpleDocCSites
+        self.groupedDocCSites = groupedDocCSites
         self.nonDocCTechnologies = technologies.filter { !$0.isDocC }
         self.isEmpty = docCSiteDTOs.isEmpty && nonDocCTechnologies.isEmpty
         

@@ -194,6 +194,7 @@ public class DocumentationViewModel {
             let site = DocCSite(url: baseUrl, overrideName: overrideName, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()
+            let modelContainer = modelContext.container
             let dto = DocCSiteDTO(
                 id: site.id,
                 timestamp: site.timestamp ?? .init(),
@@ -203,6 +204,13 @@ public class DocumentationViewModel {
                 persistentModelID: site.persistentModelID
             )
             technologies.appendOrUpdate(.docC(dto))
+            Task.detached(priority: .utility) {
+                do {
+                    try await Self.persistDocCIndex(index, for: baseUrl, modelContainer: modelContainer)
+                } catch {
+                    print(error)
+                }
+            }
         } catch {
             print(error)
         }
@@ -253,6 +261,34 @@ public class DocumentationViewModel {
         let (data, _) = try await URLSession.shared.data(from: indexUrl)
         
         return try JSONDecoder().decode(DocCIndex.self, from: data)
+    }
+    
+    /// Persists a full DocC index after the source has already appeared in the UI.
+    ///
+    /// - Parameters:
+    ///   - index: Decoded index to store for offline use and persisted search.
+    ///   - url: Source URL used to find the persisted source record.
+    ///   - modelContainer: Container used to create the background context.
+    private nonisolated static func persistDocCIndex(
+        _ index: DocCIndex,
+        for url: URL,
+        modelContainer: ModelContainer
+    ) async throws {
+        try await Task.detached(priority: .utility) {
+            let context = ModelContext(modelContainer)
+            let descriptor = FetchDescriptor<DocCSite>(
+                predicate: #Predicate { site in
+                    site.url == url
+                }
+            )
+            
+            guard let site = try context.fetch(descriptor).first else {
+                return
+            }
+            
+            site.indexV2 = DocCSite.DocCIndexModel(index)
+            try context.save()
+        }.value
     }
     
     /// Removes a technology from memory and deletes persisted source data using a background context.

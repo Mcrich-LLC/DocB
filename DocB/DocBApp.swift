@@ -143,10 +143,8 @@ private struct MainView: View {
         Task {
             await documentationViewModel.loadTechnologies(newValue.asDTOs)
         }
-        Task {
-            for value in oldValue where !newValue.contains(where: { $0.id == value.id }) {
-                try? documentationViewModel.deleteTechnology(.docC(value.dto), modelContext: modelContext)
-            }
+        for value in oldValue where !newValue.contains(where: { $0.id == value.id }) {
+            documentationViewModel.removeTechnologyFromMemory(id: value.id, url: value.url)
         }
     }
 }

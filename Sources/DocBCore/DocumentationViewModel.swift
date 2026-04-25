@@ -317,6 +317,22 @@ public class DocumentationViewModel {
         }.value
     }
     
+    /// Removes a technology from memory after SwiftData reports that its source record disappeared.
+    ///
+    /// - Parameters:
+    ///   - id: Persisted source identifier.
+    ///   - url: Persisted source URL.
+    public func removeTechnologyFromMemory(id: UUID, url: URL?) {
+        technologies.removeAll { technology in
+            switch technology {
+            case .apple:
+                return appleDocCSiteRef?.id == id || appleDocCSiteRef?.url == url
+            case .docC(let site):
+                return site.id == id || site.url == url
+            }
+        }
+    }
+    
     /// Removes a technology from memory and persistence.
     ///
     /// - Parameters:

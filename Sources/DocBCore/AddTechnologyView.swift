@@ -43,8 +43,6 @@ public struct AddTechnologyView: View {
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(\.modelContext) var modelContext
-    /// Persisted DocC site models currently available in local storage.
-    @Query var docCSites: [DocCSite]
     /// User-entered custom URL text before normalization.
     @State private var addDocumentationUrl = ""
     /// Captures errors to present through the common error alert modifier.
@@ -101,58 +99,55 @@ public struct AddTechnologyView: View {
         )
     ]
     
-    /// Returns whether a featured technology is currently being added.
-    private func isSuggestedLoading(_ technology: SuggestedTechnology) -> Bool {
-        technologiesAddInProgress.contains(where: { $0.baseURL == technology.baseURL })
-            || sourceRemovalsInProgress.contains(technology.baseURL)
-    }
-    
-    /// Returns whether a featured technology is already added.
-    private func isSuggestedAdded(_ technology: SuggestedTechnology) -> Bool {
-        documentationViewModel.technologies.docCSites.contains(where: { $0.url == technology.baseURL })
-    }
-
     public var body: some View {
+        let addedFeaturedSourceURLs = Set(documentationViewModel.technologies.docCSites.map(\.url))
+        let featuredLoadingURLs = Set(technologiesAddInProgress.map(\.baseURL)).union(sourceRemovalsInProgress)
+        
         List {
             Section("Our Favorite Projects") {
                 ForEach(featuredTechnologies) { technology in
+                    let isAdded = addedFeaturedSourceURLs.contains(technology.baseURL)
+                    let isLoading = featuredLoadingURLs.contains(technology.baseURL)
+                    
                     Button {
-                        toggleSuggestedTechnology(technology)
+                        toggleSuggestedTechnology(technology, isAdded: isAdded)
                     } label: {
                         HStack {
-                            if isSuggestedLoading(technology) {
+                            if isLoading {
                                 ProgressView()
                                     .controlSize(.small)
                                     .frame(width: 15, height: 15)
                             } else {
-                                Image(systemSymbol: isSuggestedAdded(technology) ? .checkmarkSquareFill : .square)
+                                Image(systemSymbol: isAdded ? .checkmarkSquareFill : .square)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 15, height: 15)
                                     .contentTransition(.symbolEffect(.replace))
-                                    .foregroundStyle(isSuggestedAdded(technology) ? Color.accentColor : .primary)
+                                    .foregroundStyle(isAdded ? Color.accentColor : .primary)
                             }
                             SuggestedTechnologyRow(technology: technology)
                                 .frame(minHeight: 50)
                             Spacer()
                         }
                     }
-                    .disabled(isSuggestedLoading(technology))
-                    .animation(.easeInOut, value: isSuggestedAdded(technology))
-                    .animation(.easeInOut, value: isSuggestedLoading(technology))
+                    .disabled(isLoading)
+                    .animation(.easeInOut, value: isAdded)
+                    .animation(.easeInOut, value: isLoading)
                 }
             }
             .buttonStyle(.plain)
             
             Section("Add Some Custom Ones") {
                 ForEach(customSites, id: \.id) { technology in
+                    let isRemoving = sourceRemovalsInProgress.contains(technology.url)
+                    
                     HStack {
                         EnteredTechnologyRow(technology: technology)
                         Spacer()
                         Button {
                             removeTechnology(technology)
                         } label: {
-                            if isRemovingTechnology(technology) {
+                            if isRemoving {
                                 ProgressView()
                                     .controlSize(.small)
                             } else {
@@ -160,7 +155,7 @@ public struct AddTechnologyView: View {
                             }
                         }
                         .labelStyle(.iconOnly)
-                        .disabled(isRemovingTechnology(technology))
+                        .disabled(isRemoving)
                     }
                 }
                 HStack {
@@ -189,8 +184,12 @@ public struct AddTechnologyView: View {
     }
     
     /// Adds or removes a featured technology depending on current selection state.
-    private func toggleSuggestedTechnology(_ technology: SuggestedTechnology) {
-        if isSuggestedAdded(technology) {
+    ///
+    /// - Parameters:
+    ///   - technology: Suggested source selected by the user.
+    ///   - isAdded: Snapshot of whether this source is already loaded.
+    private func toggleSuggestedTechnology(_ technology: SuggestedTechnology, isAdded: Bool) {
+        if isAdded {
             removeDocCSite(url: technology.baseURL)
         } else {
             technologiesAddInProgress.insert(technology)
@@ -200,14 +199,6 @@ public struct AddTechnologyView: View {
                 technologiesAddInProgress.remove(technology)
             }
         }
-    }
-    
-    /// Returns whether a technology is currently being removed.
-    ///
-    /// - Parameter technology: Technology source to check.
-    /// - Returns: `true` when a removal task is active for this source.
-    private func isRemovingTechnology(_ technology: TechnologyTypes) -> Bool {
-        sourceRemovalsInProgress.contains(technology.url)
     }
     
     /// Removes a technology while keeping the Add Sources UI responsive.
@@ -262,13 +253,7 @@ public struct AddTechnologyView: View {
     private func removeDocCSite(url: URL) {
         if let site = documentationViewModel.technologies.docCSites.first(where: { $0.url == url }) {
             removeTechnology(.docC(site))
-            return
         }
-        
-        guard let site = try? docCSites.first(where: { $0.url == url })?.dto else {
-            return
-        }
-        removeTechnology(.docC(site))
     }
     
     /// Adds a DocC source by extracting a normalized base URL and loading its index.

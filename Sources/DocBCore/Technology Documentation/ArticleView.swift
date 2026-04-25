@@ -27,6 +27,8 @@ struct ArticleView: View {
     @State var showToolbarBG: Bool = false
     /// Controls Add Bookmark popover presentation.
     @State var isShowingAddBookmark = false
+    /// Current vertical scroll offset used by header effects.
+    @State var scrollOffset: CGFloat = 0
     /// Cached header size used to size the top gradient.
     @State var headerSize: CGSize?
     
@@ -191,11 +193,17 @@ struct ArticleView: View {
 //        .background(Color(platformColor: .systemBackground)
 //            .ignoresSafeArea()
 //        )
+        .onScrollGeometryChange(for: CGFloat.self, of: { proxy in
+            proxy.contentOffset.y
+        }, action: { _, newValue in
+            self.scrollOffset = newValue
+        })
         .background {
             ZStack(alignment: .top) {
                 Color(platformColor: .systemBackground)
                 LinearGradient(colors: topColorGradient, startPoint: .top, endPoint: .bottom)
-                    .frame(height: (headerSize?.height ?? 0) + 50)
+                    .frame(height: (headerSize?.height ?? 0)+50 - min(0, scrollOffset))
+                    .offset(y: -max(0, scrollOffset))
             }
             .ignoresSafeArea()
             .backgroundExtensionEffectIfAvailable()

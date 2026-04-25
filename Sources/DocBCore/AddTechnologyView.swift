@@ -51,6 +51,8 @@ public struct AddTechnologyView: View {
     @State private var errorAlert: Error?
     /// Tracks in-flight featured add operations to keep UI state responsive.
     @State private var technologiesAddInProgress: Set<SuggestedTechnology> = []
+    /// Tracks custom source insertion so the add controls do not enqueue duplicate work.
+    @State private var isAddingCustomDocCSite = false
     
     /// Non-featured technologies currently configured by the user.
     private var customSites: [TechnologyTypes] {
@@ -157,6 +159,11 @@ public struct AddTechnologyView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
+                    .disabled(isAddingCustomDocCSite)
+                    if isAddingCustomDocCSite {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
                 }
             }
         }
@@ -180,6 +187,8 @@ public struct AddTechnologyView: View {
     
     /// Normalizes and validates the entered custom URL, then adds it as a DocC source.
     private func addCustomDocCSite() async {
+        guard !isAddingCustomDocCSite else { return }
+        
         var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
         
         if !addDocumentationUrl.contains("://") {
@@ -188,6 +197,11 @@ public struct AddTechnologyView: View {
         
         guard let url = URL(string: addDocumentationUrl) else {
             return
+        }
+        
+        isAddingCustomDocCSite = true
+        defer {
+            isAddingCustomDocCSite = false
         }
         
         await addDocCSite(url: url)

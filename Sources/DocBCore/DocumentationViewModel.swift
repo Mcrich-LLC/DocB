@@ -190,18 +190,12 @@ public class DocumentationViewModel {
                 return
             }
             let indexUrl = baseUrl.appending(path: "index/index.json")
-            let (data, _) = try await URLSession.shared.data(from: indexUrl)
-            
-            let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+            let index = try await Self.fetchDocCIndex(from: indexUrl)
             let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
             modelContext.insert(site)
             try modelContext.save()
             let dto = try site.dto
-            await MainActor.run {
-                withAnimation {
-                    self.technologies.appendOrUpdate(.docC(dto))
-                }
-            }
+            technologies.appendOrUpdate(.docC(dto))
         } catch {
             print(error)
         }
@@ -221,21 +215,37 @@ public class DocumentationViewModel {
                 await fetchTechnologies()
                 continue
             }
+            
+            guard !technologies.contains(where: { technology in
+                switch technology {
+                case .apple:
+                    return false
+                case .docC(let loadedSite):
+                    return loadedSite.url == site.url
+                }
+            }) else {
+                continue
+            }
+            
             do {
                 let indexUrl = site.url.appending(path: "index/index.json")
-                let (data, _) = try await URLSession.shared.data(from: indexUrl)
-                
-                let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+                let index = try await Self.fetchDocCIndex(from: indexUrl)
                 site.setIndex(index)
-                await MainActor.run {
-                    withAnimation {
-                        self.technologies.appendOrUpdate(.docC(site))
-                    }
-                }
+                technologies.appendOrUpdate(.docC(site))
             } catch {
                 print(error)
             }
         }
+    }
+    
+    /// Fetches and decodes a DocC index away from the main actor.
+    ///
+    /// - Parameter indexUrl: URL for the source's `index/index.json` payload.
+    /// - Returns: A decoded DocC index.
+    private nonisolated static func fetchDocCIndex(from indexUrl: URL) async throws -> DocCIndex {
+        let (data, _) = try await URLSession.shared.data(from: indexUrl)
+        
+        return try JSONDecoder().decode(DocCIndex.self, from: data)
     }
     
     /// Removes a technology from memory and persistence.

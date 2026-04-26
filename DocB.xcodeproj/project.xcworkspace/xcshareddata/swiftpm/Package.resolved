@@ -1,5 +1,5 @@
 {
-  "originHash" : "a364549b1eecace453b770d55cf842578609af485e697708417302d96055f7a4",
+  "originHash" : "89b842fdb336c4c8287cff337ceefd85ac419324093c35e7298c476598d47e7f",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -26,15 +26,6 @@
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
-      }
-    },
-    {
-      "identity" : "privateobfuscationmacro",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Mcrich23/PrivateObfuscationMacro",
-      "state" : {
-        "branch" : "main",
-        "revision" : "1b53648f745e31482f51a8ff7a5b9ddb7515428e"
       }
     },
     {

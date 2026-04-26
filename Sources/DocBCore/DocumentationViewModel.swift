@@ -183,14 +183,6 @@ public class DocumentationViewModel {
         }
     }
     
-    /// Fetches and decodes a DocC index away from the main actor.
-    ///
-    /// - Parameter indexUrl: URL for the source's `index/index.json` payload.
-    /// - Returns: A decoded DocC index.
-    private nonisolated static func fetchDocCIndex(from indexUrl: URL) async throws -> DocCIndex {
-        try await DocCClient.fetchIndex(from: indexUrl)
-    }
-    
     /// Persists a full DocC index after the source has already appeared in the UI.
     ///
     /// - Parameters:

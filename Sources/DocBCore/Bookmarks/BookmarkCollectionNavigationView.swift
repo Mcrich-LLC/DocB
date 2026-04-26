@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Shows bookmarks in a single collection grouped by source technology and provides per-item navigation.
 struct BookmarkCollectionNavigationView: View {
@@ -20,6 +21,16 @@ struct BookmarkCollectionNavigationView: View {
         documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
     }
     
+    /// Bookmark source groups sorted by their display technology name.
+    private var sortedBookmarkGroups: [BookmarkSourceGroup] {
+        collection.bookmarksWithinUrls.keys.map { url in
+            BookmarkSourceGroup(url: url, technology: technology(for: url))
+        }
+        .sorted { lhs, rhs in
+            (lhs.technology?.primaryName ?? "") < (rhs.technology?.primaryName ?? "")
+        }
+    }
+    
     var body: some View {
         List {
             if (collection.bookmarks ?? []).isEmpty {
@@ -30,11 +41,9 @@ struct BookmarkCollectionNavigationView: View {
                 )
                     .listRowBackground(Color.clear)
             } else {
-                ForEach(Array(collection.bookmarksWithinUrls.keys).sorted(by: { (technology(for: $0)?.primaryName ?? "") < (technology(for: $1)?.primaryName ?? "") }), id: \.self) { url in
-                    let tech = technology(for: url)
-                    
-                    Section(tech?.primaryName ?? url.host() ?? url.absoluteString) {
-                        SectionView(collection: collection, url: url)
+                ForEach(sortedBookmarkGroups) { group in
+                    Section(group.technology?.primaryName ?? group.url.host() ?? group.url.absoluteString) {
+                        SectionView(collection: collection, url: group.url, technology: group.technology)
                     }
                 }
                 .onDelete { indexSet in
@@ -62,25 +71,33 @@ struct BookmarkCollectionNavigationView: View {
     }
 }
 
+/// Precomputed bookmark source group used to avoid repeated technology lookups during list rendering.
+private struct BookmarkSourceGroup: Identifiable {
+    /// Source URL shared by all bookmarks in this section.
+    let url: URL
+    /// Matching loaded technology, when available.
+    let technology: TechnologyTypes?
+    
+    /// Stable identity for SwiftUI diffing.
+    var id: URL { url }
+}
+
 /// Section renderer for bookmarks grouped under a single source URL.
 private struct SectionView: View {
     /// Parent bookmark collection being rendered.
     let collection: BookmarkCollection
     /// Grouped source URL represented by this section.
     let url: URL
+    /// Matching loaded technology for this source, when available.
+    let technology: TechnologyTypes?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
-    
-    /// Resolves the matching technology entry for a grouped URL.
-    func technology(for url: URL) -> TechnologyTypes? {
-        documentationViewModel.technologies.first(where: { $0.url.absoluteString.contains(url.absoluteString) })
-    }
     
     var body: some View {
         ForEach(collection.bookmarksWithinUrls[url] ?? []) { bookmark in
             if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
                 Group {
-                    if technology(for: url) == nil {
+                    if technology == nil {
                         AddSourceButton(bookmark: bookmark) {
                             Label(text: text)
                         }

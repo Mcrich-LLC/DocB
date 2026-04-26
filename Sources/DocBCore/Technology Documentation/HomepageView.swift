@@ -6,46 +6,16 @@
 //
 
 import SwiftUI
+import DocCKit
 
-/// HomepageView renders a reusable SwiftUI view.
+/// HomepageView coordinates DocB app state for a DocC homepage renderer.
 struct HomepageView: View {
+    /// Parsed homepage payload.
     let homepage: HomepageParser
     
-    @Environment(NavigationViewModel.self) var navigationViewModel
-    
-    @ViewBuilder
-    private func verticalStacker(spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {
-        if navigationViewModel.isUsingSplitView {
-            LazyVStack(spacing: spacing, content: content)
-        } else {
-            VStack(spacing: spacing, content: content)
-        }
-    }
+    @Environment(NavigationViewModel.self) private var navigationViewModel
     
     var body: some View {
-        ScrollView {
-            verticalStacker(spacing: 60) {
-                ForEach(homepage.sections) { section in
-                    switch section.kind {
-                    case .hero:
-                        HomepageHero(section: section, homepage: homepage)
-                    case .homepageResources:
-                        HomepageResources(section: section, homepage: homepage)
-                            .padding(.horizontal, 25)
-                    case .section:
-                        HomepageSection(section: section, homepage: homepage)
-                            .padding(.horizontal, 25)
-                    }
-                }
-                if let legalNotices = homepage.legalNotices {
-                    LegalNoticesView(legalNotices: legalNotices)
-                        .padding(.horizontal, 25)
-                }
-            }
-            .padding([.bottom], 25)
-        }
-        .lineSpacing(4)
-        .scrollContentBackground(.hidden)
-        .background(Color.homepageBackground)
+        DocCHomepageView(homepage: homepage, navigator: navigationViewModel)
     }
 }

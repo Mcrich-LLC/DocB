@@ -8,14 +8,19 @@
 
 import Foundation
 import SwiftUI
+import DocCKit
 
 /// Central navigation state coordinator that drives history, deep links, and path synchronization.
 ///
 /// - Important: `isNavigating` guards history writes during internal state transitions to prevent recursive history mutations.
 @Observable
 @MainActor
-public class NavigationViewModel: @MainActor Equatable {
+public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
+    /// Creates the navigation coordinator.
     public init() {}
+    
+    /// URL scheme used to route generated documentation links back into the host app.
+    public var deepLinkScheme = DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme)
     /// Enables selective in-place history updates for technology transitions.
     public var technologyHistoryUpdatingIsEnabled: Bool = false
     
@@ -93,7 +98,15 @@ public class NavigationViewModel: @MainActor Equatable {
         
         self.reference = reference
     }
-        
+    
+    /// Routes to the documentation homepage.
+    public func showHomepage() {
+        setReference(nil)
+        setTechnology(nil)
+        removeLastPath(path.count)
+        appendPath(.homepage)
+    }
+    
     /// Active split-view column visibility state.
     public var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     /// Current horizontal size class used for layout-mode decisions.
@@ -593,7 +606,7 @@ extension NavigationViewModel {
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
             do {
-                let fetchUrl = Constants.basePath.appending(path: url.path()).appendingPathExtension("json")
+                let fetchUrl = DocCConstants.basePath.appending(path: url.path()).appendingPathExtension("json")
                 let url = try await documentationViewModel.getRedirectedURL(for: fetchUrl)
                 let updateUrlPathComponents = Array(url.pathComponents.dropFirst(3))
                 
@@ -634,7 +647,7 @@ extension NavigationViewModel {
     
     /// Attempts to match and route a URL to a custom DocC framework.
     @discardableResult
-    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSource, documentationViewModel: DocumentationViewModel) async -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         let identifier = url.path()
         
@@ -728,7 +741,7 @@ extension NavigationViewModel {
     
     /// Attempts to match and route a URL to an article in a custom DocC site.
     @discardableResult
-    private func handleDocCArticleURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCArticleURL(_ url: URL, for site: DocCSource, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
         var articleIdentifier = "doc://\(url.host() ?? "com.docc.documentation")/documentation"
         

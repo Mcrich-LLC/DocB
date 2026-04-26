@@ -8,8 +8,6 @@
 import SwiftUI
 
 /// Cross-platform tappable control that behaves like a button on all supported platforms.
-///
-/// - Important: On macOS/Catalyst this uses `onTapGesture` to keep list-like row interactions visually consistent.
 public struct MacOSAgnosticButton<Content: View>: View {
     public init(action: @escaping () -> Void, @ViewBuilder label: () -> Content) {
         self.action = action
@@ -21,8 +19,8 @@ public struct MacOSAgnosticButton<Content: View>: View {
     
     public var body: some View {
 #if os(macOS) || targetEnvironment(macCatalyst)
-        label
-            .onTapGesture(perform: action)
+        Button(action: action, label: { label.contentShape(Rectangle()) })
+            .buttonStyle(.plain)
         #else
         Button(action: action, label: {label})
         #endif

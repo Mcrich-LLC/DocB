@@ -14,8 +14,13 @@ struct ZoomableModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onGeometryChange(for: CGSize.self, of: { proxy in
-                proxy.size
+                CGSize(
+                    width: proxy.size.width.rounded(.toNearestOrAwayFromZero),
+                    height: proxy.size.height.rounded(.toNearestOrAwayFromZero)
+                )
             }, action: { newValue in
+                guard contentSize != newValue else { return }
+                
                 contentSize = newValue
             })
             .animatableTransformEffect(transform)

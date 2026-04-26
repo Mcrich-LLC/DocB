@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Renders the app settings container and organizes settings into tabs.
 public struct SettingsView: View {

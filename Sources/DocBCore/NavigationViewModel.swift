@@ -16,7 +16,11 @@ import DocCKit
 @Observable
 @MainActor
 public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
+    /// Creates the navigation coordinator.
     public init() {}
+    
+    /// URL scheme used to route generated documentation links back into the host app.
+    public var deepLinkScheme = DocCDeepLinkScheme.mainBundle
     /// Enables selective in-place history updates for technology transitions.
     public var technologyHistoryUpdatingIsEnabled: Bool = false
     

@@ -16,18 +16,13 @@ import DocCKit
 public struct ContentView: View {
     /// Creates the main documentation browsing view.
     ///
-    /// - Parameters:
-    ///   - url: Optional startup URL used for initial deep-link routing.
-    ///   - deepLinkScheme: Optional bare scheme or URL prefix used to route generated documentation links back into the host app.
-    public init(url: URL? = nil, deepLinkScheme: String? = nil) {
+    /// - Parameter url: Optional startup URL used for initial deep-link routing.
+    public init(url: URL? = nil) {
         self.url = url
-        self.deepLinkScheme = deepLinkScheme.map(DocCDeepLinkScheme.init) ?? .mainBundle
     }
     
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
-    /// URL scheme used to route generated documentation links back into the host app.
-    let deepLinkScheme: DocCDeepLinkScheme
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(AppSettings.self) var appSettings
@@ -92,7 +87,7 @@ public struct ContentView: View {
             self.navigationViewModel.isShowingTechnology = newValue != nil
         })
         .environment(\.openURL, urlActionHandler)
-        .docCDeepLinkScheme(deepLinkScheme)
+        .docCDeepLinkScheme(navigationViewModel.deepLinkScheme)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
         }
@@ -107,7 +102,7 @@ public struct ContentView: View {
               !url.absoluteString.contains("design")
         else {
             guard let url = URL(string: url.absoluteString
-                .replacingOccurrences(of: deepLinkScheme.urlPrefix, with: "https://")
+                .replacingOccurrences(of: navigationViewModel.deepLinkScheme.urlPrefix, with: "https://")
                 .replacingOccurrences(of: "com.apple.documentation", with: "developer.apple.com")) else {
                 return .systemAction
             }
@@ -115,7 +110,7 @@ public struct ContentView: View {
             return .systemAction(url)
         }
         
-        if "\(url.scheme ?? "")://" == deepLinkScheme.urlPrefix {
+        if "\(url.scheme ?? "")://" == navigationViewModel.deepLinkScheme.urlPrefix {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
@@ -127,8 +122,8 @@ public struct ContentView: View {
             }
         } else if url.absoluteString.contains("developer.apple.com/documentation"),
                   let url = URL(string: url.absoluteString
-                    .replacingOccurrences(of: "https://", with: deepLinkScheme.urlPrefix)
-                    .replacingOccurrences(of: "http://", with: deepLinkScheme.urlPrefix)) {
+                    .replacingOccurrences(of: "https://", with: navigationViewModel.deepLinkScheme.urlPrefix)
+                    .replacingOccurrences(of: "http://", with: navigationViewModel.deepLinkScheme.urlPrefix)) {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
@@ -140,7 +135,7 @@ public struct ContentView: View {
             }
         } else if url.scheme == "doc",
                   let url = URL(string: url.absoluteString
-                    .replacingOccurrences(of: "doc://", with: deepLinkScheme.urlPrefix)) {
+                    .replacingOccurrences(of: "doc://", with: navigationViewModel.deepLinkScheme.urlPrefix)) {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:

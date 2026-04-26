@@ -41,7 +41,12 @@ struct AddBookmarkView: View {
                             Button {
                                 toggleBookmark(existingBookmark, collection: collection)
                             } label: {
-                                Label(title, systemSymbol: .folder)
+                                Label {
+                                    Text(title)
+                                } icon: {
+                                    Image(systemName: collection.sfSymbolName ?? "folder")
+                                        .foregroundStyle(collection.color)
+                                }
                             }
                             .tintColor(Color.primary)
                             

@@ -99,6 +99,7 @@ private struct MainView: View {
     @Binding var showAddSource: Bool
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.appearsActive) var appearsActive
     /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
@@ -129,7 +130,7 @@ private struct MainView: View {
         }
         .animation(.default, value: hasOnboarded)
         .task {
-            await documentationViewModel.loadTechnologies(docCSites.asDTOs)
+            await documentationViewModel.loadTechnologies(docCSites.asDTOs, modelContainer: modelContext.container)
         }
         .onChange(of: docCSites, onSwiftDataChange)
         .sheet(isPresented: activeTrackedShowAddSource) {
@@ -145,7 +146,7 @@ private struct MainView: View {
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asDTOs)
+                await documentationViewModel.loadTechnologies(insertedSites.asDTOs, modelContainer: modelContext.container)
             }
         }
         

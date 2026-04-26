@@ -218,8 +218,10 @@ public class DocumentationViewModel {
     
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
     ///
-    /// - Parameter sites: Persisted DocC site DTOs.
-    public func loadTechnologies(_ sites: [DocCSiteDTO]) async {
+    /// - Parameters:
+    ///   - sites: Persisted DocC site DTOs.
+    ///   - modelContainer: Optional SwiftData container used to persist remote index updates.
+    public func loadTechnologies(_ sites: [DocCSiteDTO], modelContainer: ModelContainer? = nil) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
                 guard !technologies.contains(where: { $0.isApple }) else {
@@ -247,6 +249,16 @@ public class DocumentationViewModel {
                 let index = try await Self.fetchDocCIndex(from: indexUrl)
                 site.setIndex(index)
                 technologies.appendOrUpdate(.docC(site))
+                if site.index != index, let modelContainer {
+                    let siteURL = site.url
+                    Task.detached(priority: .utility) {
+                        do {
+                            try await Self.persistDocCIndex(index, for: siteURL, modelContainer: modelContainer)
+                        } catch {
+                            print(error)
+                        }
+                    }
+                }
             } catch {
                 print(error)
             }

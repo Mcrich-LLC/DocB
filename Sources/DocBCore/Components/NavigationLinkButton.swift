@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Reusable navigation button that routes to the homepage and updates navigation selection state.
 public struct HomepageNavigationLinkButton<Content: View>: View {
@@ -97,7 +98,7 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Resolves and selects a custom DocC technology group for the current reference when possible.
-    private func _actionHandleSite(_ site: DocCSiteDTO) {
+    private func _actionHandleSite(_ site: DocCSource) {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         if let url = URL(string: reference.identifier) {
             let identifier = url.path()
@@ -122,7 +123,7 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Handles direct child group matching for custom DocC technologies.
-    private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
+    private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) {
         let technologyGroup = group.children?.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
@@ -139,7 +140,7 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Handles closest descendant group matching for custom DocC technologies.
-    private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSiteDTO) {
+    private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) {
         let technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()

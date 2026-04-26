@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Internal coordinator that keeps filtering and reference-visibility state for `TechnologyRootView`.
 @Observable
@@ -307,7 +308,7 @@ private struct FrameworkListContent: View {
             
             Section {} footer: {
                 if let legalNotices = framework.legalNotices {
-                    LegalNoticesView(legalNotices: legalNotices)
+                    DocCLegalNoticesView(legalNotices: legalNotices)
                         .padding(.bottom)
                 }
             }

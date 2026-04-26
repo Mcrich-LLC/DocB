@@ -8,6 +8,7 @@
 import NukeUI
 import SwiftUI
 import SwiftData
+import DocCKit
 
 /// Curated source descriptor used by the add-technology UI.
 private struct SuggestedTechnology: Identifiable, Hashable {
@@ -297,10 +298,10 @@ private struct EnteredTechnologyRow: View {
                     title: "Apple Developer Documentation",
                     subtitle: "The documentation from Apple's Official website",
                     image: nil,
-                    baseURL: URL(string: "\(Constants.aDeveloperURLBase)/documentation")!)
+                    baseURL: URL(string: "\(DocCConstants.aDeveloperURLBase)/documentation")!)
             )
-        case .docC(let docCSiteDTO):
-            if let site = docCSiteDTO.groups.first, let path = URL(string: site.path ?? "") {
+        case .docC(let source):
+            if let site = source.groups.first, let path = URL(string: site.path ?? "") {
                 SuggestedTechnologyRow(technology: .init(title: site.title, subtitle: nil, image: nil, baseURL: path))
             }
         }

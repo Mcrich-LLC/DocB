@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import DocCKit
 
 /// BookmarkDTO encapsulates app behavior and state.
 @MainActor
@@ -210,6 +211,7 @@ public final class Bookmark: Identifiable {
     }
     
     /// Reconstructs a reference and attaches a resolved DocC site from known technologies.
+    @MainActor
     public func asReferenceWithDocCSite(from technologies: [TechnologyTypes]) -> Reference? {
         guard let identifier, let type, let siteBaseURL else { return nil }
         

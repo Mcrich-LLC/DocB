@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SFSafeSymbols
 import SwiftData
 import DocBCore
 
@@ -130,7 +129,7 @@ private struct MainView: View {
         }
         .animation(.default, value: hasOnboarded)
         .task {
-            await documentationViewModel.loadTechnologies(docCSites.asDTOs, modelContainer: modelContext.container)
+            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources, modelContainer: modelContext.container)
         }
         .onChange(of: docCSites, onSwiftDataChange)
         .sheet(isPresented: activeTrackedShowAddSource) {
@@ -146,7 +145,7 @@ private struct MainView: View {
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asDTOs, modelContainer: modelContext.container)
+                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources, modelContainer: modelContext.container)
             }
         }
         

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import DocCKit
 
 /// Lets the user add or remove the current reference across bookmark collections.
 struct AddBookmarkView: View {

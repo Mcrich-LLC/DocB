@@ -65,7 +65,7 @@ private class ArticleContentManager {
     }
     
     /// Resolves a displayable image or video URL for a reference identifier and current appearance.
-    func fetchPhotoVideoURL(for identifier: String, colorScheme: ColorScheme, docCSite: DocCSiteDTO?) -> URL? {
+    func fetchPhotoVideoURL(for identifier: String, colorScheme: ColorScheme, docCSite: DocCSource?) -> URL? {
         guard let url = Constants.fetchPhotoVideoURL(for: identifier, references: references, colorScheme: colorScheme, docCSite: docCSite) else {
             return nil
         }

@@ -27,7 +27,7 @@ public struct Constants {
     public static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
     
     /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
-    public static func fetchPhotoVideoURL(for identifier: String, references: [String : Reference], colorScheme: ColorScheme, docCSite: DocCSiteDTO?) -> URL? {
+    public static func fetchPhotoVideoURL(for identifier: String, references: [String : Reference], colorScheme: ColorScheme, docCSite: DocCSource?) -> URL? {
         guard let reference = references[identifier], let variants = reference.variants else {
             return nil
         }

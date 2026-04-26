@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import DocCKit
 
 /// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
 ///
@@ -118,7 +119,7 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
             isActive: true,
             identifier: path),
             legalNotices: nil,
-            docCSite: self
+            docCSite: docCSource
         )
     }
     
@@ -130,6 +131,11 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
         let model = modelContext.model(for: persistentModelID)
         modelContext.delete(model)
         try modelContext.save()
+    }
+    
+    /// Pure DocCKit source value for renderer/client APIs.
+    public var docCSource: DocCSource {
+        DocCSource(id: id, timestamp: timestamp, url: url, overrideName: overrideName, index: index)
     }
 }
 
@@ -218,7 +224,7 @@ extension [DocCSite] {
 
 extension EnvironmentValues {
     /// Currently selected custom DocC site context for resolving relative references and assets.
-    @Entry public var docCSite: DocCSiteDTO?
+    @Entry public var docCSite: DocCSource?
 }
 
 extension DocCSite {

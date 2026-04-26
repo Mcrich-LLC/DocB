@@ -632,7 +632,7 @@ private struct InterfaceLanguageSearchListing: View {
             return nil
         }
         
-        return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
+        return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site.docCSource)
     }
     
     /// Renders symbol-like text with code styling, otherwise plain text.
@@ -688,7 +688,7 @@ private struct InterfaceLanguageDTOSearchListing: View {
             title: interfaceLanguage.title,
             identifier: "\(Constants.deeplinkScheme)nav\(path)",
             type: interfaceLanguage.type,
-            docCSite: site
+            docCSite: site.docCSource
         )
     }
     

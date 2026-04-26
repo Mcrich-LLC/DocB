@@ -8,13 +8,14 @@
 
 import Foundation
 import SwiftUI
+import DocCKit
 
 /// Central navigation state coordinator that drives history, deep links, and path synchronization.
 ///
 /// - Important: `isNavigating` guards history writes during internal state transitions to prevent recursive history mutations.
 @Observable
 @MainActor
-public class NavigationViewModel: @MainActor Equatable {
+public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
     public init() {}
     /// Enables selective in-place history updates for technology transitions.
     public var technologyHistoryUpdatingIsEnabled: Bool = false
@@ -92,6 +93,25 @@ public class NavigationViewModel: @MainActor Equatable {
         }
         
         self.reference = reference
+    }
+    
+    /// Routes to the documentation homepage.
+    public func showHomepage() {
+        setReference(nil)
+        setTechnology(nil)
+        removeLastPath(path.count)
+        appendPath(.homepage)
+    }
+    
+    /// Opens an external URL using platform-native behavior.
+    ///
+    /// - Parameter url: External URL to open.
+    public func openExternalURL(_ url: URL) {
+        #if canImport(AppKit)
+        NSWorkspace.shared.open(url)
+        #elseif canImport(UIKit)
+        UIApplication.shared.open(url)
+        #endif
     }
         
     /// Active split-view column visibility state.
@@ -740,12 +760,12 @@ extension NavigationViewModel {
             if let framework = documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
-                await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
+                await documentationViewModel.fetchFramework(for: articleIdentifier, site: site.docCSource)
                 if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 
-                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: site) {
+                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: site.docCSource) {
                     references.merge(dict: article.references)
                 }
             }
@@ -759,10 +779,10 @@ extension NavigationViewModel {
             article = referece
         } else {
             do {
-                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: site)
+                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: site.docCSource)
                 
                 // swiftlint:disable line_length
-                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: site)
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: site.docCSource)
                 // swiftlint:enable line_length
                 
                 article = reference
@@ -771,7 +791,7 @@ extension NavigationViewModel {
             }
         }
         
-        article?.docCSite = site
+        article?.docCSite = site.docCSource
         
         func getAllChildren(for group: [DocCIndex.InterfaceLanguage], descendant: Bool = false) -> [DocCIndex.InterfaceLanguage] {
             group.flatMap({ (descendant ? [] : [$0]) + ($0.children ?? []) + getAllChildren(for: ($0.children ?? []), descendant: true) })

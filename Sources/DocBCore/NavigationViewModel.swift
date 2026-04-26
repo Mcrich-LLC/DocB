@@ -20,7 +20,7 @@ public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
     public init() {}
     
     /// URL scheme used to route generated documentation links back into the host app.
-    public var deepLinkScheme = DocCDeepLinkScheme.mainBundle
+    public var deepLinkScheme = DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme)
     /// Enables selective in-place history updates for technology transitions.
     public var technologyHistoryUpdatingIsEnabled: Bool = false
     
@@ -606,7 +606,7 @@ extension NavigationViewModel {
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
             do {
-                let fetchUrl = Constants.basePath.appending(path: url.path()).appendingPathExtension("json")
+                let fetchUrl = DocCConstants.basePath.appending(path: url.path()).appendingPathExtension("json")
                 let url = try await documentationViewModel.getRedirectedURL(for: fetchUrl)
                 let updateUrlPathComponents = Array(url.pathComponents.dropFirst(3))
                 

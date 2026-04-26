@@ -20,10 +20,6 @@ public struct WindowTypes {
 
 /// Defines app-wide constants and URL helpers for loading documentation resources.
 public struct Constants {
-    /// Base URL for Apple Developer Documentation.
-    public static let aDeveloperURLBase = #base64Encoded("https://developer.apple.com")!
-    /// Legacy tutorials data endpoint used by older Apple payloads.
-    public static let basePath = URL(string: "\(Constants.aDeveloperURLBase)/tutorials/data")!
     /// Custom deep-link scheme used to route in-app documentation links.
     public static let deeplinkScheme = "com.Mcrich.Apple-Documentation://"
     

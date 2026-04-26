@@ -190,16 +190,25 @@ public class DocumentationViewModel {
                 return
             }
             let indexUrl = baseUrl.appending(path: "index/index.json")
-            let (data, _) = try await URLSession.shared.data(from: indexUrl)
-            
-            let index = try JSONDecoder().decode(DocCIndex.self, from: data)
-            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: index)
+            let index = try await Self.fetchDocCIndex(from: indexUrl)
+            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()
-            let dto = try site.dto
-            await MainActor.run {
-                withAnimation {
-                    self.technologies.appendOrUpdate(.docC(dto))
+            let modelContainer = modelContext.container
+            let dto = DocCSiteDTO(
+                id: site.id,
+                timestamp: site.timestamp ?? .init(),
+                url: baseUrl,
+                overrideName: overrideName,
+                index: index,
+                persistentModelID: site.persistentModelID
+            )
+            technologies.appendOrUpdate(.docC(dto))
+            Task.detached(priority: .utility) {
+                do {
+                    try await Self.persistDocCIndex(index, for: baseUrl, modelContainer: modelContainer)
+                } catch {
+                    print(error)
                 }
             }
         } catch {
@@ -209,8 +218,10 @@ public class DocumentationViewModel {
     
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
     ///
-    /// - Parameter sites: Persisted DocC site DTOs.
-    public func loadTechnologies(_ sites: [DocCSiteDTO]) async {
+    /// - Parameters:
+    ///   - sites: Persisted DocC site DTOs.
+    ///   - modelContainer: Optional SwiftData container used to persist remote index updates.
+    public func loadTechnologies(_ sites: [DocCSiteDTO], modelContainer: ModelContainer? = nil) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
                 guard !technologies.contains(where: { $0.isApple }) else {
@@ -221,19 +232,152 @@ public class DocumentationViewModel {
                 await fetchTechnologies()
                 continue
             }
+            
+            guard !technologies.contains(where: { technology in
+                switch technology {
+                case .apple:
+                    return false
+                case .docC(let loadedSite):
+                    return loadedSite.url == site.url
+                }
+            }) else {
+                continue
+            }
+            
             do {
                 let indexUrl = site.url.appending(path: "index/index.json")
-                let (data, _) = try await URLSession.shared.data(from: indexUrl)
-                
-                let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+                let index = try await Self.fetchDocCIndex(from: indexUrl)
+                let shouldPersistRemoteIndex = site.index != index
                 site.setIndex(index)
-                await MainActor.run {
-                    withAnimation {
-                        self.technologies.appendOrUpdate(.docC(site))
+                technologies.appendOrUpdate(.docC(site))
+                if shouldPersistRemoteIndex, let modelContainer {
+                    let siteURL = site.url
+                    Task.detached(priority: .utility) {
+                        do {
+                            try await Self.persistDocCIndex(index, for: siteURL, modelContainer: modelContainer)
+                        } catch {
+                            print(error)
+                        }
                     }
                 }
             } catch {
                 print(error)
+            }
+        }
+    }
+    
+    /// Fetches and decodes a DocC index away from the main actor.
+    ///
+    /// - Parameter indexUrl: URL for the source's `index/index.json` payload.
+    /// - Returns: A decoded DocC index.
+    private nonisolated static func fetchDocCIndex(from indexUrl: URL) async throws -> DocCIndex {
+        let (data, _) = try await URLSession.shared.data(from: indexUrl)
+        
+        return try JSONDecoder().decode(DocCIndex.self, from: data)
+    }
+    
+    /// Persists a full DocC index after the source has already appeared in the UI.
+    ///
+    /// - Parameters:
+    ///   - index: Decoded index to store for offline use and persisted search.
+    ///   - url: Source URL used to find the persisted source record.
+    ///   - modelContainer: Container used to create the background context.
+    private nonisolated static func persistDocCIndex(
+        _ index: DocCIndex,
+        for url: URL,
+        modelContainer: ModelContainer
+    ) async throws {
+        try await Task.detached(priority: .utility) {
+            let context = ModelContext(modelContainer)
+            let descriptor = FetchDescriptor<DocCSite>(
+                predicate: #Predicate { site in
+                    site.url == url
+                }
+            )
+            
+            guard let site = try context.fetch(descriptor).first else {
+                return
+            }
+            
+            site.indexV2 = DocCSite.DocCIndexModel(index)
+            try context.save()
+        }.value
+    }
+    
+    /// Removes a technology from memory and deletes persisted source data using a background context.
+    ///
+    /// - Parameters:
+    ///   - site: The technology to remove.
+    ///   - modelContainer: SwiftData container used to create a background deletion context.
+    public func deleteTechnology(_ site: TechnologyTypes, modelContainer: ModelContainer) async throws {
+        guard technologies.contains(where: { $0.id == site.id }) else {
+            return
+        }
+        
+        switch site {
+        case .apple:
+            technologies.removeAll { $0.id == site.id }
+            if let site = appleDocCSiteRef {
+                try await Self.deleteDocCSite(
+                    persistentModelID: site.persistentModelID,
+                    url: site.url,
+                    modelContainer: modelContainer
+                )
+            }
+        case .docC(let docCSiteDTO):
+            technologies.removeAll { $0.id == site.id }
+            try await Self.deleteDocCSite(
+                persistentModelID: docCSiteDTO.persistentModelID,
+                url: docCSiteDTO.url,
+                modelContainer: modelContainer
+            )
+        }
+    }
+    
+    /// Deletes a persisted DocC site away from the main actor.
+    ///
+    /// - Parameters:
+    ///   - persistentModelID: Preferred persistent identifier for the site.
+    ///   - url: Source URL used as a fallback lookup.
+    ///   - modelContainer: Container used to create the background context.
+    private nonisolated static func deleteDocCSite(
+        persistentModelID: PersistentIdentifier?,
+        url: URL,
+        modelContainer: ModelContainer
+    ) async throws {
+        try await Task.detached(priority: .userInitiated) {
+            let context = ModelContext(modelContainer)
+            
+            if let persistentModelID {
+                let model = context.model(for: persistentModelID)
+                context.delete(model)
+            } else {
+                let descriptor = FetchDescriptor<DocCSite>(
+                    predicate: #Predicate { site in
+                        site.url == url
+                    }
+                )
+                for site in try context.fetch(descriptor) {
+                    context.delete(site)
+                }
+            }
+            
+            try context.save()
+        }.value
+    }
+    
+    /// Removes a technology from memory after SwiftData reports that its source record disappeared.
+    ///
+    /// - Parameters:
+    ///   - id: Persisted source identifier.
+    ///   - url: Persisted source URL.
+    public func removeTechnologyFromMemory(id: UUID, url: URL?) {
+        technologies.removeAll { technology in
+            switch technology {
+            case .apple:
+                return appleDocCSiteRef?.id == id || appleDocCSiteRef?.url == url
+            case .docC(let site):
+                return site.id == id || site.url == url
             }
         }
     }

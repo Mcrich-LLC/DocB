@@ -39,13 +39,13 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
     public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates an in-memory DocC site DTO.
-    public init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
-        self.id = UUID()
+    public init(id: UUID = UUID(), timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex, persistentModelID: PersistentIdentifier? = nil) {
+        self.id = id
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
         self.index = index
-        self.persistentModelID = nil
+        self.persistentModelID = persistentModelID
     }
     
     /// Creates a DTO from a persisted `DocCSite` model.

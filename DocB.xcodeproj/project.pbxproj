@@ -17,7 +17,7 @@
 
 /* Begin PBXFileReference section */
 		2295BBB82F8C16DD009B4E12 /* DocB Staging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DocB Staging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2295BBB92F8C16DD009B4E12 /* DocB copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "DocB copy-Info.plist"; path = "/Users/mcrich/Xcode/Apple Documentation/DocB copy-Info.plist"; sourceTree = "<absolute>"; };
+		2295BBB92F8C16DD009B4E12 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = "/Users/mcrich/Xcode/Apple Documentation/Info.plist"; sourceTree = "<absolute>"; };
 		22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* DocB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DocB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -79,7 +79,7 @@
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
 				22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */,
-				2295BBB92F8C16DD009B4E12 /* DocB copy-Info.plist */,
+				2295BBB92F8C16DD009B4E12 /* Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -524,7 +524,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "DocB-Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DocB;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -589,7 +589,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "DocB-Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DocB;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";

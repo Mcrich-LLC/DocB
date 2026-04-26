@@ -103,17 +103,6 @@ public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
         appendPath(.homepage)
     }
     
-    /// Opens an external URL using platform-native behavior.
-    ///
-    /// - Parameter url: External URL to open.
-    public func openExternalURL(_ url: URL) {
-        #if canImport(AppKit)
-        NSWorkspace.shared.open(url)
-        #elseif canImport(UIKit)
-        UIApplication.shared.open(url)
-        #endif
-    }
-        
     /// Active split-view column visibility state.
     public var splitViewColumnVisibility = NavigationSplitViewVisibility.automatic
     /// Current horizontal size class used for layout-mode decisions.

@@ -14,12 +14,20 @@ import DocCKit
 ///
 /// This view keeps a long-lived `NavigationViewModel` in `@State` to preserve navigation history across redraws.
 public struct ContentView: View {
-    public init(url: URL? = nil) {
+    /// Creates the main documentation browsing view.
+    ///
+    /// - Parameters:
+    ///   - url: Optional startup URL used for initial deep-link routing.
+    ///   - deepLinkScheme: Optional bare scheme or URL prefix used to route generated documentation links back into the host app.
+    public init(url: URL? = nil, deepLinkScheme: String? = nil) {
         self.url = url
+        self.deepLinkScheme = deepLinkScheme.map(DocCDeepLinkScheme.init) ?? .mainBundle
     }
     
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
+    /// URL scheme used to route generated documentation links back into the host app.
+    let deepLinkScheme: DocCDeepLinkScheme
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(AppSettings.self) var appSettings
@@ -84,6 +92,7 @@ public struct ContentView: View {
             self.navigationViewModel.isShowingTechnology = newValue != nil
         })
         .environment(\.openURL, urlActionHandler)
+        .docCDeepLinkScheme(deepLinkScheme)
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
         }
@@ -98,7 +107,7 @@ public struct ContentView: View {
               !url.absoluteString.contains("design")
         else {
             guard let url = URL(string: url.absoluteString
-                .replacingOccurrences(of: "com.Mcrich.Apple-Documentation://", with: "https://")
+                .replacingOccurrences(of: deepLinkScheme.urlPrefix, with: "https://")
                 .replacingOccurrences(of: "com.apple.documentation", with: "developer.apple.com")) else {
                 return .systemAction
             }
@@ -106,7 +115,7 @@ public struct ContentView: View {
             return .systemAction(url)
         }
         
-        if "\(url.scheme ?? "")://" == Constants.deeplinkScheme {
+        if "\(url.scheme ?? "")://" == deepLinkScheme.urlPrefix {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
@@ -118,8 +127,8 @@ public struct ContentView: View {
             }
         } else if url.absoluteString.contains("developer.apple.com/documentation"),
                   let url = URL(string: url.absoluteString
-                    .replacingOccurrences(of: "https://", with: Constants.deeplinkScheme)
-                    .replacingOccurrences(of: "http://", with: Constants.deeplinkScheme)) {
+                    .replacingOccurrences(of: "https://", with: deepLinkScheme.urlPrefix)
+                    .replacingOccurrences(of: "http://", with: deepLinkScheme.urlPrefix)) {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
@@ -131,7 +140,7 @@ public struct ContentView: View {
             }
         } else if url.scheme == "doc",
                   let url = URL(string: url.absoluteString
-                    .replacingOccurrences(of: "doc://", with: Constants.deeplinkScheme)) {
+                    .replacingOccurrences(of: "doc://", with: deepLinkScheme.urlPrefix)) {
             
             switch appSettings.openInAppDeeplinksInNewWindow {
             case true:
@@ -621,6 +630,7 @@ private struct InterfaceLanguageSearchListing: View {
     let interfaceLanguage: DocCSite.InterfaceLanguageModel
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
     
     /// Synthetic reference used for navigation when a node maps to a known path/type.
     var reference: Reference? {
@@ -633,7 +643,7 @@ private struct InterfaceLanguageSearchListing: View {
             return nil
         }
         
-        return Reference(title: interfaceLanguage.title, identifier: "\(Constants.deeplinkScheme)nav\(path)", type: type, docCSite: site)
+        return Reference(title: interfaceLanguage.title, identifier: "\(deepLinkScheme.urlPrefix)nav\(path)", type: type, docCSite: site)
     }
     
     /// Renders symbol-like text with code styling, otherwise plain text.
@@ -657,7 +667,7 @@ private struct InterfaceLanguageSearchListing: View {
                     text(title)
                 }
                 .alwaysShowClosestTechnologyGroup()
-            } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
+            } else if let path = interfaceLanguage.path, let url = URL(string: "\(deepLinkScheme.urlPrefix)nav\(path)") {
                 MacOSAgnosticLink(destination: url) {
                     text(title)
                 }
@@ -678,6 +688,7 @@ private struct InterfaceLanguageDocCSourceSearchListing: View {
     let interfaceLanguage: DocCIndex.InterfaceLanguage
     /// Custom DocC site that owns the index node.
     let site: DocCSource
+    @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
     
     /// Synthetic reference used for navigation when a node maps to a known path/type.
     var reference: Reference? {
@@ -687,7 +698,7 @@ private struct InterfaceLanguageDocCSourceSearchListing: View {
         
         return Reference(
             title: interfaceLanguage.title,
-            identifier: "\(Constants.deeplinkScheme)nav\(path)",
+            identifier: "\(deepLinkScheme.urlPrefix)nav\(path)",
             type: interfaceLanguage.type,
             docCSite: site
         )
@@ -714,7 +725,7 @@ private struct InterfaceLanguageDocCSourceSearchListing: View {
                     text(interfaceLanguage.title)
                 }
                 .alwaysShowClosestTechnologyGroup()
-            } else if let path = interfaceLanguage.path, let url = URL(string: "\(Constants.deeplinkScheme)nav\(path)") {
+            } else if let path = interfaceLanguage.path, let url = URL(string: "\(deepLinkScheme.urlPrefix)nav\(path)") {
                 MacOSAgnosticLink(destination: url) {
                     text(interfaceLanguage.title)
                 }

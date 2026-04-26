@@ -32,7 +32,7 @@ public class DocumentationViewModel {
     /// - Returns: A JSON URL for the requested identifier, or `nil` if the identifier is invalid.
     public func jsonUrl(for identifier: String, site: DocCSource?) -> URL? {
         if let site {
-            return DocCClient().jsonURL(for: identifier, source: site)
+            return DocCClient.jsonURL(for: identifier, source: site)
         }
         
         return AppleDocsClient(preferredLanguage: preferedProgrammingLanguage).jsonURL(for: identifier)
@@ -44,7 +44,7 @@ public class DocumentationViewModel {
     /// - Returns: The final URL returned by the server response.
     /// - Throws: `URLError.badServerResponse` when no valid HTTP response URL is available.
     public func getRedirectedURL(for url: URL) async throws -> URL {
-        try await DocCClient().redirectedURL(for: url)
+        try await DocCClient.redirectedURL(for: url)
     }
     
     // MARK: Homepage
@@ -108,7 +108,7 @@ public class DocumentationViewModel {
             }) else {
                 return
             }
-            let index = try await DocCClient().fetchIndex(baseURL: baseUrl)
+            let index = try await DocCClient.fetchIndex(baseURL: baseUrl)
             let site = DocCSite(url: baseUrl, overrideName: overrideName, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()
@@ -163,7 +163,7 @@ public class DocumentationViewModel {
             }
             
             do {
-                let index = try await DocCClient().fetchIndex(baseURL: site.url)
+                let index = try await DocCClient.fetchIndex(baseURL: site.url)
                 let shouldPersistRemoteIndex = site.index != index
                 site.setIndex(index)
                 technologies.appendOrUpdate(.docC(site.docCSource))
@@ -188,7 +188,7 @@ public class DocumentationViewModel {
     /// - Parameter indexUrl: URL for the source's `index/index.json` payload.
     /// - Returns: A decoded DocC index.
     private nonisolated static func fetchDocCIndex(from indexUrl: URL) async throws -> DocCIndex {
-        try await DocCClient().fetchIndex(from: indexUrl)
+        try await DocCClient.fetchIndex(from: indexUrl)
     }
     
     /// Persists a full DocC index after the source has already appeared in the UI.

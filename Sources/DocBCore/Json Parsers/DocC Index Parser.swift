@@ -18,6 +18,14 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Interface-language entries keyed by language token (for example, `swift`).
     public let interfaceLanguages: [String : [InterfaceLanguage]]
     
+    public static func == (lhs: DocCIndex, rhs: DocCIndex) -> Bool {
+        lhs.interfaceLanguages == rhs.interfaceLanguages
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(interfaceLanguages)
+    }
+    
     /// A node in a DocC index tree representing modules, frameworks, and related groups.
     @CodableIgnoreInitializedProperties
     public struct InterfaceLanguage: Codable, Identifiable, Equatable, Hashable, Sendable {
@@ -37,6 +45,20 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
         /// Recursively flattened descendant nodes.
         public var allChildren: [InterfaceLanguage] {
             (children ?? []) + (children?.flatMap(\.allChildren) ?? [])
+        }
+        
+        public static func == (lhs: InterfaceLanguage, rhs: InterfaceLanguage) -> Bool {
+            lhs.title == rhs.title &&
+            lhs.path == rhs.path &&
+            lhs.type == rhs.type &&
+            lhs.children == rhs.children
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(title)
+            hasher.combine(path)
+            hasher.combine(type)
+            hasher.combine(children)
         }
         
         /// Converts immediate children into framework sections.

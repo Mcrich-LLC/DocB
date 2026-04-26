@@ -247,9 +247,10 @@ public class DocumentationViewModel {
             do {
                 let indexUrl = site.url.appending(path: "index/index.json")
                 let index = try await Self.fetchDocCIndex(from: indexUrl)
+                let shouldPersistRemoteIndex = site.index != index
                 site.setIndex(index)
                 technologies.appendOrUpdate(.docC(site))
-                if site.index != index, let modelContainer {
+                if shouldPersistRemoteIndex, let modelContainer {
                     let siteURL = site.url
                     Task.detached(priority: .utility) {
                         do {

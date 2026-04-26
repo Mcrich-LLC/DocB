@@ -827,7 +827,7 @@ private struct AppleTechView: View {
             }
             Section {} footer: {
                 if let legalNotices = technology.legalNotices {
-                    LegalNoticesView(legalNotices: legalNotices)
+                    DocCLegalNoticesView(legalNotices: legalNotices)
                         .padding(.bottom)
                 }
             }

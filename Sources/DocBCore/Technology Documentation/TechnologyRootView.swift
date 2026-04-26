@@ -308,7 +308,7 @@ private struct FrameworkListContent: View {
             
             Section {} footer: {
                 if let legalNotices = framework.legalNotices {
-                    LegalNoticesView(legalNotices: legalNotices)
+                    DocCLegalNoticesView(legalNotices: legalNotices)
                         .padding(.bottom)
                 }
             }

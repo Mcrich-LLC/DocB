@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// MentionsView renders a reusable SwiftUI view.
 struct MentionsView: View {

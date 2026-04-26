@@ -7,6 +7,7 @@
 
 import SwiftUI
 import NukeUI
+import DocCKit
 
 /// HomepageSection renders a reusable SwiftUI view.
 struct HomepageSection: View {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import NukeUI
+import DocCKit
 
 /// LinksGridListView renders a reusable SwiftUI view.
 struct LinksGridListView: View {

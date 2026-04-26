@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// HomepageView renders a reusable SwiftUI view.
 struct HomepageView: View {

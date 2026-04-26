@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// SeeAlsoView renders a reusable SwiftUI view.
 struct SeeAlsoView: View {

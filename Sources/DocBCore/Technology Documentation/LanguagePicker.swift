@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// LanguagePicker renders a reusable SwiftUI view.
 struct LanguagePicker: View {
@@ -14,7 +15,7 @@ struct LanguagePicker: View {
     let variants: [Variant]
     
     /// Deduplicated list of languages extracted from variant traits.
-    var filteredLanguages: [PreferedProgrammingLanguage] {
+    var filteredLanguages: [PreferredProgrammingLanguage] {
         let traits = variants.flatMap({ $0.traits })
         let languages = traits.compactMap({ $0.interfaceLanguage })
         

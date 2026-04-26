@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import PrivateObfuscationMacro
+import DocCKit
 
 /// Scene and window identifiers used by the app.
 public struct WindowTypes {

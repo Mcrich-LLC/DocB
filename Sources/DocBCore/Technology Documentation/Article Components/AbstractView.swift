@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// AbstractView renders a reusable SwiftUI view.
 struct AbstractView: View {

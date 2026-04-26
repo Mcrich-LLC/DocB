@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Reusable navigation button that routes to the homepage and updates navigation selection state.
 public struct HomepageNavigationLinkButton<Content: View>: View {

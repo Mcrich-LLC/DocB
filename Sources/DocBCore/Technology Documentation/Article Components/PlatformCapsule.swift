@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// PlatformCapsule renders a reusable SwiftUI view.
 struct PlatformCapsule: View {

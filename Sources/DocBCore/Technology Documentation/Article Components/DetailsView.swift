@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// DetailsView renders a reusable SwiftUI view.
 struct DetailsView: View {

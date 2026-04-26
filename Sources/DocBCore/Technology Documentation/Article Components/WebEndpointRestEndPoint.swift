@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HighlightSwift
+import DocCKit
 
 /// WebEndpointRestEndPoint renders a reusable SwiftUI view.
 struct WebEndpointRestEndPoint: View {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// RelationshipsView renders a reusable SwiftUI view.
 struct RelationshipsView: View {

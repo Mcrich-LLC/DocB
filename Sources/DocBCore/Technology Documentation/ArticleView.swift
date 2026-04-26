@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import DocCKit
 
 /// ArticleView renders a reusable SwiftUI view.
 struct ArticleView: View {

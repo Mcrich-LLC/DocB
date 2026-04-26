@@ -10,6 +10,7 @@ import SwiftUI
 import NukeUI
 import AVKit
 import HighlightSwift
+import DocCKit
 
 /// Coordinates content transformation and style decisions used while rendering article content blocks.
 @Observable

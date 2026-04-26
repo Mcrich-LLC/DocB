@@ -8,6 +8,7 @@
 import NukeUI
 import SwiftUI
 import SwiftData
+import DocCKit
 
 /// Curated source descriptor used by the add-technology UI.
 private struct SuggestedTechnology: Identifiable, Hashable {

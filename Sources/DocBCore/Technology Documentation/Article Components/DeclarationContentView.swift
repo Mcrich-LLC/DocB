@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HighlightSwift
+import DocCKit
 
 /// DeclarationContentView renders a reusable SwiftUI view.
 struct DeclarationContentView: View {

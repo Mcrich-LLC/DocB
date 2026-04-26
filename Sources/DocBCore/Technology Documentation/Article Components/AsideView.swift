@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// AsideView renders a reusable SwiftUI view.
 struct AsideView: View {

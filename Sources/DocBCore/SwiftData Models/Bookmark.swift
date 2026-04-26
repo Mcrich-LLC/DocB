@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import DocCKit
 
 /// BookmarkDTO encapsulates app behavior and state.
 @MainActor

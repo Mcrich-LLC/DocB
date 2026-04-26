@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// TopicsView renders a reusable SwiftUI view.
 struct TopicsView: View {

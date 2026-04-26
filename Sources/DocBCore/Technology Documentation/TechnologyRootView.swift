@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Internal coordinator that keeps filtering and reference-visibility state for `TechnologyRootView`.
 @Observable

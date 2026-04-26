@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// WebEndpointRestAttributesView renders a reusable SwiftUI view.
 struct WebEndpointRestAttributesView: View {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// DownloadButtonView renders a reusable SwiftUI view.
 struct DownloadButtonView: View {

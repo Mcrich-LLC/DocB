@@ -8,6 +8,7 @@
 import SwiftUI
 import HighlightSwift
 import SwiftData
+import DocCKit
 
 /// Root SwiftUI container that wires navigation, deep-link handling, and shared environment state.
 ///

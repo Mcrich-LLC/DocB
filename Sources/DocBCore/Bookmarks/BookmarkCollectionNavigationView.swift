@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Shows bookmarks in a single collection grouped by source technology and provides per-item navigation.
 struct BookmarkCollectionNavigationView: View {

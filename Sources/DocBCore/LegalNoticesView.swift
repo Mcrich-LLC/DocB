@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DocCKit
 
 /// Displays legal notice text and links to privacy policy and terms of use.
 public struct LegalNoticesView: View {

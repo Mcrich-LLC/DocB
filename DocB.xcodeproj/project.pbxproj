@@ -7,10 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */; };
 		2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAC2F8C16DD009B4E12 /* DocBCore */; };
 		2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
-		22A9D6E82F85C55800524B5F /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
 		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
@@ -47,7 +45,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */,
 				2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -111,7 +108,6 @@
 			);
 			name = "DocB Staging";
 			packageProductDependencies = (
-				2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */,
 				2295BBAC2F8C16DD009B4E12 /* DocBCore */,
 			);
 			productName = "Apple Documentation";
@@ -663,23 +659,7 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		2295BBAB2F8C16DD009B4E12 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 7.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2295BBAB2F8C16DD009B4E12 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
-			productName = SFSafeSymbols;
-		};
 		2295BBAC2F8C16DD009B4E12 /* DocBCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2295BBAD2F8C16DD009B4E12 /* XCLocalSwiftPackageReference "./" */;

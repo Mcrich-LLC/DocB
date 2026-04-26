@@ -654,7 +654,7 @@ extension NavigationViewModel {
     
     /// Attempts to match and route a URL to a custom DocC framework.
     @discardableResult
-    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCFrameworkURL(_ url: URL, for site: DocCSource, documentationViewModel: DocumentationViewModel) async -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         let identifier = url.path()
         
@@ -748,7 +748,7 @@ extension NavigationViewModel {
     
     /// Attempts to match and route a URL to an article in a custom DocC site.
     @discardableResult
-    private func handleDocCArticleURL(_ url: URL, for site: DocCSiteDTO, documentationViewModel: DocumentationViewModel) async -> Bool {
+    private func handleDocCArticleURL(_ url: URL, for site: DocCSource, documentationViewModel: DocumentationViewModel) async -> Bool {
         let articlePath = Array(url.pathComponents.dropFirst(2))
         var articleIdentifier = "doc://\(url.host() ?? "com.docc.documentation")/documentation"
         
@@ -760,12 +760,12 @@ extension NavigationViewModel {
             if let framework = documentationViewModel.frameworks[articleIdentifier] {
                 references.merge(dict: framework.references)
             } else {
-                await documentationViewModel.fetchFramework(for: articleIdentifier, site: site.docCSource)
+                await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
                 if let framework = documentationViewModel.frameworks[articleIdentifier] {
                     references.merge(dict: framework.references)
                 }
                 
-                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: site.docCSource) {
+                if let article = try? await documentationViewModel.fetchArticle(for: articleIdentifier, site: site) {
                     references.merge(dict: article.references)
                 }
             }
@@ -779,10 +779,10 @@ extension NavigationViewModel {
             article = referece
         } else {
             do {
-                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: site.docCSource)
+                let fullArticle = try await documentationViewModel.fetchArticle(for: articleIdentifier, site: site)
                 
                 // swiftlint:disable line_length
-                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: site.docCSource)
+                let reference = Reference(title: fullArticle.metadata.title, abstract: fullArticle.abstract, identifier: articleIdentifier, kind: nil, type: "", url: nil, role: fullArticle.metadata.role, fragments: nil, deprecated: nil, beta: nil, variants: nil, images: nil, docCSite: site)
                 // swiftlint:enable line_length
                 
                 article = reference
@@ -791,7 +791,7 @@ extension NavigationViewModel {
             }
         }
         
-        article?.docCSite = site.docCSource
+        article?.docCSite = site
         
         func getAllChildren(for group: [DocCIndex.InterfaceLanguage], descendant: Bool = false) -> [DocCIndex.InterfaceLanguage] {
             group.flatMap({ (descendant ? [] : [$0]) + ($0.children ?? []) + getAllChildren(for: ($0.children ?? []), descendant: true) })

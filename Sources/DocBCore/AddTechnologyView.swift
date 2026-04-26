@@ -299,8 +299,8 @@ private struct EnteredTechnologyRow: View {
                     image: nil,
                     baseURL: URL(string: "\(Constants.aDeveloperURLBase)/documentation")!)
             )
-        case .docC(let docCSiteDTO):
-            if let site = docCSiteDTO.groups.first, let path = URL(string: site.path ?? "") {
+        case .docC(let source):
+            if let site = source.groups.first, let path = URL(string: site.path ?? "") {
                 SuggestedTechnologyRow(technology: .init(title: site.title, subtitle: nil, image: nil, baseURL: path))
             }
         }

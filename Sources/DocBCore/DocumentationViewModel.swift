@@ -66,7 +66,7 @@ public class DocumentationViewModel {
     /// The in-memory list of loaded technologies from Apple and custom DocC sources.
     public private(set) var technologies: [TechnologyTypes] = []
     /// Stored reference to the Apple site entry persisted in SwiftData.
-    public private(set) var appleDocCSiteRef: DocCSiteDTO?
+    public private(set) var appleDocCSiteRef: PersistedDocCSource?
     
     public func fetchTechnologies() async {
         do {
@@ -102,8 +102,8 @@ public class DocumentationViewModel {
                 switch tech {
                 case .apple:
                     return false
-                case .docC(let docCSiteDTO):
-                    return docCSiteDTO.url == baseUrl
+                case .docC(let source):
+                    return source.url == baseUrl
                 }
             }) else {
                 return
@@ -113,7 +113,7 @@ public class DocumentationViewModel {
             modelContext.insert(site)
             try modelContext.save()
             let modelContainer = modelContext.container
-            let dto = DocCSiteDTO(
+            let persistedSource = PersistedDocCSource(
                 id: site.id,
                 timestamp: site.timestamp ?? .init(),
                 url: baseUrl,
@@ -121,7 +121,7 @@ public class DocumentationViewModel {
                 index: index,
                 persistentModelID: site.persistentModelID
             )
-            technologies.appendOrUpdate(.docC(dto))
+            technologies.appendOrUpdate(.docC(persistedSource.docCSource))
             Task.detached(priority: .utility) {
                 do {
                     try await Self.persistDocCIndex(index, for: baseUrl, modelContainer: modelContainer)
@@ -137,9 +137,9 @@ public class DocumentationViewModel {
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
     ///
     /// - Parameters:
-    ///   - sites: Persisted DocC site DTOs.
+    ///   - sites: Persisted DocC source snapshots.
     ///   - modelContainer: Optional SwiftData container used to persist remote index updates.
-    public func loadTechnologies(_ sites: [DocCSiteDTO], modelContainer: ModelContainer? = nil) async {
+    public func loadTechnologies(_ sites: [PersistedDocCSource], modelContainer: ModelContainer? = nil) async {
         for site in sites {
             guard !site.url.absoluteString.contains("developer.apple.com") else {
                 guard !technologies.contains(where: { $0.isApple }) else {
@@ -166,7 +166,7 @@ public class DocumentationViewModel {
                 let index = try await DocCClient().fetchIndex(baseURL: site.url)
                 let shouldPersistRemoteIndex = site.index != index
                 site.setIndex(index)
-                technologies.appendOrUpdate(.docC(site))
+                technologies.appendOrUpdate(.docC(site.docCSource))
                 if shouldPersistRemoteIndex, let modelContainer {
                     let siteURL = site.url
                     Task.detached(priority: .utility) {
@@ -239,11 +239,11 @@ public class DocumentationViewModel {
                     modelContainer: modelContainer
                 )
             }
-        case .docC(let docCSiteDTO):
+        case .docC(let source):
             technologies.removeAll { $0.id == site.id }
             try await Self.deleteDocCSite(
-                persistentModelID: docCSiteDTO.persistentModelID,
-                url: docCSiteDTO.url,
+                persistentModelID: nil,
+                url: source.url,
                 modelContainer: modelContainer
             )
         }
@@ -313,10 +313,29 @@ public class DocumentationViewModel {
             if let site = appleDocCSiteRef {
                 try site.deleteSite(modelContext: modelContext)
             }
-        case .docC(let docCSiteDTO):
+        case .docC(let source):
             technologies.removeAll { $0.id == site.id }
-            try docCSiteDTO.deleteSite(modelContext: modelContext)
+            try Self.deleteDocCSite(url: source.url, modelContext: modelContext)
         }
+    }
+    
+    /// Deletes persisted DocC sources matching a URL in the current model context.
+    ///
+    /// - Parameters:
+    ///   - url: Source URL used to locate persisted source records.
+    ///   - modelContext: SwiftData context used for deletion.
+    private static func deleteDocCSite(url: URL, modelContext: ModelContext) throws {
+        let descriptor = FetchDescriptor<DocCSite>(
+            predicate: #Predicate { site in
+                site.url == url
+            }
+        )
+        
+        for site in try modelContext.fetch(descriptor) {
+            modelContext.delete(site)
+        }
+        
+        try modelContext.save()
     }
     
     // MARK: Frameworks

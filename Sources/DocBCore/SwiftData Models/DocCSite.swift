@@ -10,12 +10,12 @@ import SwiftUI
 import SwiftData
 import DocCKit
 
-/// Transfer object that bridges persisted `DocCSite` models and runtime-only DocC site state.
+/// Persisted DocC source snapshot that bridges SwiftData records and runtime-only DocCKit source state.
 ///
-/// DTO identity and equality are based on `id`, while hashing also includes timestamp, URL, and index.
+/// Snapshot identity and equality are based on `id`, while hashing also includes timestamp, URL, and index.
 @MainActor
-public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
-    public nonisolated static func == (lhs: DocCSiteDTO, rhs: DocCSiteDTO) -> Bool {
+public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, Equatable, @preconcurrency Hashable {
+    public nonisolated static func == (lhs: PersistedDocCSource, rhs: PersistedDocCSource) -> Bool {
         lhs.id == rhs.id
     }
     
@@ -36,10 +36,10 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
     public let url: URL
     /// Parsed index describing available interface-language groups and entries.
     public private(set) var index: DocCIndex
-    /// Persistent SwiftData identifier used for delete-by-dto operations.
+    /// Persistent SwiftData identifier used for direct delete operations.
     public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
-    /// Creates an in-memory DocC site DTO.
+    /// Creates an in-memory persisted DocC source snapshot.
     public init(id: UUID = UUID(), timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex, persistentModelID: PersistentIdentifier? = nil) {
         self.id = id
         self.timestamp = timestamp
@@ -49,7 +49,7 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
         self.persistentModelID = persistentModelID
     }
     
-    /// Creates a DTO from a persisted `DocCSite` model.
+    /// Creates a persisted source snapshot from a `DocCSite` model.
     ///
     /// - Parameter model: A persisted SwiftData model.
     /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
@@ -75,14 +75,14 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
     
-    /// Updates the DTO index when a fresh remote index payload is loaded.
+    /// Updates the source index when a fresh remote index payload is loaded.
     ///
     /// - Parameter index: New index payload for the site.
     public func setIndex(_ index: DocCIndex) {
         self.index = index
     }
     
-    /// Coding keys for DTO serialization/deserialization.
+    /// Coding keys for source serialization/deserialization.
     public enum CodingKeys: String, CodingKey {
         case timestamp
         case url
@@ -123,7 +123,7 @@ public final class DocCSiteDTO: Identifiable, @preconcurrency Codable, Equatable
         )
     }
     
-    /// Deletes the associated persisted site when this DTO is backed by SwiftData.
+    /// Deletes the associated persisted site when this snapshot is backed by SwiftData.
     ///
     /// - Parameter modelContext: SwiftData context used to locate and remove the model.
     public func deleteSite(modelContext: ModelContext) throws {
@@ -147,7 +147,7 @@ public enum SwiftDataErrors: Error {
 
 /// Persisted SwiftData model representing a DocC site source.
 ///
-/// Persisted properties are optional to tolerate schema evolution, and `dto` provides validated access for app-layer usage.
+/// Persisted properties are optional to tolerate schema evolution, and `persistedSource` provides validated access for app-layer usage.
 @Model
 public final class DocCSite: Identifiable {
     /// Stable identifier for the persisted site model.
@@ -177,19 +177,18 @@ public final class DocCSite: Identifiable {
         self.indexV2 = index
     }
     
-    /// Creates a persisted model from a runtime DTO snapshot.
-    public init(_ dto: DocCSiteDTO) async {
-        self.timestamp = await dto.timestamp
-        self.url = await dto.url
+    /// Creates a persisted model from a runtime source snapshot.
+    @MainActor public init(_ source: PersistedDocCSource) {
+        self.timestamp = source.timestamp
+        self.url = source.url
         
-        let index = await dto.index
-        self.indexV2 = await DocCIndexModel(index)
+        self.indexV2 = DocCIndexModel(source.index)
     }
     
-    /// Converts the persisted model into a DTO used by app logic and UI layers.
+    /// Converts the persisted model into a source snapshot used by app logic and UI layers.
     ///
     /// This accessor throws when persisted data is malformed or required fields are missing.
-    @MainActor public var dto: DocCSiteDTO {
+    @MainActor public var persistedSource: PersistedDocCSource {
         get throws {
             try .init(self)
         }
@@ -216,9 +215,14 @@ public final class DocCSite: Identifiable {
 }
 
 extension [DocCSite] {
-    /// Converts persisted site models to DTOs, skipping malformed records.
-    @MainActor public var asDTOs: [DocCSiteDTO] {
-        compactMap({ try? DocCSiteDTO($0) })
+    /// Converts persisted site models to source snapshots, skipping malformed records.
+    @MainActor public var asPersistedDocCSources: [PersistedDocCSource] {
+        compactMap({ try? PersistedDocCSource($0) })
+    }
+    
+    /// Converts persisted site models directly to DocCKit runtime sources.
+    @MainActor public var asDocCSources: [DocCSource] {
+        asPersistedDocCSources.map(\.docCSource)
     }
 }
 

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SFSafeSymbols
 import SwiftData
 import DocBCore
 

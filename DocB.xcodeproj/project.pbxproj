@@ -10,9 +10,10 @@
 		2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */; };
 		2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAC2F8C16DD009B4E12 /* DocBCore */; };
 		2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
-		22A9D6D52F85C4E300524B5F /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6D42F85C4E300524B5F /* SFSafeSymbols */; };
 		22A9D6E82F85C55800524B5F /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
 		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
+		7D0C0C012F8D000000000001 /* DocCKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7D0C0C052F8D000000000005 /* DocCKit */; };
+		7D0C0C022F8D000000000002 /* DocCKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7D0C0C062F8D000000000006 /* DocCKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 			files = (
 				2295BBB02F8C16DD009B4E12 /* SFSafeSymbols in Frameworks */,
 				2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */,
+				7D0C0C012F8D000000000001 /* DocCKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,8 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				22A9D6D52F85C4E300524B5F /* SFSafeSymbols in Frameworks */,
 				22A9D6E82F85C55800524B5F /* DocBCore in Frameworks */,
+				7D0C0C022F8D000000000002 /* DocCKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +117,7 @@
 			packageProductDependencies = (
 				2295BBAA2F8C16DD009B4E12 /* SFSafeSymbols */,
 				2295BBAC2F8C16DD009B4E12 /* DocBCore */,
+				7D0C0C052F8D000000000005 /* DocCKit */,
 			);
 			productName = "Apple Documentation";
 			productReference = 2295BBB82F8C16DD009B4E12 /* DocB Staging.app */;
@@ -138,8 +141,8 @@
 			);
 			name = DocB;
 			packageProductDependencies = (
-				22A9D6D42F85C4E300524B5F /* SFSafeSymbols */,
 				22A9D6E72F85C55800524B5F /* DocBCore */,
+				7D0C0C062F8D000000000006 /* DocCKit */,
 			);
 			productName = "Apple Documentation";
 			productReference = 22F8CD662CB23D6C0081BB0A /* DocB.app */;
@@ -170,8 +173,8 @@
 			);
 			mainGroup = 22F8CD5D2CB23D6C0081BB0A;
 			packageReferences = (
-				22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 				22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */,
+				7D0C0C032F8D000000000003 /* XCLocalSwiftPackageReference "DocCKit" */,
 			);
 			productRefGroup = 22F8CD672CB23D6C0081BB0A /* Products */;
 			projectDirPath = "";
@@ -665,18 +668,14 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ./;
 		};
+		7D0C0C032F8D000000000003 /* XCLocalSwiftPackageReference "DocCKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = DocCKit;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		2295BBAB2F8C16DD009B4E12 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 7.0.0;
-			};
-		};
-		22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
 			requirement = {
@@ -697,15 +696,20 @@
 			package = 2295BBAD2F8C16DD009B4E12 /* XCLocalSwiftPackageReference "./" */;
 			productName = DocBCore;
 		};
-		22A9D6D42F85C4E300524B5F /* SFSafeSymbols */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 22A9D6D32F85C4E300524B5F /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
-			productName = SFSafeSymbols;
-		};
 		22A9D6E72F85C55800524B5F /* DocBCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 22A9D6DE2F85C53600524B5F /* XCLocalSwiftPackageReference "./" */;
 			productName = DocBCore;
+		};
+		7D0C0C052F8D000000000005 /* DocCKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D0C0C032F8D000000000003 /* XCLocalSwiftPackageReference "DocCKit" */;
+			productName = DocCKit;
+		};
+		7D0C0C062F8D000000000006 /* DocCKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D0C0C032F8D000000000003 /* XCLocalSwiftPackageReference "DocCKit" */;
+			productName = DocCKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

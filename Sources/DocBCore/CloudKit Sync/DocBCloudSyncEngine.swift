@@ -19,8 +19,7 @@ import SwiftUI
 /// SwiftData remains the local persistence layer. CloudKit writes, fetches, retries, and deletes are routed through
 /// `MYSyncEngine`, and this coordinator bridges fetched CloudKit records back into SwiftData models.
 @Observable
-@MainActor
-public final class DocBCloudSyncEngine: @preconcurrency MYSyncDelegate {
+public final class DocBCloudSyncEngine: MYSyncDelegate {
     /// Default CloudKit container configured for the DocB app target.
     public static let defaultContainerIdentifier = "iCloud.com.Mcrich.Apple-Documentation"
     

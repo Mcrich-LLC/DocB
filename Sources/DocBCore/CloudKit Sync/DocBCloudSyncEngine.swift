@@ -5,7 +5,6 @@
 //  Created by OpenAI on 4/29/26.
 //
 
-import CloudKit
 import Combine
 import DocCKit
 import Foundation
@@ -17,12 +16,9 @@ import SwiftUI
 /// Coordinates DocB's explicit CloudKit sync without allowing SwiftData to opt into Core Data mirroring.
 ///
 /// SwiftData remains the local persistence layer. CloudKit writes, fetches, retries, and deletes are routed through
-/// `MYSyncEngine`, and this coordinator bridges fetched CloudKit records back into SwiftData models.
+/// `MYSyncEngine`, while this coordinator bridges fetched CloudKit records back into SwiftData models.
 @Observable
 public final class DocBCloudSyncEngine: MYSyncDelegate {
-    /// Default CloudKit container configured for the DocB app target.
-    public static let defaultContainerIdentifier = "iCloud.com.Mcrich.Apple-Documentation"
-    
     /// Whether MYCloudKit is currently uploading, downloading, or applying remote changes locally.
     public private(set) var isSyncing = false
     
@@ -42,11 +38,10 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ///   - modelContainer: SwiftData container used for local persistence.
     ///   - containerIdentifier: CloudKit container identifier used by MYCloudKit.
     public init(
-        modelContainer: ModelContainer,
-        containerIdentifier: String = "iCloud.com.Mcrich.Apple-Documentation"
+        modelContainer: ModelContainer
     ) {
         self.modelContainer = modelContainer
-        self.syncEngine = MYSyncEngine(containerIdentifier: containerIdentifier)
+        self.syncEngine = MYSyncEngine()
         self.syncEngine.delegate = self
         observeSyncEngineState()
     }
@@ -71,9 +66,9 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ) {
         guard !isApplyingRemoteChanges else { return }
         
-        collections.compactMap(DocBCloudBookmarkCollectionRecord.init).forEach(syncEngine.sync)
-        bookmarks.compactMap(DocBCloudBookmarkRecord.init).forEach(syncEngine.sync)
-        docCSites.compactMap(DocBCloudDocCSiteRecord.init).forEach(syncEngine.sync)
+        collections.forEach(syncEngine.sync)
+        bookmarks.forEach(syncEngine.sync)
+        docCSites.forEach(syncEngine.sync)
     }
     
     /// Queues sync and delete operations for DocC site changes observed through SwiftData.
@@ -82,7 +77,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ///   - oldValue: Previous SwiftData query result.
     ///   - newValue: Current SwiftData query result.
     public func syncDocCSiteChanges(oldValue: [DocCSite], newValue: [DocCSite]) {
-        syncChanges(oldValue: oldValue, newValue: newValue, makeRecord: DocBCloudDocCSiteRecord.init)
+        syncChanges(oldValue: oldValue, newValue: newValue)
     }
     
     /// Queues sync and delete operations for bookmark collection changes observed through SwiftData.
@@ -91,7 +86,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ///   - oldValue: Previous SwiftData query result.
     ///   - newValue: Current SwiftData query result.
     public func syncBookmarkCollectionChanges(oldValue: [BookmarkCollection], newValue: [BookmarkCollection]) {
-        syncChanges(oldValue: oldValue, newValue: newValue, makeRecord: DocBCloudBookmarkCollectionRecord.init)
+        syncChanges(oldValue: oldValue, newValue: newValue)
     }
     
     /// Queues sync and delete operations for bookmark changes observed through SwiftData.
@@ -100,7 +95,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ///   - oldValue: Previous SwiftData query result.
     ///   - newValue: Current SwiftData query result.
     public func syncBookmarkChanges(oldValue: [Bookmark], newValue: [Bookmark]) {
-        syncChanges(oldValue: oldValue, newValue: newValue, makeRecord: DocBCloudBookmarkRecord.init)
+        syncChanges(oldValue: oldValue, newValue: newValue)
     }
     
     /// Saves fetched CloudKit records into SwiftData in dependency order.
@@ -186,7 +181,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
                 
                 let descriptor = FetchDescriptor<Bookmark>(
                     predicate: #Predicate { bookmark in
-                        bookmark.cloudKitRootGroupID == id
+                        bookmark.collection?.id.uuidString == id
                     }
                 )
                 for bookmark in try context.fetch(descriptor) {
@@ -260,26 +255,20 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         isSyncing = isUploading || isFetching || isApplyingRemoteChanges
     }
     
-    private func syncChanges<Model>(
-        oldValue: [Model],
-        newValue: [Model],
-        makeRecord: (Model) -> (any MYRecordConvertible)?
-    ) where Model: Identifiable, Model.ID == UUID {
+    private func syncChanges<Model>(oldValue: [Model], newValue: [Model]) where Model: Identifiable & MYRecordConvertible, Model.ID == UUID {
         guard !isApplyingRemoteChanges else { return }
         
         let newIDs = Set(newValue.map(\.id))
         for model in oldValue where !newIDs.contains(model.id) {
-            guard let record = makeRecord(model) else { continue }
-            syncEngine.delete(record, shouldDeleteChildRecords: record.myRecordID == record.myRootGroupID)
+            syncEngine.delete(model, shouldDeleteChildRecords: model.myRecordID == model.myRootGroupID)
         }
         
         for model in newValue {
-            guard let record = makeRecord(model) else { continue }
-            let key = recordKey(type: record.myRecordType, id: record.myRecordID)
+            let key = recordKey(type: model.myRecordType, id: model.myRecordID)
             if recentlyImportedRecordKeys.remove(key) != nil {
                 continue
             }
-            syncEngine.sync(record)
+            syncEngine.sync(model)
         }
     }
     
@@ -319,9 +308,9 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
                 site.id == id
             }
         )
-        
         let existingSite = try context.fetch(descriptor).first
         let site = existingSite ?? DocCSite(timestamp: timestamp, url: url, overrideName: overrideName, index: index)
+        
         site.id = id
         site.timestamp = timestamp
         site.url = url
@@ -329,10 +318,6 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         if indexData != nil {
             site.indexV2 = DocCSite.DocCIndexModel(index)
         }
-        site.cloudKitRecordType = record.type
-        site.cloudKitRootGroupID = record.rootGroupID
-        site.cloudKitParentID = record.parentID
-        site.cloudKitLastImportedAt = .now
         
         if existingSite == nil {
             context.insert(site)
@@ -354,7 +339,6 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
                 collection.id == id
             }
         )
-        
         let existingCollection = try context.fetch(descriptor).first
         let collection = existingCollection ?? BookmarkCollection(
             title: title,
@@ -363,15 +347,12 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
             bookmarks: [],
             lastUpdatedDate: lastUpdatedDate
         )
+        
         collection.id = id
         collection.title = title
         collection.sfSymbolName = sfSymbolName
         collection.color = colorComponents.toColor()
         collection.lastUpdatedDate = lastUpdatedDate
-        collection.cloudKitRecordType = record.type
-        collection.cloudKitRootGroupID = record.rootGroupID
-        collection.cloudKitParentID = record.parentID
-        collection.cloudKitLastImportedAt = .now
         
         if existingCollection == nil {
             context.insert(collection)
@@ -398,7 +379,6 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
                 bookmark.id == id
             }
         )
-        
         let existingBookmark = try context.fetch(descriptor).first
         let bookmark = existingBookmark ?? Bookmark(
             title: title,
@@ -410,6 +390,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
             beta: beta,
             siteBaseURL: siteBaseURL
         )
+        
         bookmark.id = id
         bookmark.title = title
         bookmark.identifier = identifier
@@ -419,10 +400,6 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         bookmark.deprecated = deprecated
         bookmark.beta = beta
         bookmark.siteBaseURL = siteBaseURL
-        bookmark.cloudKitRecordType = record.type
-        bookmark.cloudKitRootGroupID = record.rootGroupID
-        bookmark.cloudKitParentID = record.parentID
-        bookmark.cloudKitLastImportedAt = .now
         
         if let collectionIDString: String = record.value(for: "collectionID"),
            let collectionID = UUID(uuidString: collectionIDString),
@@ -485,121 +462,12 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     }
 }
 
-private enum DocBCloudRecordTypes {
-    static let docCSite = "DocCSite"
-    static let bookmarkCollection = "BookmarkCollection"
-    static let bookmark = "Bookmark"
-}
-
-private struct DocBCloudDocCSiteRecord: MYRecordConvertible {
-    let id: UUID
-    let timestamp: Date
-    let url: URL
-    let overrideName: String?
-    let indexData: Data?
-    
-    var myRecordID: String { id.uuidString }
-    var myRecordType: String { DocBCloudRecordTypes.docCSite }
-    var myRootGroupID: String? { id.uuidString }
-    var myProperties: [String: MYRecordValue] {
-        [
-            "timestamp": .date(timestamp),
-            "url": .string(url.absoluteString),
-            "overrideName": .string(overrideName),
-            "indexData": .asset(indexData)
-        ]
-    }
-    
-    init?(_ site: DocCSite) {
-        guard let timestamp = site.timestamp, let url = site.url else {
-            return nil
-        }
-        
-        self.id = site.id
-        self.timestamp = timestamp
-        self.url = url
-        self.overrideName = site.overrideName
-        self.indexData = site.indexV2.map(\.asIndex).flatMap { try? JSONEncoder().encode($0) }
-    }
-}
-
-private struct DocBCloudBookmarkCollectionRecord: MYRecordConvertible {
-    let id: UUID
-    let title: String
-    let sfSymbolName: String
-    let colorData: Data?
-    let lastUpdatedDate: Date
-    
-    var myRecordID: String { id.uuidString }
-    var myRecordType: String { DocBCloudRecordTypes.bookmarkCollection }
-    var myRootGroupID: String? { id.uuidString }
-    var myProperties: [String: MYRecordValue] {
-        [
-            "title": .string(title),
-            "sfSymbolName": .string(sfSymbolName),
-            "colorComponents": .asset(colorData),
-            "lastUpdatedDate": .date(lastUpdatedDate)
-        ]
-    }
-    
-    init?(_ collection: BookmarkCollection) {
-        guard let title = collection.title else {
-            return nil
-        }
-        
-        self.id = collection.id
-        self.title = title
-        self.sfSymbolName = collection.sfSymbolName ?? "folder"
-        self.colorData = try? JSONEncoder().encode(collection.color.components())
-        self.lastUpdatedDate = collection.lastUpdatedDate ?? .now
-    }
-}
-
-private struct DocBCloudBookmarkRecord: MYRecordConvertible {
-    let id: UUID
-    let title: String?
-    let identifier: String
-    let kind: String?
-    let type: String
-    let role: Role?
-    let deprecated: Bool?
-    let beta: Bool?
-    let siteBaseURL: URL?
-    let collectionRecord: DocBCloudBookmarkCollectionRecord?
-    
-    var myRecordID: String { id.uuidString }
-    var myRecordType: String { DocBCloudRecordTypes.bookmark }
-    var myRootGroupID: String? { collectionRecord?.myRecordID }
-    var myParentID: String? { collectionRecord?.myRecordID }
-    var myProperties: [String: MYRecordValue] {
-        [
-            "title": .string(title),
-            "identifier": .string(identifier),
-            "kind": .string(kind),
-            "type": .string(type),
-            "role": .string(role?.rawValue),
-            "deprecated": .bool(deprecated),
-            "beta": .bool(beta),
-            "siteBaseURL": .string(siteBaseURL?.absoluteString),
-            "collectionID": .string(collectionRecord?.myRecordID),
-            "collection": .reference(collectionRecord, deleteRule: .deleteSelf)
-        ]
-    }
-    
-    init?(_ bookmark: Bookmark) {
-        guard let identifier = bookmark.identifier, let type = bookmark.type else {
-            return nil
-        }
-        
-        self.id = bookmark.id
-        self.title = bookmark.title
-        self.identifier = identifier
-        self.kind = bookmark.kind
-        self.type = type
-        self.role = bookmark.role
-        self.deprecated = bookmark.deprecated
-        self.beta = bookmark.beta
-        self.siteBaseURL = bookmark.siteBaseURL
-        self.collectionRecord = bookmark.collection.flatMap(DocBCloudBookmarkCollectionRecord.init)
-    }
+/// CloudKit record type names used by DocB's MYCloudKit integration.
+public enum DocBCloudRecordTypes {
+    /// Persisted DocC source record type.
+    public static let docCSite = "DocCSite"
+    /// Bookmark collection record type.
+    public static let bookmarkCollection = "BookmarkCollection"
+    /// Bookmark record type.
+    public static let bookmark = "Bookmark"
 }

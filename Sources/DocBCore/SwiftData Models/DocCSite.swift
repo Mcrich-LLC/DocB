@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 import DocCKit
+import MYCloudKit
 
 /// Persisted DocC source snapshot that bridges SwiftData records and runtime-only DocCKit source state.
 ///
@@ -160,14 +161,6 @@ public final class DocCSite: Identifiable {
     public var overrideName: String?
     /// Persisted DocC index tree used for offline navigation and search.
     public var indexV2: DocCIndexModel?
-    /// CloudKit record type last imported by the explicit MYCloudKit sync engine.
-    public var cloudKitRecordType: String?
-    /// CloudKit root group or zone identifier used by the explicit sync engine.
-    public var cloudKitRootGroupID: String?
-    /// CloudKit parent record identifier used for hierarchical sync, when present.
-    public var cloudKitParentID: String?
-    /// Date when this model was last merged from CloudKit by the explicit sync engine.
-    public var cloudKitLastImportedAt: Date?
     
     /// Creates a persisted site model from runtime DocC index content.
     public init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
@@ -219,6 +212,27 @@ public final class DocCSite: Identifiable {
         }
         
         return false
+    }
+}
+
+extension DocCSite: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this DocC site.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for persisted DocC sites.
+    public var myRecordType: String { DocBCloudRecordTypes.docCSite }
+    
+    /// Root CloudKit group for this site.
+    public var myRootGroupID: String? { id.uuidString }
+    
+    /// CloudKit-compatible properties for this persisted DocC site.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "timestamp": .date(timestamp),
+            "url": .string(url?.absoluteString),
+            "overrideName": .string(overrideName),
+//            "indexData": .asset(indexV2.map(\.asIndex).flatMap { try? JSONEncoder().encode($0) })
+        ]
     }
 }
 

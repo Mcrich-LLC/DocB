@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import MYCloudKit
 
 /// BookmarkCollectionDTO encapsulates app behavior and state.
 @MainActor
@@ -128,14 +129,6 @@ public final class BookmarkCollection: Identifiable {
     
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
-    /// CloudKit record type last imported by the explicit MYCloudKit sync engine.
-    public var cloudKitRecordType: String?
-    /// CloudKit root group or zone identifier used by the explicit sync engine.
-    public var cloudKitRootGroupID: String?
-    /// CloudKit parent record identifier used for hierarchical sync, when present.
-    public var cloudKitParentID: String?
-    /// Date when this model was last merged from CloudKit by the explicit sync engine.
-    public var cloudKitLastImportedAt: Date?
     /// Bookmark members belonging to the collection.
     public var bookmarks: [Bookmark]?
     
@@ -162,5 +155,26 @@ public final class BookmarkCollection: Identifiable {
             
             result[siteBaseURL, default: []].append(bookmark)
         }
+    }
+}
+
+extension BookmarkCollection: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this bookmark collection.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for bookmark collections.
+    public var myRecordType: String { DocBCloudRecordTypes.bookmarkCollection }
+    
+    /// Root CloudKit group for this bookmark collection and its child bookmarks.
+    public var myRootGroupID: String? { id.uuidString }
+    
+    /// CloudKit-compatible properties for this bookmark collection.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "title": .string(title),
+            "sfSymbolName": .string(sfSymbolName),
+            "colorComponents": .asset(colorComponents.flatMap { try? JSONEncoder().encode($0) }),
+            "lastUpdatedDate": .date(lastUpdatedDate)
+        ]
     }
 }

@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import DocCKit
+import MYCloudKit
 
 /// BookmarkDTO encapsulates app behavior and state.
 @MainActor
@@ -162,14 +163,6 @@ public final class Bookmark: Identifiable {
     public var beta: Bool?
     /// Base URL for the source documentation site.
     public var siteBaseURL: URL?
-    /// CloudKit record type last imported by the explicit MYCloudKit sync engine.
-    public var cloudKitRecordType: String?
-    /// CloudKit root group or zone identifier used by the explicit sync engine.
-    public var cloudKitRootGroupID: String?
-    /// CloudKit parent record identifier used for hierarchical sync, when present.
-    public var cloudKitParentID: String?
-    /// Date when this model was last merged from CloudKit by the explicit sync engine.
-    public var cloudKitLastImportedAt: Date?
     
     /// Owning collection relationship; nullified if the collection is removed.
     @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
@@ -224,5 +217,32 @@ public final class Bookmark: Identifiable {
         guard let identifier, let type, let siteBaseURL else { return nil }
         
         return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta, docCSite: technologies.docCSites.first(where: { $0.url.absoluteString.contains(siteBaseURL.absoluteString) }))
+    }
+}
+
+extension Bookmark: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this bookmark.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for bookmarks.
+    public var myRecordType: String { DocBCloudRecordTypes.bookmark }
+    
+    /// Root CloudKit group matching the owning collection, when available.
+    public var myRootGroupID: String? { collection?.id.uuidString }
+    
+    /// CloudKit-compatible properties for this bookmark.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "title": .string(title),
+            "identifier": .string(identifier),
+            "kind": .string(kind),
+            "type": .string(type),
+            "role": .string(role?.rawValue),
+            "deprecated": .bool(deprecated),
+            "beta": .bool(beta),
+            "siteBaseURL": .string(siteBaseURL?.absoluteString),
+            "collectionID": .string(collection?.id.uuidString),
+            "collection": .reference(collection, deleteRule: .deleteSelf)
+        ]
     }
 }

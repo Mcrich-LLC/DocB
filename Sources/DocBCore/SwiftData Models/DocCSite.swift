@@ -223,15 +223,14 @@ extension DocCSite: MYRecordConvertible {
     public var myRecordType: String { DocBCloudRecordTypes.docCSite }
     
     /// Root CloudKit group for this site.
-    public var myRootGroupID: String? { id.uuidString }
+    public var myRootGroupID: String? { nil }
     
     /// CloudKit-compatible properties for this persisted DocC site.
     public var myProperties: [String : MYRecordValue] {
         [
             "timestamp": .date(timestamp),
             "url": .string(url?.absoluteString),
-            "overrideName": .string(overrideName),
-//            "indexData": .asset(indexV2.map(\.asIndex).flatMap { try? JSONEncoder().encode($0) })
+            "overrideName": .string(overrideName)
         ]
     }
 }

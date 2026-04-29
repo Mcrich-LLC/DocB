@@ -128,6 +128,14 @@ public final class BookmarkCollection: Identifiable {
     
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
+    /// CloudKit record type last imported by the explicit MYCloudKit sync engine.
+    public var cloudKitRecordType: String?
+    /// CloudKit root group or zone identifier used by the explicit sync engine.
+    public var cloudKitRootGroupID: String?
+    /// CloudKit parent record identifier used for hierarchical sync, when present.
+    public var cloudKitParentID: String?
+    /// Date when this model was last merged from CloudKit by the explicit sync engine.
+    public var cloudKitLastImportedAt: Date?
     /// Bookmark members belonging to the collection.
     public var bookmarks: [Bookmark]?
     

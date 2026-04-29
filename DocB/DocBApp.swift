@@ -21,11 +21,19 @@ struct DocBApp: App {
     @Environment(\.openWindow) var openWindow
     /// Primary SwiftData container for docs, bookmarks, and collections.
     let docCSiteModelContainer: ModelContainer
+    /// Explicit CloudKit sync coordinator backed by MYCloudKit.
+    let cloudSyncEngine: DocBCloudSyncEngine
     
     /// Initializes the SwiftData container and development-only integrations.
     init() {
         do {
-            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, Bookmark.self, BookmarkCollection.self, configurations: .init(cloudKitDatabase: .automatic))
+            docCSiteModelContainer = try ModelContainer(
+                for: DocCSite.self,
+                Bookmark.self,
+                BookmarkCollection.self,
+                configurations: .init(cloudKitDatabase: .none)
+            )
+            cloudSyncEngine = DocBCloudSyncEngine(modelContainer: docCSiteModelContainer)
         } catch {
             fatalError("Error Initializing ModelContainer: \(error)")
         }
@@ -42,6 +50,7 @@ struct DocBApp: App {
         .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Window", action: { openWindow(id: WindowTypes.main) })
@@ -59,11 +68,13 @@ struct DocBApp: App {
         .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         Settings {
             SettingsView()
         }
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         #endif
     }
     
@@ -98,10 +109,15 @@ private struct MainView: View {
     @Binding var showAddSource: Bool
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appearsActive) var appearsActive
     /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
+    /// Persisted bookmark collections that participate in explicit CloudKit sync.
+    @Query private var bookmarkCollections: [BookmarkCollection]
+    /// Persisted bookmarks that participate in explicit CloudKit sync.
+    @Query private var bookmarks: [Bookmark]
     
     /// Tracks source-sheet visibility only while the owning scene is active.
     var activeTrackedShowAddSource: Binding<Bool> {
@@ -129,9 +145,17 @@ private struct MainView: View {
         }
         .animation(.default, value: hasOnboarded)
         .task {
+            await cloudSyncEngine.start()
+            cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources, modelContainer: modelContext.container)
         }
         .onChange(of: docCSites, onSwiftDataChange)
+        .onChange(of: bookmarkCollections) { oldValue, newValue in
+            cloudSyncEngine.syncBookmarkCollectionChanges(oldValue: oldValue, newValue: newValue)
+        }
+        .onChange(of: bookmarks) { oldValue, newValue in
+            cloudSyncEngine.syncBookmarkChanges(oldValue: oldValue, newValue: newValue)
+        }
         .sheet(isPresented: activeTrackedShowAddSource) {
             AddTechnologySheetView()
         }
@@ -139,6 +163,8 @@ private struct MainView: View {
     
     /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
+        cloudSyncEngine.syncDocCSiteChanges(oldValue: oldValue, newValue: newValue)
+        
         let oldIDs = Set(oldValue.map(\.id))
         let newIDs = Set(newValue.map(\.id))
         let insertedSites = newValue.filter { !oldIDs.contains($0.id) }

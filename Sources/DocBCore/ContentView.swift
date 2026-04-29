@@ -294,8 +294,8 @@ private struct TechView: View {
     /// Pending URL string used by add-source alerts/flows.
     @State var addDocumentationUrl: String = ""
     
-    /// A boolean that describes if CoreData is currently syncing with CloudKit
-    @State private var isCoreDataSyncing = false
+    /// A boolean that describes if DocB's explicit CloudKit sync engine is active.
+    @State private var isCloudKitSyncing = false
     
     /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSource, group: DocCIndex.InterfaceLanguage) -> Bool {
@@ -336,7 +336,7 @@ private struct TechView: View {
     
     @ViewBuilder
     private var syncingView: some View {
-        if isCoreDataSyncing {
+        if isCloudKitSyncing {
             HStack {
                 Text("Syncing")
                 ProgressView()
@@ -351,7 +351,7 @@ private struct TechView: View {
             .listRowSeparator(.hidden)
             .padding()
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
-            .animation(.default, value: isCoreDataSyncing)
+            .animation(.default, value: isCloudKitSyncing)
         }
     }
     
@@ -387,7 +387,7 @@ private struct TechView: View {
                 }
             }
         }
-        .isCoreDataSyncing($isCoreDataSyncing)
+        .isDocBCloudKitSyncing($isCloudKitSyncing)
         .searchable(text: $searchText)
         .overlay(content: {
             if isLoading {
@@ -411,7 +411,7 @@ private struct TechView: View {
                 .labelStyle(.iconOnly)
             }
             #if !(os(macOS) || os(visionOS))
-            if #available(iOS 26, *), isCoreDataSyncing, !isLoading {
+            if #available(iOS 26, *), isCloudKitSyncing, !isLoading {
                 ToolbarItem(placement: .largeSubtitle) {
                     HStack {
                         Text("Syncing")
@@ -420,7 +420,7 @@ private struct TechView: View {
                     .foregroundStyle(.secondary)
                     .padding([.top, .leading], 2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .animation(.default, value: isCoreDataSyncing)
+                    .animation(.default, value: isCloudKitSyncing)
                 }
             }
             #endif

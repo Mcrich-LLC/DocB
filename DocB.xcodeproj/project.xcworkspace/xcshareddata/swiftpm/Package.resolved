@@ -20,6 +20,15 @@
       }
     },
     {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "60aa371e0a4165c19d515ae20c9422817313cda6"
+      }
+    },
+    {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",

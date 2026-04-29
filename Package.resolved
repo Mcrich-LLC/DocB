@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e99809e9feb6afe685ef81e4f51bb6e9c46a053822446babcf6500f87f92de1",
+  "originHash" : "69eaf11500a27072d7f834991f6b8541a727d5e467cf61de9dae127b568e6492",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -20,21 +20,21 @@
       }
     },
     {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "60aa371e0a4165c19d515ae20c9422817313cda6"
+      }
+    },
+    {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
-      }
-    },
-    {
-      "identity" : "privateobfuscationmacro",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Mcrich23/PrivateObfuscationMacro",
-      "state" : {
-        "branch" : "main",
-        "revision" : "1b53648f745e31482f51a8ff7a5b9ddb7515428e"
       }
     },
     {

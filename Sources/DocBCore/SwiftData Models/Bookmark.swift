@@ -162,6 +162,14 @@ public final class Bookmark: Identifiable {
     public var beta: Bool?
     /// Base URL for the source documentation site.
     public var siteBaseURL: URL?
+    /// CloudKit record type last imported by the explicit MYCloudKit sync engine.
+    public var cloudKitRecordType: String?
+    /// CloudKit root group or zone identifier used by the explicit sync engine.
+    public var cloudKitRootGroupID: String?
+    /// CloudKit parent record identifier used for hierarchical sync, when present.
+    public var cloudKitParentID: String?
+    /// Date when this model was last merged from CloudKit by the explicit sync engine.
+    public var cloudKitLastImportedAt: Date?
     
     /// Owning collection relationship; nullified if the collection is removed.
     @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)

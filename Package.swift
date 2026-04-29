@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Mcrich23/EnhancedCodable", branch: "main"),
         .package(url: "https://github.com/appstefan/HighlightSwift", from: "1.0.9"),
+        .package(url: "https://github.com/mufasaYC/MYCloudKit.git", branch: "main"),
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
         .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols", from: "7.0.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),
@@ -27,7 +28,7 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "DocBCore",
-            dependencies: ["EnhancedCodable", "HighlightSwift", "Nuke", .product(name: "NukeUI", package: "Nuke"), "SFSafeSymbols", "SFSymbols", "DocCKit"],
+            dependencies: ["EnhancedCodable", "HighlightSwift", "MYCloudKit", "Nuke", .product(name: "NukeUI", package: "Nuke"), "SFSafeSymbols", "SFSymbols", "DocCKit"],
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]

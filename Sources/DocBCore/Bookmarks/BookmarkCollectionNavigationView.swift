@@ -12,6 +12,7 @@ import DocCKit
 struct BookmarkCollectionNavigationView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     @Environment(\.modelContext) private var modelContext
     /// Collection whose bookmarks are presented in grouped sections.
     let collection: BookmarkCollection
@@ -54,6 +55,9 @@ struct BookmarkCollectionNavigationView: View {
                     try? modelContext.save()
                 }
             }
+        }
+        .refreshable {
+            await docBCloudSyncEngine.fetchRemoteChanges()
         }
         .navigationTitle(collection.title ?? "")
         .toolbar {

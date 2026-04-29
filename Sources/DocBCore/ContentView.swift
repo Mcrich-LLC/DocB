@@ -285,6 +285,7 @@ private struct TechView: View {
     /// Error state surfaced through shared alert helper.
     @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     @Environment(\.openWindow) private var openWindow
     @Environment(\.modelContext) private var modelContext
     
@@ -394,6 +395,9 @@ private struct TechView: View {
                 ProgressView("Loading")
             }
         })
+        .refreshable {
+            await docBCloudSyncEngine.fetchRemoteChanges()
+        }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))

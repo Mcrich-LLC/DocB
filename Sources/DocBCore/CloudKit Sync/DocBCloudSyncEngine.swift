@@ -49,6 +49,12 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     /// Starts the CloudKit fetch-and-upload loop for the current launch.
     @MainActor
     public func start() async {
+        await fetchRemoteChanges()
+    }
+    
+    /// Fetches remote CloudKit changes and resumes any pending local upload queue.
+    @MainActor
+    public func fetchRemoteChanges() async {
         await syncEngine.beginFetch()
         syncEngine.beginSync()
     }
@@ -470,4 +476,9 @@ public enum DocBCloudRecordTypes {
     public static let bookmarkCollection = "BookmarkCollection"
     /// Bookmark record type.
     public static let bookmark = "Bookmark"
+}
+
+extension Notification.Name {
+    /// Posted by app targets when CloudKit reports a remote change notification.
+    public static let docBCloudKitRemoteNotificationReceived = Notification.Name("DocBCloudKitRemoteNotificationReceived")
 }

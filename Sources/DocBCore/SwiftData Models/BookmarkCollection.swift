@@ -130,6 +130,7 @@ public final class BookmarkCollection: Identifiable {
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
     /// Bookmark members belonging to the collection.
+    @Relationship(deleteRule: .cascade, inverse: \Bookmark.collection)
     public var bookmarks: [Bookmark]?
     
     /// Creates a new bookmark collection model.

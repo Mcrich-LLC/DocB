@@ -52,7 +52,10 @@ struct DocBApp: App {
                 BookmarkCollection.self,
                 configurations: .init(cloudKitDatabase: .none)
             )
-            cloudSyncEngine = DocBCloudSyncEngine(modelContainer: docCSiteModelContainer)
+            cloudSyncEngine = DocBCloudSyncEngine(
+                modelContainer: docCSiteModelContainer,
+                containerIdentifier: Self.cloudKitContainerIdentifier
+            )
         } catch {
             fatalError("Error Initializing ModelContainer: \(error)")
         }
@@ -105,6 +108,15 @@ struct DocBApp: App {
             return
         }
         print("RocketSim Connect successfully linked")
+        #endif
+    }
+    
+    /// CloudKit container configured for the active app target.
+    private static var cloudKitContainerIdentifier: String? {
+        #if CLOUDKIT_DEBUG
+        "iCloud.com.Mcrich.Apple-Documentation.Debug"
+        #else
+        "iCloud.com.Mcrich.Apple-Documentation"
         #endif
     }
     

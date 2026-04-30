@@ -31,17 +31,20 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     @ObservationIgnored private var isUploading = false
     @ObservationIgnored private var isFetching = false
     @ObservationIgnored private var recentlyImportedRecordKeys: Set<String> = []
+    @ObservationIgnored private var syncedRecordSignatures: [String: String] = [:]
+    @ObservationIgnored private var rootGroupDeleteIDs: Set<String> = []
     
     /// Creates the CloudKit sync coordinator for a SwiftData container.
     ///
     /// - Parameters:
     ///   - modelContainer: SwiftData container used for local persistence.
-    ///   - containerIdentifier: CloudKit container identifier used by MYCloudKit.
+    ///   - containerIdentifier: Optional CloudKit container identifier backed by the active target entitlements.
     public init(
-        modelContainer: ModelContainer
+        modelContainer: ModelContainer,
+        containerIdentifier: String? = nil
     ) {
         self.modelContainer = modelContainer
-        self.syncEngine = MYSyncEngine()
+        self.syncEngine = MYSyncEngine(containerIdentifier: containerIdentifier)
         self.syncEngine.delegate = self
         observeSyncEngineState()
     }
@@ -59,7 +62,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         syncEngine.beginSync()
     }
     
-    /// Queues every currently loaded syncable SwiftData record.
+    /// Records the currently loaded syncable SwiftData state as the local baseline.
     ///
     /// - Parameters:
     ///   - docCSites: Persisted documentation sites.
@@ -72,9 +75,9 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     ) {
         guard !isApplyingRemoteChanges else { return }
         
-        collections.forEach(syncEngine.sync)
-        bookmarks.forEach(syncEngine.sync)
-        docCSites.forEach(syncEngine.sync)
+        collections.forEach { rememberSyncedState($0) }
+        bookmarks.forEach { rememberSyncedState($0) }
+        docCSites.forEach { rememberSyncedState($0) }
     }
     
     /// Queues sync and delete operations for DocC site changes observed through SwiftData.
@@ -128,6 +131,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
                 }
             }
             
+            try reconnectBookmarks(in: context)
             try context.save()
             setApplyingRemoteChanges(false)
             return true
@@ -148,13 +152,18 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         do {
             let context = ModelContext(modelContainer)
             for record in records {
-                recentlyImportedRecordKeys.insert(recordKey(type: record.myRecordType, id: record.myRecordID))
+                let key = recordKey(type: record.myRecordType, id: record.myRecordID)
+                recentlyImportedRecordKeys.insert(key)
+                syncedRecordSignatures.removeValue(forKey: key)
                 
                 switch record.myRecordType {
                 case DocBCloudRecordTypes.docCSite:
                     try deleteDocCSite(idString: record.myRecordID, in: context)
                 case DocBCloudRecordTypes.bookmarkCollection:
+                    try deleteBookmarks(collectionIDString: record.myRecordID, in: context)
                     try deleteBookmarkCollection(idString: record.myRecordID, in: context)
+                    removeSyncedRecords(inGroupID: record.myRecordID)
+                    rootGroupDeleteIDs.insert(record.myRecordID)
                 case DocBCloudRecordTypes.bookmark:
                     try deleteBookmark(idString: record.myRecordID, in: context)
                 default:
@@ -182,17 +191,11 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         do {
             let context = ModelContext(modelContainer)
             for id in ids {
+                try deleteBookmarks(collectionIDString: id, in: context)
                 try deleteDocCSite(idString: id, in: context)
                 try deleteBookmarkCollection(idString: id, in: context)
-                
-                let descriptor = FetchDescriptor<Bookmark>(
-                    predicate: #Predicate { bookmark in
-                        bookmark.collection?.id.uuidString == id
-                    }
-                )
-                for bookmark in try context.fetch(descriptor) {
-                    context.delete(bookmark)
-                }
+                removeSyncedRecords(inGroupID: id)
+                rootGroupDeleteIDs.insert(id)
             }
             
             try context.save()
@@ -233,6 +236,9 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
             DocBCloudRecordTypes.bookmark
         ]
     }
+}
+
+extension DocBCloudSyncEngine {
     
     private func observeSyncEngineState() {
         syncEngine.$syncState
@@ -265,16 +271,48 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         guard !isApplyingRemoteChanges else { return }
         
         let newIDs = Set(newValue.map(\.id))
+        let deletedRootGroupIDs = Set(
+            oldValue.compactMap { model in
+                model.myRecordID == model.myRootGroupID ? model.myRootGroupID : nil
+            }.filter { rootID in
+                !newValue.contains(where: { $0.myRecordID == rootID })
+            }
+        )
+        
         for model in oldValue where !newIDs.contains(model.id) {
+            let key = recordKey(type: model.myRecordType, id: model.myRecordID)
+            syncedRecordSignatures.removeValue(forKey: key)
+            
+            if recentlyImportedRecordKeys.remove(key) != nil {
+                continue
+            }
+            
+            if let rootGroupID = model.myRootGroupID,
+               rootGroupID != model.myRecordID,
+               (deletedRootGroupIDs.contains(rootGroupID) || rootGroupDeleteIDs.contains(rootGroupID)) {
+                continue
+            }
+            
+            if model.myRecordID == model.myRootGroupID, let rootGroupID = model.myRootGroupID {
+                rootGroupDeleteIDs.insert(rootGroupID)
+            }
             syncEngine.delete(model, shouldDeleteChildRecords: model.myRecordID == model.myRootGroupID)
         }
         
         for model in newValue {
             let key = recordKey(type: model.myRecordType, id: model.myRecordID)
+            let signature = recordSignature(for: model)
+            if model.myRecordID == model.myRootGroupID, let rootGroupID = model.myRootGroupID {
+                rootGroupDeleteIDs.remove(rootGroupID)
+            }
             if recentlyImportedRecordKeys.remove(key) != nil {
+                syncedRecordSignatures[key] = signature
                 continue
             }
+            guard syncedRecordSignatures[key] != signature else { continue }
+            
             syncEngine.sync(model)
+            syncedRecordSignatures[key] = signature
         }
     }
     
@@ -324,6 +362,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         if indexData != nil {
             site.indexV2 = DocCSite.DocCIndexModel(index)
         }
+        rememberSyncedState(site)
         
         if existingSite == nil {
             context.insert(site)
@@ -359,6 +398,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         collection.sfSymbolName = sfSymbolName
         collection.color = colorComponents.toColor()
         collection.lastUpdatedDate = lastUpdatedDate
+        rememberSyncedState(collection)
         
         if existingCollection == nil {
             context.insert(collection)
@@ -380,6 +420,9 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         let beta: Bool? = record.value(for: "beta")
         let siteBaseURLString: String? = record.value(for: "siteBaseURL")
         let siteBaseURL = siteBaseURLString.flatMap(URL.init(string:))
+        let collectionIDString: String? = record.value(for: "collectionID")
+        let collectionReferenceIDString: String? = record.value(for: "collection")
+        let collectionID = (collectionIDString ?? collectionReferenceIDString).flatMap(UUID.init(uuidString:))
         let descriptor = FetchDescriptor<Bookmark>(
             predicate: #Predicate { bookmark in
                 bookmark.id == id
@@ -406,15 +449,32 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         bookmark.deprecated = deprecated
         bookmark.beta = beta
         bookmark.siteBaseURL = siteBaseURL
+        bookmark.collectionID = collectionID
         
-        if let collectionIDString: String = record.value(for: "collectionID"),
-           let collectionID = UUID(uuidString: collectionIDString),
+        if let collectionID,
            let collection = try fetchBookmarkCollection(id: collectionID, in: context) {
             bookmark.collection = collection
+        } else if collectionID == nil || bookmark.collection?.id != collectionID {
+            bookmark.collection = nil
         }
+        rememberSyncedState(bookmark)
         
         if existingBookmark == nil {
             context.insert(bookmark)
+        }
+    }
+    
+    func reconnectBookmarks(in context: ModelContext) throws {
+        let descriptor = FetchDescriptor<Bookmark>()
+        for bookmark in try context.fetch(descriptor) {
+            guard let collectionID = bookmark.collectionID,
+                  bookmark.collection?.id != collectionID,
+                  let collection = try fetchBookmarkCollection(id: collectionID, in: context) else {
+                continue
+            }
+            
+            bookmark.collection = collection
+            rememberSyncedState(bookmark)
         }
     }
     
@@ -454,6 +514,19 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         }
     }
     
+    private func deleteBookmarks(collectionIDString: String, in context: ModelContext) throws {
+        guard let collectionID = UUID(uuidString: collectionIDString) else { return }
+        let descriptor = FetchDescriptor<Bookmark>(
+            predicate: #Predicate { bookmark in
+                bookmark.collectionID == collectionID || bookmark.collection?.id == collectionID
+            }
+        )
+        
+        for bookmark in try context.fetch(descriptor) {
+            context.delete(bookmark)
+        }
+    }
+    
     private func deleteBookmark(idString: String, in context: ModelContext) throws {
         guard let id = UUID(uuidString: idString) else { return }
         let descriptor = FetchDescriptor<Bookmark>(
@@ -464,6 +537,50 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         
         for bookmark in try context.fetch(descriptor) {
             context.delete(bookmark)
+        }
+    }
+    
+    private func rememberSyncedState(_ record: any MYRecordConvertible) {
+        syncedRecordSignatures[recordKey(type: record.myRecordType, id: record.myRecordID)] = recordSignature(for: record)
+    }
+    
+    private func removeSyncedRecords(inGroupID groupID: String) {
+        syncedRecordSignatures = syncedRecordSignatures.filter { _, signature in
+            !signature.contains("|root=\(groupID)|")
+        }
+    }
+    
+    private func recordSignature(for record: any MYRecordConvertible) -> String {
+        let properties = record.myProperties
+            .map { "\($0.key)=\(signature(for: $0.value))" }
+            .sorted()
+            .joined(separator: "|")
+        
+        return "\(record.myRecordType)|\(record.myRecordID)|root=\(record.myRootGroupID ?? "")|parent=\(record.myParentID ?? "")|\(properties)"
+    }
+    
+    private func signature(for value: MYRecordValue) -> String {
+        switch value {
+        case .int(let value):
+            return "int:\(value.map { String($0) } ?? "nil")"
+        case .double(let value):
+            return "double:\(value.map { String($0) } ?? "nil")"
+        case .float(let value):
+            return "float:\(value.map { String($0) } ?? "nil")"
+        case .bool(let value):
+            return "bool:\(value.map { String($0) } ?? "nil")"
+        case .date(let value):
+            return "date:\(value?.timeIntervalSinceReferenceDate.description ?? "nil")"
+        case .asset(let data):
+            return "asset:\(data?.base64EncodedString() ?? "nil")"
+        case .fileURL(let url):
+            return "fileURL:\(url?.absoluteString ?? "nil")"
+        case .string(let value):
+            return "string:\(value ?? "nil")"
+        case .reference(let record, let deleteRule):
+            return "reference:\(record?.myRecordType ?? "nil")/\(record?.myRecordID ?? "nil")/\(record?.myRootGroupID ?? "nil")/\(deleteRule)"
+        case .array(let values):
+            return "array:[\(values.map { signature(for: $0) }.joined(separator: ","))]"
         }
     }
 }

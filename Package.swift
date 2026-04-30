@@ -32,6 +32,10 @@ let package = Package(
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]
+        ),
+        .testTarget(
+            name: "DocBCoreTests",
+            dependencies: ["DocBCore", "MYCloudKit"]
         )
     ]
 )

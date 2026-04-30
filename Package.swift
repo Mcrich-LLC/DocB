@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Mcrich23/EnhancedCodable", branch: "main"),
         .package(url: "https://github.com/appstefan/HighlightSwift", from: "1.0.9"),
-        .package(url: "https://github.com/mufasaYC/MYCloudKit.git", branch: "main"),
+        .package(url: "https://github.com/mufasaYC/MYCloudKit.git", branch: "feat/codable-record-value"),
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
         .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols", from: "7.0.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),

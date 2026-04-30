@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mufasaYC/MYCloudKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "60aa371e0a4165c19d515ae20c9422817313cda6"
+        "branch" : "feat/codable-record-value",
+        "revision" : "c46675015e1886e4eab3540886dc9fe63badf332"
       }
     },
     {

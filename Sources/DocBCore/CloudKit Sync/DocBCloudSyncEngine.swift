@@ -581,6 +581,8 @@ extension DocBCloudSyncEngine {
             return "reference:\(record?.myRecordType ?? "nil")/\(record?.myRecordID ?? "nil")/\(record?.myRootGroupID ?? "nil")/\(deleteRule)"
         case .array(let values):
             return "array:[\(values.map { signature(for: $0) }.joined(separator: ","))]"
+        case .codable(let value):
+            return "codable:\(value.map { String(describing: $0) } ?? "nil")"
         }
     }
 }

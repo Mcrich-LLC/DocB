@@ -8,7 +8,7 @@
 import Combine
 import DocCKit
 import Foundation
-import MYCloudKit
+@preconcurrency import MYCloudKit
 import Observation
 import SwiftData
 import SwiftUI
@@ -33,6 +33,7 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     @ObservationIgnored private var recentlyImportedRecordKeys: Set<String> = []
     @ObservationIgnored private var syncedRecordSignatures: [String: String] = [:]
     @ObservationIgnored private var rootGroupDeleteIDs: Set<String> = []
+    @ObservationIgnored private var pendingZoneCreationFollowUpSyncPasses = 0
     
     /// Creates the CloudKit sync coordinator for a SwiftData container.
     ///
@@ -246,6 +247,10 @@ extension DocBCloudSyncEngine {
             .sink { [weak self] state in
                 self?.isUploading = Self.isActive(syncState: state)
                 self?.refreshSyncingState()
+                
+                if case .completed = state {
+                    self?.continueZoneCreationSyncIfNeeded()
+                }
             }
             .store(in: &cancellables)
         
@@ -256,6 +261,16 @@ extension DocBCloudSyncEngine {
                 self?.refreshSyncingState()
             }
             .store(in: &cancellables)
+    }
+    
+    private func continueZoneCreationSyncIfNeeded() {
+        guard pendingZoneCreationFollowUpSyncPasses > 0 else { return }
+        
+        pendingZoneCreationFollowUpSyncPasses -= 1
+        let syncEngine = syncEngine
+        MainActor.assumeIsolated {
+            syncEngine.beginSync()
+        }
     }
     
     private func setApplyingRemoteChanges(_ value: Bool) {
@@ -302,6 +317,7 @@ extension DocBCloudSyncEngine {
         for model in newValue {
             let key = recordKey(type: model.myRecordType, id: model.myRecordID)
             let signature = recordSignature(for: model)
+            let isNewRecord = syncedRecordSignatures[key] == nil
             if model.myRecordID == model.myRootGroupID, let rootGroupID = model.myRootGroupID {
                 rootGroupDeleteIDs.remove(rootGroupID)
             }
@@ -311,6 +327,12 @@ extension DocBCloudSyncEngine {
             }
             guard syncedRecordSignatures[key] != signature else { continue }
             
+            if isNewRecord {
+                pendingZoneCreationFollowUpSyncPasses = max(
+                    pendingZoneCreationFollowUpSyncPasses,
+                    zoneCreationFollowUpPasses(for: model)
+                )
+            }
             syncEngine.sync(model)
             syncedRecordSignatures[key] = signature
         }
@@ -334,6 +356,17 @@ extension DocBCloudSyncEngine {
     
     private func recordKey(type: String, id: String) -> String {
         "\(type)/\(id)"
+    }
+    
+    private func zoneCreationFollowUpPasses(for record: any MYRecordConvertible) -> Int {
+        switch record.myRecordType {
+        case DocBCloudRecordTypes.docCSite:
+            return 1
+        case DocBCloudRecordTypes.bookmarkCollection:
+            return 2
+        default:
+            return 0
+        }
     }
     
     private func upsertDocCSite(from record: MYSyncEngine.FetchedRecord, in context: ModelContext) throws {

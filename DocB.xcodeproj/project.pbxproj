@@ -273,7 +273,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "DocB copy-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "DocB Staging";
-				INFOPLIST_KEY_DocBCloudKitContainerIdentifier = "iCloud.com.Mcrich.Apple-Documentation";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

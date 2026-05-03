@@ -67,7 +67,7 @@ struct TechnologyRootView: View {
     
     /// Cached framework payload for the selected framework section.
     var framework: Framework? {
-        documentationViewModel.frameworks[manager.frameworkSection.destination.identifier]
+        documentationViewModel.framework(for: manager.frameworkSection.destination.identifier)
     }
     
     /// Topic sections filtered to only rows that should be visible.
@@ -153,7 +153,7 @@ struct TechnologyRootView: View {
         }
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
-                documentationViewModel.frameworks[manager.frameworkSection.destination.identifier] = nil
+                documentationViewModel.clearFrameworkCache(for: manager.frameworkSection.destination.identifier)
                 await loadFramework()
             }
         })
@@ -200,15 +200,20 @@ struct TechnologyRootView: View {
             return
         }
         
-        isLoading = true
-        for section in framework?.topicSections ?? [] {
-            for identifier in section.identifiers {
-                if let reference = framework?.references[identifier] {
-                    self.manager.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: manager.activeFilters, documentationViewModel: documentationViewModel)
-                }
+        let references = (framework?.topicSections ?? []).flatMap { section in
+            section.identifiers.compactMap { identifier in
+                framework?.references[identifier]
             }
         }
+        let filters = manager.activeFilters
+        let frameworkResolver = documentationViewModel.frameworkResolver()
         
+        isLoading = true
+        manager.shownReferences = await visibilityByReferenceIdentifier(
+            for: references,
+            filters: filters,
+            frameworkResolver: frameworkResolver
+        )
         isLoading = false
     }
 }
@@ -453,7 +458,7 @@ private struct DefaultListItem: View {
                     }
                 }
             } icon: {
-                Image(systemSymbol: reference.role?.labelIcon ?? .docText)
+                Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -496,7 +501,7 @@ private struct FrameworkDisclosureGroup: View {
     
     /// Cached framework payload for this nested reference identifier.
     var framework: Framework? {
-        documentationViewModel.frameworks[identifier]
+        documentationViewModel.framework(for: identifier)
     }
     
     /// Topic sections filtered to references visible under the active tags.
@@ -527,7 +532,7 @@ private struct FrameworkDisclosureGroup: View {
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             Group {
-                if let framework, isExpanded {
+                if framework != nil, isExpanded {
                     ForEach(topicSections) { section in
                         FrameworkTopicSectionView(section: section, usesSecondaryHeader: true)
                     }
@@ -588,15 +593,20 @@ private struct FrameworkDisclosureGroup: View {
             return
         }
         
-        isLoading = true
-        for section in framework?.topicSections ?? [] {
-            for identifier in section.identifiers {
-                if let reference = framework?.references[identifier] {
-                    self.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: tagFilters, documentationViewModel: documentationViewModel)
-                }
+        let references = (framework?.topicSections ?? []).flatMap { section in
+            section.identifiers.compactMap { identifier in
+                framework?.references[identifier]
             }
         }
+        let filters = tagFilters
+        let frameworkResolver = documentationViewModel.frameworkResolver()
         
+        isLoading = true
+        shownReferences = await visibilityByReferenceIdentifier(
+            for: references,
+            filters: filters,
+            frameworkResolver: frameworkResolver
+        )
         isLoading = false
     }
     
@@ -642,9 +652,9 @@ private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Se
 /// - Parameters:
 ///   - reference: The reference to evaluate.
 ///   - filters: Active tag filters.
-///   - documentationViewModel: Shared documentation state used to fetch nested frameworks.
+///   - frameworkResolver: Sendable resolver used to fetch nested frameworks.
 /// - Returns: `true` when the reference or descendants match the filters.
-private func isFullReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>, documentationViewModel: DocumentationViewModel) async -> Bool {
+private func isFullReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>, frameworkResolver: DocumentationFrameworkResolver) async -> Bool {
     // Return if the top level is included
     if isTopReferencePartOfFilter(reference, with: filters) { return true }
     
@@ -652,11 +662,7 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     guard referenceHasSubParts(reference) else { return false }
     
     // Fetch framework if needed
-    if await documentationViewModel.frameworks[reference.identifier] == nil {
-        await documentationViewModel.fetchFramework(for: reference.identifier, site: reference.docCSite)
-    }
-    
-    guard let framework = await documentationViewModel.frameworks[reference.identifier] else { return false }
+    guard let framework = try? await frameworkResolver.fetchFramework(for: reference.identifier, site: reference.docCSite) else { return false }
     
     for section in (framework.topicSections ?? []) {
         for subidentifier in section.identifiers {
@@ -668,6 +674,42 @@ private func isFullReferencePartOfFilter(_ reference: Reference, with filters: S
     }
     
     return false
+}
+
+/// Computes deep-filter visibility for a batch of references away from the main actor.
+///
+/// - Parameters:
+///   - references: References to evaluate.
+///   - filters: Active tag filters.
+///   - frameworkResolver: Sendable framework resolver used to fetch nested frameworks.
+/// - Returns: Visibility keyed by reference identifier.
+private func visibilityByReferenceIdentifier(
+    for references: [Reference],
+    filters: Set<TagFilters>,
+    frameworkResolver: DocumentationFrameworkResolver
+) async -> [String : Bool] {
+    await withTaskGroup(of: (String, Bool)?.self, returning: [String : Bool].self) { group in
+        for reference in references {
+            group.addTask {
+                do {
+                    try Task.checkCancellation()
+                    let isShown = await isFullReferencePartOfFilter(reference, with: filters, frameworkResolver: frameworkResolver)
+                    return (reference.identifier, isShown)
+                } catch {
+                    return nil
+                }
+            }
+        }
+        
+        var visibility: [String : Bool] = [:]
+        for await result in group {
+            if let result {
+                visibility[result.0] = result.1
+            }
+        }
+        
+        return visibility
+    }
 }
 
 /// Determines whether a reference kind is expected to contain nested members.

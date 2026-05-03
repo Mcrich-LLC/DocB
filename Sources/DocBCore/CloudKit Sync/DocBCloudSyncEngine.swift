@@ -6,6 +6,7 @@
 //
 
 import Combine
+import CryptoKit
 import DocCKit
 import Foundation
 import MYCloudKit
@@ -572,7 +573,7 @@ extension DocBCloudSyncEngine {
         case .date(let value):
             return "date:\(value?.timeIntervalSinceReferenceDate.description ?? "nil")"
         case .asset(let data):
-            return "asset:\(data?.base64EncodedString() ?? "nil")"
+            return "asset:\(getHash(for: data) ?? "nil")"
         case .fileURL(let url):
             return "fileURL:\(url?.absoluteString ?? "nil")"
         case .string(let value):
@@ -583,6 +584,13 @@ extension DocBCloudSyncEngine {
             return "array:[\(values.map { signature(for: $0) }.joined(separator: ","))]"
         case .codable(let value):
             return "codable:\(value.map { String(describing: $0) } ?? "nil")"
+        }
+    }
+    
+    /// Gets the Sha256 hash for a piece of data
+    private func getHash(for data: Data?) -> String? {
+        data.map { data in
+            SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
         }
     }
 }

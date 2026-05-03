@@ -177,8 +177,8 @@ private struct MainView: View {
         }
         .animation(.default, value: hasOnboarded)
         .task {
-            await cloudSyncEngine.start()
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
+            await cloudSyncEngine.start()
             await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources, modelContainer: modelContext.container)
         }
         .onChange(of: docCSites, onSwiftDataChange)

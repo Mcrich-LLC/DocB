@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e99809e9feb6afe685ef81e4f51bb6e9c46a053822446babcf6500f87f92de1",
+  "originHash" : "da5680017fb311ab50954a2b06544440234187e7ec1ee82454803ad1915046d4",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -20,21 +20,21 @@
       }
     },
     {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "feat/codable-record-value",
+        "revision" : "f5db0d00f0e6eec48bb3c3522448b5bf3f391abf"
+      }
+    },
+    {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
-      }
-    },
-    {
-      "identity" : "privateobfuscationmacro",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Mcrich23/PrivateObfuscationMacro",
-      "state" : {
-        "branch" : "main",
-        "revision" : "1b53648f745e31482f51a8ff7a5b9ddb7515428e"
       }
     },
     {

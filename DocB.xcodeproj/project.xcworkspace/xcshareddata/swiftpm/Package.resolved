@@ -20,6 +20,15 @@
       }
     },
     {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "feat/codable-record-value",
+        "revision" : "c46675015e1886e4eab3540886dc9fe63badf332"
+      }
+    },
+    {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",

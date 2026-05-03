@@ -11,6 +11,7 @@ import SwiftData
 /// Displays saved bookmark collections and supports creating, deleting, and opening collections.
 struct BookmarkCollectionsView: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     
     /// The collections saved in SwiftData
     @Query(sort: \BookmarkCollection.lastUpdatedDate, animation: .default) private var collections: [BookmarkCollection] = []
@@ -119,6 +120,9 @@ struct BookmarkCollectionsView: View {
         }
         .sheet(item: $collectionToEdit) { collection in
             EditBookmarkCollectionView(collectionToEdit: collection)
+        }
+        .refreshable {
+            await docBCloudSyncEngine.fetchRemoteChanges()
         }
         .alert(for: $errorAlert)
         .alert("Are You Sure?", isPresented: $showDeleteCollectionAlert, presenting: currentCollection) { collection in

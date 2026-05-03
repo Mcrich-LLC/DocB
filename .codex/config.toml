@@ -6,3 +6,6 @@ enabled = false
 
 [plugins."computer-use@openai-bundled"]
 enabled = false
+
+[mcp_servers.XcodeBuildMCP]
+enabled = false

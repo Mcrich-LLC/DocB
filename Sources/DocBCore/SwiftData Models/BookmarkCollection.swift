@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import MYCloudKit
 
 /// BookmarkCollectionDTO encapsulates app behavior and state.
 @MainActor
@@ -129,6 +130,7 @@ public final class BookmarkCollection: Identifiable {
     /// Optional timestamp used to sort collections by recency.
     public var lastUpdatedDate: Date?
     /// Bookmark members belonging to the collection.
+    @Relationship(deleteRule: .cascade, inverse: \Bookmark.collection)
     public var bookmarks: [Bookmark]?
     
     /// Creates a new bookmark collection model.
@@ -154,5 +156,26 @@ public final class BookmarkCollection: Identifiable {
             
             result[siteBaseURL, default: []].append(bookmark)
         }
+    }
+}
+
+extension BookmarkCollection: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this bookmark collection.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for bookmark collections.
+    public var myRecordType: String { DocBCloudRecordTypes.bookmarkCollection }
+    
+    /// Root CloudKit group for this bookmark collection and its child bookmarks.
+    public var myRootGroupID: String? { id.uuidString }
+    
+    /// CloudKit-compatible properties for this bookmark collection.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "title": .string(title),
+            "sfSymbolName": .string(sfSymbolName),
+            "colorComponents": .asset(colorComponents.flatMap { try? JSONEncoder().encode($0) }),
+            "lastUpdatedDate": .date(lastUpdatedDate)
+        ]
     }
 }

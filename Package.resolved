@@ -1,5 +1,5 @@
 {
-  "originHash" : "69eaf11500a27072d7f834991f6b8541a727d5e467cf61de9dae127b568e6492",
+  "originHash" : "da5680017fb311ab50954a2b06544440234187e7ec1ee82454803ad1915046d4",
   "pins" : [
     {
       "identity" : "enhancedcodable",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mufasaYC/MYCloudKit.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "60aa371e0a4165c19d515ae20c9422817313cda6"
+        "branch" : "feat/codable-record-value",
+        "revision" : "f5db0d00f0e6eec48bb3c3522448b5bf3f391abf"
       }
     },
     {

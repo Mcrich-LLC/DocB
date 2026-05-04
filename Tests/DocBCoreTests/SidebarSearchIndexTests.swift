@@ -81,6 +81,51 @@ final class SidebarSearchIndexTests: XCTestCase {
         XCTAssertEqual(results.sections.first?.rows.count, 3)
     }
     
+    func testDocCMultiLanguageDuplicatePathsHaveUniqueIDs() {
+        let sharedPath = "/documentation/multikit/shared"
+        let swiftNode = DocCIndex.InterfaceLanguage(title: "Swift Shared Symbol", path: sharedPath, type: "symbol")
+        let objcNode = DocCIndex.InterfaceLanguage(title: "Objective-C Shared Symbol", path: sharedPath, type: "symbol")
+        let site = makeDocCSource(
+            urlSuffix: "multikit",
+            index: DocCIndex(interfaceLanguages: [
+                "swift": [
+                    .init(title: "MultiKit", path: "/documentation/multikit", type: "module", children: [swiftNode])
+                ],
+                "objc": [
+                    .init(title: "MultiKit", path: "/documentation/multikit", type: "module", children: [objcNode])
+                ]
+            ])
+        )
+        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        
+        let results = index.search("shared symbol")
+        let rows = results.sections.first?.rows ?? []
+        
+        XCTAssertEqual(rows.map(\.title), ["Objective-C Shared Symbol", "Swift Shared Symbol"])
+        XCTAssertEqual(Set(rows.map(\.id)).count, rows.count)
+    }
+    
+    func testDocCSearchIncludesHistoricalOccIndexKey() {
+        let site = makeDocCSource(
+            urlSuffix: "legacykit",
+            index: DocCIndex(interfaceLanguages: [
+                "occ": [
+                    .init(
+                        title: "LegacyKit",
+                        path: "/documentation/legacykit",
+                        type: "module",
+                        children: [
+                            .init(title: "Historical Objective-C Symbol", path: "/documentation/legacykit/symbol", type: "symbol")
+                        ]
+                    )
+                ]
+            ])
+        )
+        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        
+        XCTAssertEqual(index.search("historical").sections.first?.rows.first?.title, "Historical Objective-C Symbol")
+    }
+    
     @MainActor
     func testStoreCancelsStaleQueries() async {
         let site = makeDocCSource(
@@ -148,6 +193,40 @@ final class SidebarSearchIndexTests: XCTestCase {
         XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["New Result"])
     }
     
+    @MainActor
+    func testRebuildIndexKeepsAllAvailableLanguageBuckets() async {
+        let site = makeDocCSource(
+            urlSuffix: "switchkit",
+            index: DocCIndex(interfaceLanguages: [
+                "swift": [
+                    .init(
+                        title: "SwitchKit",
+                        path: "/documentation/switchkit",
+                        type: "module",
+                        children: [
+                            .init(title: "Swift Switch Result", path: "/documentation/switchkit/result", type: "symbol")
+                        ]
+                    )
+                ],
+                "objc": [
+                    .init(
+                        title: "SwitchKit",
+                        path: "/documentation/switchkit",
+                        type: "module",
+                        children: [
+                            .init(title: "Objective-C Switch Result", path: "/documentation/switchkit/result", type: "symbol")
+                        ]
+                    )
+                ]
+            ])
+        )
+        let store = SidebarSearchStore()
+        store.updateSearchText("switch result", debounce: .zero)
+        store.rebuildIndex(persistedSites: [site], technologies: [], searchText: "switch result")
+        await waitForSearch(store)
+        XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["Objective-C Switch Result", "Swift Switch Result"])
+    }
+    
     private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {
         let index = DocCIndex(interfaceLanguages: [
             "swift": [
@@ -158,6 +237,14 @@ final class SidebarSearchIndexTests: XCTestCase {
         return DocCSource(
             timestamp: Date(timeIntervalSince1970: timestamp),
             url: URL(string: "https://example.com/\(title.lowercased())")!,
+            index: index
+        )
+    }
+    
+    private func makeDocCSource(urlSuffix: String, index: DocCIndex, timestamp: TimeInterval = 0) -> DocCSource {
+        DocCSource(
+            timestamp: Date(timeIntervalSince1970: timestamp),
+            url: URL(string: "https://example.com/\(urlSuffix)")!,
             index: index
         )
     }
@@ -205,7 +292,7 @@ final class SidebarSearchIndexTests: XCTestCase {
     @MainActor
     private func waitForSearch(_ store: SidebarSearchStore) async {
         for _ in 0..<20 {
-            if !store.isSearching {
+            if !store.isSearching && !store.isRebuildingIndex {
                 return
             }
             

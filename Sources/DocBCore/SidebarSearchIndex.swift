@@ -156,10 +156,14 @@ public struct SidebarSearchIndex: Sendable {
     ///   - site: Custom DocC source to flatten.
     ///   - source: Result grouping metadata for the source.
     ///   - entries: Destination entry buffer.
-    private static func appendDocCEntries(from site: DocCSource, source: Source, to entries: inout [Entry]) {
-        func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage) {
+    private static func appendDocCEntries(
+        from site: DocCSource,
+        source: Source,
+        to entries: inout [Entry]
+    ) {
+        func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage, languageKey: String) {
             if interfaceLanguage.type.lowercased() != "module", let path = interfaceLanguage.path {
-                let id = "\(source.id)-\(path)"
+                let id = "\(source.id)-\(languageKey)-\(path)"
                 entries.append(.init(
                     id: id,
                     source: source,
@@ -177,13 +181,13 @@ public struct SidebarSearchIndex: Sendable {
             }
             
             for child in interfaceLanguage.children ?? [] {
-                append(child)
+                append(child, languageKey: languageKey)
             }
         }
         
-        for interfaceLanguage in site.index.interfaceLanguages.keys.sorted() {
-            for language in site.index.interfaceLanguages[interfaceLanguage] ?? [] {
-                append(language)
+        for languageKey in site.index.interfaceLanguages.keys.sorted() {
+            for language in site.index.interfaceLanguages[languageKey] ?? [] {
+                append(language, languageKey: languageKey)
             }
         }
     }

@@ -287,6 +287,16 @@ public final class DocumentationViewModel {
         frameworks[identifier] = nil
     }
     
+    /// Stores framework payloads discovered by background filtering into the observed cache.
+    ///
+    /// - Parameter frameworks: Framework payloads keyed by their documentation identifier.
+    @MainActor
+    public func cacheFrameworks(_ frameworks: [String : Framework]) {
+        self.frameworks.merge(frameworks) { _, newValue in
+            newValue
+        }
+    }
+    
     /// Returns a cached framework or fetches and publishes it when absent.
     ///
     /// - Parameters:

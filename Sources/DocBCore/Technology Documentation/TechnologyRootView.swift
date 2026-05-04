@@ -147,13 +147,6 @@ struct TechnologyRootView: View {
         .onChange(of: manager.activeFilters) {
             scheduleShownReferencesRefresh(loadFrameworkFirst: false)
         }
-        .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
-            Task {
-                documentationViewModel.clearFrameworkCache()
-                await loadFramework()
-                scheduleShownReferencesRefresh(loadFrameworkFirst: false)
-            }
-        })
         .onDisappear {
             shownReferencesTask?.cancel()
             if !navigationViewModel.isUsingSplitView && navigationViewModel.shouldRemoveTechnologyFromPath(manager.frameworkSection) && navigationViewModel.reference == nil {

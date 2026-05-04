@@ -166,6 +166,7 @@ public struct ContentView: View {
     /// Sidebar container that switches between technologies and bookmark flows.
     struct SidebarView: View {
         @Environment(NavigationViewModel.self) var navigationViewModel
+        @Environment(DocumentationViewModel.self) var documentationViewModel
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
         /// Passed DocC sites to avoid expensive query instantiation.
@@ -197,6 +198,7 @@ public struct ContentView: View {
                     }
                 } else if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
+                        .id(documentationViewModel.preferedProgrammingLanguage)
                 }
             }
         }
@@ -263,6 +265,7 @@ public struct ContentView: View {
                         ArticleView(reference: reference)
                     case .technology(let technology):
                         TechnologyRootView(frameworkSection: technology)
+                            .id(documentationViewModel.preferedProgrammingLanguage)
                     case .bookmarkCollections:
                         BookmarkCollectionsView()
                     case .bookmark(let collection):

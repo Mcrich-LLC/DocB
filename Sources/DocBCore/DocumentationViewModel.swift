@@ -22,6 +22,7 @@ public final class DocumentationViewModel {
     public var preferedProgrammingLanguage: PreferredProgrammingLanguage = UserDefaults.standard.string(forKey: "preferedProgrammingLanguage").flatMap(PreferredProgrammingLanguage.init(rawValue:)) ?? .swift {
         didSet {
             UserDefaults.standard.set(preferedProgrammingLanguage.rawValue, forKey: "preferedProgrammingLanguage")
+            clearFrameworkCache()
         }
     }
     
@@ -242,14 +243,15 @@ public final class DocumentationViewModel {
         
         switch site {
         case .apple:
-            technologies.removeAll { $0.id == site.id }
             if let site = appleDocCSiteRef {
                 try site.deleteSite(modelContext: modelContext)
             }
+            appleDocCSiteRef = nil
         case .docC(let source):
-            technologies.removeAll { $0.id == site.id }
             try Self.deleteDocCSite(url: source.url, modelContext: modelContext)
         }
+
+        technologies.removeAll { $0.id == site.id }
     }
     
     /// Deletes persisted DocC sources matching a URL in the current model context.

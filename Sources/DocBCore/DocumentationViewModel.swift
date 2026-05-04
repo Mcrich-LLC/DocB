@@ -365,6 +365,9 @@ public final class DocumentationViewModel {
         try await contentLoader.fetchArticle(for: identifier, site: site, preferredLanguage: preferedProgrammingLanguage)
     }
     
+    /// Publishes Apple technologies into the observed technology list without creating duplicate Apple entries.
+    ///
+    /// - Parameter appleTechnologies: Apple documentation technology payload to insert or replace.
     @MainActor
     private func publishAppleTechnologies(_ appleTechnologies: AppleTechnologies) {
         if let index = technologies.firstIndex(where: { $0.isApple }) {
@@ -374,6 +377,10 @@ public final class DocumentationViewModel {
         }
     }
     
+    /// Checks whether the observed technology list already includes a custom DocC source for a URL.
+    ///
+    /// - Parameter url: Root URL of the DocC source to find.
+    /// - Returns: `true` when a matching custom DocC source is already loaded.
     @MainActor
     private func containsDocCSite(with url: URL) -> Bool {
         technologies.contains { technology in
@@ -386,6 +393,9 @@ public final class DocumentationViewModel {
         }
     }
     
+    /// Loads Apple homepage and technology payloads concurrently, then publishes both results together.
+    ///
+    /// - Parameter preferredLanguage: Language to use for Apple documentation requests.
     @MainActor
     private func loadAppleDocumentation(preferredLanguage: PreferredProgrammingLanguage) async {
         let loader = contentLoader
@@ -401,6 +411,12 @@ public final class DocumentationViewModel {
         }
     }
     
+    /// Loads fresh custom DocC source indexes concurrently from sendable persisted-source snapshots.
+    ///
+    /// - Parameters:
+    ///   - snapshots: Value snapshots derived from persisted sources on the main actor.
+    ///   - loader: Background content actor used to fetch source indexes.
+    /// - Returns: Loaded source values sorted by their original timestamp.
     private static func loadDocCSources(_ snapshots: [PersistedDocCSourceSnapshot], using loader: DocumentationContentLoader) async -> [LoadedDocCSource] {
         return await withTaskGroup(of: LoadedDocCSource?.self, returning: [LoadedDocCSource].self) { group in
             for snapshot in snapshots {
@@ -435,6 +451,13 @@ public final class DocumentationViewModel {
         }
     }
     
+    /// Fetches a framework through the content actor and optionally publishes it into the observed cache.
+    ///
+    /// - Parameters:
+    ///   - identifier: Documentation identifier for the framework.
+    ///   - site: Optional custom DocC site used for URL resolution.
+    ///   - publishesToCache: Whether the fetched framework should update `frameworks`.
+    /// - Returns: The decoded framework payload.
     @MainActor
     private func fetchFrameworkValue(for identifier: String, site: DocCSource?, publishesToCache: Bool) async throws -> Framework {
         let framework = try await contentLoader.fetchFramework(for: identifier, site: site, preferredLanguage: preferedProgrammingLanguage)
@@ -446,11 +469,20 @@ public final class DocumentationViewModel {
         return framework
     }
     
+    /// Creates a sendable resolver that can fetch nested frameworks without capturing the observable view model.
+    ///
+    /// - Returns: A resolver configured with the current preferred language and content loader.
     @MainActor
     func frameworkResolver() -> DocumentationFrameworkResolver {
         DocumentationFrameworkResolver(contentLoader: contentLoader, preferredLanguage: preferedProgrammingLanguage)
     }
     
+    /// Schedules background persistence for a full DocC index using the SwiftData store actor.
+    ///
+    /// - Parameters:
+    ///   - index: Decoded index to persist for offline navigation and search.
+    ///   - url: Source URL used to locate the persisted `DocCSite`.
+    ///   - modelContainer: SwiftData container used to create the model actor.
     private static func persistDocCIndex(_ index: DocCIndex, for url: URL, modelContainer: ModelContainer) {
         Task(priority: .utility) {
             do {
@@ -477,19 +509,32 @@ extension [TechnologyTypes] {
     }
 }
 
+/// Cache key used to deduplicate in-flight documentation content requests.
 private struct DocumentationContentCacheKey: Hashable, Sendable {
+    /// Documentation identifier being requested.
     var identifier: String
+    /// Root URL of the custom DocC source, or `nil` for Apple-hosted documentation.
     var sourceURL: URL?
+    /// Preferred language used for Apple-hosted and variant-aware requests.
     var preferredLanguage: PreferredProgrammingLanguage
 }
 
+/// Sendable value snapshot of a persisted DocC source for background index refresh work.
 private struct PersistedDocCSourceSnapshot: Sendable {
+    /// Stable source identifier copied from the persisted source.
     var id: UUID
+    /// Creation timestamp copied from the persisted source.
     var timestamp: Date
+    /// Root URL for the DocC source.
     var url: URL
+    /// Optional display-name override for the source.
     var overrideName: String?
+    /// Last persisted index used to detect whether a fresh remote index should be saved.
     var index: DocCIndex
     
+    /// Creates a sendable snapshot from the main-actor persisted source wrapper.
+    ///
+    /// - Parameter source: Persisted source wrapper reconstructed from SwiftData.
     @MainActor
     init(_ source: PersistedDocCSource) {
         self.id = source.id
@@ -500,11 +545,16 @@ private struct PersistedDocCSourceSnapshot: Sendable {
     }
 }
 
+/// Result of loading a custom DocC source index away from the main actor.
 private struct LoadedDocCSource: Sendable {
+    /// Original persisted-source snapshot used for identity and metadata.
     var snapshot: PersistedDocCSourceSnapshot
+    /// Freshly fetched source index.
     var index: DocCIndex
+    /// Whether the fetched index differs from the persisted index.
     var shouldPersistRemoteIndex: Bool
     
+    /// Runtime DocCKit source value ready for UI navigation and rendering.
     var docCSource: DocCSource {
         DocCSource(
             id: snapshot.id,
@@ -516,32 +566,61 @@ private struct LoadedDocCSource: Sendable {
     }
 }
 
+/// Sendable framework resolver used by filtering tasks without capturing `DocumentationViewModel`.
 struct DocumentationFrameworkResolver: Sendable {
+    /// Background content loader shared with the documentation view model.
     fileprivate var contentLoader: DocumentationContentLoader
+    /// Preferred language captured from the view model when the resolver is created.
     var preferredLanguage: PreferredProgrammingLanguage
     
+    /// Fetches a framework using the captured language and shared content loader.
+    ///
+    /// - Parameters:
+    ///   - identifier: Documentation identifier for the framework.
+    ///   - site: Optional custom DocC site used for URL resolution.
+    /// - Returns: The decoded framework payload.
     func fetchFramework(for identifier: String, site: DocCSource?) async throws -> Framework {
         try await contentLoader.fetchFramework(for: identifier, site: site, preferredLanguage: preferredLanguage)
     }
 }
 
+/// Actor that owns documentation network and decoding work away from the main actor.
 actor DocumentationContentLoader {
+    /// In-flight framework requests keyed by identifier, source, and preferred language.
     private var frameworkTasks: [DocumentationContentCacheKey : Task<Framework, Error>] = [:]
+    /// In-flight article requests keyed by identifier, source, and preferred language.
     private var articleTasks: [DocumentationContentCacheKey : Task<Article, Error>] = [:]
+    /// In-flight custom DocC index requests keyed by source root URL.
     private var indexTasks: [URL : Task<DocCIndex, Error>] = [:]
     
+    /// Resolves the final destination URL after redirects.
+    ///
+    /// - Parameter url: URL to request.
+    /// - Returns: Final URL reported by the server response.
     func redirectedURL(for url: URL) async throws -> URL {
         try await DocCClient.redirectedURL(for: url)
     }
     
+    /// Fetches the Apple documentation homepage payload.
+    ///
+    /// - Parameter preferredLanguage: Preferred language used for Apple documentation requests.
+    /// - Returns: Decoded homepage payload.
     func fetchHomepage(preferredLanguage: PreferredProgrammingLanguage) async throws -> HomepageParser {
         try await AppleDocsClient(preferredLanguage: preferredLanguage).fetchHomepage()
     }
     
+    /// Fetches the Apple documentation technologies payload.
+    ///
+    /// - Parameter preferredLanguage: Preferred language used for Apple documentation requests.
+    /// - Returns: Decoded Apple technologies payload.
     func fetchTechnologies(preferredLanguage: PreferredProgrammingLanguage) async throws -> AppleTechnologies {
         try await AppleDocsClient(preferredLanguage: preferredLanguage).fetchTechnologies()
     }
     
+    /// Fetches and deduplicates a custom DocC index request.
+    ///
+    /// - Parameter baseURL: Root URL of the custom DocC source.
+    /// - Returns: Decoded DocC index.
     func fetchIndex(baseURL: URL) async throws -> DocCIndex {
         if let task = indexTasks[baseURL] {
             return try await task.value
@@ -562,6 +641,13 @@ actor DocumentationContentLoader {
         }
     }
     
+    /// Fetches and deduplicates a framework payload request.
+    ///
+    /// - Parameters:
+    ///   - identifier: Documentation identifier for the framework.
+    ///   - site: Optional custom DocC site used for URL resolution.
+    ///   - preferredLanguage: Preferred language used for Apple-hosted and variant-aware requests.
+    /// - Returns: Decoded framework payload.
     func fetchFramework(
         for identifier: String,
         site: DocCSource?,
@@ -588,6 +674,13 @@ actor DocumentationContentLoader {
         }
     }
     
+    /// Fetches and deduplicates an article payload request.
+    ///
+    /// - Parameters:
+    ///   - identifier: Documentation identifier for the article.
+    ///   - site: Optional custom DocC site used for URL resolution.
+    ///   - preferredLanguage: Preferred language used for variant overrides.
+    /// - Returns: Decoded article payload.
     func fetchArticle(
         for identifier: String,
         site: DocCSource?,
@@ -615,6 +708,7 @@ actor DocumentationContentLoader {
     }
 }
 
+/// SwiftData model actor used for DocC source persistence that does not need the UI model context.
 @ModelActor
 private actor DocumentationSwiftDataStore {
     /// Persists a full DocC index after the source has already appeared in the UI.

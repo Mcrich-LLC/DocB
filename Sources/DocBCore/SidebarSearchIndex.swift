@@ -409,6 +409,7 @@ public final class SidebarSearchStore {
     ///   - technologies: Runtime technology snapshots.
     ///   - searchText: Current query to re-run when the index is installed.
     public func rebuildIndex(persistedSites: [DocCSource], technologies: [TechnologyTypes], searchText: String) {
+        rawSearchText = searchText
         indexBuildTask?.cancel()
         let requestID = UUID()
         indexBuildRequestID = requestID
@@ -423,8 +424,6 @@ public final class SidebarSearchStore {
                 guard self.indexBuildRequestID == requestID else { return }
                 
                 self.installIndex(index)
-                self.isRebuildingIndex = false
-                self.updateSearchText(searchText)
             }
         }
     }
@@ -433,8 +432,14 @@ public final class SidebarSearchStore {
     ///
     /// - Parameter index: Search index snapshot to publish.
     public func installIndex(_ index: SidebarSearchIndex) {
+        searchTask?.cancel()
+        indexBuildTask?.cancel()
+        searchRequestID = UUID()
+        indexBuildRequestID = UUID()
         self.index = index
+        isRebuildingIndex = false
         indexBuildCount += 1
+        updateSearchText(rawSearchText)
     }
     
     /// Updates the active query and schedules a cancellable search.

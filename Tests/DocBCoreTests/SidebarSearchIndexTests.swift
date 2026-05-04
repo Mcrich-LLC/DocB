@@ -121,6 +121,33 @@ final class SidebarSearchIndexTests: XCTestCase {
         XCTAssertEqual(store.results.sections.first?.rows.first?.title, "Reusable Search Result")
     }
     
+    @MainActor
+    func testInstallIndexInvalidatesPendingQueryAndRerunsCurrentSearch() async {
+        let firstSite = makeDocCSource(
+            title: "FirstKit",
+            children: [
+                .init(title: "Old Result", path: "/documentation/install/old", type: "symbol")
+            ]
+        )
+        let secondSite = makeDocCSource(
+            title: "SecondKit",
+            children: [
+                .init(title: "New Result", path: "/documentation/install/new", type: "symbol")
+            ]
+        )
+        let store = SidebarSearchStore()
+        store.installIndex(SidebarSearchIndex(persistedSites: [firstSite], technologies: []))
+        
+        store.updateSearchText("result", debounce: .milliseconds(200))
+        XCTAssertTrue(store.isSearching)
+        
+        store.installIndex(SidebarSearchIndex(persistedSites: [secondSite], technologies: []))
+        await waitForSearch(store)
+        
+        XCTAssertFalse(store.isRebuildingIndex)
+        XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["New Result"])
+    }
+    
     private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {
         let index = DocCIndex(interfaceLanguages: [
             "swift": [

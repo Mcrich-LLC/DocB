@@ -35,7 +35,7 @@ let package = Package(
         ),
         .testTarget(
             name: "DocBCoreTests",
-            dependencies: ["DocBCore", "MYCloudKit"]
+            dependencies: ["DocBCore", "MYCloudKit", "DocCKit"]
         )
     ]
 )

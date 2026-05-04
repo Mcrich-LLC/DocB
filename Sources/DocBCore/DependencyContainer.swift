@@ -38,6 +38,7 @@ public extension Container {
     @MainActor
     var appSettings: Factory<AppSettings> {
         self { @MainActor in AppSettings() }
+            .singleton
     }
     
     /// Required CloudKit container identifier supplied by the app target's Info.plist.

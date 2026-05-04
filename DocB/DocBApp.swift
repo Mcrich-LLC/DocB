@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import DocBCore
+import FactoryKit
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -25,9 +26,9 @@ struct DocBApp: App {
     @NSApplicationDelegateAdaptor(DocBMacAppDelegate.self) private var macAppDelegate
 #endif
     /// Shared documentation model injected into app scenes.
-    @State var documentationViewModel = DocumentationViewModel()
+    @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
-    @State var appSettings = AppSettings()
+    @State var appSettings: AppSettings
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
     @Environment(\.openWindow) var openWindow
@@ -37,6 +38,7 @@ struct DocBApp: App {
     let cloudSyncEngine: DocBCloudSyncEngine
     
     /// Initializes the SwiftData container and development-only integrations.
+    @MainActor
     init() {
         #if canImport(UIKit)
         UIApplication.shared.registerForRemoteNotifications()
@@ -45,20 +47,11 @@ struct DocBApp: App {
         NSApplication.shared.registerForRemoteNotifications()
         #endif
         
-        do {
-            docCSiteModelContainer = try ModelContainer(
-                for: DocCSite.self,
-                Bookmark.self,
-                BookmarkCollection.self,
-                configurations: .init(cloudKitDatabase: .none)
-            )
-            cloudSyncEngine = DocBCloudSyncEngine(
-                modelContainer: docCSiteModelContainer,
-                containerIdentifier: Self.cloudKitContainerIdentifier
-            )
-        } catch {
-            fatalError("Error Initializing ModelContainer: \(error)")
-        }
+        let container = Container.shared
+        docCSiteModelContainer = container.docBModelContainer()
+        cloudSyncEngine = container.docBCloudSyncEngine()
+        _documentationViewModel = State(initialValue: container.documentationViewModel())
+        _appSettings = State(initialValue: container.appSettings())
         
         loadRocketSimConnect()
     }
@@ -110,9 +103,6 @@ struct DocBApp: App {
         print("RocketSim Connect successfully linked")
         #endif
     }
-    
-    /// CloudKit container configured for the active app target.
-    private static let cloudKitContainerIdentifier: String = Bundle.main.infoDictionary?["CLOUDKIT_ID"] as! String // swiftlint:disable:this force_cast
     
     /// Presents the add-source experience using platform-appropriate presentation.
     private func showAddDocumentationView() {

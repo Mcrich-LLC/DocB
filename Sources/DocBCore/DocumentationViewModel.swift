@@ -104,6 +104,13 @@ public final class DocumentationViewModel {
             let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
             modelContext.insert(site)
             try modelContext.save()
+            appleDocCSiteRef = PersistedDocCSource(
+                id: site.id,
+                timestamp: site.timestamp ?? .init(),
+                url: baseUrl,
+                index: .init(interfaceLanguages: [:]),
+                persistentModelID: site.persistentModelID
+            )
             await loadAppleDocumentation(preferredLanguage: preferedProgrammingLanguage)
             return
         }
@@ -192,16 +199,17 @@ public final class DocumentationViewModel {
             return
         }
         
-        technologies.removeAll { $0.id == site.id }
         switch site {
         case .apple:
-            guard let site = appleDocCSiteRef else { return }
             let store = DocumentationSwiftDataStore(modelContainer: modelContainer)
-            try await store.deleteDocCSite(url: site.url)
+            try await store.deleteDocCSite(url: appleDocCSiteRef?.url ?? site.url)
+            appleDocCSiteRef = nil
         case .docC(let source):
             let store = DocumentationSwiftDataStore(modelContainer: modelContainer)
             try await store.deleteDocCSite(url: source.url)
         }
+
+        technologies.removeAll { $0.id == site.id }
     }
     
     /// Removes a technology from memory after SwiftData reports that its source record disappeared.
@@ -287,6 +295,12 @@ public final class DocumentationViewModel {
         frameworks[identifier] = nil
     }
     
+    /// Clears all cached framework payloads.
+    @MainActor
+    public func clearFrameworkCache() {
+        frameworks.removeAll()
+    }
+
     /// Stores framework payloads discovered by background filtering into the observed cache.
     ///
     /// - Parameter frameworks: Framework payloads keyed by their documentation identifier.

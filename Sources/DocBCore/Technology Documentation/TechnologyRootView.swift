@@ -149,7 +149,7 @@ struct TechnologyRootView: View {
         }
         .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
             Task {
-                documentationViewModel.clearFrameworkCache(for: manager.frameworkSection.destination.identifier)
+                documentationViewModel.clearFrameworkCache()
                 await loadFramework()
                 scheduleShownReferencesRefresh(loadFrameworkFirst: false)
             }

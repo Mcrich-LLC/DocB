@@ -112,13 +112,7 @@ struct DocBApp: App {
     }
     
     /// CloudKit container configured for the active app target.
-    private static var cloudKitContainerIdentifier: String? {
-        #if CLOUDKIT_DEBUG
-        "iCloud.com.Mcrich.Apple-Documentation.Debug"
-        #else
-        "iCloud.com.Mcrich.Apple-Documentation"
-        #endif
-    }
+    private static let cloudKitContainerIdentifier: String = Bundle.main.infoDictionary?["CLOUDKIT_ID"] as! String // swiftlint:disable:this force_cast
     
     /// Presents the add-source experience using platform-appropriate presentation.
     private func showAddDocumentationView() {

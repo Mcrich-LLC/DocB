@@ -21,6 +21,7 @@ let package = Package(
         .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols", from: "7.0.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),
         .package(url: "https://github.com/simonbs/SFSymbols", from: "1.5.0"),
+        .package(url: "https://github.com/hmlongco/Factory", from: "3.0.0"),
         .package(path: "DocCKit")
     ],
     targets: [
@@ -28,7 +29,17 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "DocBCore",
-            dependencies: ["EnhancedCodable", "HighlightSwift", "MYCloudKit", "Nuke", .product(name: "NukeUI", package: "Nuke"), "SFSafeSymbols", "SFSymbols", "DocCKit"],
+            dependencies: [
+                "EnhancedCodable",
+                .product(name: "FactoryKit", package: "Factory"),
+                "HighlightSwift",
+                "MYCloudKit",
+                "Nuke",
+                .product(name: "NukeUI", package: "Nuke"),
+                "SFSafeSymbols",
+                "SFSymbols",
+                "DocCKit"
+            ],
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]

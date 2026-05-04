@@ -145,7 +145,6 @@ private struct AddSourceButton<Content: View>: View {
     /// Controls presentation of the add-source confirmation dialog.
     @State private var isShowingAddPopover = false
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     /// Captures add-source failures for alert presentation.
     @State private var errorAlert: Error?
@@ -181,7 +180,7 @@ private struct AddSourceButton<Content: View>: View {
         print(url.absoluteString)
         
         do {
-            try await documentationViewModel.addTechnology(baseUrl: url, modelContext: modelContext, overrideName: nil)
+            try await documentationViewModel.addTechnology(baseUrl: url, overrideName: nil)
         } catch {
             self.errorAlert = error
         }

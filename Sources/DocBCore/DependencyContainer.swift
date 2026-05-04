@@ -38,7 +38,6 @@ public extension Container {
     @MainActor
     var appSettings: Factory<AppSettings> {
         self { @MainActor in AppSettings() }
-            .singleton
     }
     
     /// Required CloudKit container identifier supplied by the app target's Info.plist.
@@ -55,17 +54,24 @@ public extension Container {
             
             return value
         }
-        .singleton
     }
     
     /// Shared explicit CloudKit sync coordinator backed by MYCloudKit.
     var docBCloudSyncEngine: Factory<DocBCloudSyncEngine> {
-        self {
-            DocBCloudSyncEngine(
-                modelContainer: self.docBModelContainer(),
-                containerIdentifier: self.docBCloudKitContainerIdentifier()
-            )
-        }
+        self { DocBCloudSyncEngine() }
         .singleton
+    }
+}
+
+extension Container {
+    /// Shared documentation content loader used by the documentation model.
+    var documentationContentLoader: Factory<DocumentationContentLoader> {
+        self { DocumentationContentLoader() }
+            .singleton
+    }
+    
+    /// SwiftData store actor used for background source persistence.
+    var documentationSwiftDataStore: Factory<DocumentationSwiftDataStore> {
+        self { DocumentationSwiftDataStore(modelContainer: self.docBModelContainer()) }
     }
 }

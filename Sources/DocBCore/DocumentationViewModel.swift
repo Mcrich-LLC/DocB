@@ -9,11 +9,13 @@ import Foundation
 import SwiftUI
 import SwiftData
 import DocCKit
+import FactoryKit
 
 /// Central state and networking coordinator for DocC technologies, frameworks, and articles.
 @Observable
 public final class DocumentationViewModel {
-    @ObservationIgnored private let contentLoader = DocumentationContentLoader()
+    @ObservationIgnored @Injected(\.documentationContentLoader) private var contentLoader
+    @ObservationIgnored @Injected(\.documentationSwiftDataStore) private var swiftDataStore
     
     public init() {}
     
@@ -97,21 +99,17 @@ public final class DocumentationViewModel {
     ///
     /// - Parameters:
     ///   - baseUrl: Root URL of the DocC site.
-    ///   - modelContext: SwiftData context used for persistence.
     ///   - overrideName: Optional custom display name for the site.
     @MainActor
-    public func addTechnology(baseUrl: URL, modelContext: ModelContext, overrideName: String? = nil) async throws {
+    public func addTechnology(baseUrl: URL, overrideName: String? = nil) async throws {
         guard !baseUrl.absoluteString.lowercased().contains("developer.apple.com") else {
-            let site = DocCSite(url: baseUrl, index: .init(interfaceLanguages: [:]))
-            modelContext.insert(site)
-            try modelContext.save()
-            appleDocCSiteRef = PersistedDocCSource(
-                id: site.id,
-                timestamp: site.timestamp ?? .init(),
+            let index = DocCIndex(interfaceLanguages: [:])
+            let insertedSource = try await swiftDataStore.insertDocCSite(
                 url: baseUrl,
-                index: .init(interfaceLanguages: [:]),
-                persistentModelID: site.persistentModelID
+                overrideName: nil,
+                index: index
             )
+            appleDocCSiteRef = insertedSource.persistedSource(index: index)
             await loadAppleDocumentation(preferredLanguage: preferedProgrammingLanguage)
             return
         }
@@ -127,21 +125,14 @@ public final class DocumentationViewModel {
                 return
             }
             
-            let site = DocCSite(url: baseUrl, overrideName: overrideName, index: .init(interfaceLanguages: [:]))
-            modelContext.insert(site)
-            try modelContext.save()
-            
-            let modelContainer = modelContext.container
-            let persistedSource = PersistedDocCSource(
-                id: site.id,
-                timestamp: site.timestamp ?? .init(),
+            let insertedSource = try await swiftDataStore.insertDocCSite(
                 url: baseUrl,
                 overrideName: overrideName,
-                index: index,
-                persistentModelID: site.persistentModelID
+                index: .init(interfaceLanguages: [:])
             )
+            let persistedSource = insertedSource.persistedSource(index: index)
             technologies.appendOrUpdate(.docC(persistedSource.docCSource))
-            Self.persistDocCIndex(index, for: baseUrl, modelContainer: modelContainer)
+            persistDocCIndex(index, for: baseUrl)
         } catch {
             print(error)
         }
@@ -149,11 +140,9 @@ public final class DocumentationViewModel {
     
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
     ///
-    /// - Parameters:
-    ///   - sites: Persisted DocC source snapshots.
-    ///   - modelContainer: Optional SwiftData container used to persist remote index updates.
+    /// - Parameter sites: Persisted DocC source snapshots.
     @MainActor
-    public func loadTechnologies(_ sites: [PersistedDocCSource], modelContainer: ModelContainer? = nil) async {
+    public func loadTechnologies(_ sites: [PersistedDocCSource]) async {
         let preferredLanguage = preferedProgrammingLanguage
         var customSnapshots: [PersistedDocCSourceSnapshot] = []
         var shouldLoadAppleDocumentation = false
@@ -183,31 +172,27 @@ public final class DocumentationViewModel {
         let loadedSources = await Self.loadDocCSources(customSnapshots, using: contentLoader)
         for loadedSource in loadedSources {
             technologies.appendOrUpdate(.docC(loadedSource.docCSource))
-            if loadedSource.shouldPersistRemoteIndex, let modelContainer {
-                Self.persistDocCIndex(loadedSource.index, for: loadedSource.snapshot.url, modelContainer: modelContainer)
+            if loadedSource.shouldPersistRemoteIndex {
+                persistDocCIndex(loadedSource.index, for: loadedSource.snapshot.url)
             }
         }
     }
     
     /// Removes a technology from memory and deletes persisted source data using a background context.
     ///
-    /// - Parameters:
-    ///   - site: The technology to remove.
-    ///   - modelContainer: SwiftData container used to create a background deletion context.
+    /// - Parameter site: The technology to remove.
     @MainActor
-    public func deleteTechnology(_ site: TechnologyTypes, modelContainer: ModelContainer) async throws {
+    public func deleteTechnology(_ site: TechnologyTypes) async throws {
         guard technologies.contains(where: { $0.id == site.id }) else {
             return
         }
         
         switch site {
         case .apple:
-            let store = DocumentationSwiftDataStore(modelContainer: modelContainer)
-            try await store.deleteDocCSite(url: appleDocCSiteRef?.url ?? site.url)
+            try await swiftDataStore.deleteDocCSite(url: appleDocCSiteRef?.url ?? site.url)
             appleDocCSiteRef = nil
         case .docC(let source):
-            let store = DocumentationSwiftDataStore(modelContainer: modelContainer)
-            try await store.deleteDocCSite(url: source.url)
+            try await swiftDataStore.deleteDocCSite(url: source.url)
         }
 
         technologies.removeAll { $0.id == site.id }
@@ -228,50 +213,6 @@ public final class DocumentationViewModel {
                 return site.id == id || site.url == url
             }
         }
-    }
-    
-    /// Removes a technology from memory and persistence.
-    ///
-    /// - Parameters:
-    ///   - site: The technology to remove.
-    ///   - modelContext: SwiftData context used for deletion.
-    @MainActor
-    public func deleteTechnology(_ site: TechnologyTypes, modelContext: ModelContext) throws {
-        guard technologies.contains(where: { $0.id == site.id }) else {
-            return
-        }
-        
-        switch site {
-        case .apple:
-            if let site = appleDocCSiteRef {
-                try site.deleteSite(modelContext: modelContext)
-            }
-            appleDocCSiteRef = nil
-        case .docC(let source):
-            try Self.deleteDocCSite(url: source.url, modelContext: modelContext)
-        }
-
-        technologies.removeAll { $0.id == site.id }
-    }
-    
-    /// Deletes persisted DocC sources matching a URL in the current model context.
-    ///
-    /// - Parameters:
-    ///   - url: Source URL used to locate persisted source records.
-    ///   - modelContext: SwiftData context used for deletion.
-    @MainActor
-    private static func deleteDocCSite(url: URL, modelContext: ModelContext) throws {
-        let descriptor = FetchDescriptor<DocCSite>(
-            predicate: #Predicate { site in
-                site.url == url
-            }
-        )
-        
-        for site in try modelContext.fetch(descriptor) {
-            modelContext.delete(site)
-        }
-        
-        try modelContext.save()
     }
     
     // MARK: Frameworks
@@ -508,11 +449,10 @@ public final class DocumentationViewModel {
     /// - Parameters:
     ///   - index: Decoded index to persist for offline navigation and search.
     ///   - url: Source URL used to locate the persisted `DocCSite`.
-    ///   - modelContainer: SwiftData container used to create the model actor.
-    private static func persistDocCIndex(_ index: DocCIndex, for url: URL, modelContainer: ModelContainer) {
+    private func persistDocCIndex(_ index: DocCIndex, for url: URL) {
+        let store = swiftDataStore
         Task(priority: .utility) {
             do {
-                let store = DocumentationSwiftDataStore(modelContainer: modelContainer)
                 try await store.persistDocCIndex(index, for: url)
             } catch {
                 print(error)
@@ -568,6 +508,33 @@ private struct PersistedDocCSourceSnapshot: Sendable {
         self.url = source.url
         self.overrideName = source.overrideName
         self.index = source.index
+    }
+}
+
+/// Sendable inserted source metadata returned from the SwiftData store actor.
+struct InsertedDocCSource: Sendable {
+    /// Stable source identifier created by SwiftData.
+    var id: UUID
+    /// Creation timestamp persisted with the source.
+    var timestamp: Date
+    /// Root URL for the DocC source.
+    var url: URL
+    /// Optional display-name override for the source.
+    var overrideName: String?
+    
+    /// Creates the runtime source snapshot used by the UI model.
+    ///
+    /// - Parameter index: Runtime index to attach to the source snapshot.
+    /// - Returns: A persisted source snapshot for UI and DocCKit use.
+    @MainActor
+    func persistedSource(index: DocCIndex) -> PersistedDocCSource {
+        PersistedDocCSource(
+            id: id,
+            timestamp: timestamp,
+            url: url,
+            overrideName: overrideName,
+            index: index
+        )
     }
 }
 
@@ -736,7 +703,27 @@ actor DocumentationContentLoader {
 
 /// SwiftData model actor used for DocC source persistence that does not need the UI model context.
 @ModelActor
-private actor DocumentationSwiftDataStore {
+actor DocumentationSwiftDataStore {
+    /// Inserts a persisted DocC source.
+    ///
+    /// - Parameters:
+    ///   - url: Root URL of the DocC source.
+    ///   - overrideName: Optional display-name override.
+    ///   - index: Index value to persist with the source.
+    /// - Returns: Sendable metadata for the inserted source.
+    func insertDocCSite(url: URL, overrideName: String?, index: DocCIndex) throws -> InsertedDocCSource {
+        let site = DocCSite(url: url, overrideName: overrideName, index: index)
+        modelContext.insert(site)
+        try modelContext.save()
+        
+        return InsertedDocCSource(
+            id: site.id,
+            timestamp: site.timestamp ?? .init(),
+            url: url,
+            overrideName: overrideName
+        )
+    }
+    
     /// Persists a full DocC index after the source has already appeared in the UI.
     ///
     /// - Parameters:

@@ -33,7 +33,6 @@ public struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.modelContext) var modelContext
     @Environment(\.openWindow) var openWindow
     @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
     /// Persisted DocC sites used for sidebar content and loading.
@@ -290,7 +289,6 @@ private struct TechView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.modelContext) private var modelContext
     
     // Add Documentation Alert
     /// Controls presentation of add-source UI on non-macOS platforms.
@@ -512,10 +510,12 @@ private struct TechView: View {
                     DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                         .contextMenu {
                             Button("Delete", systemImage: "trash", role: .destructive) {
-                                do {
-                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                } catch {
-                                    self.errorAlert = error
+                                Task {
+                                    do {
+                                        try await documentationViewModel.deleteTechnology(.docC(technology))
+                                    } catch {
+                                        self.errorAlert = error
+                                    }
                                 }
                             }
                         }
@@ -528,10 +528,12 @@ private struct TechView: View {
                     Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
                         .contextMenu {
                             Button("Delete", systemImage: "trash", role: .destructive) {
-                                do {
-                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                } catch {
-                                    self.errorAlert = error
+                                Task {
+                                    do {
+                                        try await documentationViewModel.deleteTechnology(.docC(technology))
+                                    } catch {
+                                        self.errorAlert = error
+                                    }
                                 }
                             }
                         }
@@ -774,7 +776,6 @@ private struct DocCTechView: View {
     /// Predicate used to filter visible interface-language children.
     let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSource, _ group: DocCIndex.InterfaceLanguage) -> Bool
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         ForEach(technology.groups) { group in
@@ -801,7 +802,6 @@ private struct AppleTechView: View {
     let searchText: String
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     /// Error state for alert presentation.
     @State var errorAlert: Error?
     
@@ -831,16 +831,18 @@ private struct AppleTechView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
-            .contextMenu {
-                Button("Delete", systemImage: "trash", role: .destructive) {
-                    do {
-                        try documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
-                    } catch {
-                        self.errorAlert = error
+                .contextMenu {
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        Task {
+                            do {
+                                try await documentationViewModel.deleteTechnology(.apple(technology))
+                            } catch {
+                                self.errorAlert = error
+                            }
+                        }
                     }
                 }
             }
-        }
         
         if !visibleGroups.isEmpty {
             ForEach(visibleGroups) { group in

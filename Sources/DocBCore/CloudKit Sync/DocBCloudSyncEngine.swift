@@ -8,6 +8,7 @@
 import Combine
 import CryptoKit
 import DocCKit
+import FactoryKit
 import Foundation
 import MYCloudKit
 import Observation
@@ -26,8 +27,8 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     /// Whether fetched CloudKit records are currently being applied to SwiftData.
     public private(set) var isApplyingRemoteChanges = false
     
-    @ObservationIgnored private let modelContainer: ModelContainer
-    @ObservationIgnored private let syncEngine: MYSyncEngine
+    @ObservationIgnored @Injected(\.docBModelContainer) private var modelContainer
+    @ObservationIgnored private var syncEngine: MYSyncEngine
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
     @ObservationIgnored private var isUploading = false
     @ObservationIgnored private var isFetching = false
@@ -35,18 +36,10 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
     @ObservationIgnored private var syncedRecordSignatures: [String: String] = [:]
     @ObservationIgnored private var rootGroupDeleteIDs: Set<String> = []
     
-    /// Creates the CloudKit sync coordinator for a SwiftData container.
-    ///
-    /// - Parameters:
-    ///   - modelContainer: SwiftData container used for local persistence.
-    ///   - containerIdentifier: Optional CloudKit container identifier backed by the active target entitlements.
-    public init(
-        modelContainer: ModelContainer,
-        containerIdentifier: String? = nil
-    ) {
-        self.modelContainer = modelContainer
-        self.syncEngine = MYSyncEngine(containerIdentifier: containerIdentifier)
-        self.syncEngine.delegate = self
+    /// Creates the CloudKit sync coordinator from Factory-registered dependencies.
+    public init() {
+        syncEngine = MYSyncEngine(containerIdentifier: Container.shared.docBCloudKitContainerIdentifier.resolve())
+        syncEngine.delegate = self
         observeSyncEngineState()
     }
     

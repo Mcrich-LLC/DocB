@@ -125,7 +125,6 @@ private struct MainView: View {
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.appearsActive) var appearsActive
     @Environment(\.scenePhase) private var scenePhase
     /// Persisted custom DocC sites backing loaded technologies.
@@ -163,7 +162,7 @@ private struct MainView: View {
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
-            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources, modelContainer: modelContext.container)
+            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources)
         }
         .onChange(of: docCSites, onSwiftDataChange)
         .onChange(of: scenePhase) { _, newValue in
@@ -198,7 +197,7 @@ private struct MainView: View {
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources, modelContainer: modelContext.container)
+                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources)
             }
         }
         

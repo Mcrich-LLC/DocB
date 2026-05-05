@@ -22,7 +22,7 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),
         .package(url: "https://github.com/simonbs/SFSymbols", from: "1.5.0"),
         .package(url: "https://github.com/hmlongco/Factory", from: "3.0.0"),
-        .package(path: "DocCKit")
+        .package(url: "https://github.com/mcrich-llc/DocCKit", branch: "main")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

@@ -1,6 +1,15 @@
 {
-  "originHash" : "0e99809e9feb6afe685ef81e4f51bb6e9c46a053822446babcf6500f87f92de1",
+  "originHash" : "a705c0a9a5af7c7405aa955732142f425dcdd42c47c8fe88c8e2253f657d003f",
   "pins" : [
+    {
+      "identity" : "docckit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mcrich-llc/DocCKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "7b1d673f5ed4cb4f5d5bbce2a8ccdc1250a3f8f7"
+      }
+    },
     {
       "identity" : "enhancedcodable",
       "kind" : "remoteSourceControl",
@@ -8,6 +17,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "a980acc454acc58fe92d66730d84c8df85626c9e"
+      }
+    },
+    {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hmlongco/Factory",
+      "state" : {
+        "revision" : "8123d8e6aaa999ac6f533ad02539087b8692f1ba",
+        "version" : "3.0.2"
       }
     },
     {
@@ -20,21 +38,21 @@
       }
     },
     {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "feat/codable-record-value",
+        "revision" : "f5db0d00f0e6eec48bb3c3522448b5bf3f391abf"
+      }
+    },
+    {
       "identity" : "nuke",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kean/Nuke.git",
       "state" : {
         "revision" : "83e19143355b02e9261edb2323b3e1e93287ebb9",
         "version" : "12.9.0"
-      }
-    },
-    {
-      "identity" : "privateobfuscationmacro",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Mcrich23/PrivateObfuscationMacro",
-      "state" : {
-        "branch" : "main",
-        "revision" : "1b53648f745e31482f51a8ff7a5b9ddb7515428e"
       }
     },
     {

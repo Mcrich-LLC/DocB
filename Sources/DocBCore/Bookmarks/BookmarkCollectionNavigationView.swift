@@ -12,6 +12,7 @@ import DocCKit
 struct BookmarkCollectionNavigationView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     @Environment(\.modelContext) private var modelContext
     /// Collection whose bookmarks are presented in grouped sections.
     let collection: BookmarkCollection
@@ -54,6 +55,9 @@ struct BookmarkCollectionNavigationView: View {
                     try? modelContext.save()
                 }
             }
+        }
+        .refreshable {
+            await docBCloudSyncEngine.fetchRemoteChanges()
         }
         .navigationTitle(collection.title ?? "")
         .toolbar {
@@ -141,7 +145,6 @@ private struct AddSourceButton<Content: View>: View {
     /// Controls presentation of the add-source confirmation dialog.
     @State private var isShowingAddPopover = false
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     /// Captures add-source failures for alert presentation.
     @State private var errorAlert: Error?
@@ -177,7 +180,7 @@ private struct AddSourceButton<Content: View>: View {
         print(url.absoluteString)
         
         do {
-            try await documentationViewModel.addTechnology(baseUrl: url, modelContext: modelContext, overrideName: nil)
+            try await documentationViewModel.addTechnology(baseUrl: url, overrideName: nil)
         } catch {
             self.errorAlert = error
         }

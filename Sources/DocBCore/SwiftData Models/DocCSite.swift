@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 import DocCKit
+import MYCloudKit
 
 /// Persisted DocC source snapshot that bridges SwiftData records and runtime-only DocCKit source state.
 ///
@@ -211,6 +212,26 @@ public final class DocCSite: Identifiable {
         }
         
         return false
+    }
+}
+
+extension DocCSite: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this DocC site.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for persisted DocC sites.
+    public var myRecordType: String { DocBCloudRecordTypes.docCSite }
+    
+    /// Root CloudKit group for this site.
+    public var myRootGroupID: String? { nil }
+    
+    /// CloudKit-compatible properties for this persisted DocC site.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "timestamp": .date(timestamp),
+            "url": .string(url?.absoluteString),
+            "overrideName": .string(overrideName)
+        ]
     }
 }
 

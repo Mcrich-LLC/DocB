@@ -28,7 +28,14 @@ struct ArticleView: View {
     
     /// The general accent color.
     private var accentColor: Color? {
-        article?.metadata.color?.standardColorIdentifier.swiftUIColor ?? article?.metadata.role.accentColor
+        let color = article?.metadata.color?.standardColorIdentifier.swiftUIColor ?? article?.metadata.role.accentColor
+        
+        // Keep contrast good
+        guard color != .gray && color != .secondary && (article?.metadata.role != .article || article?.metadata.color?.standardColorIdentifier != nil) else {
+            return nil
+        }
+        
+        return color
     }
     
     var body: some View {

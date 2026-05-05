@@ -16,21 +16,37 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Mcrich23/EnhancedCodable", branch: "main"),
         .package(url: "https://github.com/appstefan/HighlightSwift", from: "1.0.9"),
+        .package(url: "https://github.com/mufasaYC/MYCloudKit.git", branch: "feat/codable-record-value"),
         .package(url: "https://github.com/kean/Nuke.git", from: "12.9.0"),
         .package(url: "https://github.com/SFSafeSymbols/SFSafeSymbols", from: "7.0.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),
         .package(url: "https://github.com/simonbs/SFSymbols", from: "1.5.0"),
-        .package(path: "DocCKit")
+        .package(url: "https://github.com/hmlongco/Factory", from: "3.0.0"),
+        .package(url: "https://github.com/mcrich-llc/DocCKit", branch: "main")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "DocBCore",
-            dependencies: ["EnhancedCodable", "HighlightSwift", "Nuke", .product(name: "NukeUI", package: "Nuke"), "SFSafeSymbols", "SFSymbols", "DocCKit"],
+            dependencies: [
+                "EnhancedCodable",
+                .product(name: "FactoryKit", package: "Factory"),
+                "HighlightSwift",
+                "MYCloudKit",
+                "Nuke",
+                .product(name: "NukeUI", package: "Nuke"),
+                "SFSafeSymbols",
+                "SFSymbols",
+                "DocCKit"
+            ],
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]
+        ),
+        .testTarget(
+            name: "DocBCoreTests",
+            dependencies: ["DocBCore", "MYCloudKit", "DocCKit"]
         )
     ]
 )

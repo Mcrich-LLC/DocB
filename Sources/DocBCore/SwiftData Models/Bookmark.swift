@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import DocCKit
+import MYCloudKit
 
 /// BookmarkDTO encapsulates app behavior and state.
 @MainActor
@@ -162,13 +163,25 @@ public final class Bookmark: Identifiable {
     public var beta: Bool?
     /// Base URL for the source documentation site.
     public var siteBaseURL: URL?
+    /// Stable identifier of the owning collection used by CloudKit sync.
+    public var collectionID: UUID?
     
-    /// Owning collection relationship; nullified if the collection is removed.
-    @Relationship(deleteRule: .nullify, inverse: \BookmarkCollection.bookmarks)
+    /// Owning collection relationship.
     public var collection: BookmarkCollection?
     
     /// Creates a bookmark model from explicit persisted fields.
-    public init(title: String? = nil, identifier: String, kind: String? = nil, type: String, role: Role? = nil, deprecated: Bool? = nil, beta: Bool? = nil, siteBaseURL: URL? = nil) {
+    public init(
+        title: String? = nil,
+        identifier: String,
+        kind: String? = nil,
+        type: String,
+        role: Role? = nil,
+        deprecated: Bool? = nil,
+        beta: Bool? = nil,
+        siteBaseURL: URL? = nil,
+        collection: BookmarkCollection? = nil,
+        collectionID: UUID? = nil
+    ) {
         self.title = title
         self.identifier = identifier
         self.kind = kind
@@ -178,6 +191,7 @@ public final class Bookmark: Identifiable {
         self.beta = beta
         self.siteBaseURL = siteBaseURL
         self.collection = collection
+        self.collectionID = collectionID ?? collection?.id
     }
     
     /// Creates a bookmark model from a parsed `Reference`.
@@ -194,6 +208,12 @@ public final class Bookmark: Identifiable {
         self.deprecated = reference.deprecated ?? false
         self.beta = reference.beta ?? false
         self.siteBaseURL = siteBaseURL
+    }
+    
+    /// Updates the owning collection and sync identifier together.
+    public func setCollection(_ collection: BookmarkCollection?) {
+        self.collection = collection
+        self.collectionID = collection?.id
     }
     
     @MainActor
@@ -215,6 +235,42 @@ public final class Bookmark: Identifiable {
     public func asReferenceWithDocCSite(from technologies: [TechnologyTypes]) -> Reference? {
         guard let identifier, let type, let siteBaseURL else { return nil }
         
-        return Reference(title: title, identifier: identifier, kind: kind, type: type, role: role, deprecated: deprecated, beta: beta, docCSite: technologies.docCSites.first(where: { $0.url.absoluteString.contains(siteBaseURL.absoluteString) }))
+        return Reference(
+            title: title,
+            identifier: identifier,
+            kind: kind,
+            type: type,
+            role: role,
+            deprecated: deprecated,
+            beta: beta,
+            docCSite: technologies.docCSites.first { $0.url.absoluteString.contains(siteBaseURL.absoluteString) }
+        )
+    }
+}
+
+extension Bookmark: MYRecordConvertible {
+    /// Unique CloudKit record identifier for this bookmark.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for bookmarks.
+    public var myRecordType: String { DocBCloudRecordTypes.bookmark }
+    
+    /// Root CloudKit group matching the owning collection, when available.
+    public var myRootGroupID: String? { (collectionID ?? collection?.id)?.uuidString }
+    
+    /// CloudKit-compatible properties for this bookmark.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "title": .string(title),
+            "identifier": .string(identifier),
+            "kind": .string(kind),
+            "type": .string(type),
+            "role": .string(role?.rawValue),
+            "deprecated": .bool(deprecated),
+            "beta": .bool(beta),
+            "siteBaseURL": .string(siteBaseURL?.absoluteString),
+            "collectionID": .string((collectionID ?? collection?.id)?.uuidString),
+            "collection": .reference(collection, deleteRule: .deleteSelf)
+        ]
     }
 }

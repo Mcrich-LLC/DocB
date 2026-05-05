@@ -750,11 +750,11 @@ extension NavigationViewModel {
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = documentationViewModel.framework(for: articleIdentifier) {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: site)
-                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = documentationViewModel.framework(for: articleIdentifier) {
                     references.merge(dict: framework.references)
                 }
                 
@@ -824,11 +824,11 @@ extension NavigationViewModel {
         for article in articlePath {
             articleIdentifier.append("/\(article)")
             
-            if let framework = documentationViewModel.frameworks[articleIdentifier] {
+            if let framework = documentationViewModel.framework(for: articleIdentifier) {
                 references.merge(dict: framework.references)
             } else {
                 await documentationViewModel.fetchFramework(for: articleIdentifier, site: nil)
-                if let framework = documentationViewModel.frameworks[articleIdentifier] {
+                if let framework = documentationViewModel.framework(for: articleIdentifier) {
                     references.merge(dict: framework.references)
                 }
                 

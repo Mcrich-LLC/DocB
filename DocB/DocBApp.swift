@@ -8,27 +8,49 @@
 import SwiftUI
 import SwiftData
 import DocBCore
+import FactoryKit
+#if canImport(UIKit)
+import UIKit
+#endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 /// Application entry point that configures model containers, scenes, and global environments.
 @main
 struct DocBApp: App {
+#if canImport(UIKit) && !os(watchOS)
+    @UIApplicationDelegateAdaptor(DocBAppDelegate.self) private var appDelegate
+#endif
+#if canImport(AppKit)
+    @NSApplicationDelegateAdaptor(DocBMacAppDelegate.self) private var macAppDelegate
+#endif
     /// Shared documentation model injected into app scenes.
-    @State var documentationViewModel = DocumentationViewModel()
+    @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
-    @State var appSettings = AppSettings()
+    @State var appSettings: AppSettings
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
     @Environment(\.openWindow) var openWindow
     /// Primary SwiftData container for docs, bookmarks, and collections.
     let docCSiteModelContainer: ModelContainer
+    /// Explicit CloudKit sync coordinator backed by MYCloudKit.
+    let cloudSyncEngine: DocBCloudSyncEngine
     
     /// Initializes the SwiftData container and development-only integrations.
     init() {
-        do {
-            docCSiteModelContainer = try ModelContainer(for: DocCSite.self, Bookmark.self, BookmarkCollection.self, configurations: .init(cloudKitDatabase: .automatic))
-        } catch {
-            fatalError("Error Initializing ModelContainer: \(error)")
-        }
+        #if canImport(UIKit)
+        UIApplication.shared.registerForRemoteNotifications()
+        #endif
+        #if canImport(AppKit)
+        NSApplication.shared.registerForRemoteNotifications()
+        #endif
+        
+        let container = Container.shared
+        docCSiteModelContainer = container.docBModelContainer()
+        cloudSyncEngine = container.docBCloudSyncEngine()
+        documentationViewModel = container.documentationViewModel()
+        appSettings = container.appSettings()
         
         loadRocketSimConnect()
     }
@@ -42,6 +64,7 @@ struct DocBApp: App {
         .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Window", action: { openWindow(id: WindowTypes.main) })
@@ -59,11 +82,13 @@ struct DocBApp: App {
         .modelContainer(docCSiteModelContainer)
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         Settings {
             SettingsView()
         }
         .environment(documentationViewModel)
         .environment(appSettings)
+        .environment(cloudSyncEngine)
         #endif
     }
     
@@ -98,10 +123,15 @@ private struct MainView: View {
     @Binding var showAddSource: Bool
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(\.modelContext) private var modelContext
+    @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
     @Environment(\.appearsActive) var appearsActive
+    @Environment(\.scenePhase) private var scenePhase
     /// Persisted custom DocC sites backing loaded technologies.
     @Query private var docCSites: [DocCSite]
+    /// Persisted bookmark collections that participate in explicit CloudKit sync.
+    @Query private var bookmarkCollections: [BookmarkCollection]
+    /// Persisted bookmarks that participate in explicit CloudKit sync.
+    @Query private var bookmarks: [Bookmark]
     
     /// Tracks source-sheet visibility only while the owning scene is active.
     var activeTrackedShowAddSource: Binding<Bool> {
@@ -129,9 +159,28 @@ private struct MainView: View {
         }
         .animation(.default, value: hasOnboarded)
         .task {
-            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources, modelContainer: modelContext.container)
+            cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
+            await cloudSyncEngine.start()
+            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources)
         }
         .onChange(of: docCSites, onSwiftDataChange)
+        .onChange(of: scenePhase) { _, newValue in
+            guard newValue == .active else { return }
+            Task {
+                await cloudSyncEngine.fetchRemoteChanges()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .docBCloudKitRemoteNotificationReceived)) { _ in
+            Task {
+                await cloudSyncEngine.fetchRemoteChanges()
+            }
+        }
+        .onChange(of: bookmarkCollections) { oldValue, newValue in
+            cloudSyncEngine.syncBookmarkCollectionChanges(oldValue: oldValue, newValue: newValue)
+        }
+        .onChange(of: bookmarks) { oldValue, newValue in
+            cloudSyncEngine.syncBookmarkChanges(oldValue: oldValue, newValue: newValue)
+        }
         .sheet(isPresented: activeTrackedShowAddSource) {
             AddTechnologySheetView()
         }
@@ -139,13 +188,15 @@ private struct MainView: View {
     
     /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
+        cloudSyncEngine.syncDocCSiteChanges(oldValue: oldValue, newValue: newValue)
+        
         let oldIDs = Set(oldValue.map(\.id))
         let newIDs = Set(newValue.map(\.id))
         let insertedSites = newValue.filter { !oldIDs.contains($0.id) }
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources, modelContainer: modelContext.container)
+                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources)
             }
         }
         
@@ -154,3 +205,35 @@ private struct MainView: View {
         }
     }
 }
+
+// MARK: – App Delegates
+#if canImport(UIKit) && !os(watchOS)
+/// Forwards CloudKit remote-change pushes into DocB's explicit MYCloudKit sync engine.
+private final class DocBAppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable : Any]
+    ) async -> UIBackgroundFetchResult {
+        NotificationCenter.default.post(
+            name: .docBCloudKitRemoteNotificationReceived,
+            object: nil,
+            userInfo: userInfo
+        )
+        
+        return .newData
+    }
+}
+#endif
+
+#if canImport(AppKit)
+/// Forwards macOS CloudKit remote-change pushes into DocB's explicit MYCloudKit sync engine.
+private final class DocBMacAppDelegate: NSObject, NSApplicationDelegate {
+    func application(_ application: NSApplication, didReceiveRemoteNotification userInfo: [String : Any]) {
+        NotificationCenter.default.post(
+            name: .docBCloudKitRemoteNotificationReceived,
+            object: nil,
+            userInfo: userInfo
+        )
+    }
+}
+#endif

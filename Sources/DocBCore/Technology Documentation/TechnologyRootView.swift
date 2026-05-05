@@ -64,10 +64,14 @@ struct TechnologyRootView: View {
     @State private var manager: TechnologyRootManager
     /// Whether deep-filter recomputation is in progress.
     @State var isLoading = false
+    /// Current root-level deep-filter task.
+    @State private var shownReferencesTask: Task<Void, Never>?
+    /// Monotonic token used to ignore stale root-level filter results.
+    @State private var shownReferencesRequestID = UUID()
     
     /// Cached framework payload for the selected framework section.
     var framework: Framework? {
-        documentationViewModel.frameworks[manager.frameworkSection.destination.identifier]
+        documentationViewModel.framework(for: manager.frameworkSection.destination.identifier)
     }
     
     /// Topic sections filtered to only rows that should be visible.
@@ -132,32 +136,19 @@ struct TechnologyRootView: View {
         .navigationBarTitleDisplayMode(.large)
 #endif
         .onAppear {
-            Task {
-                await loadFramework()
-                await getShownReferences()
-            }
+            scheduleShownReferencesRefresh(loadFrameworkFirst: true)
         }
         .onChange(of: navigationViewModel.technology) { _, newValue in
             if let newValue, navigationViewModel.isUsingSplitView {
                 manager.frameworkSection = newValue
             }
-            Task {
-                await loadFramework()
-                await getShownReferences()
-            }
+            scheduleShownReferencesRefresh(loadFrameworkFirst: true)
         }
         .onChange(of: manager.activeFilters) {
-            Task {
-                await getShownReferences()
-            }
+            scheduleShownReferencesRefresh(loadFrameworkFirst: false)
         }
-        .onChange(of: documentationViewModel.preferedProgrammingLanguage, {
-            Task {
-                documentationViewModel.frameworks[manager.frameworkSection.destination.identifier] = nil
-                await loadFramework()
-            }
-        })
         .onDisappear {
+            shownReferencesTask?.cancel()
             if !navigationViewModel.isUsingSplitView && navigationViewModel.shouldRemoveTechnologyFromPath(manager.frameworkSection) && navigationViewModel.reference == nil {
                 navigationViewModel.goBackward(updatePath: false)
             }
@@ -185,6 +176,24 @@ struct TechnologyRootView: View {
         }
     }
     
+    /// Starts a cancellable root-level deep-filter refresh for the current framework state.
+    ///
+    /// - Parameter loadFrameworkFirst: Whether the selected framework should be loaded before filtering.
+    @MainActor
+    private func scheduleShownReferencesRefresh(loadFrameworkFirst: Bool) {
+        shownReferencesTask?.cancel()
+        
+        let requestID = UUID()
+        shownReferencesRequestID = requestID
+        shownReferencesTask = Task {
+            if loadFrameworkFirst {
+                await loadFramework()
+            }
+            
+            await getShownReferences(requestID: requestID)
+        }
+    }
+    
     /// Loads the selected framework if it is not already cached.
     func loadFramework() async {
         if framework == nil {
@@ -194,21 +203,41 @@ struct TechnologyRootView: View {
     
     /// Recomputes deep-filter visibility for all references in the current framework.
     @MainActor
-    func getShownReferences() async {
+    func getShownReferences(requestID: UUID) async {
         guard !manager.activeFilters.isEmpty else {
-            manager.shownReferences.removeAll()
+            if shownReferencesRequestID == requestID {
+                manager.shownReferences.removeAll()
+                isLoading = false
+            }
             return
         }
         
-        isLoading = true
-        for section in framework?.topicSections ?? [] {
-            for identifier in section.identifiers {
-                if let reference = framework?.references[identifier] {
-                    self.manager.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: manager.activeFilters, documentationViewModel: documentationViewModel)
-                }
+        let frameworkIdentifier = manager.frameworkSection.destination.identifier
+        let references = (framework?.topicSections ?? []).flatMap { section in
+            section.identifiers.compactMap { identifier in
+                framework?.references[identifier]
             }
         }
+        let filters = manager.activeFilters
+        let frameworkResolver = documentationViewModel.frameworkResolver()
         
+        isLoading = true
+        let result = await visibilityByReferenceIdentifier(
+            for: references,
+            filters: filters,
+            frameworkResolver: frameworkResolver
+        )
+        
+        guard !Task.isCancelled,
+              shownReferencesRequestID == requestID,
+              manager.activeFilters == filters,
+              manager.frameworkSection.destination.identifier == frameworkIdentifier
+        else {
+            return
+        }
+        
+        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
+        manager.shownReferences = result.visibilityByIdentifier
         isLoading = false
     }
 }
@@ -453,7 +482,7 @@ private struct DefaultListItem: View {
                     }
                 }
             } icon: {
-                Image(systemSymbol: reference.role?.labelIcon ?? .docText)
+                Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -493,10 +522,14 @@ private struct FrameworkDisclosureGroup: View {
     @State private var shownReferences: [String : Bool] = [:]
     @State private var isLoading = false
     @State private var isExpanded = false
+    /// Current disclosure-level deep-filter task.
+    @State private var shownReferencesTask: Task<Void, Never>?
+    /// Monotonic token used to ignore stale disclosure-level filter results.
+    @State private var shownReferencesRequestID = UUID()
     
     /// Cached framework payload for this nested reference identifier.
     var framework: Framework? {
-        documentationViewModel.frameworks[identifier]
+        documentationViewModel.framework(for: identifier)
     }
     
     /// Topic sections filtered to references visible under the active tags.
@@ -527,7 +560,7 @@ private struct FrameworkDisclosureGroup: View {
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             Group {
-                if let framework, isExpanded {
+                if framework != nil, isExpanded {
                     ForEach(topicSections) { section in
                         FrameworkTopicSectionView(section: section, usesSecondaryHeader: true)
                     }
@@ -551,19 +584,20 @@ private struct FrameworkDisclosureGroup: View {
                 }
         }
         .onChange(of: isExpanded, initial: false) { _, isExpanded in
-            guard isExpanded else { return }
-            
-            Task {
-                await loadFrameworkIfNeeded()
-                await getShownReferences()
+            guard isExpanded else {
+                cancelShownReferencesRefresh()
+                return
             }
+            
+            scheduleShownReferencesRefresh(loadFrameworkFirst: true)
         }
         .onChange(of: tagFilters) {
             guard isExpanded else { return }
             
-            Task {
-                await getShownReferences()
-            }
+            scheduleShownReferencesRefresh(loadFrameworkFirst: false)
+        }
+        .onDisappear {
+            cancelShownReferencesRefresh()
         }
     }
     
@@ -576,27 +610,72 @@ private struct FrameworkDisclosureGroup: View {
         return shownReference
     }
     
+    /// Starts a cancellable disclosure-level deep-filter refresh for the current expansion state.
+    ///
+    /// - Parameter loadFrameworkFirst: Whether the disclosure framework should be loaded before filtering.
+    @MainActor
+    private func scheduleShownReferencesRefresh(loadFrameworkFirst: Bool) {
+        shownReferencesTask?.cancel()
+        
+        let requestID = UUID()
+        shownReferencesRequestID = requestID
+        shownReferencesTask = Task {
+            if loadFrameworkFirst {
+                await loadFrameworkIfNeeded()
+            }
+            
+            await getShownReferences(requestID: requestID)
+        }
+    }
+    
+    /// Cancels any pending disclosure-level deep-filter refresh.
+    @MainActor
+    private func cancelShownReferencesRefresh() {
+        shownReferencesTask?.cancel()
+        shownReferencesTask = nil
+        isLoading = false
+    }
+    
     /// Recomputes deep-filter visibility for references in this disclosure group.
     @MainActor
-    func getShownReferences() async {
+    func getShownReferences(requestID: UUID) async {
         guard isExpanded else {
             return
         }
         
         guard !tagFilters.isEmpty else {
-            shownReferences.removeAll()
+            if shownReferencesRequestID == requestID {
+                shownReferences.removeAll()
+                isLoading = false
+            }
             return
         }
         
-        isLoading = true
-        for section in framework?.topicSections ?? [] {
-            for identifier in section.identifiers {
-                if let reference = framework?.references[identifier] {
-                    self.shownReferences[reference.identifier] = await isFullReferencePartOfFilter(reference, with: tagFilters, documentationViewModel: documentationViewModel)
-                }
+        let references = (framework?.topicSections ?? []).flatMap { section in
+            section.identifiers.compactMap { identifier in
+                framework?.references[identifier]
             }
         }
+        let filters = tagFilters
+        let frameworkResolver = documentationViewModel.frameworkResolver()
         
+        isLoading = true
+        let result = await visibilityByReferenceIdentifier(
+            for: references,
+            filters: filters,
+            frameworkResolver: frameworkResolver
+        )
+        
+        guard !Task.isCancelled,
+              shownReferencesRequestID == requestID,
+              isExpanded,
+              tagFilters == filters
+        else {
+            return
+        }
+        
+        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
+        shownReferences = result.visibilityByIdentifier
         isLoading = false
     }
     
@@ -642,32 +721,131 @@ private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Se
 /// - Parameters:
 ///   - reference: The reference to evaluate.
 ///   - filters: Active tag filters.
-///   - documentationViewModel: Shared documentation state used to fetch nested frameworks.
-/// - Returns: `true` when the reference or descendants match the filters.
-private func isFullReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>, documentationViewModel: DocumentationViewModel) async -> Bool {
+///   - frameworkResolver: Sendable resolver used to fetch nested frameworks.
+/// - Returns: Visibility plus any framework loaded while checking descendants.
+private func fullReferenceFilterResult(_ reference: Reference, with filters: Set<TagFilters>, frameworkResolver: DocumentationFrameworkResolver) async -> ReferenceVisibilityResult {
     // Return if the top level is included
-    if isTopReferencePartOfFilter(reference, with: filters) { return true }
-    
-    // Search deeper down if it contains something included
-    guard referenceHasSubParts(reference) else { return false }
-    
-    // Fetch framework if needed
-    if await documentationViewModel.frameworks[reference.identifier] == nil {
-        await documentationViewModel.fetchFramework(for: reference.identifier, site: reference.docCSite)
+    if isTopReferencePartOfFilter(reference, with: filters) {
+        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: true)
     }
     
-    guard let framework = await documentationViewModel.frameworks[reference.identifier] else { return false }
+    // Search deeper down if it contains something included
+    guard referenceHasSubParts(reference) else {
+        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
+    }
+    
+    // Fetch framework if needed
+    guard let framework = try? await frameworkResolver.fetchFramework(for: reference.identifier, site: reference.docCSite) else {
+        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
+    }
     
     for section in (framework.topicSections ?? []) {
         for subidentifier in section.identifiers {
             guard let subreference = framework.references[subidentifier] else { continue }
             if DocBCore.isTopReferencePartOfFilter(subreference, with: filters) {
-                return true
+                return ReferenceVisibilityResult(identifier: reference.identifier, isShown: true, loadedFramework: framework)
             }
         }
     }
     
-    return false
+    return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false, loadedFramework: framework)
+}
+
+/// Computes deep-filter visibility away from the main actor with bounded framework fetch concurrency.
+///
+/// - Parameters:
+///   - references: References to evaluate.
+///   - filters: Active tag filters.
+///   - frameworkResolver: Sendable framework resolver used to fetch nested frameworks.
+/// - Returns: Visibility and loaded frameworks that should be published into the shared cache.
+private func visibilityByReferenceIdentifier(
+    for references: [Reference],
+    filters: Set<TagFilters>,
+    frameworkResolver: DocumentationFrameworkResolver,
+    maxConcurrentChecks: Int = 4
+) async -> VisibilityComputationResult {
+    let workerCount = min(max(maxConcurrentChecks, 1), references.count)
+    guard workerCount > 0 else { return .empty }
+    
+    let iterator = ReferenceVisibilityIterator(references: references)
+    return await withTaskGroup(of: VisibilityComputationResult.self, returning: VisibilityComputationResult.self) { group in
+        for _ in 0..<workerCount {
+            group.addTask {
+                var partialResult = VisibilityComputationResult.empty
+                
+                while let reference = await iterator.next() {
+                    if Task.isCancelled { break }
+                    let result = await fullReferenceFilterResult(reference, with: filters, frameworkResolver: frameworkResolver)
+                    partialResult.visibilityByIdentifier[result.identifier] = result.isShown
+                    if let loadedFramework = result.loadedFramework {
+                        partialResult.frameworksLoadedForCache[result.identifier] = loadedFramework
+                    }
+                }
+                
+                return partialResult
+            }
+        }
+        
+        var result = VisibilityComputationResult.empty
+        for await partialResult in group {
+            result.merge(partialResult)
+        }
+        
+        return result
+    }
+}
+
+/// Thread-safe iterator used to bound concurrent reference visibility checks.
+private actor ReferenceVisibilityIterator {
+    /// References waiting to be checked.
+    private let references: [Reference]
+    /// Index of the next reference to hand to a worker.
+    private var nextIndex = 0
+    
+    /// Creates an iterator for a batch of references.
+    ///
+    /// - Parameter references: References that should be evaluated.
+    init(references: [Reference]) {
+        self.references = references
+    }
+    
+    /// Returns the next reference to evaluate.
+    ///
+    /// - Returns: The next reference, or `nil` when all references have been claimed.
+    func next() -> Reference? {
+        guard nextIndex < references.count else { return nil }
+        defer { nextIndex += 1 }
+        return references[nextIndex]
+    }
+}
+
+/// Combined result for a bounded deep-filter visibility computation.
+private struct VisibilityComputationResult: Sendable {
+    /// Visibility keyed by reference identifier.
+    var visibilityByIdentifier: [String : Bool]
+    /// Frameworks loaded while filtering, keyed by the same identifier used for cache lookup.
+    var frameworksLoadedForCache: [String : Framework]
+    
+    /// Empty visibility computation result.
+    static let empty = VisibilityComputationResult(visibilityByIdentifier: [:], frameworksLoadedForCache: [:])
+    
+    /// Merges a partial worker result into this result.
+    ///
+    /// - Parameter other: Partial result produced by one worker.
+    mutating func merge(_ other: VisibilityComputationResult) {
+        visibilityByIdentifier.merge(other.visibilityByIdentifier) { _, newValue in newValue }
+        frameworksLoadedForCache.merge(other.frameworksLoadedForCache) { _, newValue in newValue }
+    }
+}
+
+/// Visibility result for one reference.
+private struct ReferenceVisibilityResult: Sendable {
+    /// Identifier of the checked reference.
+    var identifier: String
+    /// Whether the reference should be visible for the active filters.
+    var isShown: Bool
+    /// Framework loaded while checking descendants, if any.
+    var loadedFramework: Framework?
 }
 
 /// Determines whether a reference kind is expected to contain nested members.

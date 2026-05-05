@@ -2,6 +2,15 @@
   "originHash" : "89b842fdb336c4c8287cff337ceefd85ac419324093c35e7298c476598d47e7f",
   "pins" : [
     {
+      "identity" : "docckit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mcrich-llc/DocCKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "7b1d673f5ed4cb4f5d5bbce2a8ccdc1250a3f8f7"
+      }
+    },
+    {
       "identity" : "enhancedcodable",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Mcrich23/EnhancedCodable",
@@ -11,12 +20,30 @@
       }
     },
     {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hmlongco/Factory",
+      "state" : {
+        "revision" : "09bae642ac588ca0448260f161b5c8b31fa24395",
+        "version" : "3.0.1"
+      }
+    },
+    {
       "identity" : "highlightswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/appstefan/HighlightSwift",
       "state" : {
         "revision" : "784ca3ccfc8a2cf724fbb2f06cb6ec3329424da3",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "mycloudkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mufasaYC/MYCloudKit.git",
+      "state" : {
+        "branch" : "feat/codable-record-value",
+        "revision" : "c46675015e1886e4eab3540886dc9fe63badf332"
       }
     },
     {

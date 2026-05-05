@@ -33,7 +33,6 @@ public struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.modelContext) var modelContext
     @Environment(\.openWindow) var openWindow
     @Environment(\.supportsMultipleWindows) var supportsMultipleWindows
     /// Persisted DocC sites used for sidebar content and loading.
@@ -166,6 +165,7 @@ public struct ContentView: View {
     /// Sidebar container that switches between technologies and bookmark flows.
     struct SidebarView: View {
         @Environment(NavigationViewModel.self) var navigationViewModel
+        @Environment(DocumentationViewModel.self) var documentationViewModel
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
         /// Passed DocC sites to avoid expensive query instantiation.
@@ -197,6 +197,7 @@ public struct ContentView: View {
                     }
                 } else if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
+                        .id(documentationViewModel.preferedProgrammingLanguage)
                 }
             }
         }
@@ -263,6 +264,7 @@ public struct ContentView: View {
                         ArticleView(reference: reference)
                     case .technology(let technology):
                         TechnologyRootView(frameworkSection: technology)
+                            .id(documentationViewModel.preferedProgrammingLanguage)
                     case .bookmarkCollections:
                         BookmarkCollectionsView()
                     case .bookmark(let collection):
@@ -285,8 +287,8 @@ private struct TechView: View {
     /// Error state surfaced through shared alert helper.
     @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.modelContext) private var modelContext
     
     // Add Documentation Alert
     /// Controls presentation of add-source UI on non-macOS platforms.
@@ -294,8 +296,10 @@ private struct TechView: View {
     /// Pending URL string used by add-source alerts/flows.
     @State var addDocumentationUrl: String = ""
     
-    /// A boolean that describes if CoreData is currently syncing with CloudKit
-    @State private var isCoreDataSyncing = false
+    /// A boolean that describes if DocB's explicit CloudKit sync engine is active.
+    @State private var isCloudKitSyncing = false
+    /// Cancellable search coordinator for the sidebar search field.
+    @State private var sidebarSearchStore = SidebarSearchStore()
     
     /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSource, group: DocCIndex.InterfaceLanguage) -> Bool {
@@ -336,7 +340,7 @@ private struct TechView: View {
     
     @ViewBuilder
     private var syncingView: some View {
-        if isCoreDataSyncing {
+        if isCloudKitSyncing {
             HStack {
                 Text("Syncing")
                 ProgressView()
@@ -351,17 +355,12 @@ private struct TechView: View {
             .listRowSeparator(.hidden)
             .padding()
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12))
-            .animation(.default, value: isCoreDataSyncing)
+            .animation(.default, value: isCloudKitSyncing)
         }
     }
     
     var body: some View {
-        let preparedData = PreparedTechnologyData(
-            searchText: searchText,
-            docCSites: docCSites,
-            technologies: documentationViewModel.technologies,
-            isVisibleForSearch: isVisibleForSearch
-        )
+        let isSearchActive = !SidebarSearchIndex.normalize(searchText).isEmpty
         
         List {
             #if os(macOS) || os(visionOS)
@@ -372,28 +371,41 @@ private struct TechView: View {
             }
             #endif
             
-            if preparedData.isEmpty && searchText.isEmpty {
-                ContentUnavailableView {
-                    Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
-                }
-                .listRowSeparator(.hidden)
+            if isSearchActive {
+                searchList(sidebarSearchStore.results)
             } else {
-                if !searchText.isEmpty {
-                    searchList(preparedData)
-                } else if preparedData.hasSearchResults {
-                    technologiesList(preparedData)
+                let preparedData = PreparedTechnologyData(
+                    docCSites: docCSites,
+                    technologies: documentationViewModel.technologies,
+                    isVisibleForSearch: isVisibleForSearch
+                )
+                
+                if preparedData.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
+                    }
+                    .listRowSeparator(.hidden)
                 } else {
-                    ContentUnavailableView.search(text: searchText)
+                    technologiesList(preparedData)
                 }
             }
         }
-        .isCoreDataSyncing($isCoreDataSyncing)
+        .isDocBCloudKitSyncing($isCloudKitSyncing)
         .searchable(text: $searchText)
+        .onChange(of: searchText, initial: true) { _, newValue in
+            sidebarSearchStore.updateSearchText(newValue)
+        }
+        .onChange(of: sidebarSearchContentFingerprint, initial: true) {
+            refreshSidebarSearchIndex()
+        }
         .overlay(content: {
             if isLoading {
                 ProgressView("Loading")
             }
         })
+        .refreshable {
+            await docBCloudSyncEngine.fetchRemoteChanges()
+        }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .background(Color(platformColor: .systemBackground))
@@ -411,7 +423,7 @@ private struct TechView: View {
                 .labelStyle(.iconOnly)
             }
             #if !(os(macOS) || os(visionOS))
-            if #available(iOS 26, *), isCoreDataSyncing, !isLoading {
+            if #available(iOS 26, *), isCloudKitSyncing, !isLoading {
                 ToolbarItem(placement: .largeSubtitle) {
                     HStack {
                         Text("Syncing")
@@ -420,7 +432,7 @@ private struct TechView: View {
                     .foregroundStyle(.secondary)
                     .padding([.top, .leading], 2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .animation(.default, value: isCoreDataSyncing)
+                    .animation(.default, value: isCloudKitSyncing)
                 }
             }
             #endif
@@ -429,6 +441,21 @@ private struct TechView: View {
             AddTechnologySheetView()
         })
         .alert(for: $errorAlert)
+    }
+    
+    /// Cheap source fingerprint used to trigger sidebar search index rebuilds.
+    private var sidebarSearchContentFingerprint: SidebarSearchContentFingerprint {
+        SidebarSearchContentFingerprint(docCSites: docCSites, technologies: documentationViewModel.technologies)
+    }
+    
+    /// Captures main-actor source snapshots and asks the search store to rebuild off-main.
+    @MainActor
+    private func refreshSidebarSearchIndex() {
+        sidebarSearchStore.rebuildIndex(
+            persistedSites: docCSites.asDocCSources,
+            technologies: documentationViewModel.technologySnapshot(),
+            searchText: searchText
+        )
     }
     
     /// Presents add-source UI using platform-appropriate window/sheet behavior.
@@ -442,18 +469,35 @@ private struct TechView: View {
     
     /// Search-result list for both DocC and Apple technologies.
     @ViewBuilder
-    private func searchList(_ preparedData: PreparedTechnologyData) -> some View {
-        ForEach(preparedData.searchableDocCSites) { site in
-            Section(site.overrideName ?? site.groups.first?.title ?? "Unknown") {
-                ForEach(site.index.interfaceLanguages.keys.sorted(), id: \.self) { interfaceLanguage in
-                    ForEach(site.index.interfaceLanguages[interfaceLanguage] ?? []) { language in
-                        InterfaceLanguageDocCSourceSearchListing(searchText: searchText, interfaceLanguage: language, site: site)
+    private func searchList(_ results: SidebarSearchResults) -> some View {
+        if results.isEmpty {
+            if sidebarSearchStore.isSearching || sidebarSearchStore.isRebuildingIndex {
+                Section {
+                    ProgressView("Searching")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+            } else {
+                ContentUnavailableView.search(text: searchText)
+            }
+        } else {
+            ForEach(results.sections) { section in
+                Section(section.title) {
+                    ForEach(section.rows) { row in
+                        SidebarSearchResultRowView(row: row)
                     }
                 }
             }
-        }
-        ForEach(preparedData.nonDocCTechnologies) { technology in
-            technologyView(for: technology)
+            
+            if results.isTruncated {
+                Section {} footer: {
+                    Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(results.totalMatches) matches. Refine your search to narrow the results.")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.bottom)
+                }
+            }
         }
     }
     
@@ -466,10 +510,12 @@ private struct TechView: View {
                     DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
                         .contextMenu {
                             Button("Delete", systemImage: "trash", role: .destructive) {
-                                do {
-                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                } catch {
-                                    self.errorAlert = error
+                                Task {
+                                    do {
+                                        try await documentationViewModel.deleteTechnology(.docC(technology))
+                                    } catch {
+                                        self.errorAlert = error
+                                    }
                                 }
                             }
                         }
@@ -482,10 +528,12 @@ private struct TechView: View {
                     Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
                         .contextMenu {
                             Button("Delete", systemImage: "trash", role: .destructive) {
-                                do {
-                                    try documentationViewModel.deleteTechnology(.docC(technology), modelContext: modelContext)
-                                } catch {
-                                    self.errorAlert = error
+                                Task {
+                                    do {
+                                        try await documentationViewModel.deleteTechnology(.docC(technology))
+                                    } catch {
+                                        self.errorAlert = error
+                                    }
                                 }
                             }
                         }
@@ -501,8 +549,6 @@ private struct TechView: View {
 /// Precomputed sidebar data that avoids repeating source conversion and filtering across list branches.
 @MainActor
 private struct PreparedTechnologyData {
-    /// Persisted DocC sites matching the current search text.
-    let searchableDocCSites: [DocCSource]
     /// Custom DocC sites used for sidebar rendering.
     let docCSites: [DocCSource]
     /// Custom DocC sites that have at least one visible framework.
@@ -513,20 +559,16 @@ private struct PreparedTechnologyData {
     let groupedDocCSites: [DocCSource]
     /// Non-DocC technology entries.
     let nonDocCTechnologies: [TechnologyTypes]
-    /// Indicates whether the current search can show at least one row.
-    let hasSearchResults: Bool
     /// Indicates whether any source data is available.
     let isEmpty: Bool
     
     /// Builds prepared sidebar data for the current search and technology state.
     ///
     /// - Parameters:
-    ///   - searchText: Current sidebar search query.
     ///   - docCSites: Persisted DocC site models.
     ///   - technologies: Loaded technology sources.
     ///   - isVisibleForSearch: Predicate used for framework filtering.
     init(
-        searchText: String,
         docCSites: [DocCSite],
         technologies: [TechnologyTypes],
         isVisibleForSearch: (AppleTechnologies.FrameworkSection) -> Bool
@@ -534,12 +576,6 @@ private struct PreparedTechnologyData {
         let docCSourceValues = Self.mergedDocCSites(persistedSites: docCSites.asDocCSources, loadedSites: technologies.docCSites)
         let visibleDocCSites = docCSourceValues.filter { site in
             site.allFrameworkSections.contains(where: isVisibleForSearch)
-        }
-        
-        self.searchableDocCSites = searchText.isEmpty ? docCSourceValues : docCSourceValues.filter { site in
-            site.groups.contains { interfaceLanguage in
-                Self.matchesSearch(interfaceLanguage, searchText: searchText)
-            }
         }
         self.docCSites = docCSourceValues
         self.visibleDocCSites = visibleDocCSites
@@ -561,22 +597,6 @@ private struct PreparedTechnologyData {
         self.groupedDocCSites = groupedDocCSites
         self.nonDocCTechnologies = technologies.filter { !$0.isDocC }
         self.isEmpty = docCSourceValues.isEmpty && nonDocCTechnologies.isEmpty
-        
-        guard !searchText.isEmpty else {
-            self.hasSearchResults = true
-            return
-        }
-        
-        let mappedTech = technologies.flatMap { tech in
-            switch tech {
-            case .apple(let technologies):
-                return (technologies.groups ?? []).flatMap(\.technologies)
-            case .docC(let site):
-                return site.groups.flatMap { $0.allFrameworkSections(for: site) }
-            }
-        }
-        
-        self.hasSearchResults = mappedTech.contains(where: isVisibleForSearch)
     }
     
     /// Merges persisted source records with loaded in-memory sources, preferring loaded indexes.
@@ -599,52 +619,79 @@ private struct PreparedTechnologyData {
             lhs.timestamp < rhs.timestamp
         }
     }
+}
+
+/// Cheap Equatable source signature used to trigger async sidebar search index rebuilds.
+private struct SidebarSearchContentFingerprint: Equatable {
+    /// Persisted source identities and local index identities.
+    private let persistedSites: [PersistedSiteFingerprint]
+    /// Runtime technology identities and loaded DocC index identities.
+    private let technologies: [TechnologyFingerprint]
     
-    /// Recursively tests an in-memory DocC index node against the current search.
+    /// Creates a fingerprint from current sidebar source data.
     ///
     /// - Parameters:
-    ///   - interfaceLanguage: Index node to inspect.
-    ///   - searchText: Search query to match.
-    /// - Returns: `true` if this node or a descendant should appear in search.
-    private static func matchesSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, searchText: String) -> Bool {
-        if interfaceLanguage.title.lowercased().contains(searchText.lowercased()) && interfaceLanguage.type.lowercased() != "module" {
-            return true
-        }
+    ///   - docCSites: Persisted DocC site models.
+    ///   - technologies: Runtime technology values.
+    init(docCSites: [DocCSite], technologies: [TechnologyTypes]) {
+        self.persistedSites = docCSites.map { PersistedSiteFingerprint(site: $0) }
+        self.technologies = technologies.map { TechnologyFingerprint(technology: $0) }
+    }
+    
+    /// Fingerprint for a persisted DocC site.
+    private struct PersistedSiteFingerprint: Equatable {
+        /// Stable source identifier.
+        let id: UUID
+        /// Source URL.
+        let url: URL?
+        /// Optional display override.
+        let overrideName: String?
+        /// Current local index model identity.
+        let indexID: UUID?
         
-        return interfaceLanguage.children?.contains { child in
-            matchesSearch(child, searchText: searchText)
-        } == true
+        /// Creates a persisted-site fingerprint.
+        ///
+        /// - Parameter site: Persisted DocC site model.
+        init(site: DocCSite) {
+            self.id = site.id
+            self.url = site.url
+            self.overrideName = site.overrideName
+            self.indexID = site.indexV2?.id
+        }
+    }
+    
+    /// Fingerprint for a runtime technology value.
+    private struct TechnologyFingerprint: Equatable {
+        /// Stable technology identifier.
+        let id: UUID
+        /// Loaded DocC index identity for custom sources.
+        let docCIndexID: UUID?
+        
+        /// Creates a runtime technology fingerprint.
+        ///
+        /// - Parameter technology: Runtime technology value.
+        init(technology: TechnologyTypes) {
+            self.id = technology.id
+            switch technology {
+            case .apple:
+                self.docCIndexID = nil
+            case .docC(let site):
+                self.docCIndexID = site.index.id
+            }
+        }
     }
 }
 
-/// Recursive search-result renderer for persisted DocC interface-language nodes.
-private struct InterfaceLanguageSearchListing: View {
-    /// Current user-entered search text.
-    let searchText: String
-    /// Interface-language node being rendered recursively.
-    let interfaceLanguage: DocCSite.InterfaceLanguageModel
-    
-    @Environment(DocumentationViewModel.self) var documentationViewModel
+/// Flat search-result row renderer for precomputed sidebar matches.
+private struct SidebarSearchResultRowView: View {
+    /// Precomputed search row payload.
+    let row: SidebarSearchResultRow
     @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
-    
-    /// Synthetic reference used for navigation when a node maps to a known path/type.
-    var reference: Reference? {
-        guard let path = interfaceLanguage.path, let type = interfaceLanguage.type else {
-            return nil
-        }
-        
-        guard let siteModel = try? interfaceLanguage.getSet()?.index?.site,
-              let site = documentationViewModel.technologies.docCSites.first(where: { $0.id == siteModel.id }) else {
-            return nil
-        }
-        
-        return Reference(title: interfaceLanguage.title, identifier: "\(deepLinkScheme.urlPrefix)nav\(path)", type: type, docCSite: site)
-    }
     
     /// Renders symbol-like text with code styling, otherwise plain text.
     @ViewBuilder
-    func text(_ text: String) -> some View {
-        let role = Role(rawValue: interfaceLanguage.type ?? "") ?? .codeListing
+    private func text(_ text: String, type: String) -> some View {
+        let role = Role(rawValue: type) ?? .codeListing
         
         if [Role.codeListing, .pseudoSymbol, .restRequestSymbol, .collection, .collectionGroup, .symbol].contains(role) {
             CodeText(text)
@@ -656,80 +703,69 @@ private struct InterfaceLanguageSearchListing: View {
     }
     
     var body: some View {
-        if let title = interfaceLanguage.title, title.lowercased().contains(searchText.lowercased()) {
-            if let reference {
-                ReferenceNavigationLinkButton(reference: reference) {
-                    text(title)
-                }
-                .alwaysShowClosestTechnologyGroup()
-            } else if let path = interfaceLanguage.path, let url = URL(string: "\(deepLinkScheme.urlPrefix)nav\(path)") {
-                MacOSAgnosticLink(destination: url) {
-                    text(title)
+        switch row {
+        case .homepage(_, let title):
+            HomepageNavigationLinkButton {
+                HStack {
+                    Text(title)
+                    Spacer()
                 }
             }
-        }
-        
-        ForEach(interfaceLanguage.children ?? []) { child in
-            InterfaceLanguageSearchListing(searchText: searchText, interfaceLanguage: child)
+            .foregroundStyle(Color.primary)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        case .reference(let result):
+            ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
+                text(result.title, type: result.type)
+            }
+            .alwaysShowClosestTechnologyGroup()
+            .foregroundStyle(Color.primary)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        case .technology(let result):
+            if result.framework.destination.identifier.lowercased().contains("/documentation") {
+                TechnologyNavigationLinkButton(technology: result.framework) {
+                    SearchResultTechnologyLabel(result: result)
+                }
+                .foregroundStyle(Color.primary)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            } else if let url = URL(string: result.framework.destination.identifier) {
+                MacOSAgnosticLink(destination: url) {
+                    SearchResultTechnologyLabel(result: result)
+                }
+                .foregroundStyle(Color.primary)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
         }
     }
 }
 
-/// Recursive search-result renderer for in-memory DocC interface-language nodes.
-private struct InterfaceLanguageDocCSourceSearchListing: View {
-    /// Current user-entered search text.
-    let searchText: String
-    /// Interface-language node being rendered recursively.
-    let interfaceLanguage: DocCIndex.InterfaceLanguage
-    /// Custom DocC site that owns the index node.
-    let site: DocCSource
-    @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
-    
-    /// Synthetic reference used for navigation when a node maps to a known path/type.
-    var reference: Reference? {
-        guard let path = interfaceLanguage.path else {
-            return nil
-        }
-        
-        return Reference(
-            title: interfaceLanguage.title,
-            identifier: "\(deepLinkScheme.urlPrefix)nav\(path)",
-            type: interfaceLanguage.type,
-            docCSite: site
-        )
-    }
-    
-    /// Renders symbol-like text with code styling, otherwise plain text.
-    @ViewBuilder
-    func text(_ text: String) -> some View {
-        let role = Role(rawValue: interfaceLanguage.type) ?? .codeListing
-        
-        if [Role.codeListing, .pseudoSymbol, .restRequestSymbol, .collection, .collectionGroup, .symbol].contains(role) {
-            CodeText(text)
-                .highlightLanguage(.swift)
-                .codeTextColors(.theme(.xcode))
-        } else {
-            Text(text)
-        }
-    }
+/// Label for Apple technology search rows.
+private struct SearchResultTechnologyLabel: View {
+    /// Technology result payload.
+    let result: SidebarSearchTechnologyResult
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
-        if interfaceLanguage.title.lowercased().contains(searchText.lowercased()) {
-            if let reference {
-                ReferenceNavigationLinkButton(reference: reference) {
-                    text(interfaceLanguage.title)
-                }
-                .alwaysShowClosestTechnologyGroup()
-            } else if let path = interfaceLanguage.path, let url = URL(string: "\(deepLinkScheme.urlPrefix)nav\(path)") {
-                MacOSAgnosticLink(destination: url) {
-                    text(interfaceLanguage.title)
-                }
+        HStack {
+            Text(result.title)
+            
+            if result.badgeReference?.beta == true {
+                ArticleBadge(badge: .beta)
+            }
+            
+            if result.badgeReference?.deprecated == true {
+                ArticleBadge(badge: .deprecated)
+            }
+            
+            if !navigationViewModel.isUsingSplitView {
+                Spacer()
+                ChevronView()
             }
         }
-        
-        ForEach(interfaceLanguage.children ?? []) { child in
-            InterfaceLanguageDocCSourceSearchListing(searchText: searchText, interfaceLanguage: child, site: site)
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -740,7 +776,6 @@ private struct DocCTechView: View {
     /// Predicate used to filter visible interface-language children.
     let isVisibleForSearch: (_ interfaceLanguage: DocCIndex.InterfaceLanguage, _ site: DocCSource, _ group: DocCIndex.InterfaceLanguage) -> Bool
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         ForEach(technology.groups) { group in
@@ -767,7 +802,6 @@ private struct AppleTechView: View {
     let searchText: String
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     /// Error state for alert presentation.
     @State var errorAlert: Error?
     
@@ -797,16 +831,18 @@ private struct AppleTechView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
-            .contextMenu {
-                Button("Delete", systemImage: "trash", role: .destructive) {
-                    do {
-                        try documentationViewModel.deleteTechnology(.apple(technology), modelContext: modelContext)
-                    } catch {
-                        self.errorAlert = error
+                .contextMenu {
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        Task {
+                            do {
+                                try await documentationViewModel.deleteTechnology(.apple(technology))
+                            } catch {
+                                self.errorAlert = error
+                            }
+                        }
                     }
                 }
             }
-        }
         
         if !visibleGroups.isEmpty {
             ForEach(visibleGroups) { group in

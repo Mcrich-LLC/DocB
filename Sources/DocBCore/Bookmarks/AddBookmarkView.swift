@@ -140,6 +140,7 @@ struct AddBookmarkView: View {
                 modelContext.delete(existingBookmark)
             } else {
                 let bookmark = try Bookmark(reference: reference)
+                bookmark.collectionID = collection.id
                 
                 if collection.bookmarks == nil {
                     collection.bookmarks = []

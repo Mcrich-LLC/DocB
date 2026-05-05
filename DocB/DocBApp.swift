@@ -38,7 +38,6 @@ struct DocBApp: App {
     let cloudSyncEngine: DocBCloudSyncEngine
     
     /// Initializes the SwiftData container and development-only integrations.
-    @MainActor
     init() {
         #if canImport(UIKit)
         UIApplication.shared.registerForRemoteNotifications()
@@ -50,8 +49,8 @@ struct DocBApp: App {
         let container = Container.shared
         docCSiteModelContainer = container.docBModelContainer()
         cloudSyncEngine = container.docBCloudSyncEngine()
-        _documentationViewModel = State(initialValue: container.documentationViewModel())
-        _appSettings = State(initialValue: container.appSettings())
+        documentationViewModel = container.documentationViewModel()
+        appSettings = container.appSettings()
         
         loadRocketSimConnect()
     }

@@ -39,6 +39,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>CLOUDKIT_ID</key>
+	<string>$(CLOUDKIT_ID)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

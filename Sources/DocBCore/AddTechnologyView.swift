@@ -43,7 +43,6 @@ public struct AddTechnologyView: View {
     public init() {}
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
-    @Environment(\.modelContext) var modelContext
     /// User-entered custom URL text before normalization.
     @State private var addDocumentationUrl = ""
     /// Captures errors to present through the common error alert modifier.
@@ -213,7 +212,7 @@ public struct AddTechnologyView: View {
         Task {
             await Task.yield()
             do {
-                try await documentationViewModel.deleteTechnology(technology, modelContainer: modelContext.container)
+                try await documentationViewModel.deleteTechnology(technology)
             } catch {
                 self.errorAlert = error
             }
@@ -278,7 +277,7 @@ public struct AddTechnologyView: View {
         }
         
         do {
-            try await documentationViewModel.addTechnology(baseUrl: baseUrl, modelContext: modelContext, overrideName: overrideName)
+            try await documentationViewModel.addTechnology(baseUrl: baseUrl, overrideName: overrideName)
         } catch {
             self.errorAlert = error
         }

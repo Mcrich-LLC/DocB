@@ -154,16 +154,16 @@ public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
     public var futureHistoryExists: Bool { currentIndex < history.count - 1 }
     
     /// Index of the currently active history entry.
-    public var currentIndex = 0 {
+    public private(set) var currentIndex = 0 {
         willSet {
             guard currentIndex >= 0 else { return }
             previousIndex = currentIndex
         }
     }
     /// Previously active history index, used to compute path deltas.
-    public var previousIndex = 0
+    public private(set) var previousIndex = 0
     /// Internal re-entrancy guard used while programmatically mutating selection/history.
-    public var isNavigating = false
+    public private(set) var isNavigating = false
     
     /// Stack path backing compact navigation presentation.
     public var path: [PathElement] = [] /*{
@@ -465,7 +465,6 @@ public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
     public func toggleHomepageInBeginingOfHistory() {
         if isUsingSplitView && history.first?.isHomepage != true {
             history.insert(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true), at: 0)
-            currentIndex += 1
         } else if !isUsingSplitView && history.first?.isHomepage == true {
             history.remove(at: 0)
             if currentIndex > 0 {

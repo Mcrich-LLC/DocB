@@ -127,49 +127,28 @@ cleanup_temp_directory() {
     fi
 }
 
-# Parse command-line arguments
-while getopts "b:v:d-:" opt; do
-    case "${opt}" in
-        -)
-            case "${OPTARG}" in
-                branch=*)
-                    branch="${OPTARG#*=}"
-                    ;;
-                build-number=*)
-                    build_number="${OPTARG#*=}"
-                    build_number_provided=true
-                    ;;
-                build=*)
-                    build_number="${OPTARG#*=}"
-                    build_number_provided=true
-                    ;;
-                version=*)
-                    new_version="${OPTARG#*=}"
-                    ;;
-                dry-run)
-                    dry_run=true
-                    ;;
-                *)
-                    echo "Invalid option: --${OPTARG}" >&2
-                    echo "Usage: $0 [-b branch] [-v version] [--build build-number] [-d]" >&2
-                    exit 1
-                    ;;
-            esac
-            ;;
-        b)
-            branch="$OPTARG"
-            ;;
-        v)
-            new_version="$OPTARG"
-            ;;
-        d)
-            dry_run=true
-            ;;
+# Parse command-line arguments (support short options and long options with
+# either `--opt=value` or `--opt value` forms)
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --branch=*) branch="${1#*=}" ;;
+        --branch) shift; branch="$1" ;;
+        --build=*|--build-number=*) build_number="${1#*=}"; build_number_provided=true ;;
+        --build|--build-number) shift; build_number="$1"; build_number_provided=true ;;
+        --version=*) new_version="${1#*=}" ;;
+        --version) shift; new_version="$1" ;;
+        --dry-run) dry_run=true ;;
+        -b) shift; branch="$1" ;;
+        -v) shift; new_version="$1" ;;
+        -d) dry_run=true ;;
+        --) shift; break ;;
         *)
-            echo "Usage: $0 [-b branch] [-v version] [--build] [-d]" >&2
+            echo "Invalid option: $1" >&2
+            echo "Usage: $0 [-b branch] [-v version] [--build build-number] [-d]" >&2
             exit 1
             ;;
     esac
+    shift
 done
 
 # Get the initial version and build number

@@ -115,14 +115,10 @@ public struct AddTechnologyView: View {
                     }
                     
                     HStack {
-                        if isLoading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .frame(width: 15, height: 15)
-                        } else {
-                            Toggle(isOn: binding, label: {})
-                                .labelsHidden()
-                        }
+                        #if os(macOS)
+                        toggleView(binding: binding, isLoading: isLoading)
+                            .toggleStyle(.checkbox)
+                        #endif
                         Button {
                             toggleSuggestedTechnology(!isAdded, technology: technology)
                         } label: {
@@ -133,6 +129,9 @@ public struct AddTechnologyView: View {
                             }
                             .contentShape(Rectangle())
                         }
+                        #if !os(macOS)
+                        toggleView(binding: binding, isLoading: isLoading)
+                        #endif
                     }
                     .disabled(isLoading)
                     .animation(.easeInOut, value: isAdded)
@@ -185,6 +184,18 @@ public struct AddTechnologyView: View {
         }
         .navigationTitle("Add Sources")
         .alert(for: $errorAlert)
+    }
+    
+    @ViewBuilder
+    private func toggleView(binding: Binding<Bool>, isLoading: Bool) -> some View {
+        if isLoading {
+            ProgressView()
+                .controlSize(.small)
+                .frame(width: 15, height: 15)
+        } else {
+            Toggle(isOn: binding, label: {})
+                .labelsHidden()
+        }
     }
     
     /// Adds or removes a featured technology depending on current selection state.

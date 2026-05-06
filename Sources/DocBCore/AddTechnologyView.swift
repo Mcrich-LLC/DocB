@@ -108,26 +108,30 @@ public struct AddTechnologyView: View {
                 ForEach(featuredTechnologies) { technology in
                     let isAdded = addedFeaturedSourceURLs.contains(technology.baseURL)
                     let isLoading = featuredLoadingURLs.contains(technology.baseURL)
+                    var binding: Binding<Bool> {
+                        Binding(get: { isAdded }, set: { bool in
+                            toggleSuggestedTechnology(bool, technology: technology)
+                        })
+                    }
                     
-                    Button {
-                        toggleSuggestedTechnology(technology, isAdded: isAdded)
-                    } label: {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .controlSize(.small)
-                                    .frame(width: 15, height: 15)
-                            } else {
-                                Image(systemSymbol: isAdded ? .checkmarkSquareFill : .square)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 15, height: 15)
-                                    .contentTransition(.symbolEffect(.replace))
-                                    .foregroundStyle(isAdded ? Color.accentColor : .primary)
+                    HStack {
+                        if isLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                                .frame(width: 15, height: 15)
+                        } else {
+                            Toggle(isOn: binding, label: {})
+                                .labelsHidden()
+                        }
+                        Button {
+                            toggleSuggestedTechnology(!isAdded, technology: technology)
+                        } label: {
+                            HStack {
+                                SuggestedTechnologyRow(technology: technology)
+                                    .frame(minHeight: 50)
+                                Spacer()
                             }
-                            SuggestedTechnologyRow(technology: technology)
-                                .frame(minHeight: 50)
-                            Spacer()
+                            .contentShape(Rectangle())
                         }
                     }
                     .disabled(isLoading)
@@ -188,16 +192,16 @@ public struct AddTechnologyView: View {
     /// - Parameters:
     ///   - technology: Suggested source selected by the user.
     ///   - isAdded: Snapshot of whether this source is already loaded.
-    private func toggleSuggestedTechnology(_ technology: SuggestedTechnology, isAdded: Bool) {
-        if isAdded {
-            removeDocCSite(url: technology.baseURL)
-        } else {
+    private func toggleSuggestedTechnology(_ bool: Bool, technology: SuggestedTechnology) {
+        if bool {
             technologiesAddInProgress.insert(technology)
             Task {
                 await Task.yield()
                 await addDocCSite(url: technology.baseURL, overrideName: technology.title)
                 technologiesAddInProgress.remove(technology)
             }
+        } else {
+            removeDocCSite(url: technology.baseURL)
         }
     }
     

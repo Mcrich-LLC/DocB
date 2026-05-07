@@ -11,7 +11,7 @@ final class SidebarSearchIndexTests: XCTestCase {
                 .init(title: "MainActorSearchController", path: "/documentation/freezekit/searchcontroller", type: "symbol")
             ]
         )
-        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
         
         let childResults = index.search("mainactor")
         XCTAssertEqual(childResults.sections.count, 1)
@@ -24,7 +24,7 @@ final class SidebarSearchIndexTests: XCTestCase {
     
     func testAppleFrameworkTitleAndTagMatches() throws {
         let appleTechnologies = try makeAppleTechnologies()
-        let index = SidebarSearchIndex(persistedSites: [], technologies: [.apple(appleTechnologies)])
+        let index = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
         
         let titleResults = index.search("swiftui")
         XCTAssertEqual(titleResults.sections.count, 1)
@@ -55,7 +55,7 @@ final class SidebarSearchIndexTests: XCTestCase {
             ],
             timestamp: 2
         )
-        let index = SidebarSearchIndex(persistedSites: [firstSite, secondSite], technologies: [])
+        let index = SidebarSearchIndex(technologies: [.docC(firstSite), .docC(secondSite)])
         
         let results = index.search("sharedmatch")
         
@@ -72,7 +72,7 @@ final class SidebarSearchIndexTests: XCTestCase {
             )
         }
         let site = makeDocCSource(title: "LimitKit", children: children)
-        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
         
         let results = index.search("item", limit: 3)
         
@@ -96,7 +96,7 @@ final class SidebarSearchIndexTests: XCTestCase {
                 ]
             ])
         )
-        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
         
         let results = index.search("shared symbol")
         let rows = results.sections.first?.rows ?? []
@@ -121,7 +121,7 @@ final class SidebarSearchIndexTests: XCTestCase {
                 ]
             ])
         )
-        let index = SidebarSearchIndex(persistedSites: [site], technologies: [])
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
         
         XCTAssertEqual(index.search("historical").sections.first?.rows.first?.title, "Historical Objective-C Symbol")
     }
@@ -136,7 +136,7 @@ final class SidebarSearchIndexTests: XCTestCase {
             ]
         )
         let store = SidebarSearchStore()
-        store.installIndex(SidebarSearchIndex(persistedSites: [site], technologies: []))
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
         
         store.updateSearchText("first", debounce: .milliseconds(200))
         store.updateSearchText("second", debounce: .zero)
@@ -154,7 +154,7 @@ final class SidebarSearchIndexTests: XCTestCase {
             ]
         )
         let store = SidebarSearchStore()
-        store.installIndex(SidebarSearchIndex(persistedSites: [site], technologies: []))
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
         let buildCount = store.indexBuildCount
         
         store.updateSearchText("reusable", debounce: .zero)
@@ -181,12 +181,12 @@ final class SidebarSearchIndexTests: XCTestCase {
             ]
         )
         let store = SidebarSearchStore()
-        store.installIndex(SidebarSearchIndex(persistedSites: [firstSite], technologies: []))
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(firstSite)]))
         
         store.updateSearchText("result", debounce: .milliseconds(200))
         XCTAssertTrue(store.isSearching)
         
-        store.installIndex(SidebarSearchIndex(persistedSites: [secondSite], technologies: []))
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(secondSite)]))
         await waitForSearch(store)
         
         XCTAssertFalse(store.isRebuildingIndex)
@@ -222,7 +222,7 @@ final class SidebarSearchIndexTests: XCTestCase {
         )
         let store = SidebarSearchStore()
         store.updateSearchText("switch result", debounce: .zero)
-        store.rebuildIndex(persistedSites: [site], technologies: [], searchText: "switch result")
+        store.rebuildIndex(technologies: [.docC(site)], searchText: "switch result")
         await waitForSearch(store)
         XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["Objective-C Switch Result", "Swift Switch Result"])
     }

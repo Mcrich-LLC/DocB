@@ -83,6 +83,15 @@ public final class DocBCloudSyncEngine: MYSyncDelegate {
         syncChanges(oldValue: oldValue, newValue: newValue)
     }
     
+    /// Queues sync and delete operations for lightweight DocC site metadata changes.
+    ///
+    /// - Parameters:
+    ///   - oldValue: Previous DocC site snapshots.
+    ///   - newValue: Current DocC site snapshots.
+    public func syncDocCSiteChanges(oldValue: [DocCSiteSnapshot], newValue: [DocCSiteSnapshot]) {
+        syncChanges(oldValue: oldValue, newValue: newValue)
+    }
+    
     /// Queues sync and delete operations for bookmark collection changes observed through SwiftData.
     ///
     /// - Parameters:

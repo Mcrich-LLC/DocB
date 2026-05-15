@@ -146,6 +146,60 @@ public enum SwiftDataErrors: Error {
     case invalidShape
 }
 
+/// Lightweight source snapshot for observing and syncing DocC site metadata without loading the local index tree.
+public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
+    /// Stable identifier for the persisted site model.
+    public let id: UUID
+    /// Creation timestamp for this saved site source.
+    public let timestamp: Date?
+    /// Base URL used to load DocC resources.
+    public let url: URL?
+    /// Optional user-facing override name for the source.
+    public let overrideName: String?
+    
+    /// Creates a lightweight sync snapshot from a persisted DocC site model.
+    ///
+    /// - Parameter site: Persisted site model to observe.
+    public init(site: DocCSite) {
+        self.id = site.id
+        self.timestamp = site.timestamp
+        self.url = site.url
+        self.overrideName = site.overrideName
+    }
+    
+    /// Converts this snapshot into the persisted-source value used to load remote DocC indexes.
+    @MainActor
+    public var persistedSource: PersistedDocCSource? {
+        guard let timestamp, let url else { return nil }
+        
+        return PersistedDocCSource(
+            id: id,
+            timestamp: timestamp,
+            url: url,
+            overrideName: overrideName,
+            index: DocCIndex(interfaceLanguages: [:])
+        )
+    }
+    
+    /// Unique CloudKit record identifier for this DocC site.
+    public var myRecordID: String { id.uuidString }
+    
+    /// CloudKit record type used for persisted DocC sites.
+    public var myRecordType: String { DocBCloudRecordTypes.docCSite }
+    
+    /// Root CloudKit group for this site.
+    public var myRootGroupID: String? { nil }
+    
+    /// CloudKit-compatible properties for this persisted DocC site.
+    public var myProperties: [String : MYRecordValue] {
+        [
+            "timestamp": .date(timestamp),
+            "url": .string(url?.absoluteString),
+            "overrideName": .string(overrideName)
+        ]
+    }
+}
+
 /// Persisted SwiftData model representing a DocC site source.
 ///
 /// Persisted properties are optional to tolerate schema evolution, and `persistedSource` provides validated access for app-layer usage.
@@ -232,6 +286,20 @@ extension DocCSite: MYRecordConvertible {
             "url": .string(url?.absoluteString),
             "overrideName": .string(overrideName)
         ]
+    }
+}
+
+extension [DocCSite] {
+    /// Converts persisted site models to lightweight snapshots without loading local DocC indexes.
+    public var snapshots: [DocCSiteSnapshot] {
+        map(DocCSiteSnapshot.init(site:))
+    }
+}
+
+extension [DocCSiteSnapshot] {
+    /// Converts lightweight site snapshots to persisted source values with empty local indexes.
+    @MainActor public var asPersistedDocCSources: [PersistedDocCSource] {
+        compactMap(\.persistedSource)
     }
 }
 

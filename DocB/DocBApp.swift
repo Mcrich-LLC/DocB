@@ -163,7 +163,7 @@ private struct MainView: View {
             await cloudSyncEngine.start()
             await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources)
         }
-        .onChange(of: docCSites, onSwiftDataChange)
+        .onChange(of: docCSiteSnapshots, onSwiftDataChange)
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
             Task {
@@ -186,8 +186,13 @@ private struct MainView: View {
         }
     }
     
+    /// Lightweight DocC site metadata observed for inserts, deletes, and sync updates.
+    private var docCSiteSnapshots: [DocCSiteSnapshot] {
+        docCSites.snapshots
+    }
+    
     /// Synchronizes in-memory technologies with SwiftData changes.
-    private func onSwiftDataChange(oldValue: [DocCSite], newValue: [DocCSite]) {
+    private func onSwiftDataChange(oldValue: [DocCSiteSnapshot], newValue: [DocCSiteSnapshot]) {
         cloudSyncEngine.syncDocCSiteChanges(oldValue: oldValue, newValue: newValue)
         
         let oldIDs = Set(oldValue.map(\.id))

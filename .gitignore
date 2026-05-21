@@ -1,5 +1,6 @@
-
+.swiftpm
 fastlane/report.xml
 /.build
 /docs
 /DocBCore/.build
+xcuserdata

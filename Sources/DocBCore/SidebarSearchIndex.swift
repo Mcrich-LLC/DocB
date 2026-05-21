@@ -21,13 +21,13 @@ public struct SidebarSearchIndex: Sendable {
     /// Flattened, pre-normalized entries.
     private let entries: [Entry]
     
-    /// Creates a sidebar search index from persisted and loaded technology snapshots.
+    /// Creates a sidebar search index from loaded technology snapshots.
     ///
-    /// - Parameters:
-    ///   - persistedSites: SwiftData-backed DocC sources converted on the main actor.
-    ///   - technologies: Runtime technology sources from `DocumentationViewModel`.
-    public init(persistedSites: [DocCSource], technologies: [TechnologyTypes]) {
-        let docCSites = Self.mergedDocCSites(persistedSites: persistedSites, loadedSites: technologies.docCSites)
+    /// - Parameter technologies: Runtime technology sources from `DocumentationViewModel`.
+    public init(technologies: [TechnologyTypes]) {
+        let docCSites = technologies.docCSites.sorted { lhs, rhs in
+            lhs.timestamp < rhs.timestamp
+        }
         var entries: [Entry] = []
         
         for site in docCSites {
@@ -127,27 +127,6 @@ public struct SidebarSearchIndex: Sendable {
     private init(id: UUID, entries: [Entry]) {
         self.id = id
         self.entries = entries
-    }
-    
-    /// Merges persisted source records with loaded in-memory sources, preferring loaded indexes.
-    ///
-    /// - Parameters:
-    ///   - persistedSites: Sites reconstructed from SwiftData.
-    ///   - loadedSites: Fully loaded in-memory sites.
-    /// - Returns: A stable list of merged DocC sites.
-    private static func mergedDocCSites(persistedSites: [DocCSource], loadedSites: [DocCSource]) -> [DocCSource] {
-        var sitesByURL: [URL: DocCSource] = [:]
-        
-        for site in persistedSites {
-            sitesByURL[site.url] = site
-        }
-        for site in loadedSites {
-            sitesByURL[site.url] = site
-        }
-        
-        return sitesByURL.values.sorted { lhs, rhs in
-            lhs.timestamp < rhs.timestamp
-        }
     }
     
     /// Appends flattened DocC node entries for one custom source.
@@ -409,10 +388,9 @@ public final class SidebarSearchStore {
     /// Rebuilds the flattened index from captured source snapshots.
     ///
     /// - Parameters:
-    ///   - persistedSites: Main-actor SwiftData source snapshots.
     ///   - technologies: Runtime technology snapshots.
     ///   - searchText: Current query to re-run when the index is installed.
-    public func rebuildIndex(persistedSites: [DocCSource], technologies: [TechnologyTypes], searchText: String) {
+    public func rebuildIndex(technologies: [TechnologyTypes], searchText: String) {
         rawSearchText = searchText
         indexBuildTask?.cancel()
         let requestID = UUID()
@@ -421,7 +399,7 @@ public final class SidebarSearchStore {
         
         indexBuildTask = Task(priority: .utility) {
             let index = await Task.detached(priority: .utility) {
-                SidebarSearchIndex(persistedSites: persistedSites, technologies: technologies)
+                SidebarSearchIndex(technologies: technologies)
             }.value
             
             await MainActor.run {

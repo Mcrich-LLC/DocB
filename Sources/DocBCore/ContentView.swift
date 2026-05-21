@@ -375,7 +375,6 @@ private struct TechView: View {
                 searchList(sidebarSearchStore.results)
             } else {
                 let preparedData = PreparedTechnologyData(
-                    docCSites: docCSites,
                     technologies: documentationViewModel.technologies,
                     isVisibleForSearch: isVisibleForSearch
                 )
@@ -452,7 +451,6 @@ private struct TechView: View {
     @MainActor
     private func refreshSidebarSearchIndex() {
         sidebarSearchStore.rebuildIndex(
-            persistedSites: docCSites.asDocCSources,
             technologies: documentationViewModel.technologySnapshot(),
             searchText: searchText
         )
@@ -569,11 +567,12 @@ private struct PreparedTechnologyData {
     ///   - technologies: Loaded technology sources.
     ///   - isVisibleForSearch: Predicate used for framework filtering.
     init(
-        docCSites: [DocCSite],
         technologies: [TechnologyTypes],
         isVisibleForSearch: (AppleTechnologies.FrameworkSection) -> Bool
     ) {
-        let docCSourceValues = Self.mergedDocCSites(persistedSites: docCSites.asDocCSources, loadedSites: technologies.docCSites)
+        let docCSourceValues = technologies.docCSites.sorted { lhs, rhs in
+            lhs.timestamp < rhs.timestamp
+        }
         let visibleDocCSites = docCSourceValues.filter { site in
             site.allFrameworkSections.contains(where: isVisibleForSearch)
         }
@@ -597,27 +596,6 @@ private struct PreparedTechnologyData {
         self.groupedDocCSites = groupedDocCSites
         self.nonDocCTechnologies = technologies.filter { !$0.isDocC }
         self.isEmpty = docCSourceValues.isEmpty && nonDocCTechnologies.isEmpty
-    }
-    
-    /// Merges persisted source records with loaded in-memory sources, preferring loaded indexes.
-    ///
-    /// - Parameters:
-    ///   - persistedSites: Sites reconstructed from SwiftData.
-    ///   - loadedSites: Fully loaded in-memory sites.
-    /// - Returns: A stable list of merged DocC sites.
-    private static func mergedDocCSites(persistedSites: [DocCSource], loadedSites: [DocCSource]) -> [DocCSource] {
-        var sitesByURL: [URL: DocCSource] = [:]
-        
-        for site in persistedSites {
-            sitesByURL[site.url] = site
-        }
-        for site in loadedSites {
-            sitesByURL[site.url] = site
-        }
-        
-        return sitesByURL.values.sorted { lhs, rhs in
-            lhs.timestamp < rhs.timestamp
-        }
     }
 }
 

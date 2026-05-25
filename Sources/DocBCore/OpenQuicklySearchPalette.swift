@@ -1,6 +1,9 @@
 import SwiftUI
 import DocCKit
 import Observation
+#if os(macOS)
+import AppKit
+#endif
 
 /// Coordinates macOS Open Quickly search state and navigation.
 @MainActor
@@ -234,6 +237,14 @@ public final class OpenQuicklySearchCoordinator {
 
 /// macOS Open Quickly search palette.
 public struct OpenQuicklySearchPalette: View {
+    private static let width: CGFloat = 660
+    private static let maximumHeight: CGFloat = 400
+    private static let searchHeaderHeight: CGFloat = 68
+    private static let resultRowHeight: CGFloat = 56
+    private static let sectionHeaderHeight: CGFloat = 28
+    private static let statusHeight: CGFloat = 132
+    private static let footerHeight: CGFloat = 42
+    
     /// Creates the Open Quickly palette view.
     public init() {}
     
@@ -248,16 +259,22 @@ public struct OpenQuicklySearchPalette: View {
         
         VStack(spacing: 0) {
             searchHeader(query: $coordinator.query)
-            Divider()
-            resultsContent
+            
+            if showsResultsContent {
+                Divider()
+                resultsContent
+            }
         }
-        .frame(width: 660, height: 500)
+        .frame(width: Self.width, height: paletteHeight)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(.separator.opacity(0.38), lineWidth: 1)
         }
+        #if os(macOS)
+        .background(OpenQuicklyWindowSizeReader())
+        #endif
         .onAppear {
             isSearchFocused = true
             coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
@@ -302,24 +319,20 @@ public struct OpenQuicklySearchPalette: View {
     
     private var resultsContent: some View {
         Group {
-            if SidebarSearchIndex.normalize(coordinator.query).isEmpty {
-                ContentUnavailableView(
-                    "Search Documentation",
-                    systemImage: "magnifyingglass",
-                    description: Text("Type to open a technology or symbol.")
-                )
-            } else if coordinator.searchStore.results.isEmpty {
+            if coordinator.searchStore.results.isEmpty {
                 if coordinator.searchStore.isSearching || coordinator.searchStore.isRebuildingIndex {
                     ProgressView("Searching")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(maxWidth: .infinity, maxHeight: resultsHeight)
                 } else {
                     ContentUnavailableView.search(text: coordinator.query)
+                        .frame(maxWidth: .infinity, maxHeight: resultsHeight)
                 }
             } else {
                 resultList
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .frame(height: resultsHeight)
     }
     
     private var resultList: some View {
@@ -353,6 +366,7 @@ public struct OpenQuicklySearchPalette: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(.clear)
+            .frame(height: resultsHeight)
             .onChange(of: coordinator.selectedRowID) { _, newValue in
                 guard let newValue else { return }
                 
@@ -361,6 +375,30 @@ public struct OpenQuicklySearchPalette: View {
                 }
             }
         }
+    }
+    
+    private var showsResultsContent: Bool {
+        !SidebarSearchIndex.normalize(coordinator.query).isEmpty
+    }
+    
+    private var paletteHeight: CGFloat {
+        Self.searchHeaderHeight + (showsResultsContent ? 1 + resultsHeight : 0)
+    }
+    
+    private var resultsHeight: CGFloat {
+        guard showsResultsContent else { return 0 }
+        
+        let maximumResultsHeight = Self.maximumHeight - Self.searchHeaderHeight - 1
+        let results = coordinator.searchStore.results
+        guard !results.isEmpty else { return min(Self.statusHeight, maximumResultsHeight) }
+        
+        let sectionCount = results.sections.count
+        let footerHeight = results.isTruncated ? Self.footerHeight : 0
+        let naturalResultsHeight = CGFloat(results.flattenedRows.count) * Self.resultRowHeight
+            + CGFloat(sectionCount) * Self.sectionHeaderHeight
+            + footerHeight
+        
+        return min(naturalResultsHeight, maximumResultsHeight)
     }
     
     private func searchHeader(query: Binding<String>) -> some View {
@@ -400,6 +438,47 @@ public struct OpenQuicklySearchPalette: View {
         dismiss()
     }
 }
+
+#if os(macOS)
+private struct OpenQuicklyWindowSizeReader: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        
+        DispatchQueue.main.async {
+            resizeWindow(containing: view)
+        }
+        
+        return view
+    }
+    
+    func updateNSView(_ view: NSView, context: Context) {
+        DispatchQueue.main.async {
+            resizeWindow(containing: view)
+        }
+    }
+    
+    private func resizeWindow(containing view: NSView) {
+        guard let window = view.window,
+              let contentView = window.contentView else { return }
+        
+        let contentSize = contentView.fittingSize
+        guard contentSize.width > 0, contentSize.height > 0 else { return }
+        
+        let currentFrame = window.frame
+        let nextFrame = NSRect(
+            x: currentFrame.minX,
+            y: currentFrame.maxY - contentSize.height,
+            width: contentSize.width,
+            height: contentSize.height
+        )
+        
+        guard abs(currentFrame.width - nextFrame.width) > 0.5
+            || abs(currentFrame.height - nextFrame.height) > 0.5 else { return }
+        
+        window.setFrame(nextFrame, display: true, animate: true)
+    }
+}
+#endif
 
 private struct OpenQuicklyResultRow: View {
     let row: SidebarSearchResultRow

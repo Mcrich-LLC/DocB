@@ -410,12 +410,12 @@ public struct OpenQuicklySearchPalette: View {
                 .font(.system(size: 18, weight: .regular))
                 .foregroundStyle(.secondary)
             
-            TextField("Open Quickly", text: query)
+            TextField("Search Documentation", text: query)
                 .textFieldStyle(.plain)
                 .font(.system(size: 21, weight: .regular))
                 .focused($isSearchFocused)
                 .onSubmit(openSelectedResult)
-                .accessibilityLabel("Open Quickly")
+                .accessibilityLabel("Search Documentation")
                 .accessibilityHint("Search documentation.")
             
             if !query.wrappedValue.isEmpty {

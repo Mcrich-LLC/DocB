@@ -101,7 +101,8 @@ struct DocBApp: App {
                 .environment(openQuicklySearchCoordinator)
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 620, height: 520)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 712, height: 552)
         Settings {
             SettingsView()
         }

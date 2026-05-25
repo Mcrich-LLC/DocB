@@ -1,6 +1,9 @@
 import SwiftUI
 import DocCKit
 import Observation
+#if os(macOS)
+import AppKit
+#endif
 
 /// Coordinates macOS Open Quickly search state and navigation.
 @MainActor
@@ -251,8 +254,18 @@ public struct OpenQuicklySearchPalette: View {
             Divider()
             resultsContent
         }
-        .frame(width: 620, height: 520)
-        .background(.regularMaterial)
+        .frame(width: 660, height: 500)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(.separator.opacity(0.38), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.22), radius: 34, y: 18)
+        .padding(26)
+        #if os(macOS)
+        .background(OpenQuicklyWindowConfigurator())
+        #endif
         .onAppear {
             isSearchFocused = true
             coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
@@ -314,6 +327,7 @@ public struct OpenQuicklySearchPalette: View {
                 resultList
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var resultList: some View {
@@ -346,6 +360,7 @@ public struct OpenQuicklySearchPalette: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .background(.clear)
             .onChange(of: coordinator.selectedRowID) { _, newValue in
                 guard let newValue else { return }
                 
@@ -393,6 +408,41 @@ public struct OpenQuicklySearchPalette: View {
         dismiss()
     }
 }
+
+#if os(macOS)
+private struct OpenQuicklyWindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            configure(view.window)
+        }
+        return view
+    }
+    
+    func updateNSView(_ view: NSView, context: Context) {
+        DispatchQueue.main.async {
+            configure(view.window)
+        }
+    }
+    
+    private func configure(_ window: NSWindow?) {
+        guard let window else { return }
+        
+        window.level = .floating
+        window.isMovableByWindowBackground = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = false
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.collectionBehavior.insert([.fullScreenAuxiliary, .transient])
+        window.styleMask.insert(.fullSizeContentView)
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+    }
+}
+#endif
 
 private struct OpenQuicklyResultRow: View {
     let row: SidebarSearchResultRow

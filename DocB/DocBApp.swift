@@ -272,6 +272,8 @@ private final class DocBMacAppDelegate: NSObject, NSApplicationDelegate {
 /// Owns DocB's AppKit-backed Open Quickly panel.
 @MainActor
 private final class OpenQuicklyPanelController {
+    private static let frameAutosaveName = "OpenQuicklyPanelFrame"
+    
     private var panel: OpenQuicklyPanel?
     
     /// Shows the Open Quickly panel, creating it when needed.
@@ -306,7 +308,10 @@ private final class OpenQuicklyPanelController {
             }
         
         panel.contentViewController = NSHostingController(rootView: rootView)
-        panel.center(over: NSApp.keyWindow)
+        if !panel.hasRestoredFrame {
+            panel.center(over: Self.activeDocumentationWindow)
+            panel.hasRestoredFrame = true
+        }
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate()
     }
@@ -330,12 +335,26 @@ private final class OpenQuicklyPanelController {
         panel.isOpaque = false
         panel.level = .floating
         panel.isReleasedWhenClosed = false
+        panel.hasRestoredFrame = panel.setFrameUsingName(Self.frameAutosaveName)
+        panel.setFrameAutosaveName(Self.frameAutosaveName)
         
         return panel
+    }
+    
+    private static var activeDocumentationWindow: NSWindow? {
+        NSApp.keyWindow.flatMap { window in
+            window is OpenQuicklyPanel ? nil : window
+        } ?? NSApp.mainWindow.flatMap { window in
+            window is OpenQuicklyPanel ? nil : window
+        } ?? NSApp.windows.first { window in
+            window.isVisible && !(window is OpenQuicklyPanel)
+        }
     }
 }
 
 private final class OpenQuicklyPanel: NSPanel {
+    var hasRestoredFrame = false
+    
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
     

@@ -26,6 +26,8 @@ public struct ContentView: View {
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(AppSettings.self) var appSettings
+    @Environment(OpenQuicklySearchCoordinator.self) private var openQuicklySearchCoordinator
+    @Environment(\.scenePhase) private var scenePhase
     /// Local navigation coordinator preserved for this root scene.
     @State var navigationViewModel = NavigationViewModel()
     /// Preserved search state so it outlives sidebar transitions.
@@ -68,10 +70,21 @@ public struct ContentView: View {
         .environment(navigationViewModel)
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
+            openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
             if navigationViewModel.isUsingSplitView {
                 navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
         })
+        .onChange(of: scenePhase) { _, newValue in
+            guard newValue == .active else { return }
+            
+            openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+        }
+        .onChange(of: documentationViewModel.technologies.map(\.id)) {
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+        }
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
         })
@@ -390,7 +403,9 @@ private struct TechView: View {
             }
         }
         .isDocBCloudKitSyncing($isCloudKitSyncing)
+        #if !os(macOS)
         .searchable(text: $searchText)
+        #endif
         .onChange(of: searchText, initial: true) { _, newValue in
             sidebarSearchStore.updateSearchText(newValue)
         }

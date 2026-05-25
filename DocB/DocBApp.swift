@@ -29,6 +29,8 @@ struct DocBApp: App {
     @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
     @State var appSettings: AppSettings
+    /// Shared macOS Open Quickly coordinator.
+    @State var openQuicklySearchCoordinator = OpenQuicklySearchCoordinator()
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
     @Environment(\.openWindow) var openWindow
@@ -65,6 +67,7 @@ struct DocBApp: App {
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
+        .environment(openQuicklySearchCoordinator)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Window", action: { openWindow(id: WindowTypes.main) })
@@ -72,6 +75,12 @@ struct DocBApp: App {
                 Button("Add Source", action: showAddDocumentationView)
                     .keyboardShortcut(.init("n"), modifiers: [.command, .shift])
             }
+            #if os(macOS)
+            CommandGroup(after: .sidebar) {
+                Button("Open Quickly...", action: { openWindow(id: WindowTypes.searchPalette) })
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+            }
+            #endif
         }
         
         #if os(macOS)
@@ -83,12 +92,23 @@ struct DocBApp: App {
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
+        Window("Open Quickly", id: WindowTypes.searchPalette) {
+            OpenQuicklySearchPalette()
+                .modelContainer(docCSiteModelContainer)
+                .environment(documentationViewModel)
+                .environment(appSettings)
+                .environment(cloudSyncEngine)
+                .environment(openQuicklySearchCoordinator)
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 620, height: 520)
         Settings {
             SettingsView()
         }
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
+        .environment(openQuicklySearchCoordinator)
         #endif
     }
     

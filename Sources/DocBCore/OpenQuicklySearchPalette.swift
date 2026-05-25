@@ -261,8 +261,8 @@ public struct OpenQuicklySearchPalette: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(.separator.opacity(0.38), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.22), radius: 34, y: 18)
-        .padding(26)
+        .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
+        .padding(18)
         #if os(macOS)
         .background(OpenQuicklyWindowConfigurator())
         #endif

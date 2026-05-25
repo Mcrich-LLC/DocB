@@ -237,11 +237,12 @@ public final class OpenQuicklySearchCoordinator {
 
 /// macOS Open Quickly search palette.
 public struct OpenQuicklySearchPalette: View {
-    private static let width: CGFloat = 660
-    private static let maximumHeight: CGFloat = 400
-    private static let searchHeaderHeight: CGFloat = 68
-    private static let resultRowHeight: CGFloat = 56
-    private static let sectionHeaderHeight: CGFloat = 28
+    private static let width: CGFloat = 462
+    private static let maximumHeight: CGFloat = 430
+    private static let cornerRadius: CGFloat = 12
+    private static let searchHeaderHeight: CGFloat = 50
+    private static let resultRowHeight: CGFloat = 48
+    private static let sectionHeaderHeight: CGFloat = 24
     private static let statusHeight: CGFloat = 132
     private static let footerHeight: CGFloat = 42
     
@@ -266,11 +267,11 @@ public struct OpenQuicklySearchPalette: View {
             }
         }
         .frame(width: Self.width, height: paletteHeight)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.thickMaterial, in: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(.separator.opacity(0.38), lineWidth: 1)
+            RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                .stroke(.separator.opacity(0.42), lineWidth: 1)
         }
         #if os(macOS)
         .background(OpenQuicklyWindowSizeReader())
@@ -341,11 +342,11 @@ public struct OpenQuicklySearchPalette: View {
                 LazyVStack(alignment: .leading, spacing: 0, pinnedViews: []) {
                     ForEach(coordinator.searchStore.results.sections) { section in
                         Text(section.title)
-                            .font(.headline)
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 10)
-                            .padding(.bottom, 6)
+                            .padding(.horizontal, 13)
+                            .padding(.top, 7)
+                            .padding(.bottom, 4)
                         
                         ForEach(section.rows) { row in
                             OpenQuicklyResultRow(row: row, isSelected: coordinator.selectedRowID == row.id) {
@@ -353,8 +354,8 @@ public struct OpenQuicklySearchPalette: View {
                                 openSelectedResult()
                             }
                             .id(row.id)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 2)
                         }
                     }
                     
@@ -406,12 +407,12 @@ public struct OpenQuicklySearchPalette: View {
     private func searchHeader(query: Binding<String>) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 24, weight: .regular))
+                .font(.system(size: 18, weight: .regular))
                 .foregroundStyle(.secondary)
             
-            TextField("Search documentation", text: query)
+            TextField("Open Quickly", text: query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 28, weight: .regular))
+                .font(.system(size: 21, weight: .regular))
                 .focused($isSearchFocused)
                 .onSubmit(openSelectedResult)
                 .accessibilityLabel("Open Quickly")
@@ -428,8 +429,8 @@ public struct OpenQuicklySearchPalette: View {
                 .accessibilityLabel("Clear Search")
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
+        .frame(height: Self.searchHeaderHeight)
     }
     
     private func openSelectedResult() {
@@ -491,6 +492,8 @@ private struct OpenQuicklyWindowSizeReader: NSViewRepresentable {
 #endif
 
 private struct OpenQuicklyResultRow: View {
+    private static let height: CGFloat = 48
+    
     let row: SidebarSearchResultRow
     let isSelected: Bool
     let action: () -> Void
@@ -499,39 +502,37 @@ private struct OpenQuicklyResultRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 icon
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 20, weight: .regular))
                     .foregroundStyle(isSelected ? .white : .secondary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: 32, height: 32)
                 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(row.title)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(isSelected ? .white : .primary)
                         .lineLimit(1)
                     
                     Text(subtitle)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(isSelected ? .white.opacity(0.82) : .secondary)
                         .lineLimit(1)
                 }
                 
                 Spacer(minLength: 12)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .frame(height: Self.height)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 if isSelected {
-                    RoundedRectangle(cornerRadius: 7)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(Color.accentColor)
                 }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens this documentation result.")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)

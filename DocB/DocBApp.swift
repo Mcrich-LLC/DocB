@@ -322,7 +322,7 @@ private final class OpenQuicklyPanelController {
     
     private func makePanel() -> OpenQuicklyPanel {
         let panel = OpenQuicklyPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 660, height: 68),
+            contentRect: NSRect(x: 0, y: 0, width: 462, height: 50),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false

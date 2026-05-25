@@ -240,8 +240,6 @@ public struct OpenQuicklySearchPalette: View {
     private static let width: CGFloat = 462
     private static let maximumHeight: CGFloat = 400
     private static let cornerRadius: CGFloat = 12
-    private static let paletteAnimation = Animation.easeOut(duration: 0.14)
-    private static let selectionAnimation = Animation.easeOut(duration: 0.09)
     private static let searchHeaderHeight: CGFloat = 50
     private static let resultRowHeight: CGFloat = 52
     private static let sectionHeaderHeight: CGFloat = 32
@@ -276,9 +274,6 @@ public struct OpenQuicklySearchPalette: View {
             RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
                 .stroke(.separator.opacity(0.42), lineWidth: 1)
         }
-        .animation(Self.paletteAnimation, value: paletteHeight)
-        .animation(Self.paletteAnimation, value: showsResultsContent)
-        .animation(Self.paletteAnimation, value: coordinator.searchStore.results.layoutFingerprint)
         #if os(macOS)
         .background(OpenQuicklyWindowSizeReader())
         #endif
@@ -336,7 +331,6 @@ public struct OpenQuicklySearchPalette: View {
                 }
             } else {
                 resultList
-                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .frame(maxWidth: .infinity)
@@ -384,9 +378,7 @@ public struct OpenQuicklySearchPalette: View {
             .onChange(of: coordinator.selectedRowID) { _, newValue in
                 guard let newValue else { return }
                 
-                withAnimation(Self.selectionAnimation) {
-                    proxy.scrollTo(newValue, anchor: .center)
-                }
+                proxy.scrollTo(newValue, anchor: .center)
             }
         }
     }
@@ -464,8 +456,6 @@ public struct OpenQuicklySearchPalette: View {
 
 #if os(macOS)
 private struct OpenQuicklyWindowSizeReader: NSViewRepresentable {
-    private static let resizeDuration: TimeInterval = 0.14
-    
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         
@@ -500,12 +490,7 @@ private struct OpenQuicklyWindowSizeReader: NSViewRepresentable {
         guard abs(currentFrame.width - nextFrame.width) > 0.5
             || abs(currentFrame.height - nextFrame.height) > 0.5 else { return }
         
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = Self.resizeDuration
-            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            context.allowsImplicitAnimation = true
-            window.animator().setFrame(nextFrame, display: true)
-        }
+        window.setFrame(nextFrame, display: true)
     }
 }
 #endif
@@ -547,13 +532,11 @@ private struct OpenQuicklyResultRow: View {
                 if isSelected {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(Color.accentColor)
-                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .animation(.easeOut(duration: 0.08), value: isSelected)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens this documentation result.")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
@@ -596,12 +579,5 @@ private struct OpenQuicklyResultRow: View {
 private extension SidebarSearchResults {
     var flattenedRows: [SidebarSearchResultRow] {
         sections.flatMap(\.rows)
-    }
-    
-    var layoutFingerprint: String {
-        sections.map { section in
-            "\(section.id):\(section.rows.map(\.id).joined(separator: ","))"
-        }
-        .joined(separator: "|")
     }
 }

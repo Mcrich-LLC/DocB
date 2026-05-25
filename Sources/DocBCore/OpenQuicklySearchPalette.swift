@@ -498,18 +498,18 @@ private struct OpenQuicklyResultRow: View {
             HStack(spacing: 12) {
                 icon
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(isSelected ? .white : .secondary)
+                    .foregroundStyle(.secondary)
                     .frame(width: 28, height: 28)
                 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(row.title)
                         .font(.headline)
-                        .foregroundStyle(isSelected ? .white : .primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                     
                     Text(subtitle)
                         .font(.subheadline)
-                        .foregroundStyle(isSelected ? .white.opacity(0.82) : .secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
                 
@@ -518,12 +518,6 @@ private struct OpenQuicklyResultRow: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 7)
-                        .fill(Color.accentColor)
-                }
-            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

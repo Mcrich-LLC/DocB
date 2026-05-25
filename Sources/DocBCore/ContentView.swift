@@ -16,13 +16,18 @@ import DocCKit
 public struct ContentView: View {
     /// Creates the main documentation browsing view.
     ///
-    /// - Parameter url: Optional startup URL used for initial deep-link routing.
-    public init(url: URL? = nil) {
+    /// - Parameters:
+    ///   - url: Optional startup URL used for initial deep-link routing.
+    ///   - isSearchPalettePresented: Binding that controls the non-macOS Search Documentation overlay.
+    public init(url: URL? = nil, isSearchPalettePresented: Binding<Bool> = .constant(false)) {
         self.url = url
+        self._isSearchPalettePresented = isSearchPalettePresented
     }
     
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
+    /// Controls the non-macOS Search Documentation overlay.
+    @Binding var isSearchPalettePresented: Bool
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(AppSettings.self) var appSettings
@@ -66,6 +71,11 @@ public struct ContentView: View {
                 navigationStackView
             }
         }
+        #if !os(macOS)
+        .overlay {
+            searchPaletteOverlay
+        }
+        #endif
         .background(Color(platformColor: .systemBackground))
         .environment(navigationViewModel)
         .onAppear(perform: {
@@ -105,6 +115,30 @@ public struct ContentView: View {
         }
     }
     
+    #if !os(macOS)
+    /// iPadOS overlay presentation for the Search Documentation palette.
+    @ViewBuilder
+    private var searchPaletteOverlay: some View {
+        if isSearchPalettePresented {
+            ZStack(alignment: .top) {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        isSearchPalettePresented = false
+                    }
+                    .accessibilityHidden(true)
+
+                OpenQuicklySearchPalette()
+                    .padding(.top, 84)
+                    .customDismiss {
+                        isSearchPalettePresented = false
+                    }
+            }
+            .ignoresSafeArea()
+        }
+    }
+    #endif
+
     /// Normalizes inbound URLs and routes supported DocC links in-app, forwarding unsupported links to the system.
     ///
     /// Links containing `videos`, `tutorials`, or `design` are intentionally opened in the system browser.

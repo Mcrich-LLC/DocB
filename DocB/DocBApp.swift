@@ -34,6 +34,9 @@ struct DocBApp: App {
     #if os(macOS)
     /// AppKit owner for the floating Open Quickly panel.
     @State private var openQuicklyPanelController = OpenQuicklyPanelController()
+    #else
+    /// Controls iPadOS Search Documentation overlay presentation.
+    @State private var isSearchPalettePresented = false
     #endif
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
@@ -63,7 +66,15 @@ struct DocBApp: App {
     
     var body: some Scene {
         WindowGroup(id: WindowTypes.main, for: URL.self) { url in
+            #if os(macOS)
             MainView(url: url.wrappedValue, showAddSource: $showAddSource)
+            #else
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource,
+                isSearchPalettePresented: $isSearchPalettePresented
+            )
+            #endif
         } defaultValue: {
             URL(string: "doc://")!
         }
@@ -81,8 +92,15 @@ struct DocBApp: App {
             }
             #if os(macOS)
             CommandGroup(after: .sidebar) {
-                Button("Open Quickly...", action: showOpenQuicklyPalette)
+                Button("Search Documentation", action: showOpenQuicklyPalette)
                     .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+            }
+            #else
+            CommandGroup(after: .sidebar) {
+                Button("Search Documentation") {
+                    isSearchPalettePresented = true
+                }
+                .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #endif
         }
@@ -148,6 +166,10 @@ private struct MainView: View {
     let url: URL
     /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
+    #if !os(macOS)
+    /// Binding controlling the iPadOS Search Documentation overlay.
+    @Binding var isSearchPalettePresented: Bool
+    #endif
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
@@ -174,8 +196,13 @@ private struct MainView: View {
         VStack {
             switch hasOnboarded {
             case true:
+                #if os(macOS)
                 ContentView(url: url)
                     .backForward(isBack: false)
+                #else
+                ContentView(url: url, isSearchPalettePresented: $isSearchPalettePresented)
+                    .backForward(isBack: false)
+                #endif
             case false:
                 MainOnboardingView()
                     .backForward(isBack: false)

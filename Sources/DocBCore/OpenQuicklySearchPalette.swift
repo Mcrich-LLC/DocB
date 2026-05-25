@@ -60,10 +60,10 @@ public final class OpenQuicklySearchCoordinator {
         selectedRowID = rows.first?.id
     }
     
-    /// Moves the selected row up or down in the visible result set.
+    /// Moves the selected row by the requested offset in the visible result set.
     ///
-    /// - Parameter direction: Move command direction received from SwiftUI.
-    public func moveSelection(_ direction: MoveCommandDirection) {
+    /// - Parameter offset: Signed row offset to apply to the current selection.
+    public func moveSelection(by offset: Int) {
         let rows = searchStore.results.flattenedRows
         guard !rows.isEmpty else {
             selectedRowID = nil
@@ -71,15 +71,8 @@ public final class OpenQuicklySearchCoordinator {
         }
         
         let currentIndex = selectedRowID.flatMap { id in rows.firstIndex(where: { $0.id == id }) } ?? rows.startIndex
-        
-        switch direction {
-        case .up:
-            selectedRowID = rows[max(rows.startIndex, currentIndex - 1)].id
-        case .down:
-            selectedRowID = rows[min(rows.index(before: rows.endIndex), currentIndex + 1)].id
-        default:
-            break
-        }
+        let nextIndex = min(max(rows.startIndex, currentIndex + offset), rows.index(before: rows.endIndex))
+        selectedRowID = rows[nextIndex].id
     }
     
     /// Opens the currently selected row when one is available.
@@ -295,14 +288,13 @@ public struct OpenQuicklySearchPalette: View {
             
             coordinator.selectDefaultResultIfNeeded()
         }
-        .onMoveCommand(perform: coordinator.moveSelection)
         .onSubmit(openSelectedResult)
         .onKeyPress(.upArrow) {
-            coordinator.moveSelection(.up)
+            coordinator.moveSelection(by: -1)
             return .handled
         }
         .onKeyPress(.downArrow) {
-            coordinator.moveSelection(.down)
+            coordinator.moveSelection(by: 1)
             return .handled
         }
         .onKeyPress(.return) {
@@ -313,9 +305,21 @@ public struct OpenQuicklySearchPalette: View {
             dismiss()
             return .handled
         }
+        #if os(macOS)
+        .onMoveCommand { direction in
+            switch direction {
+            case .up:
+                coordinator.moveSelection(by: -1)
+            case .down:
+                coordinator.moveSelection(by: 1)
+            default:
+                break
+            }
+        }
         .onExitCommand {
             dismiss()
         }
+        #endif
         .accessibilityElement(children: .contain)
     }
     

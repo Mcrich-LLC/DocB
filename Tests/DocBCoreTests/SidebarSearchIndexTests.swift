@@ -264,7 +264,7 @@ struct SidebarSearchIndexTests {
         coordinator.selectDefaultResultIfNeeded()
         #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.first?.id)
         
-        coordinator.moveSelection(.down)
+        coordinator.moveSelection(by: 1)
         #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.last?.id)
     }
     

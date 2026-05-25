@@ -1,9 +1,6 @@
 import SwiftUI
 import DocCKit
 import Observation
-#if os(macOS)
-import AppKit
-#endif
 
 /// Coordinates macOS Open Quickly search state and navigation.
 @MainActor
@@ -242,7 +239,7 @@ public struct OpenQuicklySearchPalette: View {
     
     @Environment(OpenQuicklySearchCoordinator.self) private var coordinator
     @Environment(DocumentationViewModel.self) private var documentationViewModel
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.customEnabledDismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @FocusState private var isSearchFocused: Bool
     
@@ -261,11 +258,6 @@ public struct OpenQuicklySearchPalette: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(.separator.opacity(0.38), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
-        .padding(18)
-        #if os(macOS)
-        .background(OpenQuicklyWindowConfigurator())
-        #endif
         .onAppear {
             isSearchFocused = true
             coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
@@ -408,41 +400,6 @@ public struct OpenQuicklySearchPalette: View {
         dismiss()
     }
 }
-
-#if os(macOS)
-private struct OpenQuicklyWindowConfigurator: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            configure(view.window)
-        }
-        return view
-    }
-    
-    func updateNSView(_ view: NSView, context: Context) {
-        DispatchQueue.main.async {
-            configure(view.window)
-        }
-    }
-    
-    private func configure(_ window: NSWindow?) {
-        guard let window else { return }
-        
-        window.level = .floating
-        window.isMovableByWindowBackground = true
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.hasShadow = false
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
-        window.collectionBehavior.insert([.fullScreenAuxiliary, .transient])
-        window.styleMask.insert(.fullSizeContentView)
-        window.standardWindowButton(.closeButton)?.isHidden = true
-        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        window.standardWindowButton(.zoomButton)?.isHidden = true
-    }
-}
-#endif
 
 private struct OpenQuicklyResultRow: View {
     let row: SidebarSearchResultRow

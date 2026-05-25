@@ -31,6 +31,10 @@ struct DocBApp: App {
     @State var appSettings: AppSettings
     /// Shared macOS Open Quickly coordinator.
     @State var openQuicklySearchCoordinator = OpenQuicklySearchCoordinator()
+    #if os(macOS)
+    /// AppKit owner for the floating Open Quickly panel.
+    @State private var openQuicklyPanelController = OpenQuicklyPanelController()
+    #endif
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
     @Environment(\.openWindow) var openWindow
@@ -77,7 +81,7 @@ struct DocBApp: App {
             }
             #if os(macOS)
             CommandGroup(after: .sidebar) {
-                Button("Open Quickly...", action: { openWindow(id: WindowTypes.searchPalette) })
+                Button("Open Quickly...", action: showOpenQuicklyPalette)
                     .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #endif
@@ -92,17 +96,6 @@ struct DocBApp: App {
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
-        Window("Open Quickly", id: WindowTypes.searchPalette) {
-            OpenQuicklySearchPalette()
-                .modelContainer(docCSiteModelContainer)
-                .environment(documentationViewModel)
-                .environment(appSettings)
-                .environment(cloudSyncEngine)
-                .environment(openQuicklySearchCoordinator)
-        }
-        .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 712, height: 552)
         Settings {
             SettingsView()
         }
@@ -132,6 +125,19 @@ struct DocBApp: App {
         showAddSource = true
         #endif
     }
+    
+    #if os(macOS)
+    /// Presents the floating Open Quickly panel.
+    private func showOpenQuicklyPalette() {
+        openQuicklyPanelController.show(
+            modelContainer: docCSiteModelContainer,
+            documentationViewModel: documentationViewModel,
+            appSettings: appSettings,
+            cloudSyncEngine: cloudSyncEngine,
+            searchCoordinator: openQuicklySearchCoordinator
+        )
+    }
+    #endif
 }
 
 /// Root scene container that switches between onboarding and main content flows.
@@ -260,6 +266,92 @@ private final class DocBMacAppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             userInfo: userInfo
         )
+    }
+}
+
+/// Owns DocB's AppKit-backed Open Quickly panel.
+@MainActor
+private final class OpenQuicklyPanelController {
+    private var panel: OpenQuicklyPanel?
+    
+    /// Shows the Open Quickly panel, creating it when needed.
+    ///
+    /// - Parameters:
+    ///   - modelContainer: SwiftData container for DocB content.
+    ///   - documentationViewModel: Shared documentation model.
+    ///   - appSettings: Shared app settings.
+    ///   - cloudSyncEngine: Shared CloudKit sync engine.
+    ///   - searchCoordinator: Shared search coordinator.
+    func show(
+        modelContainer: ModelContainer,
+        documentationViewModel: DocumentationViewModel,
+        appSettings: AppSettings,
+        cloudSyncEngine: DocBCloudSyncEngine,
+        searchCoordinator: OpenQuicklySearchCoordinator
+    ) {
+        if panel == nil {
+            panel = makePanel()
+        }
+        
+        guard let panel else { return }
+        
+        let rootView = OpenQuicklySearchPalette()
+            .modelContainer(modelContainer)
+            .environment(documentationViewModel)
+            .environment(appSettings)
+            .environment(cloudSyncEngine)
+            .environment(searchCoordinator)
+            .customDismiss { [weak self] in
+                self?.close()
+            }
+        
+        panel.contentViewController = NSHostingController(rootView: rootView)
+        panel.center(over: NSApp.keyWindow)
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+    }
+    
+    private func close() {
+        panel?.orderOut(nil)
+    }
+    
+    private func makePanel() -> OpenQuicklyPanel {
+        let panel = OpenQuicklyPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 660, height: 500),
+            styleMask: [.borderless, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        panel.animationBehavior = .utilityWindow
+        panel.backgroundColor = .clear
+        panel.collectionBehavior = [.fullScreenAuxiliary, .transient]
+        panel.hasShadow = true
+        panel.isMovableByWindowBackground = true
+        panel.isOpaque = false
+        panel.level = .floating
+        panel.isReleasedWhenClosed = false
+        
+        return panel
+    }
+}
+
+private final class OpenQuicklyPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+    
+    override func cancelOperation(_ sender: Any?) {
+        orderOut(sender)
+    }
+    
+    func center(over parentWindow: NSWindow?) {
+        let panelSize = frame.size
+        let parentFrame = parentWindow?.frame ?? NSScreen.main?.visibleFrame ?? .zero
+        let origin = NSPoint(
+            x: parentFrame.midX - panelSize.width / 2,
+            y: parentFrame.maxY - panelSize.height - 120
+        )
+        
+        setFrameOrigin(origin)
     }
 }
 #endif

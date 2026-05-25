@@ -276,7 +276,7 @@ public struct OpenQuicklySearchPalette: View {
         .background(OpenQuicklyWindowSizeReader())
         #endif
         .onAppear {
-            isSearchFocused = true
+            focusSearchField()
             coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
             coordinator.updateQuery(coordinator.query)
         }
@@ -436,6 +436,14 @@ public struct OpenQuicklySearchPalette: View {
         }
         
         dismiss()
+    }
+    
+    private func focusSearchField() {
+        isSearchFocused = true
+        Task { @MainActor in
+            await Task.yield()
+            isSearchFocused = true
+        }
     }
 }
 

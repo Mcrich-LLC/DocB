@@ -358,6 +358,11 @@ private final class OpenQuicklyPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
     
+    override func resignKey() {
+        super.resignKey()
+        orderOut(nil)
+    }
+    
     override func cancelOperation(_ sender: Any?) {
         orderOut(sender)
     }

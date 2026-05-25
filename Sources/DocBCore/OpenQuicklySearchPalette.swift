@@ -366,6 +366,7 @@ public struct OpenQuicklySearchPalette: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 28, weight: .regular))
                 .focused($isSearchFocused)
+                .onSubmit(openSelectedResult)
                 .accessibilityLabel("Open Quickly")
                 .accessibilityHint("Search documentation.")
             

@@ -327,7 +327,7 @@ private final class OpenQuicklyPanelController {
             backing: .buffered,
             defer: false
         )
-        panel.animationBehavior = .utilityWindow
+        panel.animationBehavior = .none
         panel.backgroundColor = .clear
         panel.collectionBehavior = [.fullScreenAuxiliary, .transient]
         panel.hasShadow = true

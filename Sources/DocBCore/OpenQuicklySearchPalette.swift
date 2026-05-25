@@ -337,34 +337,36 @@ public struct OpenQuicklySearchPalette: View {
     
     private var resultList: some View {
         ScrollViewReader { proxy in
-            List(selection: Binding(
-                get: { coordinator.selectedRowID },
-                set: { coordinator.selectedRowID = $0 }
-            )) {
-                ForEach(coordinator.searchStore.results.sections) { section in
-                    Section(section.title) {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: []) {
+                    ForEach(coordinator.searchStore.results.sections) { section in
+                        Text(section.title)
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 10)
+                            .padding(.bottom, 6)
+                        
                         ForEach(section.rows) { row in
                             OpenQuicklyResultRow(row: row, isSelected: coordinator.selectedRowID == row.id) {
                                 coordinator.selectedRowID = row.id
                                 openSelectedResult()
                             }
-                            .tag(row.id)
                             .id(row.id)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
                         }
                     }
-                }
-                
-                if coordinator.searchStore.results.isTruncated {
-                    Section {} footer: {
+                    
+                    if coordinator.searchStore.results.isTruncated {
                         Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(coordinator.searchStore.results.totalMatches) matches. Refine your search to narrow the results.")
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.vertical, 8)
                     }
                 }
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
             .background(.clear)
             .frame(height: resultsHeight)
             .onChange(of: coordinator.selectedRowID) { _, newValue in

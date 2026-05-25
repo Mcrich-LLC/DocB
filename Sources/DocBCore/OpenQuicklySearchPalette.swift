@@ -238,11 +238,12 @@ public final class OpenQuicklySearchCoordinator {
 /// macOS Open Quickly search palette.
 public struct OpenQuicklySearchPalette: View {
     private static let width: CGFloat = 462
-    private static let maximumHeight: CGFloat = 430
+    private static let maximumHeight: CGFloat = 400
     private static let cornerRadius: CGFloat = 12
     private static let searchHeaderHeight: CGFloat = 50
-    private static let resultRowHeight: CGFloat = 48
-    private static let sectionHeaderHeight: CGFloat = 24
+    private static let resultRowHeight: CGFloat = 52
+    private static let sectionHeaderHeight: CGFloat = 32
+    private static let resultsBottomInset: CGFloat = 7
     private static let statusHeight: CGFloat = 132
     private static let footerHeight: CGFloat = 42
     
@@ -366,6 +367,9 @@ public struct OpenQuicklySearchPalette: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.vertical, 8)
                     }
+                    
+                    Color.clear
+                        .frame(height: Self.resultsBottomInset)
                 }
             }
             .background(.clear)
@@ -400,6 +404,7 @@ public struct OpenQuicklySearchPalette: View {
         let naturalResultsHeight = CGFloat(results.flattenedRows.count) * Self.resultRowHeight
             + CGFloat(sectionCount) * Self.sectionHeaderHeight
             + footerHeight
+            + Self.resultsBottomInset
         
         return min(naturalResultsHeight, maximumResultsHeight)
     }

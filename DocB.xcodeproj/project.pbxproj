@@ -10,9 +10,6 @@
 		2281735F2FA1B23B004C997C /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
 		2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAC2F8C16DD009B4E12 /* DocBCore */; };
 		2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
-		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
-		5EAA4AC82FC4D2140061766A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5EAA4AC72FC4D2140061766A /* Info.plist */; };
-		5EAA4AC92FC4D2140061766A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5EAA4AC72FC4D2140061766A /* Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -184,7 +181,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */,
-				5EAA4AC92FC4D2140061766A /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,8 +188,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */,
-				5EAA4AC82FC4D2140061766A /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -128,7 +128,7 @@ public struct ContentView: View {
                     }
                     .accessibilityHidden(true)
 
-                OpenQuicklySearchPalette()
+                SearchPaletteOverlay()
                     .padding(.top, 84)
                     .customDismiss {
                         isSearchPalettePresented = false
@@ -215,6 +215,8 @@ public struct ContentView: View {
         @Environment(DocumentationViewModel.self) var documentationViewModel
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
+        /// Controls the non-macOS Search Documentation overlay.
+        @Binding var isSearchPalettePresented: Bool
         /// Passed DocC sites to avoid expensive query instantiation.
         var docCSites: [DocCSite]
         
@@ -234,7 +236,11 @@ public struct ContentView: View {
         var body: some View {
             @Bindable var navigationViewModel = navigationViewModel
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
-                TechView(searchText: $searchText, docCSites: docCSites)
+                TechView(
+                    searchText: $searchText,
+                    isSearchPalettePresented: $isSearchPalettePresented,
+                    docCSites: docCSites
+                )
             } innerView: {
                 if navigationViewModel.isShowingAllBookmarkCollections {
                     SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
@@ -254,7 +260,11 @@ public struct ContentView: View {
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            SidebarView(searchText: $searchText, docCSites: docCSites)
+            SidebarView(
+                searchText: $searchText,
+                isSearchPalettePresented: $isSearchPalettePresented,
+                docCSites: docCSites
+            )
                 .frame(minWidth: 290)
                 .navigationSplitViewColumnWidth(min: 290, ideal: 380)
                 .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -298,7 +308,11 @@ public struct ContentView: View {
     @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            TechView(searchText: $searchText, docCSites: docCSites)
+            TechView(
+                searchText: $searchText,
+                isSearchPalettePresented: $isSearchPalettePresented,
+                docCSites: docCSites
+            )
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -328,6 +342,8 @@ public struct ContentView: View {
 private struct TechView: View {
     /// Sidebar search query for technologies and symbols.
     @Binding var searchText: String
+    /// Controls presentation of the Search Documentation palette on non-macOS platforms.
+    @Binding var isSearchPalettePresented: Bool
     /// Persisted custom DocC site list, passed from parent to avoid query hit during initialization.
     var docCSites: [DocCSite]
     
@@ -462,6 +478,14 @@ private struct TechView: View {
         #endif
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
+                #if !os(macOS)
+                Button {
+                    isSearchPalettePresented = true
+                } label: {
+                    Label("Search Documentation", systemImage: "magnifyingglass")
+                }
+                .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+                #endif
                 Button(action: showAddDocumentationView) {
                     Image(systemSymbol: .plus)
                 }

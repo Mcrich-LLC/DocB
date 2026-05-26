@@ -91,7 +91,6 @@ public struct OpenQuicklySearchPalette: View {
             RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
                 .stroke(.separator.opacity(0.42), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.18), radius: 32, y: 18)
     }
 
     private var resultsContent: some View {

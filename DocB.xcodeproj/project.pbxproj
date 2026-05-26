@@ -10,14 +10,13 @@
 		2281735F2FA1B23B004C997C /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22A9D6E72F85C55800524B5F /* DocBCore */; };
 		2295BBB12F8C16DD009B4E12 /* DocBCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2295BBAC2F8C16DD009B4E12 /* DocBCore */; };
 		2295BBB32F8C16DD009B4E12 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
-		22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2295BBB82F8C16DD009B4E12 /* DocB Staging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DocB Staging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2295BBB92F8C16DD009B4E12 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = "/Users/mcrich/Xcode/Apple Documentation/Info.plist"; sourceTree = "<absolute>"; };
 		22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		22F8CD662CB23D6C0081BB0A /* DocB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DocB.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5EAA4AC72FC4D2140061766A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -75,7 +74,7 @@
 				22C450AF2CB4D61B00376AA5 /* Frameworks */,
 				22F8CD672CB23D6C0081BB0A /* Products */,
 				22A9D6FB2F85D35A00524B5F /* .swiftlint.yml */,
-				2295BBB92F8C16DD009B4E12 /* Info.plist */,
+				5EAA4AC72FC4D2140061766A /* Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -189,7 +188,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				22A9D6FC2F85D35A00524B5F /* .swiftlint.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

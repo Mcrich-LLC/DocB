@@ -1,5 +1,6 @@
 #if os(visionOS)
 import SwiftUI
+import SFSafeSymbols
 
 /// Window-based visionOS Search Documentation palette.
 public struct SearchPaletteWindow: View {
@@ -82,7 +83,7 @@ public struct SearchPaletteWindow: View {
 
     private var idleContent: some View {
         VStack(spacing: 10) {
-            Image(systemName: "keyboard")
+            Image(systemSymbol: .keyboard)
                 .font(.system(size: 28, weight: .regular))
                 .foregroundStyle(.white.opacity(0.42))
 
@@ -186,7 +187,7 @@ public struct SearchPaletteWindow: View {
 
     private func searchHeader(query: Binding<String>) -> some View {
         HStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
+            Image(systemSymbol: .magnifyingglass)
                 .font(.system(size: 26, weight: .regular))
                 .foregroundStyle(.white.opacity(0.76))
 
@@ -207,7 +208,7 @@ public struct SearchPaletteWindow: View {
                 Button {
                     query.wrappedValue = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemSymbol: .xmarkCircleFill)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)

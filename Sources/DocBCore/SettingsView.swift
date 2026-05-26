@@ -7,6 +7,7 @@
 
 import SwiftUI
 import DocCKit
+import SFSafeSymbols
 #if os(macOS)
 import AppKit
 #endif
@@ -17,11 +18,11 @@ public struct SettingsView: View {
     
     public var body: some View {
         TabView {
-            Tab("General", systemImage: "gear") {
+            Tab("General", systemSymbol: .gear) {
                 GeneralSettingsView()
             }
             #if os(macOS)
-            Tab("Shortcuts", systemImage: "keyboard") {
+            Tab("Shortcuts", systemSymbol: .keyboard) {
                 ShortcutsSettingsView()
             }
             #endif

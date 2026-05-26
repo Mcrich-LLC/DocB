@@ -1,5 +1,6 @@
 import SwiftUI
 import DocCKit
+import SFSafeSymbols
 
 /// Shared scrolling list for Search Documentation results.
 public struct SearchResultList: View {
@@ -163,18 +164,18 @@ public struct SearchResultRow: View {
     private var icon: Image {
         switch row {
         case .homepage:
-            Image(systemName: "house")
+            Image(systemSymbol: .house)
         case .reference(let result):
             switch Role(rawValue: result.type) {
             case .symbol, .pseudoSymbol, .restRequestSymbol:
-                Image(systemName: "curlybraces")
+                Image(systemSymbol: .curlybraces)
             case .collection, .collectionGroup:
-                Image(systemName: "square.stack")
+                Image(systemSymbol: .squareStack)
             default:
-                Image(systemName: "doc.text")
+                Image(systemSymbol: .textDocument)
             }
         case .technology:
-            Image(systemName: "shippingbox")
+            Image(systemSymbol: .shippingbox)
         }
     }
 

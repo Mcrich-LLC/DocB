@@ -1,6 +1,7 @@
 #if os(macOS)
 import SwiftUI
 import AppKit
+import SFSafeSymbols
 
 /// macOS Xcode-style Search Documentation palette.
 public struct OpenQuicklySearchPalette: View {
@@ -185,7 +186,7 @@ public struct OpenQuicklySearchPalette: View {
 
     private func searchHeader(query: Binding<String>) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
+            Image(systemSymbol: .magnifyingglass)
                 .font(.system(size: 18, weight: .regular))
                 .foregroundStyle(.secondary)
 
@@ -201,7 +202,7 @@ public struct OpenQuicklySearchPalette: View {
                 Button {
                     query.wrappedValue = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemSymbol: .xmarkCircleFill)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)

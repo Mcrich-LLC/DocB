@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import SFSafeSymbols
 
 /// Touch-first iPad Search Documentation palette.
 public struct SearchPaletteOverlay: View {
@@ -177,7 +178,7 @@ public struct SearchPaletteOverlay: View {
 
     private func searchHeader(query: Binding<String>) -> some View {
         HStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
+            Image(systemSymbol: .magnifyingglass)
                 .font(.system(size: 26, weight: .regular))
                 .foregroundStyle(.secondary)
 
@@ -195,7 +196,7 @@ public struct SearchPaletteOverlay: View {
                 Button {
                     query.wrappedValue = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemSymbol: .xmarkCircleFill)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)

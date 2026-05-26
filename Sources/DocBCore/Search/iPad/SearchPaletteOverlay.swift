@@ -32,6 +32,9 @@ public struct SearchPaletteOverlay: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .onAppear(perform: appear)
+        .onDisappear {
+            documentationViewModel.clearArticleCache()
+        }
         .onChange(of: coordinator.query) { _, newValue in
             coordinator.updateQuery(newValue)
         }

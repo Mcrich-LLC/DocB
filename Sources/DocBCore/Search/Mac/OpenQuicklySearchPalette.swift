@@ -30,6 +30,9 @@ public struct OpenQuicklySearchPalette: View {
             .frame(width: Self.width, height: paletteHeight)
             .background(OpenQuicklyWindowSizeReader())
             .onAppear(perform: appear)
+            .onDisappear {
+                documentationViewModel.clearArticleCache()
+            }
             .onChange(of: coordinator.query) { _, newValue in
                 coordinator.updateQuery(newValue)
             }

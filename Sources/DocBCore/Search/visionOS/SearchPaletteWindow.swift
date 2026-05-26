@@ -29,6 +29,9 @@ public struct SearchPaletteWindow: View {
         paletteContent
             .frame(width: Self.width, height: paletteHeight)
             .onAppear(perform: appear)
+            .onDisappear {
+                documentationViewModel.clearArticleCache()
+            }
             .onChange(of: coordinator.query) { _, newValue in
                 coordinator.updateQuery(newValue)
             }

@@ -332,6 +332,14 @@ public final class DocumentationViewModel {
         try await contentLoader.fetchArticle(for: identifier, site: site, preferredLanguage: preferedProgrammingLanguage)
     }
     
+    /// Clears completed and in-flight article payloads retained by background search preloading.
+    @MainActor
+    public func clearArticleCache() {
+        Task {
+            await contentLoader.clearArticleCache()
+        }
+    }
+
     /// Publishes Apple technologies into the observed technology list without creating duplicate Apple entries.
     ///
     /// - Parameter appleTechnologies: Apple documentation technology payload to insert or replace.
@@ -705,6 +713,15 @@ actor DocumentationContentLoader {
             articleTasks[key] = nil
             throw error
         }
+    }
+
+    /// Clears article payloads retained for search preloading.
+    func clearArticleCache() {
+        for task in articleTasks.values {
+            task.cancel()
+        }
+        articleTasks.removeAll()
+        articles.removeAll()
     }
 }
 

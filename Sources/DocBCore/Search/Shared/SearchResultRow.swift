@@ -201,7 +201,7 @@ public struct SearchResultSymbolBadge: View {
     
     /// Get the default size based on device
     private static func getDefaultSize() -> CGFloat {
-        #if os(mac) || targetEnvironment(macCatalyst)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         22
         #else
         30

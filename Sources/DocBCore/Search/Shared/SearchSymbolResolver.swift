@@ -68,8 +68,7 @@ public enum SearchSymbolResolver {
         referenceContext: [String: Reference] = [:]
     ) -> SidebarSearchSymbolKind {
         if let site,
-           let indexedSymbolKind = symbolKind(in: site, matching: reference, title: title)
-        {
+           let indexedSymbolKind = symbolKind(in: site, matching: reference, title: title) {
             return indexedSymbolKind
         }
 
@@ -205,8 +204,7 @@ public enum SearchSymbolResolver {
     ) -> SidebarSearchSymbolKind? {
         if let path = language.path,
            let normalizedPath = normalizedDocumentationPath(path),
-           paths.contains(normalizedPath)
-        {
+           paths.contains(normalizedPath) {
             let resolvedTitle = language.title.isEmpty ? title : language.title
             return SidebarSearchSymbolKind(title: resolvedTitle, path: path, type: language.type)
         }

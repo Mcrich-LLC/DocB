@@ -416,101 +416,9 @@ public enum SidebarSearchSymbolKind: String, Sendable {
     ///   - path: Optional documentation path.
     ///   - type: DocC node type.
     public init(title: String, path: String?, type: String) {
-        let role = Role(rawValue: type)
-        let normalizedType = type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
-        switch role {
-        case .collection:
-            self = .collection
-            return
-        case .collectionGroup:
-            self = .collectionGroup
-            return
-        case .framework:
-            self = .framework
-            return
-        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
-            self = .article
-            return
-        case .dictionarySymbol:
-            self = .typeAlias
-            return
-        default:
-            break
-        }
-
-        switch normalizedType {
-        case "class":
-            self = .classSymbol
-            return
-        case "enum", "enumeration":
-            self = .enumeration
-            return
-        case "case":
-            self = .enumerationCase
-            return
-        case "article":
-            self = .article
-            return
-        case "module":
-            self = .framework
-            return
-        case "extension":
-            self = .structure
-            return
-        case "func", "function", "operator", "op":
-            self = .function
-            return
-        case "init", "initializer":
-            self = .initializer
-            return
-        case "macro":
-            self = .macro
-            return
-        case "method", "instance method", "type method", "static method", "subscript":
-            self = .method
-            return
-        case "property", "instance property", "type property", "static property":
-            self = .property
-            return
-        case "protocol":
-            self = .protocolSymbol
-            return
-        case "struct", "structure":
-            self = .structure
-            return
-        case "typealias", "type alias", "associatedtype", "associated type":
-            self = .typeAlias
-            return
-        case "var", "variable", "let", "constant":
-            self = .variable
-            return
-        default:
-            break
-        }
-
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lowercasedTitle = trimmedTitle.lowercased()
-        let pathComponents = path?.split(separator: "/").map(String.init) ?? []
-        let lastPathComponent = pathComponents.last?.lowercased() ?? ""
-
-        if lowercasedTitle.hasPrefix("init(") || lowercasedTitle == "init" {
-            self = .initializer
-        } else if trimmedTitle.contains("(") {
-            self = pathComponents.count <= 3 ? .function : .method
-        } else if lowercasedTitle.hasPrefix("case ") || lastPathComponent.hasPrefix("case-") {
-            self = .enumerationCase
-        } else if lowercasedTitle.hasSuffix("protocol") {
-            self = .protocolSymbol
-        } else if lowercasedTitle.hasSuffix("controller") || lowercasedTitle.hasSuffix("viewcontroller") {
-            self = .classSymbol
-        } else if lowercasedTitle.hasSuffix("phase") || lowercasedTitle.hasSuffix("style") || lowercasedTitle.hasSuffix("mode") {
-            self = .enumeration
-        } else if trimmedTitle.first?.isUppercase == true {
-            self = .structure
-        } else {
-            self = .property
-        }
+        self = Self.symbolKind(forRole: Role(rawValue: type))
+            ?? Self.symbolKind(forType: type)
+            ?? Self.symbolKind(forTitle: title, path: path)
     }
 
     /// Creates a symbol kind from article metadata when a full DocC page is available.
@@ -577,6 +485,90 @@ public enum SidebarSearchSymbolKind: String, Sendable {
             .typeAlias
         default:
             nil
+        }
+    }
+
+    private static func symbolKind(forRole role: Role?) -> SidebarSearchSymbolKind? {
+        switch role {
+        case .collection:
+            .collection
+        case .collectionGroup:
+            .collectionGroup
+        case .framework:
+            .framework
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
+            .article
+        case .dictionarySymbol:
+            .typeAlias
+        default:
+            nil
+        }
+    }
+
+    private static func symbolKind(forType type: String) -> SidebarSearchSymbolKind? {
+        let normalizedType = type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let typeMappings: [String: SidebarSearchSymbolKind] = [
+            "article": .article,
+            "associated type": .typeAlias,
+            "associatedtype": .typeAlias,
+            "case": .enumerationCase,
+            "class": .classSymbol,
+            "constant": .variable,
+            "enum": .enumeration,
+            "enumeration": .enumeration,
+            "extension": .structure,
+            "func": .function,
+            "function": .function,
+            "init": .initializer,
+            "initializer": .initializer,
+            "instance method": .method,
+            "instance property": .property,
+            "let": .variable,
+            "macro": .macro,
+            "method": .method,
+            "module": .framework,
+            "op": .function,
+            "operator": .function,
+            "property": .property,
+            "protocol": .protocolSymbol,
+            "static method": .method,
+            "static property": .property,
+            "struct": .structure,
+            "structure": .structure,
+            "subscript": .method,
+            "type alias": .typeAlias,
+            "type method": .method,
+            "type property": .property,
+            "typealias": .typeAlias,
+            "var": .variable,
+            "variable": .variable
+        ]
+
+        return typeMappings[normalizedType]
+    }
+
+    private static func symbolKind(forTitle title: String, path: String?) -> SidebarSearchSymbolKind {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercasedTitle = trimmedTitle.lowercased()
+        let pathComponents = path?.split(separator: "/").map(String.init) ?? []
+        let lastPathComponent = pathComponents.last?.lowercased() ?? ""
+
+        if lowercasedTitle.hasPrefix("init(") || lowercasedTitle == "init" {
+            return .initializer
+        } else if trimmedTitle.contains("(") {
+            return pathComponents.count <= 3 ? .function : .method
+        } else if lowercasedTitle.hasPrefix("case ") || lastPathComponent.hasPrefix("case-") {
+            return .enumerationCase
+        } else if lowercasedTitle.hasSuffix("protocol") {
+            return .protocolSymbol
+        } else if lowercasedTitle.hasSuffix("controller") || lowercasedTitle.hasSuffix("viewcontroller") {
+            return .classSymbol
+        } else if lowercasedTitle.hasSuffix("phase") || lowercasedTitle.hasSuffix("style") || lowercasedTitle.hasSuffix("mode") {
+            return .enumeration
+        } else if trimmedTitle.first?.isUppercase == true {
+            return .structure
+        } else {
+            return .property
         }
     }
 

@@ -809,20 +809,14 @@ private struct SidebarSearchResultRowView: View {
 
     @MainActor
     private func resolveSymbolKind() async {
-        guard case .reference(let result) = row else {
+        guard case .reference(let result) = row,
+              result.symbolKind.needsRoleHeadingRefinement
+        else {
             resolvedSymbolKind = nil
             return
         }
 
-        do {
-            let article = try await documentationViewModel.fetchArticle(
-                for: result.reference(deepLinkScheme: deepLinkScheme).identifier,
-                site: result.site
-            )
-            resolvedSymbolKind = SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
-        } catch {
-            resolvedSymbolKind = nil
-        }
+        resolvedSymbolKind = refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
 }
 

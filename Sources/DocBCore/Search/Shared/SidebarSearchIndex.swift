@@ -363,6 +363,16 @@ public enum SidebarSearchSymbolKind: String, Sendable {
     case variable
     case unknown
 
+    /// Whether this best-effort kind benefits from full article metadata refinement.
+    public var needsRoleHeadingRefinement: Bool {
+        switch self {
+        case .structure:
+            true
+        default:
+            false
+        }
+    }
+
     /// Creates a symbol kind from a DocC index node.
     ///
     /// - Parameter interfaceLanguage: DocC index node to classify.

@@ -181,20 +181,48 @@ public struct SearchResultRow: View {
 
     @MainActor
     private func resolveSymbolKind() async {
-        guard case .reference(let result) = row else {
+        guard case .reference(let result) = row,
+              result.symbolKind.needsRoleHeadingRefinement
+        else {
             resolvedSymbolKind = nil
             return
         }
 
-        let reference = result.reference(deepLinkScheme: DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme))
-
-        do {
-            let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: result.site)
-            resolvedSymbolKind = SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
-        } catch {
-            resolvedSymbolKind = nil
-        }
+        resolvedSymbolKind = refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
+}
+
+@MainActor
+func refinedSearchSymbolKind(
+    for result: SidebarSearchReferenceResult,
+    documentationViewModel: DocumentationViewModel
+) -> SidebarSearchSymbolKind? {
+    let targetPath = normalizedDocumentationPath(result.path)
+
+    for framework in documentationViewModel.frameworks.values {
+        guard let reference = framework.references.values.first(where: { reference in
+            normalizedDocumentationPath(reference.url) == targetPath ||
+            normalizedDocumentationPath(reference.identifier) == targetPath
+        }) else {
+            continue
+        }
+
+        return SidebarSearchSymbolKind(reference: reference, title: result.title)
+    }
+
+    return nil
+}
+
+private func normalizedDocumentationPath(_ value: String?) -> String? {
+    guard let value, !value.isEmpty else {
+        return nil
+    }
+
+    if let url = URL(string: value), !url.path().isEmpty {
+        return url.path().lowercased()
+    }
+
+    return value.lowercased()
 }
 
 /// Xcode documentation-style badge for search result rows.

@@ -1,21 +1,17 @@
-#if os(iOS)
+#if os(visionOS)
 import SwiftUI
 
-/// Touch-first iPad Search Documentation palette.
-public struct SearchPaletteOverlay: View {
-    private static let maximumWidth: CGFloat = 700
-    private static let horizontalMargin: CGFloat = 24
+/// Window-based visionOS Search Documentation palette.
+public struct SearchPaletteWindow: View {
+    private static let width: CGFloat = 680
     private static let maximumHeight: CGFloat = 560
     private static let cornerRadius: CGFloat = 28
-    private static let searchHeaderHeight: CGFloat = 76
-    private static let resultRowHeight: CGFloat = 76
-    private static let sectionHeaderHeight: CGFloat = 46
-    private static let resultsBottomInset: CGFloat = 12
-    private static let statusHeight: CGFloat = 180
+    private static let searchHeaderHeight: CGFloat = 82
+    private static let resultRowHeight: CGFloat = 74
+    private static let sectionHeaderHeight: CGFloat = 44
+    private static let resultsBottomInset: CGFloat = 14
+    private static let statusHeight: CGFloat = 188
     private static let footerHeight: CGFloat = 58
-
-    /// Creates the iPad Search Documentation palette view.
-    public init() {}
 
     @Environment(OpenQuicklySearchCoordinator.self) private var coordinator
     @Environment(DocumentationViewModel.self) private var documentationViewModel
@@ -23,46 +19,46 @@ public struct SearchPaletteOverlay: View {
     @Environment(\.openURL) private var openURL
     @FocusState private var isSearchFocused: Bool
 
+    /// Creates the visionOS Search Documentation palette window.
+    public init() {}
+
     public var body: some View {
         @Bindable var coordinator = coordinator
 
-        GeometryReader { proxy in
-            paletteContent
-                .frame(width: paletteWidth(for: proxy.size), height: paletteHeight)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        }
-        .onAppear(perform: appear)
-        .onChange(of: coordinator.query) { _, newValue in
-            coordinator.updateQuery(newValue)
-        }
-        .onChange(of: coordinator.searchStore.isSearching) { _, isSearching in
-            guard !isSearching else { return }
+        paletteContent
+            .frame(width: Self.width, height: paletteHeight)
+            .onAppear(perform: appear)
+            .onChange(of: coordinator.query) { _, newValue in
+                coordinator.updateQuery(newValue)
+            }
+            .onChange(of: coordinator.searchStore.isSearching) { _, isSearching in
+                guard !isSearching else { return }
 
-            coordinator.selectDefaultResultIfNeeded()
-        }
-        .onChange(of: coordinator.searchStore.isRebuildingIndex) { _, isRebuildingIndex in
-            guard !isRebuildingIndex else { return }
+                coordinator.selectDefaultResultIfNeeded()
+            }
+            .onChange(of: coordinator.searchStore.isRebuildingIndex) { _, isRebuildingIndex in
+                guard !isRebuildingIndex else { return }
 
-            coordinator.selectDefaultResultIfNeeded()
-        }
-        .onSubmit(openSelectedResult)
-        .onKeyPress(.upArrow) {
-            coordinator.moveSelection(by: -1)
-            return .handled
-        }
-        .onKeyPress(.downArrow) {
-            coordinator.moveSelection(by: 1)
-            return .handled
-        }
-        .onKeyPress(.return) {
-            openSelectedResult()
-            return .handled
-        }
-        .onKeyPress(.escape) {
-            dismiss()
-            return .handled
-        }
-        .accessibilityElement(children: .contain)
+                coordinator.selectDefaultResultIfNeeded()
+            }
+            .onSubmit(openSelectedResult)
+            .onKeyPress(.upArrow) {
+                coordinator.moveSelection(by: -1)
+                return .handled
+            }
+            .onKeyPress(.downArrow) {
+                coordinator.moveSelection(by: 1)
+                return .handled
+            }
+            .onKeyPress(.return) {
+                openSelectedResult()
+                return .handled
+            }
+            .onKeyPress(.escape) {
+                dismiss()
+                return .handled
+            }
+            .accessibilityElement(children: .contain)
     }
 
     private var paletteContent: some View {
@@ -78,9 +74,8 @@ public struct SearchPaletteOverlay: View {
         .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
-                .stroke(.separator.opacity(0.36), lineWidth: 1)
+                .stroke(.separator.opacity(0.34), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.22), radius: 42, y: 22)
     }
 
     private var resultsContent: some View {
@@ -118,14 +113,14 @@ public struct SearchPaletteOverlay: View {
 
     private var rowMetrics: SearchResultRowMetrics {
         SearchResultRowMetrics(
-            height: 68,
-            cornerRadius: 14,
+            height: 66,
+            cornerRadius: 16,
             spacing: 14,
             textSpacing: 3,
             horizontalPadding: 18,
             verticalPadding: 8,
             iconSize: 42,
-            iconFont: .system(size: 25, weight: .regular),
+            iconFont: .system(size: 24, weight: .regular),
             titleFont: .headline.weight(.semibold),
             subtitleFont: .subheadline
         )
@@ -135,7 +130,7 @@ public struct SearchPaletteOverlay: View {
         SearchResultListMetrics(
             sectionHeaderFont: .headline.weight(.semibold),
             sectionHorizontalPadding: 26,
-            sectionTopPadding: 12,
+            sectionTopPadding: 11,
             sectionBottomPadding: 6,
             rowHorizontalPadding: 14,
             rowVerticalPadding: 4,
@@ -180,7 +175,7 @@ public struct SearchPaletteOverlay: View {
 
             TextField("Search Documentation", text: query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 29, weight: .regular))
+                .font(.system(size: 30, weight: .regular))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused($isSearchFocused)
@@ -204,10 +199,6 @@ public struct SearchPaletteOverlay: View {
         }
         .padding(.horizontal, 24)
         .frame(height: Self.searchHeaderHeight)
-    }
-
-    private func paletteWidth(for size: CGSize) -> CGFloat {
-        min(Self.maximumWidth, max(320, size.width - Self.horizontalMargin * 2))
     }
 
     private func appear() {

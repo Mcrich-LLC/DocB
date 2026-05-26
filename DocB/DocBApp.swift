@@ -36,7 +36,7 @@ struct DocBApp: App {
     @State private var openQuicklyPanelController = OpenQuicklyPanelController()
     /// Registers Search Documentation as a macOS-wide hot key.
     @State private var globalSearchHotKeyController = GlobalSearchHotKeyController()
-    #else
+    #elseif os(iOS)
     /// Controls iPadOS Search Documentation overlay presentation.
     @State private var isSearchPalettePresented = false
     #endif
@@ -77,11 +77,16 @@ struct DocBApp: App {
                     showOpenQuicklyPalette()
                 }
             )
-            #else
+            #elseif os(iOS)
             MainView(
                 url: url.wrappedValue,
                 showAddSource: $showAddSource,
                 isSearchPalettePresented: $isSearchPalettePresented
+            )
+            #else
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource
             )
             #endif
         } defaultValue: {
@@ -104,6 +109,11 @@ struct DocBApp: App {
             CommandGroup(after: .sidebar) {
                 Button("Search Documentation", action: presentSearchPalette)
                     .keyboardShortcut(appSettings.searchKeyboardShortcut)
+            }
+            #elseif os(iOS)
+            CommandGroup(after: .sidebar) {
+                Button("Search Documentation", action: presentSearchPalette)
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #else
             CommandGroup(after: .sidebar) {
@@ -129,6 +139,18 @@ struct DocBApp: App {
         .environment(appSettings)
         .environment(cloudSyncEngine)
         .environment(openQuicklySearchCoordinator)
+        #endif
+
+        #if os(visionOS)
+        WindowGroup("Search Documentation", id: WindowTypes.searchPalette) {
+            SearchPaletteWindow()
+                .modelContainer(docCSiteModelContainer)
+                .environment(documentationViewModel)
+                .environment(appSettings)
+                .environment(cloudSyncEngine)
+                .environment(openQuicklySearchCoordinator)
+        }
+        .defaultSize(width: 680, height: 82)
         #endif
     }
     
@@ -199,13 +221,49 @@ struct DocBApp: App {
     }
     #endif
 
+    #if os(visionOS)
+    /// Presents the Search Documentation window without creating a document window up front.
+    @MainActor
+    private func presentVisionSearchPalette() {
+        openQuicklySearchCoordinator.openResultWithoutActiveWindow = { row in
+            openMainWindowAndOpen(row)
+        }
+        openWindow(id: WindowTypes.searchPalette)
+    }
+
+    /// Opens a main document window and activates the selected search result once navigation is ready.
+    @MainActor
+    private func openMainWindowAndOpen(_ row: SidebarSearchResultRow) {
+        openWindow(id: WindowTypes.main)
+
+        Task { @MainActor in
+            for _ in 0..<20 {
+                if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
+                    openQuicklySearchCoordinator.open(
+                        row,
+                        documentationViewModel: documentationViewModel,
+                        openURL: OpenURLAction { url in
+                            .systemAction(url)
+                        }
+                    )
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+        }
+    }
+    #endif
+
     /// Presents the platform-specific Search Documentation palette.
     @MainActor
     private func presentSearchPalette() {
         #if os(macOS)
         presentMacSearchPalette()
-        #else
+        #elseif os(iOS)
         isSearchPalettePresented = true
+        #elseif os(visionOS)
+        presentVisionSearchPalette()
         #endif
     }
 }
@@ -224,7 +282,7 @@ private struct MainView: View {
     /// Presents the floating search palette without activating the rest of DocB.
     let presentGlobalSearchPalette: @MainActor @Sendable () -> Void
     #endif
-    #if !os(macOS)
+    #if os(iOS)
     /// Binding controlling the iPadOS Search Documentation overlay.
     @Binding var isSearchPalettePresented: Bool
     #endif
@@ -259,8 +317,11 @@ private struct MainView: View {
                 #if os(macOS)
                 ContentView(url: url)
                     .backForward(isBack: false)
-                #else
+                #elseif os(iOS)
                 ContentView(url: url, isSearchPalettePresented: $isSearchPalettePresented)
+                    .backForward(isBack: false)
+                #else
+                ContentView(url: url)
                     .backForward(isBack: false)
                 #endif
             case false:

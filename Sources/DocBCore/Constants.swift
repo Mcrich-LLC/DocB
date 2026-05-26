@@ -15,6 +15,8 @@ public struct WindowTypes {
     public static let addSites = "add_sites"
     /// Main documentation browsing window.
     public static let main = "main"
+    /// Search Documentation palette window.
+    public static let searchPalette = "search_palette"
 }
 
 /// Defines app-wide constants and URL helpers for loading documentation resources.

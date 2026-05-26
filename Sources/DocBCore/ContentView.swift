@@ -18,7 +18,7 @@ public struct ContentView: View {
     ///
     /// - Parameters:
     ///   - url: Optional startup URL used for initial deep-link routing.
-    ///   - isSearchPalettePresented: Binding that controls the non-macOS Search Documentation overlay.
+    ///   - isSearchPalettePresented: Binding that controls the iPadOS Search Documentation overlay.
     public init(url: URL? = nil, isSearchPalettePresented: Binding<Bool> = .constant(false)) {
         self.url = url
         self._isSearchPalettePresented = isSearchPalettePresented
@@ -26,7 +26,7 @@ public struct ContentView: View {
     
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
-    /// Controls the non-macOS Search Documentation overlay.
+    /// Controls the iPadOS Search Documentation overlay.
     @Binding var isSearchPalettePresented: Bool
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
@@ -71,7 +71,7 @@ public struct ContentView: View {
                 navigationStackView
             }
         }
-        #if !os(macOS)
+        #if os(iOS)
         .overlay {
             searchPaletteOverlay
         }
@@ -118,7 +118,7 @@ public struct ContentView: View {
         }
     }
     
-    #if !os(macOS)
+    #if os(iOS)
     /// iPadOS overlay presentation for the Search Documentation palette.
     @ViewBuilder
     private var searchPaletteOverlay: some View {

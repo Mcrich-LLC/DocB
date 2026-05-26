@@ -151,6 +151,7 @@ struct DocBApp: App {
                 .environment(openQuicklySearchCoordinator)
         }
         .defaultSize(width: 680, height: 82)
+        .windowResizability(.contentSize)
         #endif
     }
     

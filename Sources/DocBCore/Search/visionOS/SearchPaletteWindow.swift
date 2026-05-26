@@ -9,6 +9,7 @@ public struct SearchPaletteWindow: View {
     private static let searchHeaderHeight: CGFloat = 82
     private static let resultRowHeight: CGFloat = 74
     private static let sectionHeaderHeight: CGFloat = 44
+    private static let idleContentHeight: CGFloat = 148
     private static let resultsBottomInset: CGFloat = 14
     private static let statusHeight: CGFloat = 188
     private static let footerHeight: CGFloat = 58
@@ -65,12 +66,30 @@ public struct SearchPaletteWindow: View {
         VStack(spacing: 0) {
             searchHeader(query: Bindable(coordinator).query)
 
+            Divider()
+
             if showsResultsContent {
-                Divider()
                 resultsContent
+            } else {
+                idleContent
             }
         }
         .background(Color.black.opacity(0.38))
+    }
+
+    private var idleContent: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "keyboard")
+                .font(.system(size: 28, weight: .regular))
+                .foregroundStyle(.white.opacity(0.42))
+
+            Text("Start typing to search documentation")
+                .font(.headline.weight(.medium))
+                .foregroundStyle(.white.opacity(0.68))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.idleContentHeight)
+        .accessibilityElement(children: .combine)
     }
 
     private var resultsContent: some View {
@@ -142,7 +161,7 @@ public struct SearchPaletteWindow: View {
     }
 
     private var paletteHeight: CGFloat {
-        Self.searchHeaderHeight + (showsResultsContent ? 1 + resultsHeight : 0)
+        Self.searchHeaderHeight + 1 + (showsResultsContent ? resultsHeight : Self.idleContentHeight)
     }
 
     private var resultsHeight: CGFloat {

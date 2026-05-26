@@ -150,7 +150,7 @@ struct DocBApp: App {
                 .environment(cloudSyncEngine)
                 .environment(openQuicklySearchCoordinator)
         }
-        .defaultSize(width: 680, height: 82)
+        .defaultSize(width: 680, height: 231)
         .windowResizability(.contentSize)
         #endif
     }

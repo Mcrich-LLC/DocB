@@ -50,26 +50,20 @@ struct ShortcutsSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Search") {
-                LabeledContent("Search Documentation") {
-                    SearchKeyboardShortcutRecorder(appSettings: appSettings)
-                        .frame(width: 160)
-                }
-
-                HStack {
-                    Text("Click the shortcut field, then press the key combination to use.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-                }
-
-                HStack {
-                    Spacer()
-
-                    Button("Restore Default") {
-                        appSettings.resetSearchKeyboardShortcut()
-                    }
+            HStack {
+                Text("Search Documentation")
+                Spacer()
+                SearchKeyboardShortcutRecorder(appSettings: appSettings)
+//                    .frame(width: 160)
+            }
+            
+            HStack {
+                Text("Click the shortcut field, then press the key combination to use.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Restore Default") {
+                    appSettings.resetSearchKeyboardShortcut()
                 }
             }
         }
@@ -88,7 +82,6 @@ private struct SearchKeyboardShortcutRecorder: View {
         } label: {
             Text(displayedShortcutDescription)
                 .monospacedDigit()
-                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
         .accessibilityLabel("Search Documentation keyboard shortcut")

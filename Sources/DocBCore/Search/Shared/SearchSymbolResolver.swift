@@ -61,14 +61,26 @@ public enum SearchSymbolResolver {
     ///   - title: Display title used when metadata is incomplete.
     ///   - site: Optional custom DocC source containing the persisted index.
     /// - Returns: The resolved symbol kind.
-    public static func symbolKind(for reference: Reference, title: String, site: DocCSource?) -> SidebarSearchSymbolKind {
+    public static func symbolKind(
+        for reference: Reference,
+        title: String,
+        site: DocCSource?,
+        referenceContext: [String: Reference] = [:]
+    ) -> SidebarSearchSymbolKind {
         if let site,
            let indexedSymbolKind = symbolKind(in: site, matching: reference, title: title)
         {
             return indexedSymbolKind
         }
 
-        return SidebarSearchSymbolKind(reference: reference, title: title)
+        let referenceSymbolKind = SidebarSearchSymbolKind(reference: reference, title: title)
+        guard shouldRefine(referenceSymbolKind),
+              let siblingSymbolKind = symbolKindFromSiblingReference(for: reference, title: title, referenceContext: referenceContext)
+        else {
+            return referenceSymbolKind
+        }
+
+        return siblingSymbolKind
     }
 
     /// Resolves a symbol kind for a search result using cached metadata first, then article metadata.
@@ -130,7 +142,12 @@ public enum SearchSymbolResolver {
                 continue
             }
 
-            return symbolKind(for: reference, title: result.title, site: reference.docCSite ?? result.site)
+            return symbolKind(
+                for: reference,
+                title: result.title,
+                site: reference.docCSite ?? result.site,
+                referenceContext: framework.references
+            )
         }
 
         return nil
@@ -144,6 +161,37 @@ public enum SearchSymbolResolver {
         for language in site.index.interfaceLanguages.values.flatMap({ $0 }) {
             if let match = symbolKind(in: language, matchingAny: paths, title: title) {
                 return match
+            }
+        }
+
+        return nil
+    }
+
+    private static func symbolKindFromSiblingReference(
+        for reference: Reference,
+        title: String,
+        referenceContext: [String: Reference]
+    ) -> SidebarSearchSymbolKind? {
+        guard let referencePath = normalizedDocumentationPath(reference.url ?? reference.identifier) else {
+            return nil
+        }
+
+        let overloadPrefix = "\(referencePath)("
+        let candidates = referenceContext.values.filter { candidate in
+            guard candidate.identifier != reference.identifier,
+                  let candidatePath = normalizedDocumentationPath(candidate.url ?? candidate.identifier),
+                  candidatePath.hasPrefix(overloadPrefix)
+            else {
+                return false
+            }
+
+            return true
+        }
+
+        for candidate in candidates {
+            let candidateSymbolKind = SidebarSearchSymbolKind(reference: candidate, title: candidate.title ?? title)
+            if !shouldRefine(candidateSymbolKind) {
+                return candidateSymbolKind
             }
         }
 

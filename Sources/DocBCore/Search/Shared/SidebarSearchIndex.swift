@@ -390,12 +390,12 @@ public enum SidebarSearchSymbolKind: String, Sendable {
             return
         }
 
-        if let fragmentSymbolKind = Self.symbolKind(forFragments: reference.fragments) {
+        let path = URL(string: reference.identifier)?.path()
+        if let fragmentSymbolKind = Self.symbolKind(forFragments: reference.fragments, path: path) {
             self = fragmentSymbolKind
             return
         }
 
-        let path = URL(string: reference.identifier)?.path()
         self.init(title: title, path: path, type: reference.type)
     }
 
@@ -580,7 +580,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         }
     }
 
-    private static func symbolKind(forFragments fragments: [Fragment]?) -> SidebarSearchSymbolKind? {
+    private static func symbolKind(forFragments fragments: [Fragment]?, path: String?) -> SidebarSearchSymbolKind? {
         let declarationWords = fragments?
             .filter { $0.kind == "keyword" || $0.kind == "identifier" || $0.kind == "text" }
             .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
@@ -603,7 +603,8 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         } else if declarationWords.contains("typealias") || declarationWords.contains("associatedtype") {
             return .typeAlias
         } else if declarationWords.contains("func") || declarationWords.contains("operator") {
-            return .method
+            let pathComponents = path?.split(separator: "/") ?? []
+            return pathComponents.count <= 3 ? .function : .method
         } else if declarationWords.contains("macro") {
             return .macro
         } else if declarationWords.contains("case") {

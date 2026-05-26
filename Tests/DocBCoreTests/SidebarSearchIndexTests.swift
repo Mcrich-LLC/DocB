@@ -229,6 +229,47 @@ struct SidebarSearchIndexTests {
     }
 
     @Test
+    func appleReferenceContextClassifiesBareFunctionSymbols() throws {
+        let bareData = """
+        {
+          "title": "NSApplicationMain",
+          "identifier": "doc://com.apple.appkit/documentation/AppKit/NSApplicationMain",
+          "url": "/documentation/appkit/nsapplicationmain",
+          "type": "topic",
+          "role": "symbol",
+          "fragments": [
+            { "text": "NSApplicationMain", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let overloadData = """
+        {
+          "title": "NSApplicationMain(_:_:)",
+          "identifier": "doc://com.apple.appkit/documentation/AppKit/NSApplicationMain(_:_:)",
+          "url": "/documentation/appkit/nsapplicationmain(_:_:)",
+          "type": "topic",
+          "role": "symbol",
+          "fragments": [
+            { "text": "func", "kind": "keyword" },
+            { "text": " ", "kind": "text" },
+            { "text": "NSApplicationMain", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let bareReference = try JSONDecoder().decode(Reference.self, from: bareData)
+        let overloadReference = try JSONDecoder().decode(Reference.self, from: overloadData)
+
+        let symbolKind = SearchSymbolResolver.symbolKind(
+            for: bareReference,
+            title: "NSApplicationMain",
+            site: nil,
+            referenceContext: [overloadReference.identifier: overloadReference]
+        )
+
+        #expect(symbolKind == .function)
+    }
+
+    @Test
     @MainActor
     func emptyQueryClearsResults() async {
         let store = SidebarSearchStore()

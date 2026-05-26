@@ -82,7 +82,12 @@ struct TechnologyRootView: View {
                     return nil
                 }
                 
-                return FrameworkReferenceRow(id: identifier, reference: manager.getReference(from: reference), title: title)
+                return FrameworkReferenceRow(
+                    id: identifier,
+                    reference: manager.getReference(from: reference),
+                    title: title,
+                    referenceContext: framework?.references ?? [:]
+                )
             }
             
             guard !rows.isEmpty else { return nil }
@@ -313,6 +318,8 @@ private struct FrameworkReferenceRow: Identifiable {
     let reference: Reference
     /// Display title.
     let title: String
+    /// Neighboring references from the same DocC payload.
+    let referenceContext: [String: Reference]
 }
 
 /// Stable list shell for root framework rows.
@@ -360,7 +367,7 @@ private struct FrameworkTopicSectionView: View {
     var body: some View {
         Section {
             ForEach(section.rows) { row in
-                FrameworkListItem(reference: row.reference, title: row.title)
+                FrameworkListItem(reference: row.reference, title: row.title, referenceContext: row.referenceContext)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .id(row.id)
@@ -381,6 +388,7 @@ private struct FrameworkListItem: View {
     
     let reference: Reference
     let title: String
+    var referenceContext: [String: Reference] = [:]
     var willHideDisclosureGroups: Bool = false
     var isShowingChevron: Bool = true
     
@@ -424,7 +432,7 @@ private struct FrameworkListItem: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         } else {
-            DefaultListItem(reference: reference, title: title)
+            DefaultListItem(reference: reference, title: title, referenceContext: referenceContext)
                 .showChevron(isShowingChevron)
         }
     }
@@ -451,6 +459,7 @@ private struct DefaultListItem: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let reference: Reference
     let title: String
+    let referenceContext: [String: Reference]
     
     var isShowingChevron: Bool = true
     var shouldShowBackground: Bool = true
@@ -485,7 +494,14 @@ private struct DefaultListItem: View {
                 }
             } icon: {
                 if navigationViewModel.isUsingSplitView {
-                    SearchResultSymbolBadge(symbolKind: SearchSymbolResolver.symbolKind(for: reference, title: title, site: reference.docCSite ?? navigationViewModel.technology?.docCSite))
+                    SearchResultSymbolBadge(
+                        symbolKind: SearchSymbolResolver.symbolKind(
+                            for: reference,
+                            title: title,
+                            site: reference.docCSite ?? navigationViewModel.technology?.docCSite,
+                            referenceContext: referenceContext
+                        )
+                    )
                 } else {
                     Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
                         .foregroundStyle(.secondary)
@@ -546,7 +562,12 @@ private struct FrameworkDisclosureGroup: View {
                     return nil
                 }
                 
-                return FrameworkReferenceRow(id: identifier, reference: getReference(from: subreference), title: subtitle)
+                return FrameworkReferenceRow(
+                    id: identifier,
+                    reference: getReference(from: subreference),
+                    title: subtitle,
+                    referenceContext: framework?.references ?? [:]
+                )
             }
             
             guard !rows.isEmpty else { return nil }
@@ -583,7 +604,7 @@ private struct FrameworkDisclosureGroup: View {
                 }
             }
         } label: {
-            DefaultListItem(reference: reference, title: title)
+            DefaultListItem(reference: reference, title: title, referenceContext: framework?.references ?? [:])
                 .showBackground(false)
                 .showChevron(false)
                 .background {

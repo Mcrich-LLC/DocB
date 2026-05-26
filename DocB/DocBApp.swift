@@ -274,22 +274,7 @@ private struct MainView: View {
         .animation(.default, value: hasOnboarded)
         #if os(macOS)
         .onAppear(perform: refreshGlobalSearchHotKey)
-        .onChange(of: appSettings.searchKeyboardShortcutKey) {
-            refreshGlobalSearchHotKey()
-        }
-        .onChange(of: appSettings.searchKeyboardShortcutUsesCommand) {
-            refreshGlobalSearchHotKey()
-        }
-        .onChange(of: appSettings.searchKeyboardShortcutUsesShift) {
-            refreshGlobalSearchHotKey()
-        }
-        .onChange(of: appSettings.searchKeyboardShortcutUsesOption) {
-            refreshGlobalSearchHotKey()
-        }
-        .onChange(of: appSettings.searchKeyboardShortcutUsesControl) {
-            refreshGlobalSearchHotKey()
-        }
-        .onChange(of: appSettings.searchKeyboardShortcutIsGlobalEnabled) {
+        .onChange(of: searchKeyboardShortcutRegistrationToken) {
             refreshGlobalSearchHotKey()
         }
         #endif
@@ -346,6 +331,17 @@ private struct MainView: View {
     }
 
     #if os(macOS)
+    private var searchKeyboardShortcutRegistrationToken: String {
+        [
+            appSettings.searchKeyboardShortcutKey,
+            appSettings.searchKeyboardShortcutUsesCommand.description,
+            appSettings.searchKeyboardShortcutUsesShift.description,
+            appSettings.searchKeyboardShortcutUsesOption.description,
+            appSettings.searchKeyboardShortcutUsesControl.description,
+            appSettings.searchKeyboardShortcutIsGlobalEnabled.description
+        ].joined(separator: ":")
+    }
+
     private func refreshGlobalSearchHotKey() {
         globalSearchHotKeyController.register(appSettings: appSettings) {
             presentGlobalSearchPalette()

@@ -225,7 +225,7 @@ struct SidebarSearchIndexTests {
         var reference = try JSONDecoder().decode(Reference.self, from: data)
         reference.docCSite = site
 
-        #expect(SidebarSearchSymbolKind(reference: reference, title: "PurchasesDiagnostics.SDKHealthError", site: site) == .enumeration)
+        #expect(SearchSymbolResolver.symbolKind(for: reference, title: "PurchasesDiagnostics.SDKHealthError", site: site) == .enumeration)
     }
 
     @Test

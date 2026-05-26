@@ -810,13 +810,13 @@ private struct SidebarSearchResultRowView: View {
     @MainActor
     private func resolveSymbolKind() async {
         guard case .reference(let result) = row,
-              result.symbolKind.needsRoleHeadingRefinement
+              SearchSymbolResolver.shouldRefine(result.symbolKind)
         else {
             resolvedSymbolKind = nil
             return
         }
 
-        resolvedSymbolKind = await refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
+        resolvedSymbolKind = await SearchSymbolResolver.refinedSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
 }
 

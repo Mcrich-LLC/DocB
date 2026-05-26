@@ -182,69 +182,14 @@ public struct SearchResultRow: View {
     @MainActor
     private func resolveSymbolKind() async {
         guard case .reference(let result) = row,
-              result.symbolKind.needsRoleHeadingRefinement
+              SearchSymbolResolver.shouldRefine(result.symbolKind)
         else {
             resolvedSymbolKind = nil
             return
         }
 
-        resolvedSymbolKind = await refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
+        resolvedSymbolKind = await SearchSymbolResolver.refinedSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
-}
-
-@MainActor
-public func refinedSearchSymbolKind(
-    for result: SidebarSearchReferenceResult,
-    documentationViewModel: DocumentationViewModel
-) async -> SidebarSearchSymbolKind? {
-    if let referenceSymbolKind = cachedReferenceSymbolKind(for: result, documentationViewModel: documentationViewModel) {
-        return referenceSymbolKind
-    }
-
-    do {
-        let reference = result.reference(deepLinkScheme: DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme))
-        let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: result.site)
-        return SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
-    } catch {
-        return nil
-    }
-}
-
-@MainActor
-private func cachedReferenceSymbolKind(
-    for result: SidebarSearchReferenceResult,
-    documentationViewModel: DocumentationViewModel
-) -> SidebarSearchSymbolKind? {
-    if let indexedSymbolKind = SidebarSearchSymbolKind.symbolKind(in: result.site, matchingPath: result.path, title: result.title) {
-        return indexedSymbolKind
-    }
-
-    let targetPath = normalizedDocumentationPath(result.path)
-
-    for framework in documentationViewModel.frameworks.values {
-        guard let reference = framework.references.values.first(where: { reference in
-            normalizedDocumentationPath(reference.url) == targetPath ||
-            normalizedDocumentationPath(reference.identifier) == targetPath
-        }) else {
-            continue
-        }
-
-        return SidebarSearchSymbolKind(reference: reference, title: result.title)
-    }
-
-    return nil
-}
-
-private func normalizedDocumentationPath(_ value: String?) -> String? {
-    guard let value, !value.isEmpty else {
-        return nil
-    }
-
-    if let url = URL(string: value), !url.path().isEmpty {
-        return url.path().lowercased()
-    }
-
-    return value.lowercased()
 }
 
 /// Xcode documentation-style badge for search result rows.

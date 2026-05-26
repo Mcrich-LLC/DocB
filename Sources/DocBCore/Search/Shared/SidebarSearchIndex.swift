@@ -365,12 +365,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
 
     /// Whether this best-effort kind benefits from full article metadata refinement.
     public var needsRoleHeadingRefinement: Bool {
-        switch self {
-        case .structure:
-            true
-        default:
-            false
-        }
+        SearchSymbolResolver.shouldRefine(self)
     }
 
     /// Creates a symbol kind from a DocC index node.
@@ -411,45 +406,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
     ///   - title: Display title used as a fallback when metadata is incomplete.
     ///   - site: Optional custom DocC source containing the persisted index.
     public init(reference: Reference, title: String, site: DocCSource?) {
-        if let site,
-           let indexedSymbolKind = Self.symbolKind(in: site, matching: reference, title: title)
-        {
-            self = indexedSymbolKind
-            return
-        }
-
-        self.init(reference: reference, title: title)
-    }
-
-    /// Finds a symbol kind in a custom source's persisted DocC index for a reference.
-    ///
-    /// - Parameters:
-    ///   - site: Custom DocC source containing the persisted index.
-    ///   - reference: Reference whose URL or identifier should match an index entry.
-    ///   - title: Display title used when the matched index entry does not include one.
-    /// - Returns: The indexed symbol kind, if a matching index entry exists.
-    public static func symbolKind(in site: DocCSource, matching reference: Reference, title: String) -> SidebarSearchSymbolKind? {
-        let paths = [
-            reference.url,
-            reference.identifier
-        ].compactMap(normalizedIndexPath)
-
-        return symbolKind(in: site, matchingAny: paths, title: title)
-    }
-
-    /// Finds a symbol kind in a custom source's persisted DocC index for a path.
-    ///
-    /// - Parameters:
-    ///   - site: Custom DocC source containing the persisted index.
-    ///   - path: Relative DocC path to match.
-    ///   - title: Display title used when the matched index entry does not include one.
-    /// - Returns: The indexed symbol kind, if a matching index entry exists.
-    public static func symbolKind(in site: DocCSource, matchingPath path: String, title: String) -> SidebarSearchSymbolKind? {
-        guard let normalizedPath = normalizedIndexPath(path) else {
-            return nil
-        }
-
-        return symbolKind(in: site, matchingAny: [normalizedPath], title: title)
+        self = SearchSymbolResolver.symbolKind(for: reference, title: title, site: site)
     }
 
     /// Creates a symbol kind from the metadata available in DocC indexes.
@@ -658,52 +615,6 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         return nil
     }
 
-    private static func symbolKind(in site: DocCSource, matchingAny paths: [String], title: String) -> SidebarSearchSymbolKind? {
-        guard !paths.isEmpty else {
-            return nil
-        }
-
-        for language in site.index.interfaceLanguages.values.flatMap({ $0 }) {
-            if let match = symbolKind(in: language, matchingAny: paths, title: title) {
-                return match
-            }
-        }
-
-        return nil
-    }
-
-    private static func symbolKind(
-        in language: DocCIndex.InterfaceLanguage,
-        matchingAny paths: [String],
-        title: String
-    ) -> SidebarSearchSymbolKind? {
-        if let path = language.path,
-           let normalizedPath = normalizedIndexPath(path),
-           paths.contains(normalizedPath)
-        {
-            return SidebarSearchSymbolKind(title: language.title, path: path, type: language.type)
-        }
-
-        for child in language.children ?? [] {
-            if let match = symbolKind(in: child, matchingAny: paths, title: title) {
-                return match
-            }
-        }
-
-        return nil
-    }
-
-    private static func normalizedIndexPath(_ value: String?) -> String? {
-        guard let value, !value.isEmpty else {
-            return nil
-        }
-
-        if let url = URL(string: value), !url.path().isEmpty {
-            return url.path().lowercased()
-        }
-
-        return value.lowercased()
-    }
 }
 
 /// Apple framework result payload.

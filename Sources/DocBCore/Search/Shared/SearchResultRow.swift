@@ -228,7 +228,7 @@ public struct SearchResultSymbolBadge: View {
 
         ZStack {
             RoundedRectangle(cornerRadius: max(4, size * 0.18), style: .continuous)
-                .fill(isSelected ? Color.white.opacity(0.24) : appearance.background)
+                .fill(appearance.background)
 
             if let symbol = appearance.symbol {
                 Image(systemSymbol: symbol)

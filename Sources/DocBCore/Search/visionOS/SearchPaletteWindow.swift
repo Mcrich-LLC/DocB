@@ -70,12 +70,7 @@ public struct SearchPaletteWindow: View {
                 resultsContent
             }
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
-                .stroke(.separator.opacity(0.34), lineWidth: 1)
-        }
+        .background(Color.black.opacity(0.38))
     }
 
     private var resultsContent: some View {
@@ -171,11 +166,14 @@ public struct SearchPaletteWindow: View {
         HStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 26, weight: .regular))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.76))
 
-            TextField("Search Documentation", text: query)
+            TextField(text: query, prompt: Text("Search Documentation").foregroundStyle(.white.opacity(0.58))) {
+                EmptyView()
+            }
                 .textFieldStyle(.plain)
                 .font(.system(size: 30, weight: .regular))
+                .foregroundStyle(.white)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused($isSearchFocused)

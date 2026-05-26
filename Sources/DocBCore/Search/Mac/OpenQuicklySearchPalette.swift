@@ -129,6 +129,9 @@ public struct OpenQuicklySearchPalette: View {
                                 openSelectedResult()
                             }
                             .id(row.id)
+                            .onAppear {
+                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
+                            }
                             .padding(.horizontal, 7)
                             .padding(.vertical, 2)
                         }

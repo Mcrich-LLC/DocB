@@ -120,6 +120,9 @@ public struct SearchPaletteOverlay: View {
                                 openSelectedResult()
                             }
                             .id(row.id)
+                            .onAppear {
+                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
+                            }
                             .padding(.horizontal, 14)
                             .padding(.vertical, 4)
                         }

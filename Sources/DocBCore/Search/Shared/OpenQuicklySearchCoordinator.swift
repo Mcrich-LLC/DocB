@@ -16,6 +16,7 @@ public final class OpenQuicklySearchCoordinator {
     public var openResultWithoutActiveWindow: (@MainActor @Sendable (SidebarSearchResultRow) -> Void)?
     
     private weak var activeNavigationViewModel: NavigationViewModel?
+    private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
     
     /// Creates an empty Open Quickly coordinator.
     public init() {}
@@ -55,7 +56,45 @@ public final class OpenQuicklySearchCoordinator {
     ///   - debounce: Delay before non-empty queries are evaluated.
     public func updateQuery(_ query: String, debounce: Duration = .milliseconds(80)) {
         self.query = query
+        preloadedRowIDs.removeAll()
         searchStore.updateSearchText(query, debounce: debounce)
+    }
+
+    /// Starts loading content for a visible result row before the user activates it.
+    ///
+    /// - Parameters:
+    ///   - row: Result row that has become visible in the palette.
+    ///   - documentationViewModel: Documentation source model used to fetch article or framework payloads.
+    public func preloadVisibleResult(_ row: SidebarSearchResultRow, documentationViewModel: DocumentationViewModel) {
+        guard preloadedRowIDs.insert(row.id).inserted else { return }
+
+        switch row {
+        case .homepage:
+            return
+        case .reference(let result):
+            let reference = result.reference(deepLinkScheme: preloadDeepLinkScheme)
+            guard reference.externalURL == nil || !reference.isExternalReference else {
+                return
+            }
+
+            Task(priority: .utility) {
+                _ = try? await documentationViewModel.fetchArticle(for: reference.identifier, site: reference.docCSite)
+            }
+        case .technology(let result):
+            guard result.framework.destination.identifier.lowercased().contains("/documentation") else {
+                return
+            }
+
+            Task(priority: .utility) {
+                await documentationViewModel.fetchFramework(for: result.framework.destination.identifier, site: nil)
+            }
+        }
+    }
+
+    private var preloadDeepLinkScheme: DocCDeepLinkScheme {
+        activeNavigationViewModel?.deepLinkScheme
+            ?? DocCDeepLinkScheme.mainBundle
+            ?? DocCDeepLinkScheme(Constants.deeplinkScheme)
     }
     
     /// Ensures that a visible result row is selected.

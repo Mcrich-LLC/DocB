@@ -6,21 +6,21 @@ import DocCKit
 public struct SidebarSearchIndex: Sendable {
     /// Maximum number of rows published for a single sidebar query.
     public static let defaultResultLimit = 250
-    
+
     /// Empty index used before documentation sources are loaded.
     public static let empty = SidebarSearchIndex(id: UUID(), entries: [])
-    
+
     /// Stable identity for this index snapshot.
     public let id: UUID
-    
+
     /// Number of searchable entries in this snapshot.
     public var entryCount: Int {
         entries.count
     }
-    
+
     /// Flattened, pre-normalized entries.
     private let entries: [Entry]
-    
+
     /// Creates a sidebar search index from loaded technology snapshots.
     ///
     /// - Parameter technologies: Runtime technology sources from `DocumentationViewModel`.
@@ -29,7 +29,7 @@ public struct SidebarSearchIndex: Sendable {
             lhs.timestamp < rhs.timestamp
         }
         var entries: [Entry] = []
-        
+
         for site in docCSites {
             let source = Source(
                 id: "docc-\(site.id.uuidString)",
@@ -37,7 +37,7 @@ public struct SidebarSearchIndex: Sendable {
             )
             Self.appendDocCEntries(from: site, source: source, to: &entries)
         }
-        
+
         for appleTechnologies in technologies.appleTechnologies {
             let source = Source(id: "apple-\(appleTechnologies.id.uuidString)", title: "Apple Documentation")
             entries.append(.init(
@@ -48,7 +48,7 @@ public struct SidebarSearchIndex: Sendable {
                 normalizedTags: [],
                 row: .homepage(id: "\(source.id)-homepage", title: "Discover")
             ))
-            
+
             for group in appleTechnologies.groups ?? [] {
                 for framework in group.technologies where framework.destination.isActive {
                     entries.append(.init(
@@ -67,10 +67,10 @@ public struct SidebarSearchIndex: Sendable {
                 }
             }
         }
-        
+
         self.init(id: UUID(), entries: entries)
     }
-    
+
     /// Normalizes user-facing search strings to match the existing case-insensitive semantics.
     ///
     /// - Parameter value: Raw search text or title text.
@@ -78,7 +78,7 @@ public struct SidebarSearchIndex: Sendable {
     public static func normalize(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
-    
+
     /// Searches the flattened index.
     ///
     /// - Parameters:
@@ -88,18 +88,18 @@ public struct SidebarSearchIndex: Sendable {
     public func search(_ query: String, limit: Int = defaultResultLimit) -> SidebarSearchResults {
         let normalizedQuery = Self.normalize(query)
         guard !normalizedQuery.isEmpty else { return .empty }
-        
+
         var sections: [SidebarSearchResultSection] = []
         var sectionIndexesBySourceID: [String: Int] = [:]
         var totalMatches = 0
         let resultLimit = max(0, limit)
-        
+
         for entry in entries where entry.matches(normalizedQuery) {
             totalMatches += 1
             guard totalMatches <= resultLimit else {
                 continue
             }
-            
+
             let sectionIndex: Int
             if let existingIndex = sectionIndexesBySourceID[entry.source.id] {
                 sectionIndex = existingIndex
@@ -108,17 +108,17 @@ public struct SidebarSearchIndex: Sendable {
                 sectionIndex = sections.endIndex - 1
                 sectionIndexesBySourceID[entry.source.id] = sectionIndex
             }
-            
+
             sections[sectionIndex].rows.append(entry.row)
         }
-        
+
         return SidebarSearchResults(
             sections: sections,
             totalMatches: totalMatches,
             isTruncated: totalMatches > resultLimit
         )
     }
-    
+
     /// Creates an index from a prebuilt entry array.
     ///
     /// - Parameters:
@@ -128,7 +128,7 @@ public struct SidebarSearchIndex: Sendable {
         self.id = id
         self.entries = entries
     }
-    
+
     /// Appends flattened DocC node entries for one custom source.
     ///
     /// - Parameters:
@@ -143,6 +143,7 @@ public struct SidebarSearchIndex: Sendable {
         func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage, languageKey: String) {
             if interfaceLanguage.type.lowercased() != "module", let path = interfaceLanguage.path {
                 let id = "\(source.id)-\(languageKey)-\(path)"
+                let symbolKind = SidebarSearchSymbolKind(interfaceLanguage: interfaceLanguage)
                 entries.append(.init(
                     id: id,
                     source: source,
@@ -154,23 +155,24 @@ public struct SidebarSearchIndex: Sendable {
                         title: interfaceLanguage.title,
                         path: path,
                         type: interfaceLanguage.type,
+                        symbolKind: symbolKind,
                         site: site
                     ))
                 ))
             }
-            
+
             for child in interfaceLanguage.children ?? [] {
                 append(child, languageKey: languageKey)
             }
         }
-        
+
         for languageKey in site.index.interfaceLanguages.keys.sorted() {
             for language in site.index.interfaceLanguages[languageKey] ?? [] {
                 append(language, languageKey: languageKey)
             }
         }
     }
-    
+
     /// Pre-normalized searchable row.
     private struct Entry: Sendable {
         /// Stable row identifier.
@@ -185,7 +187,7 @@ public struct SidebarSearchIndex: Sendable {
         let normalizedTags: [String]
         /// UI row payload.
         let row: SidebarSearchResultRow
-        
+
         /// Returns whether this entry matches a normalized query.
         ///
         /// - Parameter normalizedQuery: Query already passed through `normalize(_:)`.
@@ -194,7 +196,7 @@ public struct SidebarSearchIndex: Sendable {
             normalizedTitle.contains(normalizedQuery) || normalizedTags.contains { $0.contains(normalizedQuery) }
         }
     }
-    
+
     /// Search result source grouping metadata.
     private struct Source: Sendable {
         /// Stable source identifier.
@@ -208,19 +210,19 @@ public struct SidebarSearchIndex: Sendable {
 public struct SidebarSearchResults: Sendable {
     /// Empty result set.
     public static let empty = SidebarSearchResults(sections: [], totalMatches: 0, isTruncated: false)
-    
+
     /// Grouped result sections.
     public var sections: [SidebarSearchResultSection]
     /// Total matches before row limiting.
     public var totalMatches: Int
     /// Whether rows were omitted because the result limit was reached.
     public var isTruncated: Bool
-    
+
     /// Indicates whether the current result set has no visible rows.
     public var isEmpty: Bool {
         sections.allSatisfy(\.rows.isEmpty)
     }
-    
+
     /// Creates a grouped sidebar search result set.
     ///
     /// - Parameters:
@@ -242,7 +244,7 @@ public struct SidebarSearchResultSection: Identifiable, Sendable {
     public let title: String
     /// Rows in this section.
     public var rows: [SidebarSearchResultRow]
-    
+
     /// Creates a sidebar search result section.
     ///
     /// - Parameters:
@@ -261,7 +263,7 @@ public enum SidebarSearchResultRow: Identifiable, Sendable {
     case homepage(id: String, title: String)
     case reference(SidebarSearchReferenceResult)
     case technology(SidebarSearchTechnologyResult)
-    
+
     /// Stable row identifier.
     public var id: String {
         switch self {
@@ -273,7 +275,7 @@ public enum SidebarSearchResultRow: Identifiable, Sendable {
             result.id
         }
     }
-    
+
     /// Display title.
     public var title: String {
         switch self {
@@ -297,9 +299,11 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     public let path: String
     /// Node type metadata.
     public let type: String
+    /// Best-effort Xcode documentation symbol badge kind.
+    public let symbolKind: SidebarSearchSymbolKind
     /// Owning custom DocC source.
     public let site: DocCSource
-    
+
     /// Creates a DocC reference search result.
     ///
     /// - Parameters:
@@ -307,15 +311,24 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     ///   - title: Display title.
     ///   - path: Relative DocC path.
     ///   - type: Node type metadata.
+    ///   - symbolKind: Best-effort Xcode documentation symbol badge kind.
     ///   - site: Owning custom DocC source.
-    public init(id: String, title: String, path: String, type: String, site: DocCSource) {
+    public init(
+        id: String,
+        title: String,
+        path: String,
+        type: String,
+        symbolKind: SidebarSearchSymbolKind? = nil,
+        site: DocCSource
+    ) {
         self.id = id
         self.title = title
         self.path = path
         self.type = type
+        self.symbolKind = symbolKind ?? SidebarSearchSymbolKind(title: title, path: path, type: type)
         self.site = site
     }
-    
+
     /// Creates a navigation reference for the active deep-link scheme.
     ///
     /// - Parameter deepLinkScheme: Scheme used by the app for DocC navigation.
@@ -330,6 +343,281 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     }
 }
 
+/// Xcode documentation-style symbol categories used by search result badges.
+public enum SidebarSearchSymbolKind: String, Sendable {
+    case article
+    case classSymbol
+    case collection
+    case collectionGroup
+    case enumeration
+    case enumerationCase
+    case framework
+    case function
+    case initializer
+    case macro
+    case method
+    case property
+    case protocolSymbol
+    case structure
+    case typeAlias
+    case variable
+    case unknown
+
+    /// Whether this best-effort kind benefits from full article metadata refinement.
+    public var needsRoleHeadingRefinement: Bool {
+        SearchSymbolResolver.shouldRefine(self)
+    }
+
+    /// Creates a symbol kind from a DocC index node.
+    ///
+    /// - Parameter interfaceLanguage: DocC index node to classify.
+    public init(interfaceLanguage: DocCIndex.InterfaceLanguage) {
+        self.init(
+            title: interfaceLanguage.title,
+            path: interfaceLanguage.path,
+            type: interfaceLanguage.type
+        )
+    }
+
+    /// Creates a symbol kind from framework reference metadata.
+    ///
+    /// - Parameters:
+    ///   - reference: DocC reference to classify.
+    ///   - title: Display title used as a fallback when metadata is incomplete.
+    public init(reference: Reference, title: String) {
+        if let roleSymbolKind = Self.symbolKind(for: reference.role) {
+            self = roleSymbolKind
+            return
+        }
+
+        let path = URL(string: reference.identifier)?.path()
+        if let fragmentSymbolKind = Self.symbolKind(forFragments: reference.fragments, path: path) {
+            self = fragmentSymbolKind
+            return
+        }
+
+        self.init(title: title, path: path, type: reference.type)
+    }
+
+    /// Creates a symbol kind from a reference, preferring the source's persisted DocC index when available.
+    ///
+    /// - Parameters:
+    ///   - reference: DocC reference to classify.
+    ///   - title: Display title used as a fallback when metadata is incomplete.
+    ///   - site: Optional custom DocC source containing the persisted index.
+    public init(reference: Reference, title: String, site: DocCSource?) {
+        self = SearchSymbolResolver.symbolKind(for: reference, title: title, site: site)
+    }
+
+    /// Creates a symbol kind from the metadata available in DocC indexes.
+    ///
+    /// - Parameters:
+    ///   - title: Display title.
+    ///   - path: Optional documentation path.
+    ///   - type: DocC node type.
+    public init(title: String, path: String?, type: String) {
+        let role = Role(rawValue: type)
+        let normalizedType = type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        switch role {
+        case .collection:
+            self = .collection
+            return
+        case .collectionGroup:
+            self = .collectionGroup
+            return
+        case .framework:
+            self = .framework
+            return
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
+            self = .article
+            return
+        case .dictionarySymbol:
+            self = .typeAlias
+            return
+        default:
+            break
+        }
+
+        switch normalizedType {
+        case "class":
+            self = .classSymbol
+            return
+        case "enum", "enumeration":
+            self = .enumeration
+            return
+        case "case":
+            self = .enumerationCase
+            return
+        case "article":
+            self = .article
+            return
+        case "module":
+            self = .framework
+            return
+        case "extension":
+            self = .structure
+            return
+        case "func", "function", "operator", "op":
+            self = .function
+            return
+        case "init", "initializer":
+            self = .initializer
+            return
+        case "macro":
+            self = .macro
+            return
+        case "method", "instance method", "type method", "static method", "subscript":
+            self = .method
+            return
+        case "property", "instance property", "type property", "static property":
+            self = .property
+            return
+        case "protocol":
+            self = .protocolSymbol
+            return
+        case "struct", "structure":
+            self = .structure
+            return
+        case "typealias", "type alias", "associatedtype", "associated type":
+            self = .typeAlias
+            return
+        case "var", "variable", "let", "constant":
+            self = .variable
+            return
+        default:
+            break
+        }
+
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercasedTitle = trimmedTitle.lowercased()
+        let pathComponents = path?.split(separator: "/").map(String.init) ?? []
+        let lastPathComponent = pathComponents.last?.lowercased() ?? ""
+
+        if lowercasedTitle.hasPrefix("init(") || lowercasedTitle == "init" {
+            self = .initializer
+        } else if trimmedTitle.contains("(") {
+            self = pathComponents.count <= 3 ? .function : .method
+        } else if lowercasedTitle.hasPrefix("case ") || lastPathComponent.hasPrefix("case-") {
+            self = .enumerationCase
+        } else if lowercasedTitle.hasSuffix("protocol") {
+            self = .protocolSymbol
+        } else if lowercasedTitle.hasSuffix("controller") || lowercasedTitle.hasSuffix("viewcontroller") {
+            self = .classSymbol
+        } else if lowercasedTitle.hasSuffix("phase") || lowercasedTitle.hasSuffix("style") || lowercasedTitle.hasSuffix("mode") {
+            self = .enumeration
+        } else if trimmedTitle.first?.isUppercase == true {
+            self = .structure
+        } else {
+            self = .property
+        }
+    }
+
+    /// Creates a symbol kind from article metadata when a full DocC page is available.
+    ///
+    /// - Parameter roleHeading: Human-readable DocC role heading, such as `Enumeration` or `Initializer`.
+    public init?(roleHeading: String?) {
+        guard let normalizedRoleHeading = roleHeading?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased(),
+              !normalizedRoleHeading.isEmpty
+        else {
+            return nil
+        }
+
+        switch normalizedRoleHeading {
+        case "article", "overview", "sample code":
+            self = .article
+        case "class":
+            self = .classSymbol
+        case "collection":
+            self = .collection
+        case "collection group":
+            self = .collectionGroup
+        case "enumeration", "enum":
+            self = .enumeration
+        case "case", "enumeration case":
+            self = .enumerationCase
+        case "framework":
+            self = .framework
+        case "function", "operator":
+            self = .function
+        case "initializer", "init":
+            self = .initializer
+        case "macro":
+            self = .macro
+        case "method", "instance method", "type method", "static method":
+            self = .method
+        case "property", "instance property", "type property", "static property":
+            self = .property
+        case "protocol":
+            self = .protocolSymbol
+        case "structure", "struct":
+            self = .structure
+        case "type alias", "typealias", "associated type":
+            self = .typeAlias
+        case "variable", "constant":
+            self = .variable
+        default:
+            return nil
+        }
+    }
+
+    private static func symbolKind(for role: Role?) -> SidebarSearchSymbolKind? {
+        switch role {
+        case .collection:
+            .collection
+        case .collectionGroup:
+            .collectionGroup
+        case .framework:
+            .framework
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
+            .article
+        case .dictionarySymbol:
+            .typeAlias
+        default:
+            nil
+        }
+    }
+
+    private static func symbolKind(forFragments fragments: [Fragment]?, path: String?) -> SidebarSearchSymbolKind? {
+        let declarationWords = fragments?
+            .filter { $0.kind == "keyword" || $0.kind == "identifier" || $0.kind == "text" }
+            .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty } ?? []
+
+        guard !declarationWords.isEmpty else {
+            return nil
+        }
+
+        if declarationWords.contains("init") {
+            return .initializer
+        } else if declarationWords.contains("class") {
+            return .classSymbol
+        } else if declarationWords.contains("enum") {
+            return .enumeration
+        } else if declarationWords.contains("protocol") {
+            return .protocolSymbol
+        } else if declarationWords.contains("struct") {
+            return .structure
+        } else if declarationWords.contains("typealias") || declarationWords.contains("associatedtype") {
+            return .typeAlias
+        } else if declarationWords.contains("func") || declarationWords.contains("operator") {
+            let pathComponents = path?.split(separator: "/") ?? []
+            return pathComponents.count <= 3 ? .function : .method
+        } else if declarationWords.contains("macro") {
+            return .macro
+        } else if declarationWords.contains("case") {
+            return .enumerationCase
+        } else if declarationWords.contains("let") || declarationWords.contains("var") {
+            return .property
+        }
+
+        return nil
+    }
+
+}
+
 /// Apple framework result payload.
 public struct SidebarSearchTechnologyResult: Identifiable, Sendable {
     /// Stable row identifier.
@@ -340,7 +628,7 @@ public struct SidebarSearchTechnologyResult: Identifiable, Sendable {
     public let framework: AppleTechnologies.FrameworkSection
     /// Optional reference metadata for beta/deprecation badges.
     public let badgeReference: Reference?
-    
+
     /// Creates an Apple framework search result.
     ///
     /// - Parameters:
@@ -370,7 +658,7 @@ public final class SidebarSearchStore {
     public private(set) var isRebuildingIndex = false
     /// Number of installed index snapshots, used by tests to guard against query-time rebuilds.
     public private(set) var indexBuildCount = 0
-    
+
     /// Current flattened index.
     private var index = SidebarSearchIndex.empty
     /// Current query task.
@@ -381,10 +669,10 @@ public final class SidebarSearchStore {
     private var searchRequestID = UUID()
     /// Token used to reject stale index publications.
     private var indexBuildRequestID = UUID()
-    
+
     /// Creates an empty sidebar search store.
     public init() {}
-    
+
     /// Rebuilds the flattened index from captured source snapshots.
     ///
     /// - Parameters:
@@ -396,20 +684,20 @@ public final class SidebarSearchStore {
         let requestID = UUID()
         indexBuildRequestID = requestID
         isRebuildingIndex = true
-        
+
         indexBuildTask = Task(priority: .utility) {
             let index = await Task.detached(priority: .utility) {
                 SidebarSearchIndex(technologies: technologies)
             }.value
-            
+
             await MainActor.run {
                 guard self.indexBuildRequestID == requestID else { return }
-                
+
                 self.installIndex(index)
             }
         }
     }
-    
+
     /// Installs an already-built index.
     ///
     /// - Parameter index: Search index snapshot to publish.
@@ -423,7 +711,7 @@ public final class SidebarSearchStore {
         indexBuildCount += 1
         updateSearchText(rawSearchText)
     }
-    
+
     /// Updates the active query and schedules a cancellable search.
     ///
     /// - Parameters:
@@ -433,31 +721,31 @@ public final class SidebarSearchStore {
         rawSearchText = searchText
         searchTask?.cancel()
         searchRequestID = UUID()
-        
+
         let normalizedQuery = SidebarSearchIndex.normalize(searchText)
         guard !normalizedQuery.isEmpty else {
             results = .empty
             isSearching = false
             return
         }
-        
+
         let requestID = searchRequestID
         let index = index
         isSearching = true
-        
+
         searchTask = Task(priority: .userInitiated) {
             do {
                 try await Task.sleep(for: debounce)
             } catch {
                 return
             }
-            
+
             guard !Task.isCancelled else { return }
-            
+
             let results = await Task.detached(priority: .userInitiated) {
                 index.search(normalizedQuery)
             }.value
-            
+
             await MainActor.run {
                 guard self.searchRequestID == requestID,
                       self.index.id == index.id,
@@ -465,7 +753,7 @@ public final class SidebarSearchStore {
                 else {
                     return
                 }
-                
+
                 self.results = results
                 self.isSearching = false
             }

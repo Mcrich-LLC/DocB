@@ -571,7 +571,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
             .collectionGroup
         case .framework:
             .framework
-        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link:
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
             .article
         case .dictionarySymbol:
             .typeAlias

@@ -193,7 +193,7 @@ public struct SearchResultRow: View {
 }
 
 @MainActor
-func refinedSearchSymbolKind(
+public func refinedSearchSymbolKind(
     for result: SidebarSearchReferenceResult,
     documentationViewModel: DocumentationViewModel
 ) async -> SidebarSearchSymbolKind? {
@@ -215,6 +215,10 @@ private func cachedReferenceSymbolKind(
     for result: SidebarSearchReferenceResult,
     documentationViewModel: DocumentationViewModel
 ) -> SidebarSearchSymbolKind? {
+    if let indexedSymbolKind = SidebarSearchSymbolKind.symbolKind(in: result.site, matchingPath: result.path, title: result.title) {
+        return indexedSymbolKind
+    }
+
     let targetPath = normalizedDocumentationPath(result.path)
 
     for framework in documentationViewModel.frameworks.values {

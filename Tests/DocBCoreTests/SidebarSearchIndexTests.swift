@@ -139,7 +139,9 @@ struct SidebarSearchIndexTests {
                 .init(title: "UIViewController", path: "/documentation/symbolkit/uiviewcontroller", type: "symbol"),
                 .init(title: "StringProtocol", path: "/documentation/symbolkit/stringprotocol", type: "symbol"),
                 .init(title: "WorldRecenterPhase", path: "/documentation/symbolkit/worldrecenterphase", type: "symbol"),
+                .init(title: "PurchasesDiagnostics.SDKHealthError", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror", type: "enum"),
                 .init(title: "init(horizontalSizeClass:)", path: "/documentation/symbolkit/uiviewcontroller/init(horizontalsizeclass:)", type: "symbol"),
+                .init(title: "case invalidAPIKey", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror/invalidapikey", type: "case"),
                 .init(title: "horizontalSizeClass", path: "/documentation/symbolkit/uiviewcontroller/horizontalsizeclass", type: "symbol")
             ]
         )
@@ -156,7 +158,9 @@ struct SidebarSearchIndexTests {
         #expect(symbolKind(title: "UIViewController") == .classSymbol)
         #expect(symbolKind(title: "StringProtocol") == .protocolSymbol)
         #expect(symbolKind(title: "WorldRecenterPhase") == .enumeration)
+        #expect(symbolKind(title: "PurchasesDiagnostics.SDKHealthError") == .enumeration)
         #expect(symbolKind(title: "init(horizontalSizeClass:)") == .initializer)
+        #expect(symbolKind(title: "case invalidAPIKey") == .enumerationCase)
         #expect(symbolKind(title: "horizontalSizeClass") == .property)
     }
 
@@ -186,6 +190,32 @@ struct SidebarSearchIndexTests {
         let reference = try JSONDecoder().decode(Reference.self, from: data)
 
         #expect(SidebarSearchSymbolKind(reference: reference, title: "SDKHealthStatus") == .enumeration)
+    }
+
+    @Test
+    func sourceIndexClassifiesReferenceBeforeReferenceFallbacks() throws {
+        let site = makeDocCSource(
+            title: "RevenueCat",
+            children: [
+                .init(
+                    title: "PurchasesDiagnostics.SDKHealthError",
+                    path: "/documentation/revenuecat/purchasesdiagnostics/sdkhealtherror",
+                    type: "enum"
+                )
+            ]
+        )
+        let data = """
+        {
+          "title": "PurchasesDiagnostics.SDKHealthError",
+          "identifier": "doc://com.example/documentation/revenuecat/purchasesdiagnostics/sdkhealtherror",
+          "type": "symbol",
+          "role": "symbol"
+        }
+        """.data(using: .utf8)!
+        var reference = try JSONDecoder().decode(Reference.self, from: data)
+        reference.docCSite = site
+
+        #expect(SidebarSearchSymbolKind(reference: reference, title: "PurchasesDiagnostics.SDKHealthError", site: site) == .enumeration)
     }
 
     @Test

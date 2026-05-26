@@ -485,7 +485,7 @@ private struct DefaultListItem: View {
                 }
             } icon: {
                 if navigationViewModel.isUsingSplitView {
-                    SearchResultSymbolBadge(symbolKind: SidebarSearchSymbolKind(reference: reference, title: title))
+                    SearchResultSymbolBadge(symbolKind: SidebarSearchSymbolKind(reference: reference, title: title, site: reference.docCSite ?? navigationViewModel.technology?.docCSite))
                 } else {
                     Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
                         .foregroundStyle(.secondary)

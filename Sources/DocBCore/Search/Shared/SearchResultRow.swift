@@ -242,18 +242,22 @@ public struct SearchResultSymbolBadge: View {
 
     public var body: some View {
         let appearance = appearance
+        let renderedSize = appearance.renderedSize(for: size)
 
         ZStack {
-            RoundedRectangle(cornerRadius: max(4, size * 0.18), style: .continuous)
-                .fill(appearance.background)
+            if let background = appearance.background {
+                RoundedRectangle(cornerRadius: max(4, renderedSize * 0.18), style: .continuous)
+                    .fill(background)
+                    .frame(width: renderedSize, height: renderedSize)
+            }
 
             if let symbol = appearance.symbol {
                 Image(systemSymbol: symbol)
-                    .font(.system(size: size * 0.58, weight: .semibold))
+                    .font(.system(size: renderedSize * 0.58, weight: .semibold))
                     .foregroundStyle(isSelected ? .white : appearance.foreground)
             } else {
                 Text(appearance.text)
-                    .font(.system(size: size * 0.46, weight: .bold, design: .rounded))
+                    .font(.system(size: renderedSize * 0.46, weight: .bold, design: .rounded))
                     .foregroundStyle(isSelected ? .white : appearance.foreground)
                     .lineLimit(1)
                     .minimumScaleFactor(0.55)
@@ -334,11 +338,11 @@ public struct SearchResultSymbolBadge: View {
     private func appearance(for symbolKind: SidebarSearchSymbolKind) -> BadgeAppearance {
         switch symbolKind {
         case .article:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .clear)
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
         case .classSymbol:
             BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .purple)
         case .collection, .collectionGroup:
-            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .clear)
+            BadgeAppearance(text: "", symbol: .listBullet, foreground: .secondary, background: nil)
         case .enumeration:
             BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .orange)
         case .enumerationCase:
@@ -362,7 +366,7 @@ public struct SearchResultSymbolBadge: View {
         case .variable:
             BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .green)
         case .unknown:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .clear)
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
         }
     }
 
@@ -370,7 +374,11 @@ public struct SearchResultSymbolBadge: View {
         let text: String
         let symbol: SFSymbol?
         let foreground: Color
-        let background: Color
+        let background: Color?
+
+        func renderedSize(for size: CGFloat) -> CGFloat {
+            background == nil ? size : size * 0.86
+        }
     }
 }
 

@@ -75,35 +75,43 @@ struct ShortcutsSettingsView: View {
         }
     }
 }
-private struct SearchKeyboardShortcutRecorder: NSViewRepresentable {
+private struct SearchKeyboardShortcutRecorder: View {
     let appSettings: AppSettings
 
-    func makeNSView(context: Context) -> ShortcutRecorderButton {
-        let button = ShortcutRecorderButton()
-        button.bezelStyle = .rounded
-        button.controlSize = .regular
-        button.font = .systemFont(ofSize: NSFont.systemFontSize)
-        button.setContentHuggingPriority(.required, for: .horizontal)
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        button.setAccessibilityLabel("Search Documentation keyboard shortcut")
-        button.setAccessibilityHelp("Click, then press the keyboard shortcut to use for Search Documentation.")
-        button.onShortcutChange = { key, modifiers in
-            Task { @MainActor in
-                appSettings.setSearchKeyboardShortcut(key: key, modifiers: modifiers)
+    @State private var isRecording = false
+    @State private var eventMonitor: Any?
+    @State private var capturedShortcutDescription: String?
+
+    var body: some View {
+        Button {
+            isRecording = true
+        } label: {
+            Text(displayedShortcutDescription)
+                .monospacedDigit()
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel("Search Documentation keyboard shortcut")
+        .accessibilityValue(displayedShortcutDescription)
+        .accessibilityHint("Click, then press the keyboard shortcut to use for Search Documentation.")
+        .onChange(of: isRecording) { _, isRecording in
+            if isRecording {
+                installEventMonitor()
+            } else {
+                removeEventMonitor()
             }
         }
-        return button
+        .onDisappear {
+            isRecording = false
+            removeEventMonitor()
+        }
     }
 
-    func updateNSView(_ nsView: ShortcutRecorderButton, context: Context) {
-        nsView.shortcutDescription = shortcutDescription
+    private var displayedShortcutDescription: String {
+        isRecording ? "Type Shortcut" : capturedShortcutDescription ?? settingsShortcutDescription
     }
 
-    static func dismantleNSView(_ nsView: ShortcutRecorderButton, coordinator: ()) {
-        nsView.stopRecording()
-    }
-
-    private var shortcutDescription: String {
+    private var settingsShortcutDescription: String {
         var parts: [String] = []
         if appSettings.searchKeyboardShortcutUsesControl {
             parts.append("⌃")
@@ -120,105 +128,27 @@ private struct SearchKeyboardShortcutRecorder: NSViewRepresentable {
         parts.append(appSettings.searchKeyboardShortcutKey.uppercased())
         return parts.joined()
     }
-}
-
-private final class ShortcutRecorderButton: NSButton {
-    var onShortcutChange: ((String, EventModifiers) -> Void)?
-    private var keyEventMonitor: Any?
-
-    var shortcutDescription = "" {
-        didSet {
-            guard !isRecording else { return }
-            title = shortcutDescription
-            setAccessibilityValue(shortcutDescription)
-        }
-    }
-
-    private var isRecording = false {
-        didSet {
-            if isRecording {
-                installKeyEventMonitor()
-            } else {
-                removeKeyEventMonitor()
-            }
-            title = isRecording ? "Type Shortcut" : shortcutDescription
-            setAccessibilityValue(title)
-            needsDisplay = true
-        }
-    }
-
-    override var acceptsFirstResponder: Bool { true }
-
-    override func mouseDown(with event: NSEvent) {
-        window?.makeFirstResponder(self)
-        isRecording = true
-    }
-
-    override func keyDown(with event: NSEvent) {
-        guard isRecording else {
-            super.keyDown(with: event)
-            return
-        }
-
-        captureShortcut(from: event)
-    }
-
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        guard isRecording else {
-            return super.performKeyEquivalent(with: event)
-        }
-
-        captureShortcut(from: event)
-        return true
-    }
-
-    override func cancelOperation(_ sender: Any?) {
-        isRecording = false
-    }
-
-    override func resignFirstResponder() -> Bool {
-        isRecording = false
-        return super.resignFirstResponder()
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-
-        guard isRecording, let context = NSGraphicsContext.current?.cgContext else {
-            return
-        }
-
-        context.saveGState()
-        NSColor.controlAccentColor.setStroke()
-        context.setLineWidth(2)
-        context.stroke(bounds.insetBy(dx: 2, dy: 2), width: 2)
-        context.restoreGState()
-    }
 
     private static let escapeKeyCode: UInt16 = 53
 
-    func stopRecording() {
-        isRecording = false
-    }
+    private func installEventMonitor() {
+        guard eventMonitor == nil else { return }
 
-    private func installKeyEventMonitor() {
-        guard keyEventMonitor == nil else { return }
-
-        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, self.isRecording else {
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard isRecording else {
                 return event
             }
 
-            self.captureShortcut(from: event)
+            captureShortcut(from: event)
             return nil
         }
     }
 
-    private func removeKeyEventMonitor() {
-        guard let keyEventMonitor else { return }
+    private func removeEventMonitor() {
+        guard let eventMonitor else { return }
 
-        NSEvent.removeMonitor(keyEventMonitor)
-        self.keyEventMonitor = nil
+        NSEvent.removeMonitor(eventMonitor)
+        self.eventMonitor = nil
     }
 
     private func captureShortcut(from event: NSEvent) {
@@ -238,8 +168,8 @@ private final class ShortcutRecorderButton: NSButton {
             return
         }
 
-        shortcutDescription = Self.shortcutDescription(key: key, modifiers: modifiers)
-        onShortcutChange?(key, modifiers)
+        capturedShortcutDescription = Self.shortcutDescription(key: key, modifiers: modifiers)
+        appSettings.setSearchKeyboardShortcut(key: key, modifiers: modifiers)
         isRecording = false
     }
 

@@ -380,6 +380,7 @@ struct SidebarSearchIndexTests {
         #expect(!settings.searchKeyboardShortcutUsesShift)
         #expect(!settings.searchKeyboardShortcutUsesControl)
         #expect(settings.searchKeyboardShortcutIsGlobalEnabled)
+        #expect(settings.searchKeyboardShortcutDescription == "⌥⌘K")
     }
 }
 

@@ -105,6 +105,14 @@ public class AppSettings {
         return modifiers
     }
 
+    /// Human-readable symbol string for the Search Documentation keyboard shortcut.
+    public var searchKeyboardShortcutDescription: String {
+        Self.searchKeyboardShortcutDescription(
+            key: searchKeyboardShortcutKey,
+            modifiers: searchKeyboardShortcutModifiers
+        )
+    }
+
     /// Restores the default Search Documentation keyboard shortcut.
     public func resetSearchKeyboardShortcut() {
         isUpdatingSearchKeyboardShortcut = true
@@ -130,6 +138,30 @@ public class AppSettings {
         searchKeyboardShortcutUsesControl = modifiers.contains(.control)
         isUpdatingSearchKeyboardShortcut = false
         ensureSearchKeyboardShortcutHasModifier()
+    }
+
+    /// Returns a human-readable symbol string for a keyboard shortcut.
+    ///
+    /// - Parameters:
+    ///   - key: Single-character key equivalent for the shortcut.
+    ///   - modifiers: Modifier keys required to trigger the shortcut.
+    /// - Returns: A compact shortcut string that matches macOS keyboard shortcut labels.
+    public static func searchKeyboardShortcutDescription(key: String, modifiers: EventModifiers) -> String {
+        var parts: [String] = []
+        if modifiers.contains(.control) {
+            parts.append("⌃")
+        }
+        if modifiers.contains(.option) {
+            parts.append("⌥")
+        }
+        if modifiers.contains(.shift) {
+            parts.append("⇧")
+        }
+        if modifiers.contains(.command) {
+            parts.append("⌘")
+        }
+        parts.append(normalizedShortcutKey(key).uppercased())
+        return parts.joined()
     }
 
     private static func bool(forKey key: String, defaultValue: Bool) -> Bool {

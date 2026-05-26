@@ -106,21 +106,7 @@ private struct SearchKeyboardShortcutRecorder: View {
     }
 
     private var settingsShortcutDescription: String {
-        var parts: [String] = []
-        if appSettings.searchKeyboardShortcutUsesControl {
-            parts.append("⌃")
-        }
-        if appSettings.searchKeyboardShortcutUsesOption {
-            parts.append("⌥")
-        }
-        if appSettings.searchKeyboardShortcutUsesShift {
-            parts.append("⇧")
-        }
-        if appSettings.searchKeyboardShortcutUsesCommand {
-            parts.append("⌘")
-        }
-        parts.append(appSettings.searchKeyboardShortcutKey.uppercased())
-        return parts.joined()
+        appSettings.searchKeyboardShortcutDescription
     }
 
     private static let escapeKeyCode: UInt16 = 53
@@ -162,7 +148,7 @@ private struct SearchKeyboardShortcutRecorder: View {
             return
         }
 
-        capturedShortcutDescription = Self.shortcutDescription(key: key, modifiers: modifiers)
+        capturedShortcutDescription = AppSettings.searchKeyboardShortcutDescription(key: key, modifiers: modifiers)
         appSettings.setSearchKeyboardShortcut(key: key, modifiers: modifiers)
         isRecording = false
         capturedShortcutDescription = nil
@@ -195,23 +181,6 @@ private struct SearchKeyboardShortcutRecorder: View {
         return modifiers
     }
 
-    private static func shortcutDescription(key: String, modifiers: EventModifiers) -> String {
-        var parts: [String] = []
-        if modifiers.contains(.control) {
-            parts.append("⌃")
-        }
-        if modifiers.contains(.option) {
-            parts.append("⌥")
-        }
-        if modifiers.contains(.shift) {
-            parts.append("⇧")
-        }
-        if modifiers.contains(.command) {
-            parts.append("⌘")
-        }
-        parts.append(key.uppercased())
-        return parts.joined()
-    }
 }
 #endif
 

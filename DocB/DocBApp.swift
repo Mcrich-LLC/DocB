@@ -34,6 +34,8 @@ struct DocBApp: App {
     #if os(macOS)
     /// AppKit owner for the floating Open Quickly panel.
     @State private var openQuicklyPanelController = OpenQuicklyPanelController()
+    /// Registers Search Documentation as a macOS-wide hot key.
+    @State private var globalSearchHotKeyController = GlobalSearchHotKeyController()
     #else
     /// Controls iPadOS Search Documentation overlay presentation.
     @State private var isSearchPalettePresented = false
@@ -67,7 +69,11 @@ struct DocBApp: App {
     var body: some Scene {
         WindowGroup(id: WindowTypes.main, for: URL.self) { url in
             #if os(macOS)
-            MainView(url: url.wrappedValue, showAddSource: $showAddSource)
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource,
+                globalSearchHotKeyController: globalSearchHotKeyController
+            )
             #else
             MainView(
                 url: url.wrappedValue,
@@ -175,13 +181,19 @@ private struct MainView: View {
     let url: URL
     /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
+    #if os(macOS)
+    /// Registers the macOS global Search Documentation shortcut while the app is running.
+    let globalSearchHotKeyController: GlobalSearchHotKeyController
+    #endif
     #if !os(macOS)
     /// Binding controlling the iPadOS Search Documentation overlay.
     @Binding var isSearchPalettePresented: Bool
     #endif
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(AppSettings.self) private var appSettings
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
+    @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.appearsActive) var appearsActive
     @Environment(\.scenePhase) private var scenePhase
     /// Persisted custom DocC sites backing loaded technologies.
@@ -221,6 +233,24 @@ private struct MainView: View {
             }
         }
         .animation(.default, value: hasOnboarded)
+        #if os(macOS)
+        .onAppear(perform: refreshGlobalSearchHotKey)
+        .onChange(of: appSettings.searchKeyboardShortcutKey) {
+            refreshGlobalSearchHotKey()
+        }
+        .onChange(of: appSettings.searchKeyboardShortcutUsesCommand) {
+            refreshGlobalSearchHotKey()
+        }
+        .onChange(of: appSettings.searchKeyboardShortcutUsesShift) {
+            refreshGlobalSearchHotKey()
+        }
+        .onChange(of: appSettings.searchKeyboardShortcutUsesOption) {
+            refreshGlobalSearchHotKey()
+        }
+        .onChange(of: appSettings.searchKeyboardShortcutUsesControl) {
+            refreshGlobalSearchHotKey()
+        }
+        #endif
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
@@ -272,6 +302,14 @@ private struct MainView: View {
             documentationViewModel.removeTechnologyFromMemory(id: value.id, url: value.url)
         }
     }
+
+    #if os(macOS)
+    private func refreshGlobalSearchHotKey() {
+        globalSearchHotKeyController.register(appSettings: appSettings) {
+            presentSearchPalette()
+        }
+    }
+    #endif
 }
 
 // MARK: – App Delegates

@@ -54,7 +54,7 @@ struct ShortcutsSettingsView: View {
                 Text("Search Documentation")
                 Spacer()
                 SearchKeyboardShortcutRecorder(appSettings: appSettings)
-//                    .frame(width: 160)
+                    .frame(minWidth: 96)
             }
             
             HStack {

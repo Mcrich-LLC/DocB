@@ -199,7 +199,7 @@ public struct SearchResultRow: View {
 
 /// Xcode documentation-style badge for search result rows.
 public struct SearchResultSymbolBadge: View {
-    private let row: SidebarSearchResultRow
+    private let row: SidebarSearchResultRow?
     private let symbolKind: SidebarSearchSymbolKind?
     private let isSelected: Bool
     private let size: CGFloat
@@ -223,8 +223,25 @@ public struct SearchResultSymbolBadge: View {
         self.size = size
     }
 
+    /// Creates a role badge for a known documentation symbol kind.
+    ///
+    /// - Parameters:
+    ///   - symbolKind: Symbol kind to represent.
+    ///   - isSelected: Whether the owning row is selected.
+    ///   - size: Square badge size.
+    public init(
+        symbolKind: SidebarSearchSymbolKind,
+        isSelected: Bool = false,
+        size: CGFloat = 22
+    ) {
+        self.row = nil
+        self.symbolKind = symbolKind
+        self.isSelected = isSelected
+        self.size = size
+    }
+
     public var body: some View {
-        let appearance = appearance(for: row)
+        let appearance = appearance
 
         ZStack {
             RoundedRectangle(cornerRadius: max(4, size * 0.18), style: .continuous)
@@ -244,6 +261,18 @@ public struct SearchResultSymbolBadge: View {
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
+    }
+
+    private var appearance: BadgeAppearance {
+        if let symbolKind {
+            return appearance(for: symbolKind)
+        }
+
+        if let row {
+            return appearance(for: row)
+        }
+
+        return appearance(for: .unknown)
     }
 
     /// Returns a human-readable role title for subtitles and accessibility.
@@ -305,13 +334,11 @@ public struct SearchResultSymbolBadge: View {
     private func appearance(for symbolKind: SidebarSearchSymbolKind) -> BadgeAppearance {
         switch symbolKind {
         case .article:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .blue)
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .clear)
         case .classSymbol:
             BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .purple)
-        case .collection:
-            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .secondary)
-        case .collectionGroup:
-            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .indigo)
+        case .collection, .collectionGroup:
+            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .clear)
         case .enumeration:
             BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .orange)
         case .enumerationCase:
@@ -335,7 +362,7 @@ public struct SearchResultSymbolBadge: View {
         case .variable:
             BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .green)
         case .unknown:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .secondary)
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .clear)
         }
     }
 

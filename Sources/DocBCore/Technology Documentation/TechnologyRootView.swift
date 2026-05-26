@@ -482,8 +482,12 @@ private struct DefaultListItem: View {
                     }
                 }
             } icon: {
-                Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
-                    .foregroundStyle(.secondary)
+                if navigationViewModel.isUsingSplitView {
+                    SearchResultSymbolBadge(symbolKind: SidebarSearchSymbolKind(reference: reference, title: title))
+                } else {
+                    Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
+                        .foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

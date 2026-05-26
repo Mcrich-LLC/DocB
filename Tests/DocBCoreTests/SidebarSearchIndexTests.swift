@@ -15,36 +15,36 @@ struct SidebarSearchIndexTests {
             ]
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let childResults = index.search("mainactor")
         #expect(childResults.sections.count == 1)
         #expect(childResults.sections.first?.title == "FreezeKit")
         #expect(childResults.sections.first?.rows.first?.title == "MainActorSearchController")
-        
+
         let moduleResults = index.search("freezekit")
         #expect(moduleResults.isEmpty)
     }
-    
+
     @Test
     func appleFrameworkTitleAndTagMatches() throws {
         let appleTechnologies = try makeAppleTechnologies()
         let index = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
-        
+
         let titleResults = index.search("swiftui")
         #expect(titleResults.sections.count == 1)
         #expect(titleResults.sections.first?.title == "Apple Documentation")
         #expect(titleResults.sections.first?.rows.contains { $0.title == "SwiftUI" } == true)
-        
+
         let tagResults = index.search("declarative")
         #expect(tagResults.sections.first?.rows.first?.title == "SwiftUI")
-        
+
         guard case .technology(let result) = tagResults.sections.first?.rows.first else {
             Issue.record("Expected an Apple technology search result.")
             return
         }
         #expect(result.badgeReference?.beta == true)
     }
-    
+
     @Test
     func resultsAreGroupedBySource() {
         let firstSite = makeDocCSource(
@@ -58,13 +58,13 @@ struct SidebarSearchIndexTests {
             timestamp: 2
         )
         let index = SidebarSearchIndex(technologies: [.docC(firstSite), .docC(secondSite)])
-        
+
         let results = index.search("sharedmatch")
-        
+
         #expect(results.sections.map(\.title) == ["FirstKit", "SecondKit"])
         #expect(results.sections.map { $0.rows.count } == [1, 1])
     }
-    
+
     @Test
     func resultLimitReportsTruncation() {
         let children = (0..<5).map { number in
@@ -76,14 +76,14 @@ struct SidebarSearchIndexTests {
         }
         let site = makeDocCSource(title: "LimitKit", children: children)
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let results = index.search("item", limit: 3)
-        
+
         #expect(results.totalMatches == 5)
         #expect(results.isTruncated)
         #expect(results.sections.first?.rows.count == 3)
     }
-    
+
     @Test
     func docCMultiLanguageDuplicatePathsHaveUniqueIDs() {
         let sharedPath = "/documentation/multikit/shared"
@@ -101,14 +101,14 @@ struct SidebarSearchIndexTests {
             ])
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let results = index.search("shared symbol")
         let rows = results.sections.first?.rows ?? []
-        
+
         #expect(rows.map(\.title) == ["Objective-C Shared Symbol", "Swift Shared Symbol"])
         #expect(Set(rows.map(\.id)).count == rows.count)
     }
-    
+
     @Test
     func docCSearchIncludesHistoricalOccIndexKey() {
         let site = makeDocCSource(
@@ -127,7 +127,7 @@ struct SidebarSearchIndexTests {
             ])
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         #expect(index.search("historical").sections.first?.rows.first?.title == "Historical Objective-C Symbol")
     }
 
@@ -168,7 +168,26 @@ struct SidebarSearchIndexTests {
         #expect(SidebarSearchSymbolKind(roleHeading: "Instance Property") == .property)
         #expect(SidebarSearchSymbolKind(roleHeading: "Type Alias") == .typeAlias)
     }
-    
+
+    @Test
+    func frameworkReferenceFragmentsClassifySymbolKinds() throws {
+        let data = """
+        {
+          "title": "SDKHealthStatus",
+          "identifier": "doc://com.example/documentation/example/sdkhealthstatus",
+          "type": "symbol",
+          "role": "symbol",
+          "fragments": [
+            { "text": "enum", "kind": "keyword" },
+            { "text": "SDKHealthStatus", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let reference = try JSONDecoder().decode(Reference.self, from: data)
+
+        #expect(SidebarSearchSymbolKind(reference: reference, title: "SDKHealthStatus") == .enumeration)
+    }
+
     @Test
     @MainActor
     func emptyQueryClearsResults() async {
@@ -177,16 +196,16 @@ struct SidebarSearchIndexTests {
             title: "EmptyKit",
             children: [.init(title: "Clearable Result", path: "/documentation/empty/clearable", type: "symbol")]
         ))]))
-        
+
         store.updateSearchText("clearable", debounce: .zero)
         await waitForSearch(store)
         #expect(!store.results.isEmpty)
-        
+
         store.updateSearchText("", debounce: .zero)
         #expect(store.results.isEmpty)
         #expect(!store.isSearching)
     }
-    
+
     @Test
     @MainActor
     func storeCancelsStaleQueries() async {
@@ -199,14 +218,14 @@ struct SidebarSearchIndexTests {
         )
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
-        
+
         store.updateSearchText("first", debounce: .milliseconds(200))
         store.updateSearchText("second", debounce: .zero)
         await waitForSearch(store)
-        
+
         #expect(store.results.sections.first?.rows.map(\.title) == ["Second Result"])
     }
-    
+
     @Test
     @MainActor
     func repeatedQueriesReuseInstalledIndex() async {
@@ -217,16 +236,16 @@ struct SidebarSearchIndexTests {
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
         let buildCount = store.indexBuildCount
-        
+
         store.updateSearchText("reusable", debounce: .zero)
         await waitForSearch(store)
         store.updateSearchText("search", debounce: .zero)
         await waitForSearch(store)
-        
+
         #expect(store.indexBuildCount == buildCount)
         #expect(store.results.sections.first?.rows.first?.title == "Reusable Search Result")
     }
-    
+
     @Test
     @MainActor
     func installIndexInvalidatesPendingQueryAndRerunsCurrentSearch() async {
@@ -240,17 +259,17 @@ struct SidebarSearchIndexTests {
         )
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(firstSite)]))
-        
+
         store.updateSearchText("result", debounce: .milliseconds(200))
         #expect(store.isSearching)
-        
+
         store.installIndex(SidebarSearchIndex(technologies: [.docC(secondSite)]))
         await waitForSearch(store)
-        
+
         #expect(!store.isRebuildingIndex)
         #expect(store.results.sections.first?.rows.map(\.title) == ["New Result"])
     }
-    
+
     @Test
     @MainActor
     func rebuildIndexKeepsCurrentQuery() async {
@@ -279,11 +298,11 @@ struct SidebarSearchIndexTests {
         store.updateSearchText("switch result", debounce: .zero)
         store.rebuildIndex(technologies: [.docC(site)], searchText: "switch result")
         await waitForSearch(store)
-        
+
         #expect(store.rawSearchText == "switch result")
         #expect(store.results.sections.first?.rows.map(\.title) == ["Objective-C Switch Result", "Swift Switch Result"])
     }
-    
+
     @Test
     @MainActor
     func coordinatorSelectionTracksVisibleRows() async {
@@ -298,10 +317,10 @@ struct SidebarSearchIndexTests {
         coordinator.searchStore.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
         coordinator.updateQuery("palette", debounce: .zero)
         await waitForSearch(coordinator.searchStore)
-        
+
         coordinator.selectDefaultResultIfNeeded()
         #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.first?.id)
-        
+
         coordinator.moveSelection(by: 1)
         #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.last?.id)
     }
@@ -334,7 +353,7 @@ struct SidebarSearchIndexTests {
         #expect(opened)
         #expect(deferredRow?.id == coordinator.searchStore.results.flattenedRows.first?.id)
     }
-    
+
     @Test
     @MainActor
     func coordinatorOpensHomepageTechnologyAndReferenceRows() throws {
@@ -344,10 +363,10 @@ struct SidebarSearchIndexTests {
         let documentationViewModel = DocumentationViewModel()
         let openURL = OpenURLAction { _ in .handled }
         coordinator.registerActiveNavigationViewModel(navigationViewModel)
-        
+
         #expect(coordinator.open(.homepage(id: "home", title: "Discover"), documentationViewModel: documentationViewModel, openURL: openURL))
         #expect(navigationViewModel.path.last == .homepage)
-        
+
         let technologyRow = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
             .search("swiftui")
             .sections
@@ -358,11 +377,11 @@ struct SidebarSearchIndexTests {
             Issue.record("Expected a technology row.")
             return
         }
-        
+
         #expect(coordinator.open(technologyRow, documentationViewModel: documentationViewModel, openURL: openURL))
         #expect(navigationViewModel.technology?.title == "SwiftUI")
         #expect(navigationViewModel.reference?.title == "SwiftUI")
-        
+
         let site = makeDocCSource(
             urlSuffix: "palettekit",
             index: DocCIndex(interfaceLanguages: [
@@ -399,7 +418,7 @@ struct SidebarSearchIndexTests {
             Issue.record("Expected a reference row.")
             return
         }
-        
+
         #expect(coordinator.open(referenceRow, documentationViewModel: documentationViewModel, openURL: openURL))
         #expect(navigationViewModel.technology?.title == "PaletteGroup")
         #expect(navigationViewModel.reference?.title == "PaletteSymbol")
@@ -428,7 +447,7 @@ private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguag
             .init(title: title, path: "/documentation/\(title.lowercased())", type: "module", children: children)
         ]
     ])
-    
+
     return DocCSource(
         timestamp: Date(timeIntervalSince1970: timestamp),
         url: URL(string: "https://example.com/\(title.lowercased())")!,
@@ -480,7 +499,7 @@ private func makeAppleTechnologies() throws -> AppleTechnologies {
       }
     }
     """.utf8)
-    
+
     return try JSONDecoder().decode(AppleTechnologies.self, from: data)
 }
 
@@ -490,7 +509,7 @@ private func waitForSearch(_ store: SidebarSearchStore) async {
         if !store.isSearching && !store.isRebuildingIndex {
             return
         }
-        
+
         try? await Task.sleep(for: .milliseconds(20))
     }
 }

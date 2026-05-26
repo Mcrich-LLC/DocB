@@ -142,7 +142,12 @@ struct SidebarSearchIndexTests {
                 .init(title: "PurchasesDiagnostics.SDKHealthError", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror", type: "enum"),
                 .init(title: "init(horizontalSizeClass:)", path: "/documentation/symbolkit/uiviewcontroller/init(horizontalsizeclass:)", type: "symbol"),
                 .init(title: "case invalidAPIKey", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror/invalidapikey", type: "case"),
-                .init(title: "horizontalSizeClass", path: "/documentation/symbolkit/uiviewcontroller/horizontalsizeclass", type: "symbol")
+                .init(title: "horizontalSizeClass", path: "/documentation/symbolkit/uiviewcontroller/horizontalsizeclass", type: "symbol"),
+                .init(title: "static func != (Self, Self) -> Bool", path: "/documentation/symbolkit/value/!=(_:_:)", type: "op"),
+                .init(title: "subscript(String) -> Offering?", path: "/documentation/symbolkit/offerings/subscript(_:)", type: "subscript"),
+                .init(title: "Content", path: "/documentation/symbolkit/rawdatacontainer/content", type: "associatedtype"),
+                .init(title: "RevenueCat 4.x to 5.x Migration Guide", path: "/documentation/symbolkit/v5_api_migration_guide", type: "article"),
+                .init(title: "Foundation", path: "/documentation/symbolkit/foundation", type: "extension")
             ]
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
@@ -162,6 +167,11 @@ struct SidebarSearchIndexTests {
         #expect(symbolKind(title: "init(horizontalSizeClass:)") == .initializer)
         #expect(symbolKind(title: "case invalidAPIKey") == .enumerationCase)
         #expect(symbolKind(title: "horizontalSizeClass") == .property)
+        #expect(symbolKind(title: "static func != (Self, Self) -> Bool") == .function)
+        #expect(symbolKind(title: "subscript(String) -> Offering?") == .method)
+        #expect(symbolKind(title: "Content") == .typeAlias)
+        #expect(symbolKind(title: "RevenueCat 4.x to 5.x Migration Guide") == .article)
+        #expect(symbolKind(title: "Foundation") == .structure)
     }
 
     @Test

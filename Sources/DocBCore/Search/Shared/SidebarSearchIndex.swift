@@ -472,7 +472,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         case .framework:
             self = .framework
             return
-        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link:
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link, .pseudoSymbol:
             self = .article
             return
         case .dictionarySymbol:
@@ -492,7 +492,16 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         case "case":
             self = .enumerationCase
             return
-        case "func", "function", "operator":
+        case "article":
+            self = .article
+            return
+        case "module":
+            self = .framework
+            return
+        case "extension":
+            self = .structure
+            return
+        case "func", "function", "operator", "op":
             self = .function
             return
         case "init", "initializer":
@@ -501,7 +510,7 @@ public enum SidebarSearchSymbolKind: String, Sendable {
         case "macro":
             self = .macro
             return
-        case "method", "instance method", "type method", "static method":
+        case "method", "instance method", "type method", "static method", "subscript":
             self = .method
             return
         case "property", "instance property", "type property", "static property":

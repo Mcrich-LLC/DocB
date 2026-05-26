@@ -28,6 +28,7 @@ public struct SettingsView: View {
         }
         .padding()
         .frame(minWidth: 400)
+        .formStyle(.grouped)
     }
 }
 
@@ -51,27 +52,20 @@ struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
             Section {
-                HStack {
-                    Text("Search Documentation")
-                    Spacer()
+                LabeledContent("Keyboard Shortcut") {
                     SearchKeyboardShortcutRecorder(appSettings: appSettings)
                 }
 
-                Toggle("Use shortcut while DocB is in the background", isOn: Bindable(appSettings).searchKeyboardShortcutIsGlobalEnabled)
-            
-                HStack {
-                    Text("Click the shortcut field, then press the key combination to use.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Restore Default") {
-                        appSettings.resetSearchKeyboardShortcut()
-                    }
-                }
+                Toggle("Enable search while DocB is in the background", isOn: Bindable(appSettings).searchKeyboardShortcutIsGlobalEnabled)
             } header: {
-                Text("Search")
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Search Documentation")
                     .font(.headline)
+            }
+            
+            Section {
+                Button("Restore to Default") {
+                    appSettings.resetSearchKeyboardShortcut()
+                }
             }
         }
     }
@@ -85,7 +79,7 @@ private struct SearchKeyboardShortcutRecorder: View {
 
     var body: some View {
         Button {
-            isRecording = true
+            isRecording.toggle()
         } label: {
             Text(displayedShortcutDescription)
                 .monospacedDigit()
@@ -171,6 +165,7 @@ private struct SearchKeyboardShortcutRecorder: View {
         capturedShortcutDescription = Self.shortcutDescription(key: key, modifiers: modifiers)
         appSettings.setSearchKeyboardShortcut(key: key, modifiers: modifiers)
         isRecording = false
+        capturedShortcutDescription = nil
     }
 
     private static func shortcutKey(from event: NSEvent) -> String? {

@@ -284,6 +284,9 @@ private struct MainView: View {
         .onChange(of: appSettings.searchKeyboardShortcutUsesControl) {
             refreshGlobalSearchHotKey()
         }
+        .onChange(of: appSettings.searchKeyboardShortcutIsGlobalEnabled) {
+            refreshGlobalSearchHotKey()
+        }
         #endif
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)

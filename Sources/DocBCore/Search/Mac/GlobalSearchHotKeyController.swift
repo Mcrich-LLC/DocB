@@ -29,6 +29,11 @@ public final class GlobalSearchHotKeyController {
         appSettings: AppSettings,
         action: @escaping @MainActor @Sendable () -> Void
     ) {
+        guard appSettings.searchKeyboardShortcutIsGlobalEnabled else {
+            unregister()
+            return
+        }
+
         self.action = action
 
         guard let shortcut = RegisteredShortcut(appSettings: appSettings) else {

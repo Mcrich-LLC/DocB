@@ -379,6 +379,7 @@ struct SidebarSearchIndexTests {
         #expect(settings.searchKeyboardShortcutUsesOption)
         #expect(!settings.searchKeyboardShortcutUsesShift)
         #expect(!settings.searchKeyboardShortcutUsesControl)
+        #expect(settings.searchKeyboardShortcutIsGlobalEnabled)
     }
 }
 

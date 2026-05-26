@@ -16,6 +16,7 @@ public class AppSettings {
     private static let searchShortcutUsesShiftKey = "searchKeyboardShortcutUsesShift"
     private static let searchShortcutUsesOptionKey = "searchKeyboardShortcutUsesOption"
     private static let searchShortcutUsesControlKey = "searchKeyboardShortcutUsesControl"
+    private static let searchShortcutIsGlobalEnabledKey = "searchKeyboardShortcutIsGlobalEnabled"
     private var isUpdatingSearchKeyboardShortcut = false
     public init() {}
     
@@ -70,6 +71,13 @@ public class AppSettings {
                 ensureSearchKeyboardShortcutHasModifier()
             }
             UserDefaults.standard.set(searchKeyboardShortcutUsesControl, forKey: Self.searchShortcutUsesControlKey)
+        }
+    }
+
+    /// Whether the Search Documentation keyboard shortcut should work while DocB is in the background.
+    public var searchKeyboardShortcutIsGlobalEnabled: Bool = AppSettings.bool(forKey: searchShortcutIsGlobalEnabledKey, defaultValue: true) {
+        didSet {
+            UserDefaults.standard.set(searchKeyboardShortcutIsGlobalEnabled, forKey: Self.searchShortcutIsGlobalEnabledKey)
         }
     }
 

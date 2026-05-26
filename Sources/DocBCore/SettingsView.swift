@@ -50,21 +50,28 @@ struct ShortcutsSettingsView: View {
 
     var body: some View {
         Form {
-            HStack {
-                Text("Search Documentation")
-                Spacer()
-                SearchKeyboardShortcutRecorder(appSettings: appSettings)
-                    .frame(minWidth: 96)
-            }
-            
-            HStack {
-                Text("Click the shortcut field, then press the key combination to use.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button("Restore Default") {
-                    appSettings.resetSearchKeyboardShortcut()
+            Section {
+                HStack {
+                    Text("Search Documentation")
+                    Spacer()
+                    SearchKeyboardShortcutRecorder(appSettings: appSettings)
                 }
+
+                Toggle("Use shortcut while DocB is in the background", isOn: Bindable(appSettings).searchKeyboardShortcutIsGlobalEnabled)
+            
+                HStack {
+                    Text("Click the shortcut field, then press the key combination to use.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Restore Default") {
+                        appSettings.resetSearchKeyboardShortcut()
+                    }
+                }
+            } header: {
+                Text("Search")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.headline)
             }
         }
     }

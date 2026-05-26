@@ -20,6 +20,11 @@ public struct SettingsView: View {
             Tab("General", systemImage: "gear") {
                 GeneralSettingsView()
             }
+            #if os(macOS)
+            Tab("Shortcuts", systemImage: "keyboard") {
+                ShortcutsSettingsView()
+            }
+            #endif
         }
         .padding()
         .frame(minWidth: 400)
@@ -34,14 +39,19 @@ struct GeneralSettingsView: View {
         @Bindable var appSettings = appSettings
         Form {
             Toggle("Open Article in New Window", isOn: $appSettings.openInAppDeeplinksInNewWindow)
+        }
+    }
+}
 
-            #if os(macOS)
+#if os(macOS)
+/// Shows keyboard shortcut preferences.
+struct ShortcutsSettingsView: View {
+    @Environment(AppSettings.self) var appSettings
+
+    var body: some View {
+        Form {
             Section("Search") {
-                HStack {
-                    Text("Keyboard Shortcut")
-
-                    Spacer()
-
+                LabeledContent("Search Documentation") {
                     SearchKeyboardShortcutRecorder(appSettings: appSettings)
                         .frame(width: 160)
                 }
@@ -52,18 +62,19 @@ struct GeneralSettingsView: View {
                         .foregroundStyle(.secondary)
 
                     Spacer()
+                }
+
+                HStack {
+                    Spacer()
 
                     Button("Restore Default") {
                         appSettings.resetSearchKeyboardShortcut()
                     }
                 }
             }
-            #endif
         }
     }
 }
-
-#if os(macOS)
 private struct SearchKeyboardShortcutRecorder: NSViewRepresentable {
     let appSettings: AppSettings
 

@@ -251,7 +251,6 @@ private struct TechnologyRootToolbar: ToolbarContent {
     
     @Environment(TechnologyRootManager.self) private var manager
     @Environment(NavigationViewModel.self) private var navigationViewModel
-    @Environment(\.presentSearchPalette) private var presentSearchPalette
     
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {

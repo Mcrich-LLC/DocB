@@ -215,8 +215,6 @@ public struct ContentView: View {
         @Environment(DocumentationViewModel.self) var documentationViewModel
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
-        /// Controls the non-macOS Search Documentation overlay.
-        @Binding var isSearchPalettePresented: Bool
         /// Passed DocC sites to avoid expensive query instantiation.
         var docCSites: [DocCSite]
         
@@ -238,7 +236,6 @@ public struct ContentView: View {
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
                 TechView(
                     searchText: $searchText,
-                    isSearchPalettePresented: $isSearchPalettePresented,
                     docCSites: docCSites
                 )
             } innerView: {
@@ -262,7 +259,6 @@ public struct ContentView: View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
             SidebarView(
                 searchText: $searchText,
-                isSearchPalettePresented: $isSearchPalettePresented,
                 docCSites: docCSites
             )
                 .frame(minWidth: 290)
@@ -310,7 +306,6 @@ public struct ContentView: View {
         NavigationStack(path: $navigationViewModel.path) {
             TechView(
                 searchText: $searchText,
-                isSearchPalettePresented: $isSearchPalettePresented,
                 docCSites: docCSites
             )
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -342,8 +337,6 @@ public struct ContentView: View {
 private struct TechView: View {
     /// Sidebar search query for technologies and symbols.
     @Binding var searchText: String
-    /// Controls presentation of the Search Documentation palette on non-macOS platforms.
-    @Binding var isSearchPalettePresented: Bool
     /// Persisted custom DocC site list, passed from parent to avoid query hit during initialization.
     var docCSites: [DocCSite]
     
@@ -351,6 +344,7 @@ private struct TechView: View {
     @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
+    @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.openWindow) private var openWindow
     
     // Add Documentation Alert
@@ -478,14 +472,10 @@ private struct TechView: View {
         #endif
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                #if !os(macOS)
-                Button {
-                    isSearchPalettePresented = true
-                } label: {
+                Button(action: presentSearchPalette.callAsFunction) {
                     Label("Search Documentation", systemImage: "magnifyingglass")
                 }
                 .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
-                #endif
                 Button(action: showAddDocumentationView) {
                     Image(systemSymbol: .plus)
                 }

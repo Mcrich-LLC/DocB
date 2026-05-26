@@ -251,9 +251,15 @@ private struct TechnologyRootToolbar: ToolbarContent {
     
     @Environment(TechnologyRootManager.self) private var manager
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    @Environment(\.presentSearchPalette) private var presentSearchPalette
     
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: presentSearchPalette.callAsFunction) {
+                Label("Search Documentation", systemImage: "magnifyingglass")
+            }
+            .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+
             if frameworkSection.docCSite == nil {
                 TechnologyFilterMenu()
             }

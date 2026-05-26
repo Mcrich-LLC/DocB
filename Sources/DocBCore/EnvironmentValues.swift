@@ -17,12 +17,24 @@ extension View {
     public func customDismiss(_ action: CustomDismissAction) -> some View {
         environment(\.customDismiss, action)
     }
+
+    /// Injects a Search Documentation presentation action into descendant views.
+    public func presentSearchPalette(_ action: @escaping @MainActor @Sendable () -> Void) -> some View {
+        environment(\.presentSearchPalette, .init(action: action))
+    }
     
     /// Sets the tint for SwiftUI and includes our custom `EnvironmentValues.tintcolor`
     public func tintColor(_ color: Color?) -> some View {
         self
             .environment(\.tintColor, color)
             .tint(color)
+    }
+}
+
+extension Scene {
+    /// Injects a Search Documentation presentation action into descendant scene views.
+    public func presentSearchPalette(_ action: @escaping @MainActor @Sendable () -> Void) -> some Scene {
+        environment(\.presentSearchPalette, .init(action: action))
     }
 }
 
@@ -47,6 +59,9 @@ extension EnvironmentValues {
     
     /// The color set as the tint for subsequent views. This value can be nil when the system is unsure what color is being used as tint.
     @Entry public var tintColor: Color? = Color.accentColor
+
+    /// Presents the platform-specific Search Documentation palette.
+    @Entry public var presentSearchPalette = PresentSearchPaletteAction()
 }
 
 private struct CustomDismissKey: EnvironmentKey {
@@ -64,5 +79,23 @@ public struct CustomDismissAction: Identifiable, Equatable, Sendable {
     
     public init(action: @escaping @MainActor @Sendable () -> Void) {
         self.action = action
+    }
+}
+
+/// Wraps platform-specific Search Documentation presentation.
+public struct PresentSearchPaletteAction: Sendable {
+    private let action: @MainActor @Sendable () -> Void
+
+    /// Creates a Search Documentation presentation action.
+    ///
+    /// - Parameter action: Closure that presents the platform-specific search palette.
+    public init(action: @escaping @MainActor @Sendable () -> Void = {}) {
+        self.action = action
+    }
+
+    /// Presents the platform-specific Search Documentation palette.
+    @MainActor
+    public func callAsFunction() {
+        action()
     }
 }

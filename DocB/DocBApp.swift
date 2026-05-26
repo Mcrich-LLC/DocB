@@ -83,6 +83,7 @@ struct DocBApp: App {
         .environment(appSettings)
         .environment(cloudSyncEngine)
         .environment(openQuicklySearchCoordinator)
+        .presentSearchPalette(presentSearchPalette)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Window", action: { openWindow(id: WindowTypes.main) })
@@ -92,14 +93,12 @@ struct DocBApp: App {
             }
             #if os(macOS)
             CommandGroup(after: .sidebar) {
-                Button("Search Documentation", action: showOpenQuicklyPalette)
+                Button("Search Documentation", action: presentSearchPalette)
                     .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #else
             CommandGroup(after: .sidebar) {
-                Button("Search Documentation") {
-                    isSearchPalettePresented = true
-                }
+                Button("Search Documentation", action: presentSearchPalette)
                 .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #endif
@@ -156,6 +155,16 @@ struct DocBApp: App {
         )
     }
     #endif
+
+    /// Presents the platform-specific Search Documentation palette.
+    @MainActor
+    private func presentSearchPalette() {
+        #if os(macOS)
+        showOpenQuicklyPalette()
+        #else
+        isSearchPalettePresented = true
+        #endif
+    }
 }
 
 /// Root scene container that switches between onboarding and main content flows.

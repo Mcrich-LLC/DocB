@@ -198,6 +198,15 @@ public struct SearchResultSymbolBadge: View {
     private let symbolKind: SidebarSearchSymbolKind?
     private let isSelected: Bool
     private let size: CGFloat
+    
+    /// Get the default size based on device
+    private static func getDefaultSize() -> CGFloat {
+        #if os(mac) || targetEnvironment(macCatalyst)
+        22
+        #else
+        30
+        #endif
+    }
 
     /// Creates a role badge for a search result row.
     ///
@@ -210,12 +219,12 @@ public struct SearchResultSymbolBadge: View {
         row: SidebarSearchResultRow,
         symbolKind: SidebarSearchSymbolKind? = nil,
         isSelected: Bool = false,
-        size: CGFloat = 22
+        size: CGFloat? = nil
     ) {
         self.row = row
         self.symbolKind = symbolKind
         self.isSelected = isSelected
-        self.size = size
+        self.size = size ?? Self.getDefaultSize()
     }
 
     /// Creates a role badge for a known documentation symbol kind.
@@ -227,12 +236,12 @@ public struct SearchResultSymbolBadge: View {
     public init(
         symbolKind: SidebarSearchSymbolKind,
         isSelected: Bool = false,
-        size: CGFloat = 22
+        size: CGFloat? = nil
     ) {
         self.row = nil
         self.symbolKind = symbolKind
         self.isSelected = isSelected
-        self.size = size
+        self.size = size ?? Self.getDefaultSize()
     }
 
     public var body: some View {

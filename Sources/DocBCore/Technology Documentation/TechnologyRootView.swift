@@ -492,20 +492,16 @@ private struct DefaultListItem: View {
                         ChevronView()
                     }
                 }
+                .padding(.leading, navigationViewModel.isUsingSplitView ? 0 : -10)
             } icon: {
-                if navigationViewModel.isUsingSplitView {
-                    SearchResultSymbolBadge(
-                        symbolKind: SearchSymbolResolver.symbolKind(
-                            for: reference,
-                            title: title,
-                            site: reference.docCSite ?? navigationViewModel.technology?.docCSite,
-                            referenceContext: referenceContext
-                        )
+                SearchResultSymbolBadge(
+                    symbolKind: SearchSymbolResolver.symbolKind(
+                        for: reference,
+                        title: title,
+                        site: reference.docCSite ?? navigationViewModel.technology?.docCSite,
+                        referenceContext: referenceContext
                     )
-                } else {
-                    Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
-                        .foregroundStyle(.secondary)
-                }
+                )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

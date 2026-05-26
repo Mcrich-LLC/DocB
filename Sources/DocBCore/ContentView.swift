@@ -86,6 +86,9 @@ public struct ContentView: View {
                 navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
         })
+        .onDisappear {
+            openQuicklySearchCoordinator.unregisterActiveNavigationViewModel(navigationViewModel)
+        }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
             

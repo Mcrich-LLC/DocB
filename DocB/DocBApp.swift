@@ -152,6 +152,9 @@ struct DocBApp: App {
     #if os(macOS)
     /// Presents the floating Open Quickly panel.
     private func showOpenQuicklyPalette() {
+        openQuicklySearchCoordinator.openResultWithoutActiveWindow = { row in
+            openMainWindowAndOpen(row)
+        }
         openQuicklyPanelController.show(
             modelContainer: docCSiteModelContainer,
             documentationViewModel: documentationViewModel,
@@ -161,26 +164,34 @@ struct DocBApp: App {
         )
     }
 
-    /// Presents Search Documentation after ensuring a main documentation window exists.
+    /// Presents Search Documentation without creating a document window up front.
     @MainActor
     private func presentMacSearchPalette() {
-        guard hasVisibleMainWindow else {
-            openWindow(id: WindowTypes.main)
-            NSApplication.shared.activate()
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(150))
-                showOpenQuicklyPalette()
-            }
-            return
-        }
-
         showOpenQuicklyPalette()
     }
 
-    /// Whether at least one main documentation window is currently visible.
-    private var hasVisibleMainWindow: Bool {
-        NSApplication.shared.windows.contains { window in
-            window.isVisible && window.title == "DocB"
+    /// Opens a main document window and activates the selected search result once navigation is ready.
+    @MainActor
+    private func openMainWindowAndOpen(_ row: SidebarSearchResultRow) {
+        openWindow(id: WindowTypes.main)
+        NSApplication.shared.activate()
+
+        Task { @MainActor in
+            for _ in 0..<20 {
+                if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
+                    openQuicklySearchCoordinator.open(
+                        row,
+                        documentationViewModel: documentationViewModel,
+                        openURL: OpenURLAction { url in
+                            NSWorkspace.shared.open(url)
+                            return .handled
+                        }
+                    )
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(50))
+            }
         }
     }
     #endif

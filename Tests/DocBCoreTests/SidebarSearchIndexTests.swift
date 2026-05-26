@@ -267,6 +267,35 @@ struct SidebarSearchIndexTests {
         coordinator.moveSelection(by: 1)
         #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.last?.id)
     }
+
+    @Test
+    @MainActor
+    func coordinatorDefersSelectedResultWhenNoWindowIsActive() async {
+        let site = makeDocCSource(
+            title: "DeferredKit",
+            children: [
+                .init(title: "Deferred Symbol", path: "/documentation/deferred/symbol", type: "symbol")
+            ]
+        )
+        let coordinator = OpenQuicklySearchCoordinator()
+        coordinator.searchStore.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
+        coordinator.updateQuery("deferred", debounce: .zero)
+        await waitForSearch(coordinator.searchStore)
+        coordinator.selectDefaultResultIfNeeded()
+
+        var deferredRow: SidebarSearchResultRow?
+        coordinator.openResultWithoutActiveWindow = { row in
+            deferredRow = row
+        }
+
+        let opened = coordinator.openSelectedResult(
+            documentationViewModel: DocumentationViewModel(),
+            openURL: OpenURLAction { _ in .handled }
+        )
+
+        #expect(opened)
+        #expect(deferredRow?.id == coordinator.searchStore.results.flattenedRows.first?.id)
+    }
     
     @Test
     @MainActor

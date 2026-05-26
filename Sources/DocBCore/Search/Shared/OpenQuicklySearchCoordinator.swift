@@ -12,6 +12,8 @@ public final class OpenQuicklySearchCoordinator {
     public var selectedRowID: SidebarSearchResultRow.ID?
     /// Existing asynchronous search store reused by the palette.
     public let searchStore = SidebarSearchStore()
+    /// Handler invoked when a result is activated before any main window can receive navigation.
+    public var openResultWithoutActiveWindow: (@MainActor @Sendable (SidebarSearchResultRow) -> Void)?
     
     private weak var activeNavigationViewModel: NavigationViewModel?
     
@@ -23,6 +25,20 @@ public final class OpenQuicklySearchCoordinator {
     /// - Parameter navigationViewModel: The navigation model for the active document window.
     public func registerActiveNavigationViewModel(_ navigationViewModel: NavigationViewModel) {
         activeNavigationViewModel = navigationViewModel
+    }
+
+    /// Clears the active navigation model when its owning window goes away.
+    ///
+    /// - Parameter navigationViewModel: The navigation model that is no longer active.
+    public func unregisterActiveNavigationViewModel(_ navigationViewModel: NavigationViewModel) {
+        guard activeNavigationViewModel === navigationViewModel else { return }
+
+        activeNavigationViewModel = nil
+    }
+
+    /// Whether a main window navigation model is currently available for result activation.
+    public var hasActiveNavigationViewModel: Bool {
+        activeNavigationViewModel != nil
     }
     
     /// Rebuilds the search index from the current documentation source snapshot.
@@ -86,6 +102,11 @@ public final class OpenQuicklySearchCoordinator {
             return false
         }
         
+        guard activeNavigationViewModel != nil else {
+            openResultWithoutActiveWindow?(row)
+            return openResultWithoutActiveWindow != nil
+        }
+
         return open(row, documentationViewModel: documentationViewModel, openURL: openURL)
     }
     

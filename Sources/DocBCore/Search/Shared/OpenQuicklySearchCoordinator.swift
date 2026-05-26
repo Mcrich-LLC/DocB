@@ -212,14 +212,6 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
         
-        for technology in documentationViewModel.technologies {
-            switch technology {
-            case .apple(let technologies):
-                selectAppleTechnology(for: reference, technologies: technologies, navigationViewModel: navigationViewModel)
-            case .docC(let site):
-                selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
-            }
-        }
         selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
         
         navigationViewModel.setReference(reference)

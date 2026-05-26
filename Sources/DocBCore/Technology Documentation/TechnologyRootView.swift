@@ -123,12 +123,14 @@ struct TechnologyRootView: View {
                 }
             } else {
                 ProgressView("Loading")
+                    .controlSize(.small)
             }
         }
         .opacity(isLoading ? 0 : 1)
         .overlay(content: {
             if isLoading {
                 ProgressView("Loading")
+                    .controlSize(.small)
             }
         })
 #if !os(macOS)
@@ -570,12 +572,14 @@ private struct FrameworkDisclosureGroup: View {
                     }
                 } else if isExpanded {
                     ProgressView("Loading")
+                        .controlSize(.small)
                 }
             }
             .opacity(isLoading ? 0 : 1)
             .overlay {
                 if isLoading {
                     ProgressView("Loading")
+                        .controlSize(.small)
                 }
             }
         } label: {

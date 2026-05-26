@@ -160,13 +160,36 @@ struct DocBApp: App {
             searchCoordinator: openQuicklySearchCoordinator
         )
     }
+
+    /// Presents Search Documentation after ensuring a main documentation window exists.
+    @MainActor
+    private func presentMacSearchPalette() {
+        guard hasVisibleMainWindow else {
+            openWindow(id: WindowTypes.main)
+            NSApplication.shared.activate()
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(150))
+                showOpenQuicklyPalette()
+            }
+            return
+        }
+
+        showOpenQuicklyPalette()
+    }
+
+    /// Whether at least one main documentation window is currently visible.
+    private var hasVisibleMainWindow: Bool {
+        NSApplication.shared.windows.contains { window in
+            window.isVisible && window.title == "DocB"
+        }
+    }
     #endif
 
     /// Presents the platform-specific Search Documentation palette.
     @MainActor
     private func presentSearchPalette() {
         #if os(macOS)
-        showOpenQuicklyPalette()
+        presentMacSearchPalette()
         #else
         isSearchPalettePresented = true
         #endif

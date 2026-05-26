@@ -816,7 +816,7 @@ private struct SidebarSearchResultRowView: View {
             return
         }
 
-        resolvedSymbolKind = refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
+        resolvedSymbolKind = await refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
 }
 

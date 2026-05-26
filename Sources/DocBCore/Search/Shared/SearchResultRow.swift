@@ -188,12 +188,30 @@ public struct SearchResultRow: View {
             return
         }
 
-        resolvedSymbolKind = refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
+        resolvedSymbolKind = await refinedSearchSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
 }
 
 @MainActor
 func refinedSearchSymbolKind(
+    for result: SidebarSearchReferenceResult,
+    documentationViewModel: DocumentationViewModel
+) async -> SidebarSearchSymbolKind? {
+    if let referenceSymbolKind = cachedReferenceSymbolKind(for: result, documentationViewModel: documentationViewModel) {
+        return referenceSymbolKind
+    }
+
+    do {
+        let reference = result.reference(deepLinkScheme: DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme))
+        let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: result.site)
+        return SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
+    } catch {
+        return nil
+    }
+}
+
+@MainActor
+private func cachedReferenceSymbolKind(
     for result: SidebarSearchReferenceResult,
     documentationViewModel: DocumentationViewModel
 ) -> SidebarSearchSymbolKind? {

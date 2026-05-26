@@ -159,6 +159,15 @@ struct SidebarSearchIndexTests {
         #expect(symbolKind(title: "init(horizontalSizeClass:)") == .initializer)
         #expect(symbolKind(title: "horizontalSizeClass") == .property)
     }
+
+    @Test
+    func articleRoleHeadingOverridesFallbackSymbolKind() {
+        #expect(SidebarSearchSymbolKind(roleHeading: "Enumeration") == .enumeration)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Structure") == .structure)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Initializer") == .initializer)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Instance Property") == .property)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Type Alias") == .typeAlias)
+    }
     
     @Test
     @MainActor

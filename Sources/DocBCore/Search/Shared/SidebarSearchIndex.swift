@@ -426,6 +426,56 @@ public enum SidebarSearchSymbolKind: String, Sendable {
             self = .property
         }
     }
+
+    /// Creates a symbol kind from article metadata when a full DocC page is available.
+    ///
+    /// - Parameter roleHeading: Human-readable DocC role heading, such as `Enumeration` or `Initializer`.
+    public init?(roleHeading: String?) {
+        guard let normalizedRoleHeading = roleHeading?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased(),
+              !normalizedRoleHeading.isEmpty
+        else {
+            return nil
+        }
+
+        switch normalizedRoleHeading {
+        case "article", "overview", "sample code":
+            self = .article
+        case "class":
+            self = .classSymbol
+        case "collection":
+            self = .collection
+        case "collection group":
+            self = .collectionGroup
+        case "enumeration", "enum":
+            self = .enumeration
+        case "case", "enumeration case":
+            self = .enumerationCase
+        case "framework":
+            self = .framework
+        case "function", "operator":
+            self = .function
+        case "initializer", "init":
+            self = .initializer
+        case "macro":
+            self = .macro
+        case "method", "instance method", "type method", "static method":
+            self = .method
+        case "property", "instance property", "type property", "static property":
+            self = .property
+        case "protocol":
+            self = .protocolSymbol
+        case "structure", "struct":
+            self = .structure
+        case "type alias", "typealias", "associated type":
+            self = .typeAlias
+        case "variable", "constant":
+            self = .variable
+        default:
+            return nil
+        }
+    }
 }
 
 /// Apple framework result payload.

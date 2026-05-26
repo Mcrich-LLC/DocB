@@ -101,6 +101,8 @@ public struct SearchResultRow: View {
     private let isSelected: Bool
     private let metrics: SearchResultRowMetrics
     private let action: () -> Void
+    @State private var resolvedSymbolKind: SidebarSearchSymbolKind?
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
 
     /// Creates a shared Search Documentation result row.
     ///
@@ -124,7 +126,7 @@ public struct SearchResultRow: View {
     public var body: some View {
         Button(action: action) {
             HStack(spacing: metrics.spacing) {
-                SearchResultSymbolBadge(row: row, isSelected: isSelected, size: metrics.iconSize)
+                SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, isSelected: isSelected, size: metrics.iconSize)
                     .font(metrics.iconFont)
 
                 VStack(alignment: .leading, spacing: metrics.textSpacing) {
@@ -157,6 +159,9 @@ public struct SearchResultRow: View {
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens this documentation result.")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .task(id: row.id) {
+            await resolveSymbolKind()
+        }
     }
 
     private var subtitle: String {
@@ -164,7 +169,7 @@ public struct SearchResultRow: View {
         case .homepage:
             "DocB"
         case .reference(let result):
-            SearchResultSymbolBadge.title(for: result.symbolKind, fallback: result.type)
+            SearchResultSymbolBadge.title(for: resolvedSymbolKind ?? result.symbolKind, fallback: result.type)
         case .technology(let result):
             result.framework.docCSite?.overrideName ?? "Technology"
         }
@@ -173,11 +178,29 @@ public struct SearchResultRow: View {
     private var accessibilityLabel: String {
         "\(row.title), \(subtitle)"
     }
+
+    @MainActor
+    private func resolveSymbolKind() async {
+        guard case .reference(let result) = row else {
+            resolvedSymbolKind = nil
+            return
+        }
+
+        let reference = result.reference(deepLinkScheme: DocCDeepLinkScheme.mainBundle ?? DocCDeepLinkScheme(Constants.deeplinkScheme))
+
+        do {
+            let article = try await documentationViewModel.fetchArticle(for: reference.identifier, site: result.site)
+            resolvedSymbolKind = SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
+        } catch {
+            resolvedSymbolKind = nil
+        }
+    }
 }
 
 /// Xcode documentation-style badge for search result rows.
 public struct SearchResultSymbolBadge: View {
     private let row: SidebarSearchResultRow
+    private let symbolKind: SidebarSearchSymbolKind?
     private let isSelected: Bool
     private let size: CGFloat
 
@@ -185,10 +208,17 @@ public struct SearchResultSymbolBadge: View {
     ///
     /// - Parameters:
     ///   - row: Search result to represent.
+    ///   - symbolKind: Optional resolved symbol kind from full article metadata.
     ///   - isSelected: Whether the owning row is selected.
     ///   - size: Square badge size.
-    public init(row: SidebarSearchResultRow, isSelected: Bool = false, size: CGFloat = 22) {
+    public init(
+        row: SidebarSearchResultRow,
+        symbolKind: SidebarSearchSymbolKind? = nil,
+        isSelected: Bool = false,
+        size: CGFloat = 22
+    ) {
         self.row = row
+        self.symbolKind = symbolKind
         self.isSelected = isSelected
         self.size = size
     }
@@ -266,7 +296,7 @@ public struct SearchResultSymbolBadge: View {
         case .homepage:
             BadgeAppearance(text: "", symbol: .houseFill, foreground: .white, background: .blue)
         case .reference(let result):
-            appearance(for: result.symbolKind)
+            appearance(for: symbolKind ?? result.symbolKind)
         case .technology:
             BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
         }

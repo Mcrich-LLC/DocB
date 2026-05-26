@@ -739,6 +739,8 @@ private struct SidebarSearchContentFingerprint: Equatable {
 private struct SidebarSearchResultRowView: View {
     /// Precomputed search row payload.
     let row: SidebarSearchResultRow
+    @State private var resolvedSymbolKind: SidebarSearchSymbolKind?
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
     
     /// Renders symbol-like text with code styling, otherwise plain text.
@@ -756,47 +758,70 @@ private struct SidebarSearchResultRowView: View {
     }
     
     var body: some View {
-        switch row {
-        case .homepage(_, let title):
-            HomepageNavigationLinkButton {
-                HStack(spacing: 8) {
-                    SearchResultSymbolBadge(row: row, size: 22)
-
-                    Text(title)
-                    Spacer()
-                }
-            }
-            .foregroundStyle(Color.primary)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        case .reference(let result):
-            ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
-                HStack(spacing: 8) {
-                    SearchResultSymbolBadge(row: row, size: 22)
-
-                    text(result.title, type: result.type)
-                }
-            }
-            .alwaysShowClosestTechnologyGroup()
-            .foregroundStyle(Color.primary)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        case .technology(let result):
-            if result.framework.destination.identifier.lowercased().contains("/documentation") {
-                TechnologyNavigationLinkButton(technology: result.framework) {
-                    SearchResultTechnologyLabel(result: result, row: row)
+        Group {
+            switch row {
+            case .homepage(_, let title):
+                HomepageNavigationLinkButton {
+                    HStack(spacing: 8) {
+                        SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
+                        
+                        Text(title)
+                        Spacer()
+                    }
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-            } else if let url = URL(string: result.framework.destination.identifier) {
-                MacOSAgnosticLink(destination: url) {
-                    SearchResultTechnologyLabel(result: result, row: row)
+            case .reference(let result):
+                ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
+                    HStack(spacing: 8) {
+                        SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
+                        
+                        text(result.title, type: result.type)
+                    }
                 }
+                .alwaysShowClosestTechnologyGroup()
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+            case .technology(let result):
+                if result.framework.destination.identifier.lowercased().contains("/documentation") {
+                    TechnologyNavigationLinkButton(technology: result.framework) {
+                        SearchResultTechnologyLabel(result: result, row: row)
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } else if let url = URL(string: result.framework.destination.identifier) {
+                    MacOSAgnosticLink(destination: url) {
+                        SearchResultTechnologyLabel(result: result, row: row)
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
             }
+        }
+        .task(id: row.id) {
+            await resolveSymbolKind()
+        }
+    }
+
+    @MainActor
+    private func resolveSymbolKind() async {
+        guard case .reference(let result) = row else {
+            resolvedSymbolKind = nil
+            return
+        }
+
+        do {
+            let article = try await documentationViewModel.fetchArticle(
+                for: result.reference(deepLinkScheme: deepLinkScheme).identifier,
+                site: result.site
+            )
+            resolvedSymbolKind = SidebarSearchSymbolKind(roleHeading: article.metadata.roleHeading)
+        } catch {
+            resolvedSymbolKind = nil
         }
     }
 }

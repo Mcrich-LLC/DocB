@@ -1,29 +1,31 @@
 //
 //  GlobalSearchHotKeyController.swift
-//  DocB
+//  DocBCore
 //
 //  Created by Codex on 5/25/26.
 //
 
 #if os(macOS)
 import Carbon.HIToolbox
-import DocBCore
 import AppKit
 import SwiftUI
 
 /// Registers the Search Documentation shortcut as a macOS-wide hot key.
 @MainActor
-final class GlobalSearchHotKeyController {
+public final class GlobalSearchHotKeyController {
     private var eventHandler: EventHandlerRef?
     private var hotKey: EventHotKeyRef?
     private var registeredShortcut: RegisteredShortcut?
     private var action: (@MainActor @Sendable () -> Void)?
 
+    /// Creates a controller that can register the Search Documentation shortcut globally.
+    public init() {}
+
     /// Registers or updates the global Search Documentation hot key.
     /// - Parameters:
     ///   - appSettings: Settings that provide the shortcut key and modifiers.
     ///   - action: Action to perform when the global hot key is pressed.
-    func register(
+    public func register(
         appSettings: AppSettings,
         action: @escaping @MainActor @Sendable () -> Void
     ) {
@@ -41,7 +43,7 @@ final class GlobalSearchHotKeyController {
         unregisterHotKey()
         installEventHandlerIfNeeded()
 
-        var hotKeyID = EventHotKeyID(
+        let hotKeyID = EventHotKeyID(
             signature: Self.hotKeySignature,
             id: Self.hotKeyID
         )

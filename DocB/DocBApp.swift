@@ -94,12 +94,12 @@ struct DocBApp: App {
             #if os(macOS)
             CommandGroup(after: .sidebar) {
                 Button("Search Documentation", action: presentSearchPalette)
-                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+                    .keyboardShortcut(appSettings.searchKeyboardShortcut)
             }
             #else
             CommandGroup(after: .sidebar) {
                 Button("Search Documentation", action: presentSearchPalette)
-                .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
             }
             #endif
         }

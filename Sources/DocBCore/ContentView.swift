@@ -213,6 +213,7 @@ public struct ContentView: View {
     struct SidebarView: View {
         @Environment(NavigationViewModel.self) var navigationViewModel
         @Environment(DocumentationViewModel.self) var documentationViewModel
+        @Environment(AppSettings.self) private var appSettings
         @Environment(\.presentSearchPalette) private var presentSearchPalette
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
@@ -256,7 +257,11 @@ public struct ContentView: View {
                     Button(action: presentSearchPalette.callAsFunction) {
                         Label("Search Documentation", systemSymbol: .magnifyingglass)
                     }
+                    #if os(macOS)
+                    .keyboardShortcut(appSettings.searchKeyboardShortcut)
+                    #else
                     .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+                    #endif
                 }
             }
         }

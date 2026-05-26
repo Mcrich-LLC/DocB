@@ -337,6 +337,20 @@ struct SidebarSearchIndexTests {
         #expect(navigationViewModel.technology?.title == "PaletteGroup")
         #expect(navigationViewModel.reference?.title == "PaletteSymbol")
     }
+
+    @Test
+    @MainActor
+    func appSettingsStoresCapturedSearchShortcut() {
+        let settings = AppSettings()
+
+        settings.setSearchKeyboardShortcut(key: "k", modifiers: [.command, .option])
+
+        #expect(settings.searchKeyboardShortcutKey == "k")
+        #expect(settings.searchKeyboardShortcutUsesCommand)
+        #expect(settings.searchKeyboardShortcutUsesOption)
+        #expect(!settings.searchKeyboardShortcutUsesShift)
+        #expect(!settings.searchKeyboardShortcutUsesControl)
+    }
 }
 
 private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {

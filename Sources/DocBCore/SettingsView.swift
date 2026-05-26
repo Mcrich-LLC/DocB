@@ -227,6 +227,7 @@ private final class ShortcutRecorderButton: NSButton {
             return
         }
 
+        shortcutDescription = Self.shortcutDescription(key: key, modifiers: modifiers)
         onShortcutChange?(key, modifiers)
         isRecording = false
     }
@@ -256,6 +257,24 @@ private final class ShortcutRecorderButton: NSButton {
             modifiers.insert(.control)
         }
         return modifiers
+    }
+
+    private static func shortcutDescription(key: String, modifiers: EventModifiers) -> String {
+        var parts: [String] = []
+        if modifiers.contains(.control) {
+            parts.append("⌃")
+        }
+        if modifiers.contains(.option) {
+            parts.append("⌥")
+        }
+        if modifiers.contains(.shift) {
+            parts.append("⇧")
+        }
+        if modifiers.contains(.command) {
+            parts.append("⌘")
+        }
+        parts.append(key.uppercased())
+        return parts.joined()
     }
 }
 #endif

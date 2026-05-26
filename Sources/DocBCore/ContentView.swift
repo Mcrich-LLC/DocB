@@ -759,7 +759,9 @@ private struct SidebarSearchResultRowView: View {
         switch row {
         case .homepage(_, let title):
             HomepageNavigationLinkButton {
-                HStack {
+                HStack(spacing: 8) {
+                    SearchResultSymbolBadge(row: row, size: 22)
+
                     Text(title)
                     Spacer()
                 }
@@ -769,7 +771,11 @@ private struct SidebarSearchResultRowView: View {
             .listRowSeparator(.hidden)
         case .reference(let result):
             ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
-                text(result.title, type: result.type)
+                HStack(spacing: 8) {
+                    SearchResultSymbolBadge(row: row, size: 22)
+
+                    text(result.title, type: result.type)
+                }
             }
             .alwaysShowClosestTechnologyGroup()
             .foregroundStyle(Color.primary)
@@ -778,14 +784,14 @@ private struct SidebarSearchResultRowView: View {
         case .technology(let result):
             if result.framework.destination.identifier.lowercased().contains("/documentation") {
                 TechnologyNavigationLinkButton(technology: result.framework) {
-                    SearchResultTechnologyLabel(result: result)
+                    SearchResultTechnologyLabel(result: result, row: row)
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             } else if let url = URL(string: result.framework.destination.identifier) {
                 MacOSAgnosticLink(destination: url) {
-                    SearchResultTechnologyLabel(result: result)
+                    SearchResultTechnologyLabel(result: result, row: row)
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
@@ -799,10 +805,14 @@ private struct SidebarSearchResultRowView: View {
 private struct SearchResultTechnologyLabel: View {
     /// Technology result payload.
     let result: SidebarSearchTechnologyResult
+    /// Search row used for the leading role badge.
+    let row: SidebarSearchResultRow
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
+            SearchResultSymbolBadge(row: row, size: 22)
+
             Text(result.title)
             
             if result.badgeReference?.beta == true {

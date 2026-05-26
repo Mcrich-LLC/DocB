@@ -143,6 +143,7 @@ public struct SidebarSearchIndex: Sendable {
         func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage, languageKey: String) {
             if interfaceLanguage.type.lowercased() != "module", let path = interfaceLanguage.path {
                 let id = "\(source.id)-\(languageKey)-\(path)"
+                let symbolKind = SidebarSearchSymbolKind(interfaceLanguage: interfaceLanguage)
                 entries.append(.init(
                     id: id,
                     source: source,
@@ -154,6 +155,7 @@ public struct SidebarSearchIndex: Sendable {
                         title: interfaceLanguage.title,
                         path: path,
                         type: interfaceLanguage.type,
+                        symbolKind: symbolKind,
                         site: site
                     ))
                 ))
@@ -297,6 +299,8 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     public let path: String
     /// Node type metadata.
     public let type: String
+    /// Best-effort Xcode documentation symbol badge kind.
+    public let symbolKind: SidebarSearchSymbolKind
     /// Owning custom DocC source.
     public let site: DocCSource
     
@@ -307,12 +311,21 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     ///   - title: Display title.
     ///   - path: Relative DocC path.
     ///   - type: Node type metadata.
+    ///   - symbolKind: Best-effort Xcode documentation symbol badge kind.
     ///   - site: Owning custom DocC source.
-    public init(id: String, title: String, path: String, type: String, site: DocCSource) {
+    public init(
+        id: String,
+        title: String,
+        path: String,
+        type: String,
+        symbolKind: SidebarSearchSymbolKind? = nil,
+        site: DocCSource
+    ) {
         self.id = id
         self.title = title
         self.path = path
         self.type = type
+        self.symbolKind = symbolKind ?? SidebarSearchSymbolKind(title: title, path: path, type: type)
         self.site = site
     }
     
@@ -327,6 +340,91 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
             type: type,
             docCSite: site
         )
+    }
+}
+
+/// Xcode documentation-style symbol categories used by search result badges.
+public enum SidebarSearchSymbolKind: String, Sendable {
+    case article
+    case classSymbol
+    case collection
+    case collectionGroup
+    case enumeration
+    case enumerationCase
+    case framework
+    case function
+    case initializer
+    case macro
+    case method
+    case property
+    case protocolSymbol
+    case structure
+    case typeAlias
+    case variable
+    case unknown
+
+    /// Creates a symbol kind from a DocC index node.
+    ///
+    /// - Parameter interfaceLanguage: DocC index node to classify.
+    public init(interfaceLanguage: DocCIndex.InterfaceLanguage) {
+        self.init(
+            title: interfaceLanguage.title,
+            path: interfaceLanguage.path,
+            type: interfaceLanguage.type
+        )
+    }
+
+    /// Creates a symbol kind from the metadata available in DocC indexes.
+    ///
+    /// - Parameters:
+    ///   - title: Display title.
+    ///   - path: Optional documentation path.
+    ///   - type: DocC node type.
+    public init(title: String, path: String?, type: String) {
+        let role = Role(rawValue: type)
+
+        switch role {
+        case .collection:
+            self = .collection
+            return
+        case .collectionGroup:
+            self = .collectionGroup
+            return
+        case .framework:
+            self = .framework
+            return
+        case .article, .overview, .sampleCode, .task, .subsection, .codeListing, .link:
+            self = .article
+            return
+        case .dictionarySymbol:
+            self = .typeAlias
+            return
+        default:
+            break
+        }
+
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercasedTitle = trimmedTitle.lowercased()
+        let pathComponents = path?.split(separator: "/").map(String.init) ?? []
+        let lastPathComponent = pathComponents.last?.lowercased() ?? ""
+
+        if lowercasedTitle.hasPrefix("init(") || lowercasedTitle == "init" {
+            self = .initializer
+        } else if trimmedTitle.contains("(") {
+            self = pathComponents.count <= 3 ? .function : .method
+        } else if lowercasedTitle.hasPrefix("case ") || lastPathComponent.hasPrefix("case-") {
+            self = .enumerationCase
+        } else if lowercasedTitle.hasSuffix("protocol") {
+            self = .protocolSymbol
+        } else if lowercasedTitle.hasSuffix("controller") || lowercasedTitle.hasSuffix("viewcontroller") {
+            self = .classSymbol
+        } else if lowercasedTitle.hasSuffix("phase") || lowercasedTitle.hasSuffix("style") || lowercasedTitle.hasSuffix("mode") {
+            self = .enumeration
+        } else if trimmedTitle.first?.isUppercase == true {
+            self = .structure
+        } else {
+            self = .property
+        }
     }
 }
 

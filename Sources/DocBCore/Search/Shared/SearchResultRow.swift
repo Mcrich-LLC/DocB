@@ -124,10 +124,8 @@ public struct SearchResultRow: View {
     public var body: some View {
         Button(action: action) {
             HStack(spacing: metrics.spacing) {
-                icon
+                SearchResultSymbolBadge(row: row, isSelected: isSelected, size: metrics.iconSize)
                     .font(metrics.iconFont)
-                    .foregroundStyle(isSelected ? .white : .secondary)
-                    .frame(width: metrics.iconSize, height: metrics.iconSize)
 
                 VStack(alignment: .leading, spacing: metrics.textSpacing) {
                     Text(row.title)
@@ -161,30 +159,12 @@ public struct SearchResultRow: View {
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
-    private var icon: Image {
-        switch row {
-        case .homepage:
-            Image(systemSymbol: .house)
-        case .reference(let result):
-            switch Role(rawValue: result.type) {
-            case .symbol, .pseudoSymbol, .restRequestSymbol:
-                Image(systemSymbol: .curlybraces)
-            case .collection, .collectionGroup:
-                Image(systemSymbol: .squareStack)
-            default:
-                Image(systemSymbol: .textDocument)
-            }
-        case .technology:
-            Image(systemSymbol: .shippingbox)
-        }
-    }
-
     private var subtitle: String {
         switch row {
         case .homepage:
             "DocB"
         case .reference(let result):
-            result.type.capitalized
+            SearchResultSymbolBadge.title(for: result.symbolKind, fallback: result.type)
         case .technology(let result):
             result.framework.docCSite?.overrideName ?? "Technology"
         }
@@ -192,6 +172,148 @@ public struct SearchResultRow: View {
 
     private var accessibilityLabel: String {
         "\(row.title), \(subtitle)"
+    }
+}
+
+/// Xcode documentation-style badge for search result rows.
+public struct SearchResultSymbolBadge: View {
+    private let row: SidebarSearchResultRow
+    private let isSelected: Bool
+    private let size: CGFloat
+
+    /// Creates a role badge for a search result row.
+    ///
+    /// - Parameters:
+    ///   - row: Search result to represent.
+    ///   - isSelected: Whether the owning row is selected.
+    ///   - size: Square badge size.
+    public init(row: SidebarSearchResultRow, isSelected: Bool = false, size: CGFloat = 22) {
+        self.row = row
+        self.isSelected = isSelected
+        self.size = size
+    }
+
+    public var body: some View {
+        let appearance = appearance(for: row)
+
+        ZStack {
+            RoundedRectangle(cornerRadius: max(4, size * 0.18), style: .continuous)
+                .fill(isSelected ? Color.white.opacity(0.24) : appearance.background)
+
+            if let symbol = appearance.symbol {
+                Image(systemSymbol: symbol)
+                    .font(.system(size: size * 0.58, weight: .semibold))
+                    .foregroundStyle(isSelected ? .white : appearance.foreground)
+            } else {
+                Text(appearance.text)
+                    .font(.system(size: size * 0.46, weight: .bold, design: .rounded))
+                    .foregroundStyle(isSelected ? .white : appearance.foreground)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    /// Returns a human-readable role title for subtitles and accessibility.
+    ///
+    /// - Parameters:
+    ///   - role: Decoded DocC role.
+    ///   - fallback: Raw role string used when `role` is unavailable.
+    /// - Returns: A display title for the role.
+    public static func title(for symbolKind: SidebarSearchSymbolKind, fallback: String) -> String {
+        switch symbolKind {
+        case .article:
+            "Article"
+        case .classSymbol:
+            "Class"
+        case .collection:
+            "Collection"
+        case .collectionGroup:
+            "Collection Group"
+        case .framework:
+            "Framework"
+        case .enumeration:
+            "Enumeration"
+        case .enumerationCase:
+            "Enumeration Case"
+        case .function:
+            "Function"
+        case .initializer:
+            "Initializer"
+        case .macro:
+            "Macro"
+        case .method:
+            "Method"
+        case .property:
+            "Property"
+        case .protocolSymbol:
+            "Protocol"
+        case .structure:
+            "Structure"
+        case .typeAlias:
+            "Type Alias"
+        case .variable:
+            "Variable"
+        case .unknown:
+            fallback.isEmpty ? "Documentation" : fallback.capitalized
+        }
+    }
+
+    private func appearance(for row: SidebarSearchResultRow) -> BadgeAppearance {
+        switch row {
+        case .homepage:
+            BadgeAppearance(text: "", symbol: .houseFill, foreground: .white, background: .blue)
+        case .reference(let result):
+            appearance(for: result.symbolKind)
+        case .technology:
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+        }
+    }
+
+    private func appearance(for symbolKind: SidebarSearchSymbolKind) -> BadgeAppearance {
+        switch symbolKind {
+        case .article:
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .blue)
+        case .classSymbol:
+            BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .purple)
+        case .collection:
+            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .secondary)
+        case .collectionGroup:
+            BadgeAppearance(text: "", symbol: .listBullet, foreground: .white, background: .indigo)
+        case .enumeration:
+            BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .orange)
+        case .enumerationCase:
+            BadgeAppearance(text: "K", symbol: nil, foreground: .white, background: .green)
+        case .framework:
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+        case .function:
+            BadgeAppearance(text: "f", symbol: nil, foreground: .white, background: .green)
+        case .initializer, .method:
+            BadgeAppearance(text: "M", symbol: nil, foreground: .white, background: .blue)
+        case .macro:
+            BadgeAppearance(text: "#", symbol: nil, foreground: .white, background: .green)
+        case .property:
+            BadgeAppearance(text: "P", symbol: nil, foreground: .white, background: .cyan)
+        case .protocolSymbol:
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+        case .structure:
+            BadgeAppearance(text: "S", symbol: nil, foreground: .white, background: .purple)
+        case .typeAlias:
+            BadgeAppearance(text: "T", symbol: nil, foreground: .white, background: .orange)
+        case .variable:
+            BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .green)
+        case .unknown:
+            BadgeAppearance(text: "", symbol: .textDocument, foreground: .white, background: .secondary)
+        }
+    }
+
+    private struct BadgeAppearance {
+        let text: String
+        let symbol: SFSymbol?
+        let foreground: Color
+        let background: Color
     }
 }
 

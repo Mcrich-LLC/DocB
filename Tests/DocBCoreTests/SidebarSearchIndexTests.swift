@@ -130,6 +130,35 @@ struct SidebarSearchIndexTests {
         
         #expect(index.search("historical").sections.first?.rows.first?.title == "Historical Objective-C Symbol")
     }
+
+    @Test
+    func docCSearchClassifiesXcodeStyleSymbolKinds() {
+        let site = makeDocCSource(
+            title: "SymbolKit",
+            children: [
+                .init(title: "UIViewController", path: "/documentation/symbolkit/uiviewcontroller", type: "symbol"),
+                .init(title: "StringProtocol", path: "/documentation/symbolkit/stringprotocol", type: "symbol"),
+                .init(title: "WorldRecenterPhase", path: "/documentation/symbolkit/worldrecenterphase", type: "symbol"),
+                .init(title: "init(horizontalSizeClass:)", path: "/documentation/symbolkit/uiviewcontroller/init(horizontalsizeclass:)", type: "symbol"),
+                .init(title: "horizontalSizeClass", path: "/documentation/symbolkit/uiviewcontroller/horizontalsizeclass", type: "symbol")
+            ]
+        )
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        func symbolKind(title: String) -> SidebarSearchSymbolKind? {
+            guard case .reference(let reference) = index.search(title).flattenedRows.first(where: { $0.title == title }) else {
+                return nil
+            }
+
+            return reference.symbolKind
+        }
+
+        #expect(symbolKind(title: "UIViewController") == .classSymbol)
+        #expect(symbolKind(title: "StringProtocol") == .protocolSymbol)
+        #expect(symbolKind(title: "WorldRecenterPhase") == .enumeration)
+        #expect(symbolKind(title: "init(horizontalSizeClass:)") == .initializer)
+        #expect(symbolKind(title: "horizontalSizeClass") == .property)
+    }
     
     @Test
     @MainActor

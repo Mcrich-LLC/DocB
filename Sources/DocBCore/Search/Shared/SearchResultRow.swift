@@ -202,9 +202,9 @@ public struct SearchResultSymbolBadge: View {
     /// Get the default size based on device
     private static func getDefaultSize() -> CGFloat {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        22
+        16
         #else
-        30
+        24
         #endif
     }
 
@@ -246,27 +246,27 @@ public struct SearchResultSymbolBadge: View {
 
     public var body: some View {
         let appearance = appearance
-        let renderedSize = appearance.renderedSize(for: size)
 
         ZStack {
             if let background = appearance.background {
-                RoundedRectangle(cornerRadius: max(4, renderedSize * 0.18), style: .continuous)
+                RoundedRectangle(cornerRadius: appearance.cornerRadius(for: size), style: .continuous)
                     .fill(background)
-                    .frame(width: renderedSize, height: renderedSize)
+                    .frame(width: size, height: size)
             }
 
             if let symbol = appearance.symbol {
                 Image(systemSymbol: symbol)
-                    .font(.system(size: renderedSize * 0.58, weight: .semibold))
-                    .foregroundStyle(isSelected ? .white : appearance.foreground)
+                    .font(.system(size: size * 0.58, weight: appearance.background == nil ? .semibold : .bold))
+                    .foregroundStyle(appearance.foreground)
             } else {
                 Text(appearance.text)
-                    .font(.system(size: renderedSize * 0.46, weight: .bold, design: .rounded))
-                    .foregroundStyle(isSelected ? .white : appearance.foreground)
+                    .font(.system(size: appearance.fontSize(for: size), weight: .semibold))
+                    .foregroundStyle(appearance.foreground)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.55)
+                    .allowsTightening(true)
             }
         }
+        .dynamicTypeSize(.medium)
         .frame(width: size, height: size)
         .accessibilityHidden(true)
     }
@@ -335,7 +335,7 @@ public struct SearchResultSymbolBadge: View {
         case .reference(let result):
             appearance(for: symbolKind ?? result.symbolKind)
         case .technology:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
         }
     }
 
@@ -344,31 +344,29 @@ public struct SearchResultSymbolBadge: View {
         case .article:
             BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
         case .classSymbol:
-            BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .purple)
+            BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
         case .collection, .collectionGroup:
             BadgeAppearance(text: "", symbol: .listBullet, foreground: .secondary, background: nil)
-        case .enumeration:
-            BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .orange)
-        case .enumerationCase:
-            BadgeAppearance(text: "K", symbol: nil, foreground: .white, background: .green)
+        case .enumeration, .enumerationCase:
+            BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .xcodeObjCOrange)
         case .framework:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
         case .function:
-            BadgeAppearance(text: "f", symbol: nil, foreground: .white, background: .green)
+            BadgeAppearance(text: "", symbol: .fCursive, foreground: .white, background: .xcodeMemberGreen)
         case .initializer, .method:
-            BadgeAppearance(text: "M", symbol: nil, foreground: .white, background: .blue)
+            BadgeAppearance(text: "M", symbol: nil, foreground: .white, background: .xcodeSwiftBlue)
         case .macro:
-            BadgeAppearance(text: "#", symbol: nil, foreground: .white, background: .green)
+            BadgeAppearance(text: "#", symbol: nil, foreground: .white, background: .xcodeMacroRed)
         case .property:
-            BadgeAppearance(text: "P", symbol: nil, foreground: .white, background: .cyan)
+            BadgeAppearance(text: "P", symbol: nil, foreground: .white, background: .xcodeMemberTeal)
         case .protocolSymbol:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .purple)
+            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
         case .structure:
-            BadgeAppearance(text: "S", symbol: nil, foreground: .white, background: .purple)
+            BadgeAppearance(text: "S", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
         case .typeAlias:
-            BadgeAppearance(text: "T", symbol: nil, foreground: .white, background: .orange)
+            BadgeAppearance(text: "T", symbol: nil, foreground: .white, background: .xcodeObjCOrange)
         case .variable:
-            BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .green)
+            BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .xcodeMemberGreen)
         case .unknown:
             BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
         }
@@ -380,10 +378,30 @@ public struct SearchResultSymbolBadge: View {
         let foreground: Color
         let background: Color?
 
-        func renderedSize(for size: CGFloat) -> CGFloat {
-            background == nil ? size : size * 0.86
+        func cornerRadius(for size: CGFloat) -> CGFloat {
+            max(3.5, size * 0.22)
+        }
+
+        func fontSize(for size: CGFloat) -> CGFloat {
+            switch text.count {
+            case 0...1:
+                size * 0.76
+            case 2:
+                size * 0.62
+            default:
+                size * 0.52
+            }
         }
     }
+}
+
+private extension Color {
+    static let xcodeMemberGreen = Color(red: 0.1176470588, green: 0.7647058824, blue: 0.2156862745)
+    static let xcodeMemberTeal = Color(red: 0.1803921569, green: 0.6549019608, blue: 0.7411764706)
+    static let xcodeObjCOrange = Color(red: 0.9607843137, green: 0.5450980392, blue: 0)
+    static let xcodeProtocolPurple = Color(red: 0.6235294118, green: 0.2941176471, blue: 0.7882352941)
+    static let xcodeSwiftBlue = Color(red: 0, green: 0.4392156863, blue: 0.9607843137)
+    static let xcodeMacroRed = Color(red: 0.9607843137, green: 0.1921568627, blue: 0.1490196078)
 }
 
 /// Platform-specific visual metrics for a search result row.

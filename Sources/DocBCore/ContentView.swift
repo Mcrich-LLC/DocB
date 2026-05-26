@@ -762,7 +762,7 @@ private struct SidebarSearchResultRowView: View {
             switch row {
             case .homepage(_, let title):
                 HomepageNavigationLinkButton {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
                         
                         Text(title)
@@ -774,7 +774,7 @@ private struct SidebarSearchResultRowView: View {
                 .listRowSeparator(.hidden)
             case .reference(let result):
                 ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
                         
                         text(result.title, type: result.type)
@@ -829,7 +829,7 @@ private struct SearchResultTechnologyLabel: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             SearchResultSymbolBadge(row: row, size: 22)
 
             Text(result.title)

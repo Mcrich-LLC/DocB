@@ -112,52 +112,17 @@ public struct OpenQuicklySearchPalette: View {
     }
 
     private var resultList: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: []) {
-                    ForEach(coordinator.searchStore.results.sections) { section in
-                        Text(section.title)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 13)
-                            .padding(.top, 7)
-                            .padding(.bottom, 4)
-
-                        ForEach(section.rows) { row in
-                            SearchResultRow(row: row, isSelected: coordinator.selectedRowID == row.id, metrics: rowMetrics) {
-                                coordinator.selectedRowID = row.id
-                                openSelectedResult()
-                            }
-                            .id(row.id)
-                            .onAppear {
-                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
-                            }
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 2)
-                        }
-                    }
-
-                    if coordinator.searchStore.results.isTruncated {
-                        Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(coordinator.searchStore.results.totalMatches) matches. Refine your search to narrow the results.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 8)
-                    }
-
-                    Color.clear
-                        .frame(height: Self.resultsBottomInset)
-                }
-            }
-            .background(.clear)
-            .scrollIndicators(.hidden)
-            .frame(height: resultsHeight)
-            .onChange(of: coordinator.selectedRowID) { _, newValue in
-                guard let newValue else { return }
-
-                proxy.scrollTo(newValue, anchor: .center)
-            }
-        }
+        SearchResultList(
+            results: coordinator.searchStore.results,
+            selectedRowID: coordinator.selectedRowID,
+            height: resultsHeight,
+            rowMetrics: rowMetrics,
+            listMetrics: listMetrics,
+            select: { row in
+                coordinator.selectedRowID = row.id
+            },
+            openSelectedResult: openSelectedResult
+        )
     }
 
     private var rowMetrics: SearchResultRowMetrics {
@@ -172,6 +137,21 @@ public struct OpenQuicklySearchPalette: View {
             iconFont: .system(size: 20, weight: .regular),
             titleFont: .subheadline.weight(.semibold),
             subtitleFont: .caption
+        )
+    }
+
+    private var listMetrics: SearchResultListMetrics {
+        SearchResultListMetrics(
+            sectionHeaderFont: .subheadline.weight(.semibold),
+            sectionHorizontalPadding: 13,
+            sectionTopPadding: 7,
+            sectionBottomPadding: 4,
+            rowHorizontalPadding: 7,
+            rowVerticalPadding: 2,
+            footerFont: .footnote,
+            footerVerticalPadding: 8,
+            bottomInset: Self.resultsBottomInset,
+            showsScrollIndicators: false
         )
     }
 

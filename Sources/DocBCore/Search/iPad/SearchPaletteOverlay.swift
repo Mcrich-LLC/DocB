@@ -103,53 +103,17 @@ public struct SearchPaletteOverlay: View {
     }
 
     private var resultList: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: []) {
-                    ForEach(coordinator.searchStore.results.sections) { section in
-                        Text(section.title)
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 26)
-                            .padding(.top, 12)
-                            .padding(.bottom, 6)
-
-                        ForEach(section.rows) { row in
-                            SearchResultRow(row: row, isSelected: coordinator.selectedRowID == row.id, metrics: rowMetrics) {
-                                coordinator.selectedRowID = row.id
-                                openSelectedResult()
-                            }
-                            .id(row.id)
-                            .onAppear {
-                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 4)
-                        }
-                    }
-
-                    if coordinator.searchStore.results.isTruncated {
-                        Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(coordinator.searchStore.results.totalMatches) matches. Refine your search to narrow the results.")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                    }
-
-                    Color.clear
-                        .frame(height: Self.resultsBottomInset)
-                }
-            }
-            .background(.clear)
-            .frame(height: resultsHeight)
-            .onChange(of: coordinator.selectedRowID) { _, newValue in
-                guard let newValue else { return }
-
-                proxy.scrollTo(newValue, anchor: .center)
-            }
-        }
+        SearchResultList(
+            results: coordinator.searchStore.results,
+            selectedRowID: coordinator.selectedRowID,
+            height: resultsHeight,
+            rowMetrics: rowMetrics,
+            listMetrics: listMetrics,
+            select: { row in
+                coordinator.selectedRowID = row.id
+            },
+            openSelectedResult: openSelectedResult
+        )
     }
 
     private var rowMetrics: SearchResultRowMetrics {
@@ -164,6 +128,22 @@ public struct SearchPaletteOverlay: View {
             iconFont: .system(size: 25, weight: .regular),
             titleFont: .headline.weight(.semibold),
             subtitleFont: .subheadline
+        )
+    }
+
+    private var listMetrics: SearchResultListMetrics {
+        SearchResultListMetrics(
+            sectionHeaderFont: .headline.weight(.semibold),
+            sectionHorizontalPadding: 26,
+            sectionTopPadding: 12,
+            sectionBottomPadding: 6,
+            rowHorizontalPadding: 14,
+            rowVerticalPadding: 4,
+            footerFont: .callout,
+            footerHorizontalPadding: 24,
+            footerVerticalPadding: 12,
+            bottomInset: Self.resultsBottomInset,
+            showsScrollIndicators: true
         )
     }
 

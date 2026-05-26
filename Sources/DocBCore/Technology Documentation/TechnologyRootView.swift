@@ -255,11 +255,6 @@ private struct TechnologyRootToolbar: ToolbarContent {
     
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
-            Button(action: presentSearchPalette.callAsFunction) {
-                Label("Search Documentation", systemImage: "magnifyingglass")
-            }
-            .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
-
             if frameworkSection.docCSite == nil {
                 TechnologyFilterMenu()
             }

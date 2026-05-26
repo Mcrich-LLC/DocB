@@ -213,6 +213,7 @@ public struct ContentView: View {
     struct SidebarView: View {
         @Environment(NavigationViewModel.self) var navigationViewModel
         @Environment(DocumentationViewModel.self) var documentationViewModel
+        @Environment(\.presentSearchPalette) private var presentSearchPalette
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
         /// Passed DocC sites to avoid expensive query instantiation.
@@ -248,6 +249,14 @@ public struct ContentView: View {
                 } else if let selectedTechnology = navigationViewModel.technology, navigationViewModel.isShowingTechnology {
                     TechnologyRootView(frameworkSection: selectedTechnology)
                         .id(documentationViewModel.preferedProgrammingLanguage)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: presentSearchPalette.callAsFunction) {
+                        Label("Search Documentation", systemSymbol: .magnifyingglass)
+                    }
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
                 }
             }
         }
@@ -344,7 +353,6 @@ private struct TechView: View {
     @State private var errorAlert: Error?
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(DocBCloudSyncEngine.self) private var docBCloudSyncEngine
-    @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.openWindow) private var openWindow
     
     // Add Documentation Alert
@@ -472,10 +480,6 @@ private struct TechView: View {
         #endif
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                Button(action: presentSearchPalette.callAsFunction) {
-                    Label("Search Documentation", systemImage: "magnifyingglass")
-                }
-                .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
                 Button(action: showAddDocumentationView) {
                     Image(systemSymbol: .plus)
                 }

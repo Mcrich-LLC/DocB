@@ -581,6 +581,8 @@ struct DocumentationFrameworkResolver: Sendable {
 actor DocumentationContentLoader {
     /// In-flight framework requests keyed by identifier, source, and preferred language.
     private var frameworkTasks: [DocumentationContentCacheKey : Task<Framework, Error>] = [:]
+    /// Completed article payloads keyed by identifier, source, and preferred language.
+    private var articles: [DocumentationContentCacheKey : Article] = [:]
     /// In-flight article requests keyed by identifier, source, and preferred language.
     private var articleTasks: [DocumentationContentCacheKey : Task<Article, Error>] = [:]
     /// In-flight custom DocC index requests keyed by source root URL.
@@ -680,6 +682,10 @@ actor DocumentationContentLoader {
         preferredLanguage: PreferredProgrammingLanguage
     ) async throws -> Article {
         let key = DocumentationContentCacheKey(identifier: identifier, sourceURL: site?.url, preferredLanguage: preferredLanguage)
+        if let article = articles[key] {
+            return article
+        }
+
         if let task = articleTasks[key] {
             return try await task.value
         }
@@ -692,6 +698,7 @@ actor DocumentationContentLoader {
         
         do {
             let article = try await task.value
+            articles[key] = article
             articleTasks[key] = nil
             return article
         } catch {

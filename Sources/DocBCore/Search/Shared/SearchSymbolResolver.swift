@@ -207,7 +207,8 @@ public enum SearchSymbolResolver {
            let normalizedPath = normalizedDocumentationPath(path),
            paths.contains(normalizedPath)
         {
-            return SidebarSearchSymbolKind(title: language.title, path: path, type: language.type)
+            let resolvedTitle = language.title.isEmpty ? title : language.title
+            return SidebarSearchSymbolKind(title: resolvedTitle, path: path, type: language.type)
         }
 
         for child in language.children ?? [] {

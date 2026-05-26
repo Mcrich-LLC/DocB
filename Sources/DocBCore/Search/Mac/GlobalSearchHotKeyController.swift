@@ -110,7 +110,6 @@ public final class GlobalSearchHotKeyController {
     }
 
     private func presentSearchPalette() {
-        NSApplication.shared.activate()
         action?()
     }
 

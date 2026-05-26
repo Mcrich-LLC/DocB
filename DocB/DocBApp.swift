@@ -72,7 +72,10 @@ struct DocBApp: App {
             MainView(
                 url: url.wrappedValue,
                 showAddSource: $showAddSource,
-                globalSearchHotKeyController: globalSearchHotKeyController
+                globalSearchHotKeyController: globalSearchHotKeyController,
+                presentGlobalSearchPalette: {
+                    showOpenQuicklyPalette()
+                }
             )
             #else
             MainView(
@@ -218,6 +221,8 @@ private struct MainView: View {
     #if os(macOS)
     /// Registers the macOS global Search Documentation shortcut while the app is running.
     let globalSearchHotKeyController: GlobalSearchHotKeyController
+    /// Presents the floating search palette without activating the rest of DocB.
+    let presentGlobalSearchPalette: @MainActor @Sendable () -> Void
     #endif
     #if !os(macOS)
     /// Binding controlling the iPadOS Search Documentation overlay.
@@ -343,7 +348,7 @@ private struct MainView: View {
     #if os(macOS)
     private func refreshGlobalSearchHotKey() {
         globalSearchHotKeyController.register(appSettings: appSettings) {
-            presentSearchPalette()
+            presentGlobalSearchPalette()
         }
     }
     #endif
@@ -423,8 +428,8 @@ private final class OpenQuicklyPanelController {
             panel.center(over: Self.activeDocumentationWindow)
             panel.hasRestoredFrame = true
         }
+        panel.orderFrontRegardless()
         panel.makeKeyAndOrderFront(nil)
-        NSApp.activate()
     }
     
     private func close() {
@@ -434,7 +439,7 @@ private final class OpenQuicklyPanelController {
     private func makePanel() -> OpenQuicklyPanel {
         let panel = OpenQuicklyPanel(
             contentRect: NSRect(x: 0, y: 0, width: 462, height: 50),
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )

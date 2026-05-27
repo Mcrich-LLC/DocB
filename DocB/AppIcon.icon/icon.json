@@ -1,255 +1,28 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.34510,0.74510,0.96471,1.00000",
-      "display-p3:0.21176,0.42745,0.94510,1.00000"
+      "display-p3:0.36667,0.58576,1.00000,1.00000",
+      "display-p3:0.20465,0.47096,0.96611,1.00000"
     ]
   },
   "groups" : [
     {
       "layers" : [
         {
-          "hidden" : false,
-          "image-name" : "Glasses Frames.svg",
-          "name" : "Glasses Frames"
-        },
-        {
-          "hidden" : false,
-          "image-name" : "Glasses Bridge.svg",
-          "name" : "Glasses Bridge"
-        },
-        {
-          "fill-specializations" : [
+          "image-name-specializations" : [
             {
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.34510,0.74510,0.96471,1.00000",
-                  "display-p3:0.21176,0.42745,0.94510,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.5,
-                    "y" : 0
-                  },
-                  "stop" : {
-                    "x" : 0.48617788461538464,
-                    "y" : 1
-                  }
-                }
-              }
+              "value" : "Light@2x.png"
             },
             {
               "appearance" : "dark",
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.20000,0.20000,0.20000,1.00000",
-                  "display-p3:0.13333,0.13333,0.13333,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.5,
-                    "y" : 0
-                  },
-                  "stop" : {
-                    "x" : 0.48617788461538464,
-                    "y" : 1
-                  }
-                }
-              }
-            }
-          ],
-          "glass" : false,
-          "hidden" : false,
-          "image-name" : "Glasses Glass.svg",
-          "name" : "Glasses Glass",
-          "opacity-specializations" : [
-            {
-              "value" : 0.8
-            },
-            {
-              "appearance" : "dark",
-              "value" : 0.8
-            }
-          ]
-        },
-        {
-          "glass" : true,
-          "hidden" : false,
-          "image-name" : "Glasses Arms.svg",
-          "name" : "Glasses Arms"
-        },
-        {
-          "fill" : {
-            "solid" : "display-p3:1.00000,1.00000,1.00000,1.00000"
-          },
-          "glass" : false,
-          "hidden" : false,
-          "image-name" : "Bottom Book Page Lines.svg",
-          "name" : "Bottom Book Page Lines",
-          "opacity" : 0.32
-        }
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "blur-material" : 0.5,
-      "layers" : [
-        {
-          "image-name" : "Bottom Book Cover.svg",
-          "name" : "Bottom Book Cover"
-        },
-        {
-          "hidden" : false,
-          "image-name" : "Bottom Book Pages.svg",
-          "name" : "Bottom Book Pages",
-          "opacity" : 0.48
-        }
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "hidden" : false,
-      "layers" : [
-        {
-          "fill-specializations" : [
-            {
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.00000,0.54118,1.00000,1.00000",
-                  "display-p3:0.21569,0.43529,0.94510,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.5,
-                    "y" : 0
-                  },
-                  "stop" : {
-                    "x" : 0.510708252895753,
-                    "y" : 1
-                  }
-                }
-              }
-            },
-            {
-              "appearance" : "dark",
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.20000,0.20000,0.20000,1.00000",
-                  "display-p3:0.07059,0.07059,0.07059,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.5,
-                    "y" : 0
-                  },
-                  "stop" : {
-                    "x" : 0.510708252895753,
-                    "y" : 1
-                  }
-                }
-              }
+              "value" : "Dark@2x.png"
             },
             {
               "appearance" : "tinted",
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.20000,0.20000,0.20000,1.00000",
-                  "display-p3:0.00000,0.00000,0.00000,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.5,
-                    "y" : 0
-                  },
-                  "stop" : {
-                    "x" : 0.510708252895753,
-                    "y" : 1
-                  }
-                }
-              }
+              "value" : "Mono@2x.png"
             }
           ],
-          "glass" : false,
-          "image-name" : "DocB.svg",
-          "name" : "DocB"
-        },
-        {
-          "hidden" : false,
-          "image-name" : "Top Book Cover.svg",
-          "name" : "Top Book Cover"
-        }
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "layers" : [
-        {
-          "glass" : false,
-          "hidden" : false,
-          "image-name" : "Glasses Arm Behind.svg",
-          "name" : "Glasses Arm Behind",
-          "position" : {
-            "scale" : 1,
-            "translation-in-points" : [
-              0,
-              0
-            ]
-          }
-        },
-        {
-          "fill-specializations" : [
-            {
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.39608,0.81569,1.00000,1.00000",
-                  "display-p3:0.27843,0.50196,1.00000,1.00000"
-                ]
-              }
-            },
-            {
-              "appearance" : "dark",
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.34510,0.74510,0.96471,0.80000",
-                  "display-p3:0.21176,0.42745,0.94510,1.00000"
-                ]
-              }
-            }
-          ],
-          "hidden" : false,
-          "image-name" : "Grid.svg",
-          "name" : "Grid",
-          "opacity-specializations" : [
-            {
-              "appearance" : "dark",
-              "value" : 0.24
-            },
-            {
-              "appearance" : "tinted",
-              "value" : 0.24
-            }
-          ]
+          "name" : "Design"
         }
       ],
       "shadow" : {

@@ -258,7 +258,7 @@ public struct SearchResultSymbolBadge: View {
             .frame(width: size, height: size)
             .accessibilityHidden(true)
         } else {
-            DocCSymbolBadge(symbolKind: resolvedSymbolKind, size: size)
+            DocCSymbolBadge(symbolKind: resolvedSymbolKind, size: resolvedSymbolKind.appearance.background == nil ? size+6 : size)
         }
     }
 

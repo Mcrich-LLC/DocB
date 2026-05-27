@@ -1,5 +1,5 @@
 {
-  "originHash" : "89b842fdb336c4c8287cff337ceefd85ac419324093c35e7298c476598d47e7f",
+  "originHash" : "d7d24ea6689fdff4f08896cec1e81c235863acc0f68049428fa5760726da6817",
   "pins" : [
     {
       "identity" : "docckit",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/mcrich-llc/DocCKit",
       "state" : {
         "branch" : "main",
-        "revision" : "7b1d673f5ed4cb4f5d5bbce2a8ccdc1250a3f8f7"
+        "revision" : "66a77543efc4639b70291b877eb8c035f9100715"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/hmlongco/Factory",
       "state" : {
-        "revision" : "09bae642ac588ca0448260f161b5c8b31fa24395",
-        "version" : "3.0.1"
+        "revision" : "b32dc7a813c2da6b3c3618df12534b1d85c6aa78",
+        "version" : "3.0.5"
       }
     },
     {
@@ -43,7 +43,7 @@
       "location" : "https://github.com/mufasaYC/MYCloudKit.git",
       "state" : {
         "branch" : "feat/codable-record-value",
-        "revision" : "c46675015e1886e4eab3540886dc9fe63badf332"
+        "revision" : "f5db0d00f0e6eec48bb3c3522448b5bf3f391abf"
       }
     },
     {

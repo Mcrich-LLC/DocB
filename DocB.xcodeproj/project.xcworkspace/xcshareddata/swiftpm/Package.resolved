@@ -1,5 +1,5 @@
 {
-  "originHash" : "d7d24ea6689fdff4f08896cec1e81c235863acc0f68049428fa5760726da6817",
+  "originHash" : "89b842fdb336c4c8287cff337ceefd85ac419324093c35e7298c476598d47e7f",
   "pins" : [
     {
       "identity" : "docckit",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/mcrich-llc/DocCKit",
       "state" : {
         "branch" : "main",
-        "revision" : "c08271888d6063946d810912f25474aadc352c9f"
+        "revision" : "82e943182df49f64145713ae784a4df8ad91db01"
       }
     },
     {

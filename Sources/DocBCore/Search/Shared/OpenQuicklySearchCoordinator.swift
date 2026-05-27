@@ -162,6 +162,10 @@ public final class OpenQuicklySearchCoordinator {
             return false
         }
         
+        #if canImport(AppKit)
+        NSApplication.shared.activate()
+        #endif
+        
         switch row {
         case .homepage:
             activeNavigationViewModel.showHomepage()

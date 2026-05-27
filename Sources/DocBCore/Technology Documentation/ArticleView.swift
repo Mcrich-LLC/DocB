@@ -41,7 +41,7 @@ struct ArticleView: View {
     var body: some View {
         Group {
             if let article {
-                DocCArticleView(article: article, reference: reference, navigator: navigationViewModel)
+                DocCArticleView(article: article, reference: reference, navigator: navigationViewModel, showsReferenceSymbolBadges: true)
             } else {
                 ProgressView("Loading")
             }

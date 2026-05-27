@@ -245,42 +245,38 @@ public struct SearchResultSymbolBadge: View {
     }
 
     public var body: some View {
-        let appearance = appearance
+        if case .some(.homepage) = row {
+            ZStack {
+                RoundedRectangle(cornerRadius: max(3.5, size * 0.22), style: .continuous)
+                    .fill(Color.blue)
 
-        ZStack {
-            if let background = appearance.background {
-                RoundedRectangle(cornerRadius: appearance.cornerRadius(for: size), style: .continuous)
-                    .fill(background)
-                    .frame(width: size, height: size)
+                Image(systemSymbol: .houseFill)
+                    .font(.system(size: size * 0.58, weight: .bold))
+                    .foregroundStyle(.white)
             }
-
-            if let symbol = appearance.symbol {
-                Image(systemSymbol: symbol)
-                    .font(.system(size: size * 0.58, weight: appearance.background == nil ? .semibold : .bold))
-                    .foregroundStyle(appearance.foreground)
-            } else {
-                Text(appearance.text)
-                    .font(.system(size: appearance.fontSize(for: size), weight: .semibold))
-                    .foregroundStyle(appearance.foreground)
-                    .lineLimit(1)
-                    .allowsTightening(true)
-            }
+            .dynamicTypeSize(.medium)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+        } else {
+            DocCSymbolBadge(symbolKind: resolvedSymbolKind, size: size)
         }
-        .dynamicTypeSize(.medium)
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
     }
 
-    private var appearance: BadgeAppearance {
+    private var resolvedSymbolKind: SidebarSearchSymbolKind {
         if let symbolKind {
-            return appearance(for: symbolKind)
+            return symbolKind
         }
 
-        if let row {
-            return appearance(for: row)
+        switch row {
+        case .homepage:
+            return .framework
+        case .reference(let result):
+            return result.symbolKind
+        case .technology:
+            return .framework
+        case nil:
+            return .unknown
         }
-
-        return appearance(for: .unknown)
     }
 
     /// Returns a human-readable role title for subtitles and accessibility.
@@ -290,118 +286,8 @@ public struct SearchResultSymbolBadge: View {
     ///   - fallback: Raw role string used when `role` is unavailable.
     /// - Returns: A display title for the role.
     public static func title(for symbolKind: SidebarSearchSymbolKind, fallback: String) -> String {
-        switch symbolKind {
-        case .article:
-            "Article"
-        case .classSymbol:
-            "Class"
-        case .collection:
-            "Collection"
-        case .collectionGroup:
-            "Collection Group"
-        case .framework:
-            "Framework"
-        case .enumeration:
-            "Enumeration"
-        case .enumerationCase:
-            "Enumeration Case"
-        case .function:
-            "Function"
-        case .initializer:
-            "Initializer"
-        case .macro:
-            "Macro"
-        case .method:
-            "Method"
-        case .property:
-            "Property"
-        case .protocolSymbol:
-            "Protocol"
-        case .structure:
-            "Structure"
-        case .typeAlias:
-            "Type Alias"
-        case .variable:
-            "Variable"
-        case .unknown:
-            fallback.isEmpty ? "Documentation" : fallback.capitalized
-        }
+        SidebarSearchSymbolKind.title(for: symbolKind, fallback: fallback)
     }
-
-    private func appearance(for row: SidebarSearchResultRow) -> BadgeAppearance {
-        switch row {
-        case .homepage:
-            BadgeAppearance(text: "", symbol: .houseFill, foreground: .white, background: .blue)
-        case .reference(let result):
-            appearance(for: symbolKind ?? result.symbolKind)
-        case .technology:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
-        }
-    }
-
-    private func appearance(for symbolKind: SidebarSearchSymbolKind) -> BadgeAppearance {
-        switch symbolKind {
-        case .article:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
-        case .classSymbol:
-            BadgeAppearance(text: "C", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
-        case .collection, .collectionGroup:
-            BadgeAppearance(text: "", symbol: .listBullet, foreground: .secondary, background: nil)
-        case .enumeration, .enumerationCase:
-            BadgeAppearance(text: "E", symbol: nil, foreground: .white, background: .xcodeObjCOrange)
-        case .framework:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
-        case .function:
-            BadgeAppearance(text: "", symbol: .fCursive, foreground: .white, background: .xcodeMemberGreen)
-        case .initializer, .method:
-            BadgeAppearance(text: "M", symbol: nil, foreground: .white, background: .xcodeSwiftBlue)
-        case .macro:
-            BadgeAppearance(text: "#", symbol: nil, foreground: .white, background: .xcodeMacroRed)
-        case .property:
-            BadgeAppearance(text: "P", symbol: nil, foreground: .white, background: .xcodeMemberTeal)
-        case .protocolSymbol:
-            BadgeAppearance(text: "Pr", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
-        case .structure:
-            BadgeAppearance(text: "S", symbol: nil, foreground: .white, background: .xcodeProtocolPurple)
-        case .typeAlias:
-            BadgeAppearance(text: "T", symbol: nil, foreground: .white, background: .xcodeObjCOrange)
-        case .variable:
-            BadgeAppearance(text: "V", symbol: nil, foreground: .white, background: .xcodeMemberGreen)
-        case .unknown:
-            BadgeAppearance(text: "", symbol: .textDocument, foreground: .secondary, background: nil)
-        }
-    }
-
-    private struct BadgeAppearance {
-        let text: String
-        let symbol: SFSymbol?
-        let foreground: Color
-        let background: Color?
-
-        func cornerRadius(for size: CGFloat) -> CGFloat {
-            max(3.5, size * 0.22)
-        }
-
-        func fontSize(for size: CGFloat) -> CGFloat {
-            switch text.count {
-            case 0...1:
-                size * 0.76
-            case 2:
-                size * 0.62
-            default:
-                size * 0.52
-            }
-        }
-    }
-}
-
-private extension Color {
-    static let xcodeMemberGreen = Color(red: 0.1176470588, green: 0.7647058824, blue: 0.2156862745)
-    static let xcodeMemberTeal = Color(red: 0.1803921569, green: 0.6549019608, blue: 0.7411764706)
-    static let xcodeObjCOrange = Color(red: 0.9607843137, green: 0.5450980392, blue: 0)
-    static let xcodeProtocolPurple = Color(red: 0.6235294118, green: 0.2941176471, blue: 0.7882352941)
-    static let xcodeSwiftBlue = Color(red: 0, green: 0.4392156863, blue: 0.9607843137)
-    static let xcodeMacroRed = Color(red: 0.9607843137, green: 0.1921568627, blue: 0.1490196078)
 }
 
 /// Platform-specific visual metrics for a search result row.

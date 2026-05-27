@@ -335,15 +335,23 @@ extension DocCSite {
         
         /// Grouped interface-language entries keyed by language name.
         public var interfaceLanguages: [InterfaceLanguageSetModel]?
+        /// Archive identifiers used to resolve custom image assets.
+        public var includedArchiveIdentifiers: [String]?
         
         /// Creates an index model from persisted language-set models.
-        public init(interfaceLanguages: [InterfaceLanguageSetModel]) {
+        ///
+        /// - Parameters:
+        ///   - interfaceLanguages: Grouped interface-language entries keyed by language name.
+        ///   - includedArchiveIdentifiers: Archive identifiers used to resolve custom image assets.
+        public init(interfaceLanguages: [InterfaceLanguageSetModel], includedArchiveIdentifiers: [String]? = nil) {
             self.interfaceLanguages = interfaceLanguages
+            self.includedArchiveIdentifiers = includedArchiveIdentifiers
         }
         
         /// Creates an index model from runtime DocC index payload.
         public init(_ index: DocCIndex) {
             self.interfaceLanguages = index.interfaceLanguages.map({ InterfaceLanguageSetModel(name: $0.key, languages: $0.value) })
+            self.includedArchiveIdentifiers = index.includedArchiveIdentifiers
         }
         
         /// Reconstructs the runtime `DocCIndex` value from persisted model data.
@@ -353,7 +361,7 @@ extension DocCSite {
                 acc[name] = languages.map({ $0.asInterfaceLanguage })
             }
             
-            return DocCIndex(interfaceLanguages: interfaceLanguages)
+            return DocCIndex(interfaceLanguages: interfaceLanguages, includedArchiveIdentifiers: includedArchiveIdentifiers)
         }
     }
     
@@ -396,6 +404,8 @@ extension DocCSite {
         public var path: String?
         /// Node type metadata (module, symbol, etc.).
         public var type: String?
+        /// Optional custom icon identifier for this node.
+        public var icon: String?
         
         /// Owning language-set relationship for root nodes.
         @Relationship(deleteRule: .cascade, inverse: \InterfaceLanguageSetModel.languages)
@@ -410,10 +420,12 @@ extension DocCSite {
         public fileprivate(set) var children: [InterfaceLanguageModel]?
         
         /// Creates a persisted interface-language node from explicit fields.
-        public init(title: String?, path: String? = nil, type: String?, children: [InterfaceLanguageModel]) {
+        ///   - icon: Optional custom icon identifier for this node.
+        public init(title: String?, path: String? = nil, type: String?, icon: String? = nil, children: [InterfaceLanguageModel]) {
             self.title = title
             self.path = path
             self.type = type
+            self.icon = icon
             self.children = children
         }
         
@@ -422,6 +434,7 @@ extension DocCSite {
             self.title = language.title
             self.path = language.path
             self.type = language.type
+            self.icon = language.icon
             
             if let children = language.children {
                 let models = children.map { child in
@@ -438,7 +451,7 @@ extension DocCSite {
         public var asInterfaceLanguage: DocCIndex.InterfaceLanguage {
             let children: [DocCIndex.InterfaceLanguage]? = self.children?.map({ $0.asInterfaceLanguage })
             
-            return DocCIndex.InterfaceLanguage(title: title ?? "Unknown", path: path, type: type ?? "Unknown", children: children)
+            return DocCIndex.InterfaceLanguage(title: title ?? "Unknown", path: path, type: type ?? "Unknown", icon: icon, children: children)
         }
         
         /// Recursively checks whether this entry or descendants match the search query.

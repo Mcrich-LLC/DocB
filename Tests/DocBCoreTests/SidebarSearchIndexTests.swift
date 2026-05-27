@@ -175,6 +175,42 @@ struct SidebarSearchIndexTests {
     }
 
     @Test
+    func docCSearchPreservesCustomIndexIcons() {
+        let indexPayload = DocCIndex(
+            interfaceLanguages: [
+                "swift": [
+                    .init(
+                        title: "WWDC Notes",
+                        path: "/documentation/wwdcnotes",
+                        type: "module",
+                        icon: "WWDCNotes.png",
+                        children: [
+                            .init(
+                                title: "WWDC25",
+                                path: "/documentation/wwdcnotes/wwdc25",
+                                type: "symbol",
+                                icon: "WWDC25-Icon.png"
+                            )
+                        ]
+                    )
+                ]
+            ],
+            includedArchiveIdentifiers: ["WWDCNotes"]
+        )
+        let site = makeDocCSource(urlSuffix: "wwdcnotes", index: indexPayload)
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        guard case .reference(let reference) = index.search("wwdc25").flattenedRows.first else {
+            Issue.record("Expected a DocC reference search result.")
+            return
+        }
+
+        #expect(reference.customIconIdentifier == "WWDC25-Icon.png")
+        #expect(reference.site.index.includedArchiveIdentifiers == ["WWDCNotes"])
+        #expect(reference.symbolKind == .article)
+    }
+
+    @Test
     func articleRoleHeadingOverridesFallbackSymbolKind() {
         #expect(SidebarSearchSymbolKind(roleHeading: "Enumeration") == .enumeration)
         #expect(SidebarSearchSymbolKind(roleHeading: "Structure") == .structure)

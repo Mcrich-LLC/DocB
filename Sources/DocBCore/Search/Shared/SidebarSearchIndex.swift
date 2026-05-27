@@ -156,6 +156,7 @@ public struct SidebarSearchIndex: Sendable {
                         path: path,
                         type: interfaceLanguage.type,
                         symbolKind: symbolKind,
+                        customIconIdentifier: interfaceLanguage.icon,
                         site: site
                     ))
                 ))
@@ -301,6 +302,8 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     public let type: String
     /// Best-effort Xcode documentation symbol badge kind.
     public let symbolKind: SidebarSearchSymbolKind
+    /// Optional custom icon identifier from a custom DocC index node.
+    public let customIconIdentifier: String?
     /// Owning custom DocC source.
     public let site: DocCSource
 
@@ -312,6 +315,7 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
     ///   - path: Relative DocC path.
     ///   - type: Node type metadata.
     ///   - symbolKind: Best-effort Xcode documentation symbol badge kind.
+    ///   - customIconIdentifier: Optional custom icon identifier from a custom DocC index node.
     ///   - site: Owning custom DocC source.
     public init(
         id: String,
@@ -319,6 +323,7 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
         path: String,
         type: String,
         symbolKind: SidebarSearchSymbolKind? = nil,
+        customIconIdentifier: String? = nil,
         site: DocCSource
     ) {
         self.id = id
@@ -326,6 +331,7 @@ public struct SidebarSearchReferenceResult: Identifiable, Sendable {
         self.path = path
         self.type = type
         self.symbolKind = symbolKind ?? SidebarSearchSymbolKind(title: title, path: path, type: type)
+        self.customIconIdentifier = customIconIdentifier
         self.site = site
     }
 

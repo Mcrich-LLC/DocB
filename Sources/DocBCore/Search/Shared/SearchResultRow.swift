@@ -198,6 +198,9 @@ public struct SearchResultSymbolBadge: View {
     private let symbolKind: SidebarSearchSymbolKind?
     private let isSelected: Bool
     private let size: CGFloat
+    private let explicitCustomIconIdentifier: String?
+    private let explicitCustomIconSite: DocCSource?
+    private let explicitCustomIconArchiveIdentifier: String?
     
     /// Get the default size based on device
     private static func getDefaultSize() -> CGFloat {
@@ -225,6 +228,9 @@ public struct SearchResultSymbolBadge: View {
         self.symbolKind = symbolKind
         self.isSelected = isSelected
         self.size = size ?? Self.getDefaultSize()
+        self.explicitCustomIconIdentifier = nil
+        self.explicitCustomIconSite = nil
+        self.explicitCustomIconArchiveIdentifier = nil
     }
 
     /// Creates a role badge for a known documentation symbol kind.
@@ -233,15 +239,24 @@ public struct SearchResultSymbolBadge: View {
     ///   - symbolKind: Symbol kind to represent.
     ///   - isSelected: Whether the owning row is selected.
     ///   - size: Square badge size.
+    ///   - customIconIdentifier: Optional custom icon identifier to render instead of the default badge artwork.
+    ///   - customIconSite: Optional custom DocC source used to resolve relative icon URLs.
+    ///   - customIconArchiveIdentifier: Optional archive identifier used to resolve custom index icons.
     public init(
         symbolKind: SidebarSearchSymbolKind,
         isSelected: Bool = false,
-        size: CGFloat? = nil
+        size: CGFloat? = nil,
+        customIconIdentifier: String? = nil,
+        customIconSite: DocCSource? = nil,
+        customIconArchiveIdentifier: String? = nil
     ) {
         self.row = nil
         self.symbolKind = symbolKind
         self.isSelected = isSelected
         self.size = size ?? Self.getDefaultSize()
+        self.explicitCustomIconIdentifier = customIconIdentifier
+        self.explicitCustomIconSite = customIconSite
+        self.explicitCustomIconArchiveIdentifier = customIconArchiveIdentifier
     }
 
     public var body: some View {
@@ -258,8 +273,50 @@ public struct SearchResultSymbolBadge: View {
             .frame(width: size, height: size)
             .accessibilityHidden(true)
         } else {
-            DocCSymbolBadge(symbolKind: resolvedSymbolKind, size: resolvedSymbolKind.appearance.background == nil ? size+6 : size)
+            DocCSymbolBadge(
+                symbolKind: resolvedSymbolKind,
+                size: resolvedSymbolKind.appearance.background == nil ? size+6 : size,
+                customImageIdentifier: customIconIdentifier,
+                docCSite: customIconSite,
+                archiveIdentifier: customIconArchiveIdentifier
+            )
         }
+    }
+
+    private var customIconIdentifier: String? {
+        if let explicitCustomIconIdentifier {
+            return explicitCustomIconIdentifier
+        }
+
+        guard case .reference(let result) = row else {
+            return nil
+        }
+
+        return result.customIconIdentifier
+    }
+
+    private var customIconSite: DocCSource? {
+        if explicitCustomIconIdentifier != nil {
+            return explicitCustomIconSite
+        }
+
+        guard case .reference(let result) = row else {
+            return nil
+        }
+
+        return result.site
+    }
+
+    private var customIconArchiveIdentifier: String? {
+        if explicitCustomIconIdentifier != nil {
+            return explicitCustomIconArchiveIdentifier
+        }
+
+        guard case .reference(let result) = row else {
+            return nil
+        }
+
+        return result.site.index.includedArchiveIdentifiers?.first
     }
 
     private var resolvedSymbolKind: SidebarSearchSymbolKind {

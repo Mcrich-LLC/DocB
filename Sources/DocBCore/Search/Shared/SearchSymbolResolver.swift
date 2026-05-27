@@ -16,7 +16,7 @@ public enum SearchSymbolResolver {
     /// - Returns: `true` when the kind is ambiguous enough to benefit from refinement.
     public static func shouldRefine(_ symbolKind: SidebarSearchSymbolKind) -> Bool {
         switch symbolKind {
-        case .structure:
+        case .article, .structure:
             true
         default:
             false

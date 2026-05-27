@@ -475,34 +475,36 @@ private struct DefaultListItem: View {
     
     var body: some View {
         ReferenceNavigationLinkButton(reference: reference) {
-            Label {
-                HStack {
-                    Text(title)
-                    
-                    if reference.beta == true {
-                        ArticleBadge(badge: .beta)
-                    }
-                    
-                    if reference.deprecated == true {
-                        ArticleBadge(badge: .deprecated)
-                    }
-                    
-                    if !navigationViewModel.isUsingSplitView && isShowingChevron {
-                        Spacer()
-                        ChevronView()
-                    }
-                }
-                .padding(.leading, navigationViewModel.isUsingSplitView ? 0 : -10)
-            } icon: {
+            HStack {
+                let site = reference.docCSite ?? navigationViewModel.technology?.docCSite
                 SearchResultSymbolBadge(
                     symbolKind: SearchSymbolResolver.symbolKind(
                         for: reference,
                         title: title,
-                        site: reference.docCSite ?? navigationViewModel.technology?.docCSite,
+                        site: site,
                         referenceContext: referenceContext
-                    )
+                    ),
+                    customIconIdentifier: customIconIdentifier(in: site),
+                    customIconSite: site,
+                    customIconArchiveIdentifier: site?.index.includedArchiveIdentifiers?.first
                 )
+                
+                Text(title)
+                
+                if reference.beta == true {
+                    ArticleBadge(badge: .beta)
+                }
+                
+                if reference.deprecated == true {
+                    ArticleBadge(badge: .deprecated)
+                }
+                
+                if !navigationViewModel.isUsingSplitView && isShowingChevron {
+                    Spacer()
+                    ChevronView()
+                }
             }
+            .padding(.leading, navigationViewModel.isUsingSplitView ? 0 : -10)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .showBackground(shouldShowBackground)
@@ -515,6 +517,50 @@ private struct DefaultListItem: View {
         view.shouldShowBackground = bool
         
         return view
+    }
+
+    /// Resolves a custom index icon for this row's reference.
+    ///
+    /// - Parameter site: Custom DocC source containing persisted index metadata.
+    /// - Returns: Custom icon identifier when the source index contains one for this reference.
+    private func customIconIdentifier(in site: DocCSource?) -> String? {
+        guard let site else {
+            return nil
+        }
+
+        let paths = [
+            reference.url,
+            reference.identifier
+        ].compactMap(SearchSymbolResolver.normalizedDocumentationPath)
+
+        guard !paths.isEmpty else {
+            return nil
+        }
+
+        for language in site.index.interfaceLanguages.values.flatMap({ $0 }) {
+            if let icon = customIconIdentifier(in: language, matchingAny: paths) {
+                return icon
+            }
+        }
+
+        return nil
+    }
+
+    private func customIconIdentifier(in language: DocCIndex.InterfaceLanguage, matchingAny paths: [String]) -> String? {
+        if let path = language.path,
+           let normalizedPath = SearchSymbolResolver.normalizedDocumentationPath(path),
+           paths.contains(normalizedPath),
+           let icon = language.icon {
+            return icon
+        }
+
+        for child in language.children ?? [] {
+            if let icon = customIconIdentifier(in: child, matchingAny: paths) {
+                return icon
+            }
+        }
+
+        return nil
     }
     
     /// Returns a copy of this row with configurable chevron visibility.

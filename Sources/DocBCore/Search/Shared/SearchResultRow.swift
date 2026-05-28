@@ -275,7 +275,7 @@ public struct SearchResultSymbolBadge: View {
         } else {
             DocCSymbolBadge(
                 symbolKind: resolvedSymbolKind,
-                size: resolvedSymbolKind.appearance.background == nil ? size+6 : size,
+                size: size,
                 customImageIdentifier: customIconIdentifier,
                 docCSite: customIconSite,
                 archiveIdentifier: customIconArchiveIdentifier

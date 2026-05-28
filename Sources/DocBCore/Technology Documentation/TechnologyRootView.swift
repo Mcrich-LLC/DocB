@@ -504,7 +504,6 @@ private struct DefaultListItem: View {
                     ChevronView()
                 }
             }
-            .padding(.leading, navigationViewModel.isUsingSplitView ? 0 : -10)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .showBackground(shouldShowBackground)

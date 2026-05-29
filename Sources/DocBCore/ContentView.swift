@@ -16,16 +16,23 @@ import DocCKit
 public struct ContentView: View {
     /// Creates the main documentation browsing view.
     ///
-    /// - Parameter url: Optional startup URL used for initial deep-link routing.
-    public init(url: URL? = nil) {
+    /// - Parameters:
+    ///   - url: Optional startup URL used for initial deep-link routing.
+    ///   - isSearchPalettePresented: Binding that controls the iPadOS Search Documentation overlay.
+    public init(url: URL? = nil, isSearchPalettePresented: Binding<Bool> = .constant(false)) {
         self.url = url
+        self._isSearchPalettePresented = isSearchPalettePresented
     }
     
     /// Optional startup URL used for initial deep-link routing.
     let url: URL?
+    /// Controls the iPadOS Search Documentation overlay.
+    @Binding var isSearchPalettePresented: Bool
     
     @Environment(DocumentationViewModel.self) var documentationViewModel
     @Environment(AppSettings.self) var appSettings
+    @Environment(OpenQuicklySearchCoordinator.self) private var openQuicklySearchCoordinator
+    @Environment(\.scenePhase) private var scenePhase
     /// Local navigation coordinator preserved for this root scene.
     @State var navigationViewModel = NavigationViewModel()
     /// Preserved search state so it outlives sidebar transitions.
@@ -64,14 +71,33 @@ public struct ContentView: View {
                 navigationStackView
             }
         }
+        #if os(iOS)
+        .overlay {
+            searchPaletteOverlay
+        }
+        #endif
         .background(Color(platformColor: .systemBackground))
         .environment(navigationViewModel)
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
+            openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
             if navigationViewModel.isUsingSplitView {
                 navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
         })
+        .onDisappear {
+            openQuicklySearchCoordinator.unregisterActiveNavigationViewModel(navigationViewModel)
+        }
+        .onChange(of: scenePhase) { _, newValue in
+            guard newValue == .active else { return }
+            
+            openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+        }
+        .onChange(of: documentationViewModel.technologies.map(\.id)) {
+            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+        }
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
         })
@@ -92,6 +118,30 @@ public struct ContentView: View {
         }
     }
     
+    #if os(iOS)
+    /// iPadOS overlay presentation for the Search Documentation palette.
+    @ViewBuilder
+    private var searchPaletteOverlay: some View {
+        if isSearchPalettePresented {
+            ZStack(alignment: .top) {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        isSearchPalettePresented = false
+                    }
+                    .accessibilityHidden(true)
+
+                SearchPaletteOverlay()
+                    .padding(.top, 84)
+                    .customDismiss {
+                        isSearchPalettePresented = false
+                    }
+            }
+            .ignoresSafeArea()
+        }
+    }
+    #endif
+
     /// Normalizes inbound URLs and routes supported DocC links in-app, forwarding unsupported links to the system.
     ///
     /// Links containing `videos`, `tutorials`, or `design` are intentionally opened in the system browser.
@@ -166,6 +216,8 @@ public struct ContentView: View {
     struct SidebarView: View {
         @Environment(NavigationViewModel.self) var navigationViewModel
         @Environment(DocumentationViewModel.self) var documentationViewModel
+        @Environment(AppSettings.self) private var appSettings
+        @Environment(\.presentSearchPalette) private var presentSearchPalette
         /// Propagated search text for nested TechView.
         @Binding var searchText: String
         /// Passed DocC sites to avoid expensive query instantiation.
@@ -187,7 +239,10 @@ public struct ContentView: View {
         var body: some View {
             @Bindable var navigationViewModel = navigationViewModel
             SidebarNavigationView(isShowingInnerView: topLevelBinding) {
-                TechView(searchText: $searchText, docCSites: docCSites)
+                TechView(
+                    searchText: $searchText,
+                    docCSites: docCSites
+                )
             } innerView: {
                 if navigationViewModel.isShowingAllBookmarkCollections {
                     SidebarNavigationView(isShowingInnerView: $navigationViewModel.isShowingBookmarkCollection, unwrapping: navigationViewModel.bookmarkCollection) {
@@ -200,6 +255,18 @@ public struct ContentView: View {
                         .id(documentationViewModel.preferedProgrammingLanguage)
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: presentSearchPalette.callAsFunction) {
+                        Label("Search Documentation", systemSymbol: .magnifyingglass)
+                    }
+                    #if os(macOS)
+                    .keyboardShortcut(appSettings.searchKeyboardShortcut)
+                    #else
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+                    #endif
+                }
+            }
         }
     }
     
@@ -207,7 +274,10 @@ public struct ContentView: View {
     @ViewBuilder
     var navigationSplitView: some View {
         NavigationSplitView(columnVisibility: $navigationViewModel.splitViewColumnVisibility) {
-            SidebarView(searchText: $searchText, docCSites: docCSites)
+            SidebarView(
+                searchText: $searchText,
+                docCSites: docCSites
+            )
                 .frame(minWidth: 290)
                 .navigationSplitViewColumnWidth(min: 290, ideal: 380)
                 .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
@@ -251,7 +321,10 @@ public struct ContentView: View {
     @ViewBuilder
     var navigationStackView: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            TechView(searchText: $searchText, docCSites: docCSites)
+            TechView(
+                searchText: $searchText,
+                docCSites: docCSites
+            )
             .shadow(color: .init(platformColor: .separator), radius: 0, x: 0.5)
             .navigationDestination(for: PathElement.self) { element in
                 Group {
@@ -390,7 +463,9 @@ private struct TechView: View {
             }
         }
         .isDocBCloudKitSyncing($isCloudKitSyncing)
+        #if !os(macOS)
         .searchable(text: $searchText)
+        #endif
         .onChange(of: searchText, initial: true) { _, newValue in
             sidebarSearchStore.updateSearchText(newValue)
         }
@@ -664,6 +739,8 @@ private struct SidebarSearchContentFingerprint: Equatable {
 private struct SidebarSearchResultRowView: View {
     /// Precomputed search row payload.
     let row: SidebarSearchResultRow
+    @State private var resolvedSymbolKind: SidebarSearchSymbolKind?
+    @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
     
     /// Renders symbol-like text with code styling, otherwise plain text.
@@ -681,42 +758,65 @@ private struct SidebarSearchResultRowView: View {
     }
     
     var body: some View {
-        switch row {
-        case .homepage(_, let title):
-            HomepageNavigationLinkButton {
-                HStack {
-                    Text(title)
-                    Spacer()
-                }
-            }
-            .foregroundStyle(Color.primary)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        case .reference(let result):
-            ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
-                text(result.title, type: result.type)
-            }
-            .alwaysShowClosestTechnologyGroup()
-            .foregroundStyle(Color.primary)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        case .technology(let result):
-            if result.framework.destination.identifier.lowercased().contains("/documentation") {
-                TechnologyNavigationLinkButton(technology: result.framework) {
-                    SearchResultTechnologyLabel(result: result)
+        Group {
+            switch row {
+            case .homepage(_, let title):
+                HomepageNavigationLinkButton {
+                    HStack(spacing: 10) {
+                        SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
+                        
+                        Text(title)
+                        Spacer()
+                    }
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-            } else if let url = URL(string: result.framework.destination.identifier) {
-                MacOSAgnosticLink(destination: url) {
-                    SearchResultTechnologyLabel(result: result)
+            case .reference(let result):
+                ReferenceNavigationLinkButton(reference: result.reference(deepLinkScheme: deepLinkScheme)) {
+                    HStack(spacing: 10) {
+                        SearchResultSymbolBadge(row: row, symbolKind: resolvedSymbolKind, size: 22)
+                        
+                        text(result.title, type: result.type)
+                    }
                 }
+                .alwaysShowClosestTechnologyGroup()
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+            case .technology(let result):
+                if result.framework.destination.identifier.lowercased().contains("/documentation") {
+                    TechnologyNavigationLinkButton(technology: result.framework) {
+                        SearchResultTechnologyLabel(result: result, row: row)
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } else if let url = URL(string: result.framework.destination.identifier) {
+                    MacOSAgnosticLink(destination: url) {
+                        SearchResultTechnologyLabel(result: result, row: row)
+                    }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
             }
         }
+        .task(id: row.id) {
+            await resolveSymbolKind()
+        }
+    }
+
+    @MainActor
+    private func resolveSymbolKind() async {
+        guard case .reference(let result) = row,
+              SearchSymbolResolver.shouldRefine(result.symbolKind)
+        else {
+            resolvedSymbolKind = nil
+            return
+        }
+
+        resolvedSymbolKind = await SearchSymbolResolver.refinedSymbolKind(for: result, documentationViewModel: documentationViewModel)
     }
 }
 
@@ -724,10 +824,14 @@ private struct SidebarSearchResultRowView: View {
 private struct SearchResultTechnologyLabel: View {
     /// Technology result payload.
     let result: SidebarSearchTechnologyResult
+    /// Search row used for the leading role badge.
+    let row: SidebarSearchResultRow
     @Environment(NavigationViewModel.self) var navigationViewModel
     
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
+            SearchResultSymbolBadge(row: row, size: 22)
+
             Text(result.title)
             
             if result.badgeReference?.beta == true {

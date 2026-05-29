@@ -82,7 +82,12 @@ struct TechnologyRootView: View {
                     return nil
                 }
                 
-                return FrameworkReferenceRow(id: identifier, reference: manager.getReference(from: reference), title: title)
+                return FrameworkReferenceRow(
+                    id: identifier,
+                    reference: manager.getReference(from: reference),
+                    title: title,
+                    referenceContext: framework?.references ?? [:]
+                )
             }
             
             guard !rows.isEmpty else { return nil }
@@ -123,12 +128,14 @@ struct TechnologyRootView: View {
                 }
             } else {
                 ProgressView("Loading")
+                    .controlSize(.small)
             }
         }
         .opacity(isLoading ? 0 : 1)
         .overlay(content: {
             if isLoading {
                 ProgressView("Loading")
+                    .controlSize(.small)
             }
         })
 #if !os(macOS)
@@ -311,6 +318,8 @@ private struct FrameworkReferenceRow: Identifiable {
     let reference: Reference
     /// Display title.
     let title: String
+    /// Neighboring references from the same DocC payload.
+    let referenceContext: [String: Reference]
 }
 
 /// Stable list shell for root framework rows.
@@ -358,7 +367,7 @@ private struct FrameworkTopicSectionView: View {
     var body: some View {
         Section {
             ForEach(section.rows) { row in
-                FrameworkListItem(reference: row.reference, title: row.title)
+                FrameworkListItem(reference: row.reference, title: row.title, referenceContext: row.referenceContext)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .id(row.id)
@@ -379,6 +388,7 @@ private struct FrameworkListItem: View {
     
     let reference: Reference
     let title: String
+    var referenceContext: [String: Reference] = [:]
     var willHideDisclosureGroups: Bool = false
     var isShowingChevron: Bool = true
     
@@ -422,7 +432,7 @@ private struct FrameworkListItem: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         } else {
-            DefaultListItem(reference: reference, title: title)
+            DefaultListItem(reference: reference, title: title, referenceContext: referenceContext)
                 .showChevron(isShowingChevron)
         }
     }
@@ -449,6 +459,7 @@ private struct DefaultListItem: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
     let reference: Reference
     let title: String
+    let referenceContext: [String: Reference]
     
     var isShowingChevron: Bool = true
     var shouldShowBackground: Bool = true
@@ -464,26 +475,34 @@ private struct DefaultListItem: View {
     
     var body: some View {
         ReferenceNavigationLinkButton(reference: reference) {
-            Label {
-                HStack {
-                    Text(title)
-                    
-                    if reference.beta == true {
-                        ArticleBadge(badge: .beta)
-                    }
-                    
-                    if reference.deprecated == true {
-                        ArticleBadge(badge: .deprecated)
-                    }
-                    
-                    if !navigationViewModel.isUsingSplitView && isShowingChevron {
-                        Spacer()
-                        ChevronView()
-                    }
+            HStack {
+                let site = reference.docCSite ?? navigationViewModel.technology?.docCSite
+                SearchResultSymbolBadge(
+                    symbolKind: SearchSymbolResolver.symbolKind(
+                        for: reference,
+                        title: title,
+                        site: site,
+                        referenceContext: referenceContext
+                    ),
+                    customIconIdentifier: customIconIdentifier(in: site),
+                    customIconSite: site,
+                    customIconArchiveIdentifier: site?.index.includedArchiveIdentifiers?.first
+                )
+                
+                Text(title)
+                
+                if reference.beta == true {
+                    ArticleBadge(badge: .beta)
                 }
-            } icon: {
-                Image(systemSymbol: reference.role?.labelIcon ?? .textDocument)
-                    .foregroundStyle(.secondary)
+                
+                if reference.deprecated == true {
+                    ArticleBadge(badge: .deprecated)
+                }
+                
+                if !navigationViewModel.isUsingSplitView && isShowingChevron {
+                    Spacer()
+                    ChevronView()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -497,6 +516,50 @@ private struct DefaultListItem: View {
         view.shouldShowBackground = bool
         
         return view
+    }
+
+    /// Resolves a custom index icon for this row's reference.
+    ///
+    /// - Parameter site: Custom DocC source containing persisted index metadata.
+    /// - Returns: Custom icon identifier when the source index contains one for this reference.
+    private func customIconIdentifier(in site: DocCSource?) -> String? {
+        guard let site else {
+            return nil
+        }
+
+        let paths = [
+            reference.url,
+            reference.identifier
+        ].compactMap(SearchSymbolResolver.normalizedDocumentationPath)
+
+        guard !paths.isEmpty else {
+            return nil
+        }
+
+        for language in site.index.interfaceLanguages.values.flatMap({ $0 }) {
+            if let icon = customIconIdentifier(in: language, matchingAny: paths) {
+                return icon
+            }
+        }
+
+        return nil
+    }
+
+    private func customIconIdentifier(in language: DocCIndex.InterfaceLanguage, matchingAny paths: [String]) -> String? {
+        if let path = language.path,
+           let normalizedPath = SearchSymbolResolver.normalizedDocumentationPath(path),
+           paths.contains(normalizedPath),
+           let icon = language.icon {
+            return icon
+        }
+
+        for child in language.children ?? [] {
+            if let icon = customIconIdentifier(in: child, matchingAny: paths) {
+                return icon
+            }
+        }
+
+        return nil
     }
     
     /// Returns a copy of this row with configurable chevron visibility.
@@ -540,7 +603,12 @@ private struct FrameworkDisclosureGroup: View {
                     return nil
                 }
                 
-                return FrameworkReferenceRow(id: identifier, reference: getReference(from: subreference), title: subtitle)
+                return FrameworkReferenceRow(
+                    id: identifier,
+                    reference: getReference(from: subreference),
+                    title: subtitle,
+                    referenceContext: framework?.references ?? [:]
+                )
             }
             
             guard !rows.isEmpty else { return nil }
@@ -566,16 +634,18 @@ private struct FrameworkDisclosureGroup: View {
                     }
                 } else if isExpanded {
                     ProgressView("Loading")
+                        .controlSize(.small)
                 }
             }
             .opacity(isLoading ? 0 : 1)
             .overlay {
                 if isLoading {
                     ProgressView("Loading")
+                        .controlSize(.small)
                 }
             }
         } label: {
-            DefaultListItem(reference: reference, title: title)
+            DefaultListItem(reference: reference, title: title, referenceContext: framework?.references ?? [:])
                 .showBackground(false)
                 .showChevron(false)
                 .background {

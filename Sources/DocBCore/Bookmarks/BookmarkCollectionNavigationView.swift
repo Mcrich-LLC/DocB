@@ -97,22 +97,30 @@ private struct SectionView: View {
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
     
+    @State private var frameworks: [String : Framework] = [:]
+    
     var body: some View {
         ForEach(collection.bookmarksWithinUrls[url] ?? []) { bookmark in
             if let reference = bookmark.asReferenceWithDocCSite(from: documentationViewModel.technologies), let text = bookmark.title ?? bookmark.identifier {
+                let siteDestinationIdentifier = reference.docCSite?.allFrameworkSections.map(\.destination).first?.identifier
+                
                 Group {
                     if technology == nil {
                         AddSourceButton(bookmark: bookmark) {
-                            Label(text: text)
+                            Label(text: text, reference: reference, referenceContext: frameworks[siteDestinationIdentifier ?? ""]?.references ?? [:])
                         }
                     } else {
                         ReferenceNavigationLinkButton(reference: reference) {
-                            Label(text: text)
+                            Label(text: text, reference: reference, referenceContext: frameworks[siteDestinationIdentifier ?? ""]?.references ?? [:])
                         }
                         .bookmarkNavigator()
                     }
                 }
                 .tintColor(Color.primary)
+                .onAppear {
+                    guard let siteDestinationIdentifier, frameworks[siteDestinationIdentifier] == nil else { return }
+                    frameworks[siteDestinationIdentifier] = documentationViewModel.framework(for: siteDestinationIdentifier)
+                }
             }
         }
     }
@@ -121,10 +129,27 @@ private struct SectionView: View {
     private struct Label: View {
         /// Row title shown for a bookmark entry.
         let text: String
+        /// The general reference that was found in the bookmark
+        let reference: Reference
+        /// Neighboring references from the same DocC payload.
+        let referenceContext: [String: Reference]
         @Environment(NavigationViewModel.self) private var navigationViewModel
         
         var body: some View {
             HStack {
+                let site = reference.docCSite ?? navigationViewModel.technology?.docCSite
+                SearchResultSymbolBadge(
+                    symbolKind: SearchSymbolResolver.symbolKind(
+                        for: reference,
+                        title: text,
+                        site: site,
+                        referenceContext: referenceContext
+                    ),
+                    customIconIdentifier: customIconIdentifier(in: site),
+                    customIconSite: site,
+                    customIconArchiveIdentifier: site?.index.includedArchiveIdentifiers?.first
+                )
+                
                 Text(text)
                 
                 if !navigationViewModel.isUsingSplitView {
@@ -132,6 +157,50 @@ private struct SectionView: View {
                     ChevronView()
                 }
             }
+        }
+        
+        /// Resolves a custom index icon for this row's reference.
+        ///
+        /// - Parameter site: Custom DocC source containing persisted index metadata.
+        /// - Returns: Custom icon identifier when the source index contains one for this reference.
+        private func customIconIdentifier(in site: DocCSource?) -> String? {
+            guard let site else {
+                return nil
+            }
+
+            let paths = [
+                reference.url,
+                reference.identifier
+            ].compactMap(SearchSymbolResolver.normalizedDocumentationPath)
+
+            guard !paths.isEmpty else {
+                return nil
+            }
+
+            for language in site.index.interfaceLanguages.values.flatMap({ $0 }) {
+                if let icon = customIconIdentifier(in: language, matchingAny: paths) {
+                    return icon
+                }
+            }
+
+            return nil
+        }
+        
+        private func customIconIdentifier(in language: DocCIndex.InterfaceLanguage, matchingAny paths: [String]) -> String? {
+            if let path = language.path,
+               let normalizedPath = SearchSymbolResolver.normalizedDocumentationPath(path),
+               paths.contains(normalizedPath),
+               let icon = language.icon {
+                return icon
+            }
+
+            for child in language.children ?? [] {
+                if let icon = customIconIdentifier(in: child, matchingAny: paths) {
+                    return icon
+                }
+            }
+
+            return nil
         }
     }
 }

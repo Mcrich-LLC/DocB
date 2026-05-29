@@ -1,10 +1,13 @@
 @testable import DocBCore
 import DocCKit
 import Foundation
-import XCTest
+import SwiftUI
+import Testing
 
-final class SidebarSearchIndexTests: XCTestCase {
-    func testDocCNestedMatchesAndModulesAreExcluded() {
+@Suite("Documentation search")
+struct SidebarSearchIndexTests {
+    @Test
+    func docCNestedMatchesAndModulesAreExcluded() {
         let site = makeDocCSource(
             title: "FreezeKit",
             children: [
@@ -12,58 +15,58 @@ final class SidebarSearchIndexTests: XCTestCase {
             ]
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let childResults = index.search("mainactor")
-        XCTAssertEqual(childResults.sections.count, 1)
-        XCTAssertEqual(childResults.sections.first?.title, "FreezeKit")
-        XCTAssertEqual(childResults.sections.first?.rows.first?.title, "MainActorSearchController")
-        
+        #expect(childResults.sections.count == 1)
+        #expect(childResults.sections.first?.title == "FreezeKit")
+        #expect(childResults.sections.first?.rows.first?.title == "MainActorSearchController")
+
         let moduleResults = index.search("freezekit")
-        XCTAssertTrue(moduleResults.isEmpty)
+        #expect(moduleResults.isEmpty)
     }
-    
-    func testAppleFrameworkTitleAndTagMatches() throws {
+
+    @Test
+    func appleFrameworkTitleAndTagMatches() throws {
         let appleTechnologies = try makeAppleTechnologies()
         let index = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
-        
+
         let titleResults = index.search("swiftui")
-        XCTAssertEqual(titleResults.sections.count, 1)
-        XCTAssertEqual(titleResults.sections.first?.title, "Apple Documentation")
-        XCTAssertTrue(titleResults.sections.first?.rows.contains { $0.title == "SwiftUI" } == true)
-        
+        #expect(titleResults.sections.count == 1)
+        #expect(titleResults.sections.first?.title == "Apple Documentation")
+        #expect(titleResults.sections.first?.rows.contains { $0.title == "SwiftUI" } == true)
+
         let tagResults = index.search("declarative")
-        XCTAssertEqual(tagResults.sections.first?.rows.first?.title, "SwiftUI")
-        
+        #expect(tagResults.sections.first?.rows.first?.title == "SwiftUI")
+
         guard case .technology(let result) = tagResults.sections.first?.rows.first else {
-            return XCTFail("Expected an Apple technology search result.")
+            Issue.record("Expected an Apple technology search result.")
+            return
         }
-        XCTAssertEqual(result.badgeReference?.beta, true)
+        #expect(result.badgeReference?.beta == true)
     }
-    
-    func testResultsAreGroupedBySource() {
+
+    @Test
+    func resultsAreGroupedBySource() {
         let firstSite = makeDocCSource(
             title: "FirstKit",
-            children: [
-                .init(title: "SharedMatchOne", path: "/documentation/first/match", type: "symbol")
-            ],
+            children: [.init(title: "SharedMatchOne", path: "/documentation/first/match", type: "symbol")],
             timestamp: 1
         )
         let secondSite = makeDocCSource(
             title: "SecondKit",
-            children: [
-                .init(title: "SharedMatchTwo", path: "/documentation/second/match", type: "symbol")
-            ],
+            children: [.init(title: "SharedMatchTwo", path: "/documentation/second/match", type: "symbol")],
             timestamp: 2
         )
         let index = SidebarSearchIndex(technologies: [.docC(firstSite), .docC(secondSite)])
-        
+
         let results = index.search("sharedmatch")
-        
-        XCTAssertEqual(results.sections.map(\.title), ["FirstKit", "SecondKit"])
-        XCTAssertEqual(results.sections.map { $0.rows.count }, [1, 1])
+
+        #expect(results.sections.map(\.title) == ["FirstKit", "SecondKit"])
+        #expect(results.sections.map { $0.rows.count } == [1, 1])
     }
-    
-    func testResultLimitReportsTruncation() {
+
+    @Test
+    func resultLimitReportsTruncation() {
         let children = (0..<5).map { number in
             DocCIndex.InterfaceLanguage(
                 title: "Item \(number)",
@@ -73,15 +76,16 @@ final class SidebarSearchIndexTests: XCTestCase {
         }
         let site = makeDocCSource(title: "LimitKit", children: children)
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let results = index.search("item", limit: 3)
-        
-        XCTAssertEqual(results.totalMatches, 5)
-        XCTAssertTrue(results.isTruncated)
-        XCTAssertEqual(results.sections.first?.rows.count, 3)
+
+        #expect(results.totalMatches == 5)
+        #expect(results.isTruncated)
+        #expect(results.sections.first?.rows.count == 3)
     }
-    
-    func testDocCMultiLanguageDuplicatePathsHaveUniqueIDs() {
+
+    @Test
+    func docCMultiLanguageDuplicatePathsHaveUniqueIDs() {
         let sharedPath = "/documentation/multikit/shared"
         let swiftNode = DocCIndex.InterfaceLanguage(title: "Swift Shared Symbol", path: sharedPath, type: "symbol")
         let objcNode = DocCIndex.InterfaceLanguage(title: "Objective-C Shared Symbol", path: sharedPath, type: "symbol")
@@ -97,15 +101,16 @@ final class SidebarSearchIndexTests: XCTestCase {
             ])
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
+
         let results = index.search("shared symbol")
         let rows = results.sections.first?.rows ?? []
-        
-        XCTAssertEqual(rows.map(\.title), ["Objective-C Shared Symbol", "Swift Shared Symbol"])
-        XCTAssertEqual(Set(rows.map(\.id)).count, rows.count)
+
+        #expect(rows.map(\.title) == ["Objective-C Shared Symbol", "Swift Shared Symbol"])
+        #expect(Set(rows.map(\.id)).count == rows.count)
     }
-    
-    func testDocCSearchIncludesHistoricalOccIndexKey() {
+
+    @Test
+    func docCSearchIncludesHistoricalOccIndexKey() {
         let site = makeDocCSource(
             urlSuffix: "legacykit",
             index: DocCIndex(interfaceLanguages: [
@@ -122,12 +127,205 @@ final class SidebarSearchIndexTests: XCTestCase {
             ])
         )
         let index = SidebarSearchIndex(technologies: [.docC(site)])
-        
-        XCTAssertEqual(index.search("historical").sections.first?.rows.first?.title, "Historical Objective-C Symbol")
+
+        #expect(index.search("historical").sections.first?.rows.first?.title == "Historical Objective-C Symbol")
     }
-    
+
+    @Test
+    func docCSearchClassifiesXcodeStyleSymbolKinds() {
+        let site = makeDocCSource(
+            title: "SymbolKit",
+            children: [
+                .init(title: "UIViewController", path: "/documentation/symbolkit/uiviewcontroller", type: "symbol"),
+                .init(title: "StringProtocol", path: "/documentation/symbolkit/stringprotocol", type: "symbol"),
+                .init(title: "WorldRecenterPhase", path: "/documentation/symbolkit/worldrecenterphase", type: "symbol"),
+                .init(title: "PurchasesDiagnostics.SDKHealthError", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror", type: "enum"),
+                .init(title: "init(horizontalSizeClass:)", path: "/documentation/symbolkit/uiviewcontroller/init(horizontalsizeclass:)", type: "symbol"),
+                .init(title: "case invalidAPIKey", path: "/documentation/symbolkit/purchasesdiagnostics/sdkhealtherror/invalidapikey", type: "case"),
+                .init(title: "horizontalSizeClass", path: "/documentation/symbolkit/uiviewcontroller/horizontalsizeclass", type: "symbol"),
+                .init(title: "static func != (Self, Self) -> Bool", path: "/documentation/symbolkit/value/!=(_:_:)", type: "op"),
+                .init(title: "subscript(String) -> Offering?", path: "/documentation/symbolkit/offerings/subscript(_:)", type: "subscript"),
+                .init(title: "Content", path: "/documentation/symbolkit/rawdatacontainer/content", type: "associatedtype"),
+                .init(title: "RevenueCat 4.x to 5.x Migration Guide", path: "/documentation/symbolkit/v5_api_migration_guide", type: "article"),
+                .init(title: "Foundation", path: "/documentation/symbolkit/foundation", type: "extension")
+            ]
+        )
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        func symbolKind(title: String) -> SidebarSearchSymbolKind? {
+            guard case .reference(let reference) = index.search(title).flattenedRows.first(where: { $0.title == title }) else {
+                return nil
+            }
+
+            return reference.symbolKind
+        }
+
+        #expect(symbolKind(title: "UIViewController") == .classSymbol)
+        #expect(symbolKind(title: "StringProtocol") == .protocolSymbol)
+        #expect(symbolKind(title: "WorldRecenterPhase") == .enumeration)
+        #expect(symbolKind(title: "PurchasesDiagnostics.SDKHealthError") == .enumeration)
+        #expect(symbolKind(title: "init(horizontalSizeClass:)") == .initializer)
+        #expect(symbolKind(title: "case invalidAPIKey") == .enumerationCase)
+        #expect(symbolKind(title: "horizontalSizeClass") == .property)
+        #expect(symbolKind(title: "static func != (Self, Self) -> Bool") == .function)
+        #expect(symbolKind(title: "subscript(String) -> Offering?") == .method)
+        #expect(symbolKind(title: "Content") == .typeAlias)
+        #expect(symbolKind(title: "RevenueCat 4.x to 5.x Migration Guide") == .article)
+        #expect(symbolKind(title: "Foundation") == .structure)
+    }
+
+    @Test
+    func docCSearchPreservesCustomIndexIcons() {
+        let indexPayload = DocCIndex(
+            interfaceLanguages: [
+                "swift": [
+                    .init(
+                        title: "WWDC Notes",
+                        path: "/documentation/wwdcnotes",
+                        type: "module",
+                        icon: "WWDCNotes.png",
+                        children: [
+                            .init(
+                                title: "WWDC25",
+                                path: "/documentation/wwdcnotes/wwdc25",
+                                type: "symbol",
+                                icon: "WWDC25-Icon.png"
+                            )
+                        ]
+                    )
+                ]
+            ],
+            includedArchiveIdentifiers: ["WWDCNotes"]
+        )
+        let site = makeDocCSource(urlSuffix: "wwdcnotes", index: indexPayload)
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        guard case .reference(let reference) = index.search("wwdc25").flattenedRows.first else {
+            Issue.record("Expected a DocC reference search result.")
+            return
+        }
+
+        #expect(reference.customIconIdentifier == "WWDC25-Icon.png")
+        #expect(reference.site.index.includedArchiveIdentifiers == ["WWDCNotes"])
+        #expect(reference.symbolKind == .article)
+    }
+
+    @Test
+    func articleRoleHeadingOverridesFallbackSymbolKind() {
+        #expect(SidebarSearchSymbolKind(roleHeading: "Enumeration") == .enumeration)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Structure") == .structure)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Initializer") == .initializer)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Instance Property") == .property)
+        #expect(SidebarSearchSymbolKind(roleHeading: "Type Alias") == .typeAlias)
+    }
+
+    @Test
+    func frameworkReferenceFragmentsClassifySymbolKinds() throws {
+        let data = """
+        {
+          "title": "SDKHealthStatus",
+          "identifier": "doc://com.example/documentation/example/sdkhealthstatus",
+          "type": "symbol",
+          "role": "symbol",
+          "fragments": [
+            { "text": "enum", "kind": "keyword" },
+            { "text": "SDKHealthStatus", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let reference = try JSONDecoder().decode(Reference.self, from: data)
+
+        #expect(SidebarSearchSymbolKind(reference: reference, title: "SDKHealthStatus") == .enumeration)
+    }
+
+    @Test
+    func sourceIndexClassifiesReferenceBeforeReferenceFallbacks() throws {
+        let site = makeDocCSource(
+            title: "RevenueCat",
+            children: [
+                .init(
+                    title: "PurchasesDiagnostics.SDKHealthError",
+                    path: "/documentation/revenuecat/purchasesdiagnostics/sdkhealtherror",
+                    type: "enum"
+                )
+            ]
+        )
+        let data = """
+        {
+          "title": "PurchasesDiagnostics.SDKHealthError",
+          "identifier": "doc://com.example/documentation/revenuecat/purchasesdiagnostics/sdkhealtherror",
+          "type": "symbol",
+          "role": "symbol"
+        }
+        """.data(using: .utf8)!
+        var reference = try JSONDecoder().decode(Reference.self, from: data)
+        reference.docCSite = site
+
+        #expect(SearchSymbolResolver.symbolKind(for: reference, title: "PurchasesDiagnostics.SDKHealthError", site: site) == .enumeration)
+    }
+
+    @Test
+    func appleReferenceContextClassifiesBareFunctionSymbols() throws {
+        let bareData = """
+        {
+          "title": "NSApplicationMain",
+          "identifier": "doc://com.apple.appkit/documentation/AppKit/NSApplicationMain",
+          "url": "/documentation/appkit/nsapplicationmain",
+          "type": "topic",
+          "role": "symbol",
+          "fragments": [
+            { "text": "NSApplicationMain", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let overloadData = """
+        {
+          "title": "NSApplicationMain(_:_:)",
+          "identifier": "doc://com.apple.appkit/documentation/AppKit/NSApplicationMain(_:_:)",
+          "url": "/documentation/appkit/nsapplicationmain(_:_:)",
+          "type": "topic",
+          "role": "symbol",
+          "fragments": [
+            { "text": "func", "kind": "keyword" },
+            { "text": " ", "kind": "text" },
+            { "text": "NSApplicationMain", "kind": "identifier" }
+          ]
+        }
+        """.data(using: .utf8)!
+        let bareReference = try JSONDecoder().decode(Reference.self, from: bareData)
+        let overloadReference = try JSONDecoder().decode(Reference.self, from: overloadData)
+
+        let symbolKind = SearchSymbolResolver.symbolKind(
+            for: bareReference,
+            title: "NSApplicationMain",
+            site: nil,
+            referenceContext: [overloadReference.identifier: overloadReference]
+        )
+
+        #expect(symbolKind == .function)
+    }
+
+    @Test
     @MainActor
-    func testStoreCancelsStaleQueries() async {
+    func emptyQueryClearsResults() async {
+        let store = SidebarSearchStore()
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(makeDocCSource(
+            title: "EmptyKit",
+            children: [.init(title: "Clearable Result", path: "/documentation/empty/clearable", type: "symbol")]
+        ))]))
+
+        store.updateSearchText("clearable", debounce: .zero)
+        await waitForSearch(store)
+        #expect(!store.results.isEmpty)
+
+        store.updateSearchText("", debounce: .zero)
+        #expect(store.results.isEmpty)
+        #expect(!store.isSearching)
+    }
+
+    @Test
+    @MainActor
+    func storeCancelsStaleQueries() async {
         let site = makeDocCSource(
             title: "AsyncKit",
             children: [
@@ -137,64 +335,61 @@ final class SidebarSearchIndexTests: XCTestCase {
         )
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
-        
+
         store.updateSearchText("first", debounce: .milliseconds(200))
         store.updateSearchText("second", debounce: .zero)
         await waitForSearch(store)
-        
-        XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["Second Result"])
+
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Second Result"])
     }
-    
+
+    @Test
     @MainActor
-    func testRepeatedQueriesReuseInstalledIndex() async {
+    func repeatedQueriesReuseInstalledIndex() async {
         let site = makeDocCSource(
             title: "ReuseKit",
-            children: [
-                .init(title: "Reusable Search Result", path: "/documentation/reuse/result", type: "symbol")
-            ]
+            children: [.init(title: "Reusable Search Result", path: "/documentation/reuse/result", type: "symbol")]
         )
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
         let buildCount = store.indexBuildCount
-        
+
         store.updateSearchText("reusable", debounce: .zero)
         await waitForSearch(store)
         store.updateSearchText("search", debounce: .zero)
         await waitForSearch(store)
-        
-        XCTAssertEqual(store.indexBuildCount, buildCount)
-        XCTAssertEqual(store.results.sections.first?.rows.first?.title, "Reusable Search Result")
+
+        #expect(store.indexBuildCount == buildCount)
+        #expect(store.results.sections.first?.rows.first?.title == "Reusable Search Result")
     }
-    
+
+    @Test
     @MainActor
-    func testInstallIndexInvalidatesPendingQueryAndRerunsCurrentSearch() async {
+    func installIndexInvalidatesPendingQueryAndRerunsCurrentSearch() async {
         let firstSite = makeDocCSource(
             title: "FirstKit",
-            children: [
-                .init(title: "Old Result", path: "/documentation/install/old", type: "symbol")
-            ]
+            children: [.init(title: "Old Result", path: "/documentation/install/old", type: "symbol")]
         )
         let secondSite = makeDocCSource(
             title: "SecondKit",
-            children: [
-                .init(title: "New Result", path: "/documentation/install/new", type: "symbol")
-            ]
+            children: [.init(title: "New Result", path: "/documentation/install/new", type: "symbol")]
         )
         let store = SidebarSearchStore()
         store.installIndex(SidebarSearchIndex(technologies: [.docC(firstSite)]))
-        
+
         store.updateSearchText("result", debounce: .milliseconds(200))
-        XCTAssertTrue(store.isSearching)
-        
+        #expect(store.isSearching)
+
         store.installIndex(SidebarSearchIndex(technologies: [.docC(secondSite)]))
         await waitForSearch(store)
-        
-        XCTAssertFalse(store.isRebuildingIndex)
-        XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["New Result"])
+
+        #expect(!store.isRebuildingIndex)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["New Result"])
     }
-    
+
+    @Test
     @MainActor
-    func testRebuildIndexKeepsAllAvailableLanguageBuckets() async {
+    func rebuildIndexKeepsCurrentQuery() async {
         let site = makeDocCSource(
             urlSuffix: "switchkit",
             index: DocCIndex(interfaceLanguages: [
@@ -203,9 +398,7 @@ final class SidebarSearchIndexTests: XCTestCase {
                         title: "SwitchKit",
                         path: "/documentation/switchkit",
                         type: "module",
-                        children: [
-                            .init(title: "Swift Switch Result", path: "/documentation/switchkit/result", type: "symbol")
-                        ]
+                        children: [.init(title: "Swift Switch Result", path: "/documentation/switchkit/result", type: "symbol")]
                     )
                 ],
                 "objc": [
@@ -213,9 +406,7 @@ final class SidebarSearchIndexTests: XCTestCase {
                         title: "SwitchKit",
                         path: "/documentation/switchkit",
                         type: "module",
-                        children: [
-                            .init(title: "Objective-C Switch Result", path: "/documentation/switchkit/result", type: "symbol")
-                        ]
+                        children: [.init(title: "Objective-C Switch Result", path: "/documentation/switchkit/result", type: "symbol")]
                     )
                 ]
             ])
@@ -224,79 +415,218 @@ final class SidebarSearchIndexTests: XCTestCase {
         store.updateSearchText("switch result", debounce: .zero)
         store.rebuildIndex(technologies: [.docC(site)], searchText: "switch result")
         await waitForSearch(store)
-        XCTAssertEqual(store.results.sections.first?.rows.map(\.title), ["Objective-C Switch Result", "Swift Switch Result"])
+
+        #expect(store.rawSearchText == "switch result")
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Objective-C Switch Result", "Swift Switch Result"])
     }
-    
-    private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {
-        let index = DocCIndex(interfaceLanguages: [
-            "swift": [
-                .init(title: title, path: "/documentation/\(title.lowercased())", type: "module", children: children)
+
+    @Test
+    @MainActor
+    func coordinatorSelectionTracksVisibleRows() async {
+        let site = makeDocCSource(
+            title: "PaletteKit",
+            children: [
+                .init(title: "Palette First", path: "/documentation/palette/first", type: "symbol"),
+                .init(title: "Palette Second", path: "/documentation/palette/second", type: "symbol")
             ]
-        ])
-        
-        return DocCSource(
-            timestamp: Date(timeIntervalSince1970: timestamp),
-            url: URL(string: "https://example.com/\(title.lowercased())")!,
-            index: index
         )
+        let coordinator = OpenQuicklySearchCoordinator()
+        coordinator.searchStore.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
+        coordinator.updateQuery("palette", debounce: .zero)
+        await waitForSearch(coordinator.searchStore)
+
+        coordinator.selectDefaultResultIfNeeded()
+        #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.first?.id)
+
+        coordinator.moveSelection(by: 1)
+        #expect(coordinator.selectedRowID == coordinator.searchStore.results.sections.first?.rows.last?.id)
     }
-    
-    private func makeDocCSource(urlSuffix: String, index: DocCIndex, timestamp: TimeInterval = 0) -> DocCSource {
-        DocCSource(
-            timestamp: Date(timeIntervalSince1970: timestamp),
-            url: URL(string: "https://example.com/\(urlSuffix)")!,
-            index: index
+
+    @Test
+    @MainActor
+    func coordinatorDefersSelectedResultWhenNoWindowIsActive() async {
+        let site = makeDocCSource(
+            title: "DeferredKit",
+            children: [
+                .init(title: "Deferred Symbol", path: "/documentation/deferred/symbol", type: "symbol")
+            ]
         )
+        let coordinator = OpenQuicklySearchCoordinator()
+        coordinator.searchStore.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
+        coordinator.updateQuery("deferred", debounce: .zero)
+        await waitForSearch(coordinator.searchStore)
+        coordinator.selectDefaultResultIfNeeded()
+
+        var deferredRow: SidebarSearchResultRow?
+        coordinator.openResultWithoutActiveWindow = { row in
+            deferredRow = row
+        }
+
+        let opened = coordinator.openSelectedResult(
+            documentationViewModel: DocumentationViewModel(),
+            openURL: OpenURLAction { _ in .handled }
+        )
+
+        #expect(opened)
+        #expect(deferredRow?.id == coordinator.searchStore.results.flattenedRows.first?.id)
     }
-    
-    private func makeAppleTechnologies() throws -> AppleTechnologies {
-        let data = Data("""
+
+    @Test
+    @MainActor
+    func coordinatorOpensHomepageTechnologyAndReferenceRows() throws {
+        let appleTechnologies = try makeAppleTechnologies()
+        let navigationViewModel = NavigationViewModel()
+        let coordinator = OpenQuicklySearchCoordinator()
+        let documentationViewModel = DocumentationViewModel()
+        let openURL = OpenURLAction { _ in .handled }
+        coordinator.registerActiveNavigationViewModel(navigationViewModel)
+
+        #expect(coordinator.open(.homepage(id: "home", title: "Discover"), documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(navigationViewModel.path.last == .homepage)
+
+        let technologyRow = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
+            .search("swiftui")
+            .sections
+            .first?
+            .rows
+            .first
+        guard let technologyRow else {
+            Issue.record("Expected a technology row.")
+            return
+        }
+
+        #expect(coordinator.open(technologyRow, documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(navigationViewModel.technology?.title == "SwiftUI")
+        #expect(navigationViewModel.reference?.title == "SwiftUI")
+
+        let site = makeDocCSource(
+            urlSuffix: "palettekit",
+            index: DocCIndex(interfaceLanguages: [
+                "swift": [
+                    .init(
+                        title: "PaletteKit",
+                        path: "/documentation/palettekit",
+                        type: "module",
+                        children: [
+                            .init(
+                                title: "PaletteGroup",
+                                path: "/documentation/palettekit/palettegroup",
+                                type: "collection",
+                                children: [
+                                    .init(
+                                        title: "PaletteSymbol",
+                                        path: "/documentation/palettekit/palettegroup/palettesymbol",
+                                        type: "symbol"
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                ]
+            ])
+        )
+        let referenceRow = SidebarSearchIndex(technologies: [.docC(site)])
+            .search("palettesymbol")
+            .sections
+            .first?
+            .rows
+            .first
+        guard let referenceRow else {
+            Issue.record("Expected a reference row.")
+            return
+        }
+
+        #expect(coordinator.open(referenceRow, documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(navigationViewModel.technology?.title == "PaletteGroup")
+        #expect(navigationViewModel.reference?.title == "PaletteSymbol")
+    }
+
+    @Test
+    @MainActor
+    func appSettingsStoresCapturedSearchShortcut() {
+        let settings = AppSettings()
+
+        settings.setSearchKeyboardShortcut(key: "k", modifiers: [.command, .option])
+
+        #expect(settings.searchKeyboardShortcutKey == "k")
+        #expect(settings.searchKeyboardShortcutUsesCommand)
+        #expect(settings.searchKeyboardShortcutUsesOption)
+        #expect(!settings.searchKeyboardShortcutUsesShift)
+        #expect(!settings.searchKeyboardShortcutUsesControl)
+        #expect(settings.searchKeyboardShortcutIsGlobalEnabled)
+        #expect(settings.searchKeyboardShortcutDescription == "⌥⌘K")
+    }
+}
+
+private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {
+    let index = DocCIndex(interfaceLanguages: [
+        "swift": [
+            .init(title: title, path: "/documentation/\(title.lowercased())", type: "module", children: children)
+        ]
+    ])
+
+    return DocCSource(
+        timestamp: Date(timeIntervalSince1970: timestamp),
+        url: URL(string: "https://example.com/\(title.lowercased())")!,
+        index: index
+    )
+}
+
+private func makeDocCSource(urlSuffix: String, index: DocCIndex, timestamp: TimeInterval = 0) -> DocCSource {
+    DocCSource(
+        timestamp: Date(timeIntervalSince1970: timestamp),
+        url: URL(string: "https://example.com/\(urlSuffix)")!,
+        index: index
+    )
+}
+
+private func makeAppleTechnologies() throws -> AppleTechnologies {
+    let data = Data("""
+    {
+      "sections": [
         {
-          "sections": [
+          "kind": "technologies",
+          "groups": [
             {
-              "kind": "technologies",
-              "groups": [
+              "name": "UI",
+              "technologies": [
                 {
-                  "name": "UI",
-                  "technologies": [
-                    {
-                      "languages": ["swift"],
-                      "title": "SwiftUI",
-                      "tags": ["declarative", "interface"],
-                      "destination": {
-                        "type": "topic",
-                        "isActive": true,
-                        "identifier": "doc://com.apple.documentation/documentation/SwiftUI"
-                      },
-                      "legalNotices": null
-                    }
-                  ]
+                  "languages": ["swift"],
+                  "title": "SwiftUI",
+                  "tags": ["declarative", "interface"],
+                  "destination": {
+                    "type": "topic",
+                    "isActive": true,
+                    "identifier": "doc://com.apple.documentation/documentation/SwiftUI"
+                  },
+                  "legalNotices": null
                 }
               ]
             }
-          ],
-          "references": {
-            "doc://com.apple.documentation/documentation/SwiftUI": {
-              "title": "SwiftUI",
-              "identifier": "doc://com.apple.documentation/documentation/SwiftUI",
-              "type": "topic",
-              "beta": true
-            }
-          }
+          ]
         }
-        """.utf8)
-        
-        return try JSONDecoder().decode(AppleTechnologies.self, from: data)
+      ],
+      "references": {
+        "doc://com.apple.documentation/documentation/SwiftUI": {
+          "title": "SwiftUI",
+          "identifier": "doc://com.apple.documentation/documentation/SwiftUI",
+          "type": "topic",
+          "beta": true
+        }
+      }
     }
-    
-    @MainActor
-    private func waitForSearch(_ store: SidebarSearchStore) async {
-        for _ in 0..<20 {
-            if !store.isSearching && !store.isRebuildingIndex {
-                return
-            }
-            
-            try? await Task.sleep(for: .milliseconds(20))
+    """.utf8)
+
+    return try JSONDecoder().decode(AppleTechnologies.self, from: data)
+}
+
+@MainActor
+private func waitForSearch(_ store: SidebarSearchStore) async {
+    for _ in 0..<20 {
+        if !store.isSearching && !store.isRebuildingIndex {
+            return
         }
+
+        try? await Task.sleep(for: .milliseconds(20))
     }
 }

@@ -29,6 +29,17 @@ struct DocBApp: App {
     @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
     @State var appSettings: AppSettings
+    /// Shared macOS Open Quickly coordinator.
+    @State var openQuicklySearchCoordinator = OpenQuicklySearchCoordinator()
+    #if os(macOS)
+    /// AppKit owner for the floating Open Quickly panel.
+    @State private var openQuicklyPanelController = OpenQuicklyPanelController()
+    /// Registers Search Documentation as a macOS-wide hot key.
+    @State private var globalSearchHotKeyController = GlobalSearchHotKeyController()
+    #elseif os(iOS)
+    /// Controls iPadOS Search Documentation overlay presentation.
+    @State private var isSearchPalettePresented = false
+    #endif
     /// Controls add-source sheet presentation on non-macOS platforms.
     @State private var showAddSource = false
     @Environment(\.openWindow) var openWindow
@@ -57,7 +68,27 @@ struct DocBApp: App {
     
     var body: some Scene {
         WindowGroup(id: WindowTypes.main, for: URL.self) { url in
-            MainView(url: url.wrappedValue, showAddSource: $showAddSource)
+            #if os(macOS)
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource,
+                globalSearchHotKeyController: globalSearchHotKeyController,
+                presentGlobalSearchPalette: {
+                    showOpenQuicklyPalette()
+                }
+            )
+            #elseif os(iOS)
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource,
+                isSearchPalettePresented: $isSearchPalettePresented
+            )
+            #else
+            MainView(
+                url: url.wrappedValue,
+                showAddSource: $showAddSource
+            )
+            #endif
         } defaultValue: {
             URL(string: "doc://")!
         }
@@ -65,6 +96,8 @@ struct DocBApp: App {
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
+        .environment(openQuicklySearchCoordinator)
+        .presentSearchPalette(presentSearchPalette)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Window", action: { openWindow(id: WindowTypes.main) })
@@ -72,6 +105,22 @@ struct DocBApp: App {
                 Button("Add Source", action: showAddDocumentationView)
                     .keyboardShortcut(.init("n"), modifiers: [.command, .shift])
             }
+            #if os(macOS)
+            CommandGroup(after: .sidebar) {
+                Button("Search Documentation", action: presentSearchPalette)
+                    .keyboardShortcut(appSettings.searchKeyboardShortcut)
+            }
+            #elseif os(iOS)
+            CommandGroup(after: .sidebar) {
+                Button("Search Documentation", action: presentSearchPalette)
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+            }
+            #else
+            CommandGroup(after: .sidebar) {
+                Button("Search Documentation", action: presentSearchPalette)
+                    .keyboardShortcut(.init("o"), modifiers: [.command, .shift])
+            }
+            #endif
         }
         
         #if os(macOS)
@@ -89,6 +138,20 @@ struct DocBApp: App {
         .environment(documentationViewModel)
         .environment(appSettings)
         .environment(cloudSyncEngine)
+        .environment(openQuicklySearchCoordinator)
+        #endif
+
+        #if os(visionOS)
+        WindowGroup("Search Documentation", id: WindowTypes.searchPalette) {
+            SearchPaletteWindow()
+                .modelContainer(docCSiteModelContainer)
+                .environment(documentationViewModel)
+                .environment(appSettings)
+                .environment(cloudSyncEngine)
+                .environment(openQuicklySearchCoordinator)
+        }
+        .defaultSize(width: 680, height: 231)
+        .windowResizability(.contentSize)
         #endif
     }
     
@@ -111,6 +174,99 @@ struct DocBApp: App {
         showAddSource = true
         #endif
     }
+    
+    #if os(macOS)
+    /// Presents the floating Open Quickly panel.
+    private func showOpenQuicklyPalette() {
+        openQuicklySearchCoordinator.openResultWithoutActiveWindow = { row in
+            openMainWindowAndOpen(row)
+        }
+        openQuicklyPanelController.show(
+            modelContainer: docCSiteModelContainer,
+            documentationViewModel: documentationViewModel,
+            appSettings: appSettings,
+            cloudSyncEngine: cloudSyncEngine,
+            searchCoordinator: openQuicklySearchCoordinator
+        )
+    }
+
+    /// Presents Search Documentation without creating a document window up front.
+    @MainActor
+    private func presentMacSearchPalette() {
+        showOpenQuicklyPalette()
+    }
+
+    /// Opens a main document window and activates the selected search result once navigation is ready.
+    @MainActor
+    private func openMainWindowAndOpen(_ row: SidebarSearchResultRow) {
+        openWindow(id: WindowTypes.main)
+        NSApplication.shared.activate()
+
+        Task { @MainActor in
+            for _ in 0..<20 {
+                if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
+                    openQuicklySearchCoordinator.open(
+                        row,
+                        documentationViewModel: documentationViewModel,
+                        openURL: OpenURLAction { url in
+                            NSWorkspace.shared.open(url)
+                            return .handled
+                        }
+                    )
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+        }
+    }
+    #endif
+
+    #if os(visionOS)
+    /// Presents the Search Documentation window without creating a document window up front.
+    @MainActor
+    private func presentVisionSearchPalette() {
+        openQuicklySearchCoordinator.openResultWithoutActiveWindow = { row in
+            openMainWindowAndOpen(row)
+        }
+        openWindow(id: WindowTypes.searchPalette)
+    }
+
+    /// Opens a main document window and activates the selected search result once navigation is ready.
+    @MainActor
+    private func openMainWindowAndOpen(_ row: SidebarSearchResultRow) {
+        openWindow(id: WindowTypes.main)
+
+        Task { @MainActor in
+            for _ in 0..<20 {
+                if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
+                    openQuicklySearchCoordinator.open(
+                        row,
+                        documentationViewModel: documentationViewModel,
+                        openURL: OpenURLAction { url in
+                            .systemAction(url)
+                        }
+                    )
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+        }
+    }
+    #endif
+
+    /// Presents the platform-specific Search Documentation palette.
+    @MainActor
+    private func presentSearchPalette() {
+        #if os(macOS)
+        presentMacSearchPalette()
+        #elseif os(iOS)
+        isSearchPalettePresented = true
+        #elseif os(visionOS)
+        presentVisionSearchPalette()
+        #endif
+    }
 }
 
 /// Root scene container that switches between onboarding and main content flows.
@@ -121,9 +277,21 @@ private struct MainView: View {
     let url: URL
     /// Binding controlling add-source presentation state.
     @Binding var showAddSource: Bool
+    #if os(macOS)
+    /// Registers the macOS global Search Documentation shortcut while the app is running.
+    let globalSearchHotKeyController: GlobalSearchHotKeyController
+    /// Presents the floating search palette without activating the rest of DocB.
+    let presentGlobalSearchPalette: @MainActor @Sendable () -> Void
+    #endif
+    #if os(iOS)
+    /// Binding controlling the iPadOS Search Documentation overlay.
+    @Binding var isSearchPalettePresented: Bool
+    #endif
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
+    @Environment(AppSettings.self) private var appSettings
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
+    @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.appearsActive) var appearsActive
     @Environment(\.scenePhase) private var scenePhase
     /// Persisted custom DocC sites backing loaded technologies.
@@ -147,8 +315,16 @@ private struct MainView: View {
         VStack {
             switch hasOnboarded {
             case true:
+                #if os(macOS)
                 ContentView(url: url)
                     .backForward(isBack: false)
+                #elseif os(iOS)
+                ContentView(url: url, isSearchPalettePresented: $isSearchPalettePresented)
+                    .backForward(isBack: false)
+                #else
+                ContentView(url: url)
+                    .backForward(isBack: false)
+                #endif
             case false:
                 MainOnboardingView()
                     .backForward(isBack: false)
@@ -158,6 +334,12 @@ private struct MainView: View {
             }
         }
         .animation(.default, value: hasOnboarded)
+        #if os(macOS)
+        .onAppear(perform: refreshGlobalSearchHotKey)
+        .onChange(of: searchKeyboardShortcutRegistrationToken) {
+            refreshGlobalSearchHotKey()
+        }
+        #endif
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
@@ -209,6 +391,25 @@ private struct MainView: View {
             documentationViewModel.removeTechnologyFromMemory(id: value.id, url: value.url)
         }
     }
+
+    #if os(macOS)
+    private var searchKeyboardShortcutRegistrationToken: String {
+        [
+            appSettings.searchKeyboardShortcutKey,
+            appSettings.searchKeyboardShortcutUsesCommand.description,
+            appSettings.searchKeyboardShortcutUsesShift.description,
+            appSettings.searchKeyboardShortcutUsesOption.description,
+            appSettings.searchKeyboardShortcutUsesControl.description,
+            appSettings.searchKeyboardShortcutIsGlobalEnabled.description
+        ].joined(separator: ":")
+    }
+
+    private func refreshGlobalSearchHotKey() {
+        globalSearchHotKeyController.register(appSettings: appSettings) {
+            presentGlobalSearchPalette()
+        }
+    }
+    #endif
 }
 
 // MARK: – App Delegates
@@ -239,6 +440,116 @@ private final class DocBMacAppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             userInfo: userInfo
         )
+    }
+}
+
+/// Owns DocB's AppKit-backed Open Quickly panel.
+@MainActor
+private final class OpenQuicklyPanelController {
+    private static let frameAutosaveName = "OpenQuicklyPanelFrame"
+    
+    private var panel: OpenQuicklyPanel?
+    
+    /// Shows the Open Quickly panel, creating it when needed.
+    ///
+    /// - Parameters:
+    ///   - modelContainer: SwiftData container for DocB content.
+    ///   - documentationViewModel: Shared documentation model.
+    ///   - appSettings: Shared app settings.
+    ///   - cloudSyncEngine: Shared CloudKit sync engine.
+    ///   - searchCoordinator: Shared search coordinator.
+    func show(
+        modelContainer: ModelContainer,
+        documentationViewModel: DocumentationViewModel,
+        appSettings: AppSettings,
+        cloudSyncEngine: DocBCloudSyncEngine,
+        searchCoordinator: OpenQuicklySearchCoordinator
+    ) {
+        if panel == nil {
+            panel = makePanel()
+        }
+        
+        guard let panel else { return }
+        
+        let rootView = OpenQuicklySearchPalette()
+            .modelContainer(modelContainer)
+            .environment(documentationViewModel)
+            .environment(appSettings)
+            .environment(cloudSyncEngine)
+            .environment(searchCoordinator)
+            .customDismiss { [weak self] in
+                self?.close()
+            }
+        
+        panel.contentViewController = NSHostingController(rootView: rootView)
+        if !panel.hasRestoredFrame {
+            panel.center(over: Self.activeDocumentationWindow)
+            panel.hasRestoredFrame = true
+        }
+        panel.orderFrontRegardless()
+        panel.makeKeyAndOrderFront(nil)
+    }
+    
+    private func close() {
+        panel?.orderOut(nil)
+    }
+    
+    private func makePanel() -> OpenQuicklyPanel {
+        let panel = OpenQuicklyPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 462, height: 50),
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.animationBehavior = .none
+        panel.backgroundColor = .clear
+        panel.collectionBehavior = [.fullScreenAuxiliary, .transient]
+        panel.hasShadow = true
+        panel.isMovableByWindowBackground = true
+        panel.isOpaque = false
+        panel.level = .floating
+        panel.isReleasedWhenClosed = false
+        panel.hasRestoredFrame = panel.setFrameUsingName(Self.frameAutosaveName)
+        panel.setFrameAutosaveName(Self.frameAutosaveName)
+        
+        return panel
+    }
+    
+    private static var activeDocumentationWindow: NSWindow? {
+        NSApp.keyWindow.flatMap { window in
+            window is OpenQuicklyPanel ? nil : window
+        } ?? NSApp.mainWindow.flatMap { window in
+            window is OpenQuicklyPanel ? nil : window
+        } ?? NSApp.windows.first { window in
+            window.isVisible && !(window is OpenQuicklyPanel)
+        }
+    }
+}
+
+private final class OpenQuicklyPanel: NSPanel {
+    var hasRestoredFrame = false
+    
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+    
+    override func resignKey() {
+        super.resignKey()
+        orderOut(nil)
+    }
+    
+    override func cancelOperation(_ sender: Any?) {
+        orderOut(sender)
+    }
+    
+    func center(over parentWindow: NSWindow?) {
+        let panelSize = frame.size
+        let parentFrame = parentWindow?.frame ?? NSScreen.main?.visibleFrame ?? .zero
+        let origin = NSPoint(
+            x: parentFrame.midX - panelSize.width / 2,
+            y: parentFrame.maxY - panelSize.height - 120
+        )
+        
+        setFrameOrigin(origin)
     }
 }
 #endif

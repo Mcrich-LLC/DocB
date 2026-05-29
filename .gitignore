@@ -4,3 +4,4 @@ fastlane/report.xml
 /docs
 /DocBCore/.build
 xcuserdata
+.DS_Store

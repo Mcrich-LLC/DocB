@@ -86,10 +86,10 @@ public struct AddTechnologyView: View {
             baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-testing/main")!
         ),
         SuggestedTechnology(
-            title: "Swift-Syntax",
-            subtitle: "A library for working with Swift code.",
+            title: "Nuke",
+            subtitle: "A powerful image loading system for Apple platforms.",
             image: nil,
-            baseURL: URL(string: "https://swiftpackageindex.com/swiftlang/swift-syntax/main")!
+            baseURL: URL(string: "https://kean-docs.github.io/nuke/documentation")!
         ),
         SuggestedTechnology(
             title: "WWDC Notes",

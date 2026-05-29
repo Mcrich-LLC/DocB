@@ -1,21 +1,21 @@
 # DocB
 
-DocB is a native app for reading DocC Documentation wherever you are.
+DocB is a native app for reading DocC documentation wherever you are.
 
 It is designed for the moments where you want to quickly check an API, save something for later, or keep reading docs away from your desk. On the Mac, DocB can also put documentation search one shortcut away, even when the app is not the frontmost window.
 
-Just add DocC sources to get started. Apple's documentation is supported as well, so your reference material can live in one place instead of being scattered across browser tabs.
+Just add the DocC sources you use and start reading. DocB is also compatible with Apple Developer Documentation, so your reference material can live in one place instead of being scattered across browser tabs.
 
 Under the hood, DocB is built with SwiftUI and uses [DocCKit](https://github.com/Mcrich-LLC/DocCKit) for DocC loading, parsing, and rendering.
 
 ## Features
 
-- Browse Apple Developer Documentation in a native app
-- Add popular documentation and use custom DocC sources as well
+- Browse DocC documentation in a native app
+- Add popular documentation sources or paste in your own DocC site
 - Search across all of your sources
 - Save bookmarks and bookmark collections
 - Sync sources and bookmarks with CloudKit
-- Customizeable shortcuts
+- Customizable shortcuts
 
 ## Requirements
 
@@ -38,10 +38,9 @@ Build and run from Xcode.
 
 ## Adding Documentation Sources
 
-DocB supports two main kinds of documentation:
+DocB is built around DocC sources.
 
-- Apple Developer Documentation
-- Custom DocC websites / archives
+You can add normal DocC websites or archives, including documentation hosted on Swift Package Index and other static DocC sites. Apple Developer Documentation is compatible too, but it is just one supported source, not the whole point of the app.
 
 You can add sources from the Add Sources UI. Some sources are already listed as quick options, including Swift.org, Swift Testing, Swift Syntax, RevenueCat, and WWDC Notes.
 
@@ -53,7 +52,7 @@ DocB has a shared search system that indexes the currently loaded documentation 
 
 On macOS, search appears as an Open Quickly style panel and can be opened with a keyboard shortcut. On iPadOS, it appears as an overlay. On visionOS, it appears in its own window.
 
-Search results are grouped by source, so Apple docs and custom docs stay easy to tell apart.
+Search results are grouped by source, so different documentation sets stay easy to tell apart.
 
 ## Bookmarks and Sync
 
@@ -66,7 +65,7 @@ Most of the code lives in `Sources/DocBCore`, so you can integrate pieces of Doc
 
 Some important pieces:
 
-- `DocumentationViewModel` loads Apple docs, custom DocC sources, frameworks, and articles.
+- `DocumentationViewModel` loads DocC sources, Apple Documentation, frameworks, and articles.
 - `ContentView` owns the main documentation browsing UI.
 - `AddTechnologyView` handles adding and removing documentation sources.
 - `Search/` contains the search index and platform-specific search UIs.

@@ -89,7 +89,7 @@ public struct AddTechnologyView: View {
             title: "Nuke",
             subtitle: "A powerful image loading system for Apple platforms.",
             image: nil,
-            baseURL: URL(string: "https://kean-docs.github.io/nuke/documentation")!
+            baseURL: URL(string: "https://kean-docs.github.io/nuke")!
         ),
         SuggestedTechnology(
             title: "WWDC Notes",

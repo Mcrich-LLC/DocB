@@ -72,16 +72,6 @@ Some important pieces:
 - `SwiftData Models/` contains sources, bookmarks, collections, and sync models.
 - `DocBCloudSyncEngine` handles CloudKit sync.
 
-## Building Documentation
-
-To generate a DocC documentation html archive for `DocBCore`, run:
-
-```sh
-./build-docs.sh
-```
-
-This writes the generated static documentation to `./docs`.
-
 ## Contributing
 
 Before opening a pull request, please:

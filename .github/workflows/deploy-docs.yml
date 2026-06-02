@@ -2,14 +2,14 @@ name: Deploy Docs to Cloudflare Workers
 
 on:
   push:
-    branches: [] # Update this to your default branch if different
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  DocBCore:
+  build-and-deploy:
     runs-on: macos-26
     
     environment:
@@ -26,13 +26,16 @@ jobs:
       - name: Build DocC
         run: |
           swift package \
-          --allow-writing-to-directory ./Packages/DocBCore/docs \
-          generate-documentation --target DocBCore \
+          --allow-writing-to-directory ./docs \
+          generate-documentation \
+          --target DocBCore \
+          --target DocCKit \
           --disable-indexing \
           --transform-for-static-hosting \
           --hosting-base-path / \
           --experimental-skip-synthesized-symbols \
-          --output-path ./Packages/DocBCore/docs
+          --enable-experimental-combined-documentation \
+          --output-path ./docs
 
       - name: Deploy to Cloudflare Workers
         id: cloudflare_deploy
@@ -42,38 +45,3 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4"
           command: deploy worker.js
-          workingDirectory: './Packages/DocBCore' 
-  DocCKit:
-    runs-on: macos-26
-    
-    environment:
-      name: production
-      url: https://docb.app/documentation
-    permissions:
-      contents: read
-      deployments: write
-      
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Build DocC
-        run: |
-          swift package \
-          --allow-writing-to-directory ./Packages/DocCKit/docs \
-          generate-documentation --target DocCKit \
-          --disable-indexing \
-          --transform-for-static-hosting \
-          --hosting-base-path / \
-          --experimental-skip-synthesized-symbols \
-          --output-path ./Packages/DocCKit/docs
-
-      - name: Deploy to Cloudflare Workers
-        id: cloudflare_deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4"
-          command: deploy worker.js
-          workingDirectory: './Packages/DocCKit' 

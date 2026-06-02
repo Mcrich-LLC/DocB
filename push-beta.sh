@@ -65,7 +65,7 @@ increment_build_number() {
     build_number=$1
     xcodeproj=$2
     # Increment the build number and update the Xcode project
-    agvtool new-version -all $build_number
+    agvtool new-version -all "$build_number"
 }
 
 # Function to copy non-git files to temporary directory
@@ -169,7 +169,7 @@ fi
 
 # Update build number
 if [ "$build_number_provided" = true ]; then
-    increment_build_number $build_number "$project"
+    increment_build_number "$build_number" "$project"
 else
     increment_build_number $(($build_number + 1)) "$project"
 fi
@@ -182,12 +182,6 @@ if [ "$dry_run" = true ]; then
 else
     echo "Committing the build number change"
     git commit -a -m "Bumped Build Number"
-    latest_git_commit=$(git rev-parse HEAD)
-    
-    # Tag the commit
-    git tag -a "v$version($build_number)" -m ""
-    git push
-    git push --tags
 
     # Commit and push the build number change
     commit_message="$version($build_number)"
@@ -204,7 +198,7 @@ else
     copy_files_to_temp "$temp_dir"
     
     # Switch to the target branch (using the value from --branch or -b flag)
-    git switch $branch
+    git switch "$branch"
     git pull
     
     # Clean all non-git files from working directory

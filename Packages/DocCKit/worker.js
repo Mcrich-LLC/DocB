@@ -1,23 +1,15 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const basePath = "/documentation/docckit";
 
     // Redirect root to the DocC landing page
     if (url.pathname === "/" || url.pathname === "") {
-      return Response.redirect(`${url.origin}${basePath}/`, 301);
+      return Response.redirect(`${url.origin}/documentation/docckit`, 301);
     }
 
-    if (url.pathname === basePath) {
-      return Response.redirect(`${url.origin}${basePath}/`, 301);
-    }
-
-    // Worker Routes preserve the mounted path. Strip it so the asset binding
-    // looks up ./docs/js, ./docs/css, ./docs/data, etc.
-    if (url.pathname.startsWith(`${basePath}/`)) {
-      url.pathname = url.pathname.slice(basePath.length) || "/";
-    }
-
-    return env.ASSETS.fetch(new Request(url, request));
+    // Serve static assets — not_found_handling: "single-page-application" in
+    // wrangler.jsonc means unmatched paths automatically fall back to index.html,
+    // so DocC's client-side router handles deep links without a manual 404 check here.
+    return env.ASSETS.fetch(request);
   },
 };

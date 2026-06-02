@@ -1,0 +1,439 @@
+//
+//  HomepageSection.swift
+//  Apple Documentation
+//
+//  Created by Morris Richman on 10/11/24.
+//
+
+import SwiftUI
+import NukeUI
+
+/// HomepageSection renders a reusable SwiftUI view.
+struct HomepageSection: View {
+    /// Section payload being rendered.
+    let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
+    let homepage: HomepageParser
+    
+    var body: some View {
+        VStack {
+            if let body = section.body {
+                switch body.kind {
+                case .links:
+                    Links(section: section, homepage: homepage)
+                case .cards:
+                    Cards(section: section, homepage: homepage)
+                case .homepageLinks:
+                    HomepageLinks(section: section, homepage: homepage)
+                case .highlightedLinks:
+                    HighlightedLinks(section: section, homepage: homepage)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Highlighted Links
+/// Section renderer for featured highlighted links with responsive media/text layout.
+private struct HighlightedLinks: View {
+    /// Section data for highlighted links content.
+    let section: HomepageParser.Section
+    /// Parsed homepage data used for references and media.
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.docCSite) var docCSite
+    /// Whether highlighted content should stack vertically based on available width.
+    @State private var isVertical = false
+    
+    var body: some View {
+        if let highlightedLinks = section.body?.highlightedLinks {
+            VStack {
+                if let title = section.title {
+                    Text(title)
+                        .font(.largeTitle)
+                        .bold()
+                        .multilineTextAlignment(.center)
+                }
+                
+                VHStack {
+                    if isVertical {
+                        image
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                    
+                    VStack {
+                        ForEach(highlightedLinks) { link in
+                            HighlightedLinksCell(homepage: homepage, link: link)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: isVertical ? 400 : 500)
+                    
+                    if !isVertical {
+                        image
+                            .frame(maxWidth: 400, maxHeight: .infinity)
+                    }
+                }
+                .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
+                .clipShape(RoundedRectangle(cornerRadius: 25))
+                .frame(maxWidth: 800)
+                .onGeometryChange(for: Bool.self, of: { proxy in
+                    proxy.size.width.rounded(.toNearestOrAwayFromZero) < 800
+                }, action: { newValue in
+                    guard isVertical != newValue else { return }
+                    
+                    isVertical = newValue
+                })
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    /// Shared image view used in the highlighted links layout.
+    @ViewBuilder
+    var image: some View {
+        if let image = section.body?.image {
+            LazyImage(url: fetchPhotoVideoURL(for: image)) { state in
+                if let image = state.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                }
+            }
+        }
+    }
+    
+    /// Fetch variant URLs based on identifier. Fundamentally, the url structure is the same, which allows finding both photo and video urls in one go.
+    func fetchPhotoVideoURL(for identifier: String) -> URL? {
+        guard let url = DocCAssetResolver.fetchPhotoVideoURL(for: identifier, references: homepage.references, colorScheme: colorScheme, docCSite: docCSite) else {
+            return nil
+        }
+        
+        return url
+    }
+    
+    /// Conditionally renders `HStack` or `VStack` for highlighted links composition.
+    @ViewBuilder
+    func VHStack<Content: View>(spacing: CGFloat = 10, @ViewBuilder content: () -> Content) -> some View {
+        switch isVertical {
+        case false:
+            HStack(spacing: spacing, content: content)
+        case true:
+            VStack(spacing: spacing, content: content)
+        }
+    }
+}
+
+/// Single highlighted-link cell containing rich text and optional call to action.
+private struct HighlightedLinksCell: View {
+    /// Parsed homepage data containing shared references.
+    let homepage: HomepageParser
+    /// Single highlighted link payload for this row.
+    let link: HomepageParser.Body.HighlightedLinks
+        
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(link.title)
+                .font(.title2)
+                .bold()
+            
+            ForEach(link.content) { content in
+                ArticleContentView(content: content, references: homepage.references)
+            }
+            
+            if let callToActionText = link.callToActionText, let url = link.destination {
+                Link(destination: url) {
+                    Label {
+                        Text(callToActionText)
+                    } icon: {
+                        Image(systemSymbol: .chevronRight)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .labelStyle(.docCIconTrailing)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Links
+/// Section renderer for standard link groups.
+private struct Links: View {
+    /// Section data for links presentation.
+    let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
+    let homepage: HomepageParser
+    @Environment(\.docCIsUsingSplitView) private var isUsingSplitView
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.largeTitle)
+                    .bold()
+                    .multilineTextAlignment(.center)
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            if let links = section.body?.links {
+                ForEach(links) { link in
+                    LinksGridListView(identifiers: link.items, style: link.style, references: self.homepage.references)
+                        .alignment(.top)
+                }
+            }
+        }
+    }
+}
+
+// MARK: Cards
+/// Section renderer for card-based homepage content.
+private struct Cards: View {
+    /// Section data for card presentation.
+    let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
+    let homepage: HomepageParser
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.docCIsUsingSplitView) private var isUsingSplitView
+    
+    /// Per-card measured text heights used to align card body heights.
+    @State private var cardHeights: [UUID : CGFloat] = [:]
+    /// Maximum card width for the current container size.
+    @State private var cardMaxWidth: CGFloat = 300
+    
+    /// Maximum measured card body height.
+    private var maxCardBodyHeight: CGFloat? {
+        cardHeights.values.max()
+    }
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.largeTitle)
+                    .bold()
+                    .multilineTextAlignment(.center)
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                }
+            }
+            
+            WrappingHStack(alignment: .center, horizontalSpacing: 10, verticalSpacing: isUsingSplitView ? 20 : 30) {
+                if let outerCards = section.body?.cards {
+                    ForEach(outerCards) { outerCard in
+                        ForEach(outerCard.cards) { card in
+                            self.card(card)
+                                .frame(maxWidth: cardMaxWidth, maxHeight: 600)
+                        }
+                    }
+                }
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width.rounded(.toNearestOrAwayFromZero) > 1300 ? 400 : 300
+        } action: { newValue in
+            guard cardMaxWidth != newValue else { return }
+            
+            cardMaxWidth = newValue
+        }
+    }
+    
+    /// Placeholder shown while a card hero image is loading.
+    @ViewBuilder
+    var cardImagePlaceholder: some View {
+        UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+            .fill(Color.clear)
+            .stroke(Color.primary, lineWidth: 2)
+            .scaledToFit()
+            .overlay {
+                ProgressView()
+            }
+    }
+    
+    /// Renders a single homepage card including image, content, and call to action.
+    @ViewBuilder
+    func card(_ content: HomepageParser.Body.Card.Content) -> some View {
+        if let url = URL(string: content.destination.identifier) {
+            DocCLink(destination: url) {
+                VStack {
+                    if let image = content.image, let imageUrl = DocCAssetResolver.fetchPhotoVideoURL(for: image, references: self.homepage.references, colorScheme: colorScheme, docCSite: nil) {
+                        LazyImage(url: imageUrl) { state in
+                            if let image = state.image {
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            } else {
+                                cardImagePlaceholder
+                            }
+                        }
+                        .clipShape(
+                            UnevenRoundedRectangle(topLeadingRadius: 25, topTrailingRadius: 25)
+                        )
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        if let eyebrow = content.eyebrow {
+                            Text(eyebrow)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Text(content.title)
+                            .font(.title2)
+                            .bold()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        
+                        ForEach(content.content) { con in
+                            ArticleContentView(content: con, references: homepage.references)
+                                .lineLimit(2)
+                        }
+                        
+                        if let callToAction = content.saferCallToAction?.web {
+                            Label {
+                                Text(callToAction)
+                                    .foregroundStyle(Color.accentColor)
+                            } icon: {
+                                Image(systemSymbol: .chevronRight)
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .labelStyle(.docCIconTrailing)
+                            .padding(.vertical, 2)
+                        }
+                    }
+                    .multilineTextAlignment(.leading)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: maxCardBodyHeight, alignment: .top)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height.rounded(.toNearestOrAwayFromZero)
+                    } action: { newValue in
+                        guard cardHeights[content.id] != newValue else { return }
+                        
+                        cardHeights[content.id] = newValue
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .top)
+                .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
+            }
+            .foregroundStyle(Color.primary)
+        }
+    }
+}
+
+// MARK: HomepageLinks
+/// Section renderer for capsule-style homepage links.
+private struct HomepageLinks: View {
+    /// Section data for capsule-style homepage links.
+    let section: HomepageParser.Section
+    /// Parsed homepage data containing shared references.
+    let homepage: HomepageParser
+    @Environment(\.docCIsUsingSplitView) private var isUsingSplitView
+    
+    var body: some View {
+        VStack {
+            if let title = section.title {
+                Text(title)
+                    .font(.largeTitle)
+                    .foregroundStyle(Color.purple)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            if let sectionContent = section.content {
+                ForEach(sectionContent) { content in
+                    ArticleContentView(content: content, references: homepage.references)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            
+            if isUsingSplitView {
+                WrappingHStack(alignment: .leading, horizontalSpacing: 10) {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
+                    }
+                }
+            } else {
+                VStack {
+                    if let homepageLinks = section.body?.homepageLinks {
+                        ForEach(homepageLinks) { link in
+                            LinkCapsule(reference: link, references: homepage.references)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .padding(.horizontal, isUsingSplitView ? 30 : 15)
+        .background(.background.tertiary, in: RoundedRectangle(cornerRadius: 25))
+        .padding(.horizontal)
+        .padding(.horizontal, isUsingSplitView ? nil : 0)
+    }
+}
+
+/// Capsule-style link control used by homepage links sections.
+private struct LinkCapsule: View {
+    @Environment(\.colorScheme) var colorScheme
+    /// Primary reference driving title and URL generation.
+    let reference: Reference
+    /// Reference lookup table for fallback title resolution.
+    let references: [String : Reference]
+    @Environment(\.docCIsUsingSplitView) private var isUsingSplitView
+    @Environment(\.docCDeepLinkScheme) private var deepLinkScheme
+    
+    /// Best-effort title resolved from the primary or fallback reference map.
+    var title: String? {
+        if let title = reference.title {
+            return title
+        } else {
+            return references[reference.identifier]?.title
+        }
+    }
+    
+    /// Deep-link URL generated for the capsule destination.
+    var url: URL? {
+        let urlString: String
+        if let title {
+            let urlTitle = title.replacingOccurrences(of: "/", with: "-")
+            urlString = reference.identifier.replacingOccurrences(of: "\(DocCConstants.aDeveloperURLBase)", with: "\(deepLinkScheme.urlPrefix)com.apple.\(urlTitle)-Release-Notes")
+        } else {
+            urlString = reference.identifier.replacingOccurrences(of: "\(DocCConstants.aDeveloperURLBase)", with: "\(deepLinkScheme.urlPrefix)com.apple.documentation")
+        }
+            
+        return URL(string: urlString)
+    }
+    
+    /// Hover state used to animate capsule border thickness.
+    @State var isHovering = false
+    
+    var body: some View {
+        if let title, let url {
+            DocCLink(destination: url) {
+                Text(title)
+                    .foregroundStyle(Color.purple)
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 20)
+                    .frame(width: isUsingSplitView ? nil : 150)
+                    .background(
+                        Capsule()
+                            .fill(Color.clear)
+                            .stroke(Color.purple, lineWidth: isHovering ? 4 : 2)
+                    )
+            }
+            .clipShape(Capsule())
+            .onHover { isHovering in
+                withAnimation {
+                    self.isHovering = isHovering
+                }
+            }
+        }
+    }
+}

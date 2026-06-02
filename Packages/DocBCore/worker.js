@@ -2,15 +2,14 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const basePath = "/documentation/docbcore";
-    const landingPath = `${basePath}/documentation/docbcore`;
 
     // Redirect root to the DocC landing page
     if (url.pathname === "/" || url.pathname === "") {
-      return Response.redirect(`${url.origin}${landingPath}`, 301);
+      return Response.redirect(`${url.origin}${basePath}/`, 301);
     }
 
     if (url.pathname === basePath) {
-      return Response.redirect(`${url.origin}${landingPath}`, 301);
+      return Response.redirect(`${url.origin}${basePath}/`, 301);
     }
 
     // Worker Routes preserve the mounted path. Strip it so the asset binding

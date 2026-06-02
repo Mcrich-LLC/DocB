@@ -22,7 +22,7 @@ If you want to see a full app built on top of DocCKit, DocB is the best example.
 Go to **File** > **Add Package Dependencies...** and paste in:
 
 ```
-https://github.com/Mcrich-LLC/DocCKit.git
+https://github.com/Mcrich-LLC/DocB.git
 ```
 
 Then add the `DocCKit` product to your app target.

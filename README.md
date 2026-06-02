@@ -6,7 +6,7 @@ It is designed for the moments where you want to quickly check an API, save some
 
 Just add the DocC sources you use and start reading. DocB is also compatible with Apple Developer Documentation, so your reference material can live in one place instead of being scattered across browser tabs.
 
-Under the hood, DocB is built with SwiftUI and uses [DocCKit](https://github.com/Mcrich-LLC/DocCKit) for DocC loading, parsing, and rendering.
+Under the hood, DocB is built with SwiftUI and uses [DocCKit][./Packages/DocCKit/README.md] for DocC loading, parsing, and rendering.
 
 ## Features
 

@@ -30,7 +30,7 @@ jobs:
           generate-documentation --target DocBCore \
           --disable-indexing \
           --transform-for-static-hosting \
-          --hosting-base-path /documentation/docbcore \
+          --hosting-base-path documentation/docbcore \
           --experimental-skip-synthesized-symbols \
           --output-path ./Packages/DocBCore/docs
 
@@ -64,7 +64,7 @@ jobs:
           generate-documentation --target DocCKit \
           --disable-indexing \
           --transform-for-static-hosting \
-          --hosting-base-path /documentation/docckit \
+          --hosting-base-path documentation/docckit \
           --experimental-skip-synthesized-symbols \
           --output-path ./Packages/DocCKit/docs
 

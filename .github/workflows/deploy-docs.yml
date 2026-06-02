@@ -1,4 +1,4 @@
-name: Deploy DocC to Cloudflare Workers
+name: Deploy Docs to Cloudflare Workers
 
 on:
   push:
@@ -9,12 +9,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  DocBCore:
     runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ./Packages/DocBCore
     
     environment:
       name: production
-      url: https://documentation.docb.app
+      url: https://docb.app/documentation
     permissions:
       contents: read
       deployments: write
@@ -28,6 +31,42 @@ jobs:
           swift package \
           --allow-writing-to-directory ./docs \
           generate-documentation --target DocBCore \
+          --disable-indexing \
+          --transform-for-static-hosting \
+          --hosting-base-path / \
+          --experimental-skip-synthesized-symbols \
+          --output-path ./docs
+
+      - name: Deploy to Cloudflare Workers
+        id: cloudflare_deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          command: deploy worker.js
+  DocCKit:
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ./Packages/DocCKit
+    
+    environment:
+      name: production
+      url: https://docb.app/documentation
+    permissions:
+      contents: read
+      deployments: write
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build DocC
+        run: |
+          swift package \
+          --allow-writing-to-directory ./docs \
+          generate-documentation --target DocCKit \
           --disable-indexing \
           --transform-for-static-hosting \
           --hosting-base-path / \

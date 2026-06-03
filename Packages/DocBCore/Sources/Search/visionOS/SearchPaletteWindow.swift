@@ -267,7 +267,7 @@ public struct SearchPaletteWindow: View {
 
     private func appear() {
         focusSearchField()
-        coordinator.rebuildIndexAfterPresentation()
+        coordinator.prepareSearchIndexForPalette()
         coordinator.updateQuery(coordinator.query)
     }
 

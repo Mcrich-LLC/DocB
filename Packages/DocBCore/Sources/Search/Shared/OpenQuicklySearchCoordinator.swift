@@ -75,7 +75,7 @@ public final class OpenQuicklySearchCoordinator {
     private var indexedSourceFingerprint: String?
     private var preparedSourceFingerprint: String?
     private var preparedIndexFingerprint: String?
-    private var preparedIndexCacheMode: SearchIndexPreparationCacheMode?
+    private var preparedIndexPreparationMode: SearchIndexPreparationMode?
     private var preparedIndex: SidebarSearchIndex?
     private var shouldInstallPreparedIndex = false
     private var pendingIndexInstallFingerprint: String?
@@ -92,9 +92,9 @@ public final class OpenQuicklySearchCoordinator {
         indexedSourceFingerprint != nil && searchStore.hasInstalledIndex
     }
 
-    /// Whether this device has enough memory for extra in-memory search prewarming.
-    public var canPrewarmSearchIndexInBackground: Bool {
-        SearchPrewarmPolicy.canPrewarmSearchIndexInBackground()
+    /// Whether this device has enough memory for extra Apple symbol search prewarming.
+    public var canPrewarmAppleSymbolSearchInBackground: Bool {
+        SearchPrewarmPolicy.canPrewarmAppleSymbolSearchInBackground()
     }
     
     /// Creates an empty Open Quickly coordinator.
@@ -163,7 +163,7 @@ public final class OpenQuicklySearchCoordinator {
         if !installPreparedIndex(for: sourceFingerprint) {
             pendingIndexInstallFingerprint = sourceFingerprint
             prepareSearchIndexIfNeeded(
-                cacheMode: .disk,
+                preparationMode: .persistentCache,
                 installWhenReady: true,
                 priority: .userInitiated
             )
@@ -173,7 +173,9 @@ public final class OpenQuicklySearchCoordinator {
     /// Starts preparing the local search-index cache in the background when the current source snapshot is not indexed yet.
     public func prepareSearchIndexInBackgroundIfNeeded() {
         prepareSearchIndexIfNeeded(
-            cacheMode: canPrewarmSearchIndexInBackground ? .memory : .disk
+            preparationMode: canPrewarmAppleSymbolSearchInBackground
+                ? .persistentCacheWithAppleSymbolPrewarm
+                : .persistentCache
         )
     }
 
@@ -205,11 +207,11 @@ public final class OpenQuicklySearchCoordinator {
     /// Prepares a search index in the background, optionally installing it once ready.
     ///
     /// - Parameters:
-    ///   - cacheMode: Whether preparation should stop at the disk cache or include in-memory acceleration.
+    ///   - preparationMode: Whether preparation should stop at the persistent cache or include Apple symbol search prewarming.
     ///   - installWhenReady: Whether the prepared index should be installed into palette state.
     ///   - priority: Priority for snapshot loading and index construction.
     private func prepareSearchIndexIfNeeded(
-        cacheMode: SearchIndexPreparationCacheMode,
+        preparationMode: SearchIndexPreparationMode,
         installWhenReady: Bool = false,
         priority: TaskPriority = .utility
     ) {
@@ -223,8 +225,9 @@ public final class OpenQuicklySearchCoordinator {
         }
 
         if let preparedIndex, preparedIndexFingerprint == sourceFingerprint {
-            if cacheMode == .memory, preparedIndexCacheMode != .memory {
-                prepareMemoryAcceleration(for: preparedIndex)
+            if preparationMode == .persistentCacheWithAppleSymbolPrewarm,
+               preparedIndexPreparationMode != .persistentCacheWithAppleSymbolPrewarm {
+                prepareAppleSymbolSearchAcceleration(for: preparedIndex)
             }
 
             guard installWhenReady else { return }
@@ -265,7 +268,7 @@ public final class OpenQuicklySearchCoordinator {
         shouldInstallPreparedIndex = installWhenReady || pendingIndexInstallFingerprint == sourceFingerprint
         if preparedIndexFingerprint != sourceFingerprint {
             preparedIndexFingerprint = nil
-            preparedIndexCacheMode = nil
+            preparedIndexPreparationMode = nil
             preparedIndex = nil
         }
 
@@ -279,7 +282,7 @@ public final class OpenQuicklySearchCoordinator {
         let requestID = UUID()
         indexPreparationRequestID = requestID
         let searchIndexCache = searchIndexCache
-        let preparesMemoryAcceleration = cacheMode.preparesMemoryAcceleration
+        let preparesAppleSymbolPrewarm = preparationMode.preparesAppleSymbolPrewarm
         indexPreparationTask = Task(priority: priority) {
             if !installWhenReady {
                 try? await Task.sleep(for: .milliseconds(1_250))
@@ -302,7 +305,7 @@ public final class OpenQuicklySearchCoordinator {
             guard !Task.isCancelled else { return }
 
             if let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
-                if preparesMemoryAcceleration {
+                if preparesAppleSymbolPrewarm {
                     await Task.detached(priority: priority) {
                         cachedIndex.prepareStreamingAppleSymbolSearch()
                     }.value
@@ -325,7 +328,7 @@ public final class OpenQuicklySearchCoordinator {
                         : nil
                     self.finishPreparingIndex(
                         cachedIndex,
-                        cacheMode: cacheMode,
+                        preparationMode: preparationMode,
                         sourceFingerprint: sourceFingerprint,
                         requestID: requestID
                     )
@@ -393,7 +396,7 @@ public final class OpenQuicklySearchCoordinator {
             }.value
             guard !Task.isCancelled else { return }
 
-            if preparesMemoryAcceleration {
+            if preparesAppleSymbolPrewarm {
                 await Task.detached(priority: priority) {
                     index.prepareStreamingAppleSymbolSearch()
                 }.value
@@ -419,7 +422,7 @@ public final class OpenQuicklySearchCoordinator {
                     : nil
                 self.finishPreparingIndex(
                     index,
-                    cacheMode: cacheMode,
+                    preparationMode: preparationMode,
                     sourceFingerprint: sourceFingerprint,
                     requestID: requestID
                 )
@@ -542,12 +545,12 @@ public final class OpenQuicklySearchCoordinator {
     ///
     /// - Parameters:
     ///   - index: Prepared index snapshot.
-    ///   - cacheMode: Cache layer prepared for the index snapshot.
+    ///   - preparationMode: Preparation level completed for the index snapshot.
     ///   - sourceFingerprint: Fingerprint associated with the prepared index.
     ///   - requestID: Request identity for rejecting stale preparation completions.
     private func finishPreparingIndex(
         _ index: SidebarSearchIndex,
-        cacheMode: SearchIndexPreparationCacheMode,
+        preparationMode: SearchIndexPreparationMode,
         sourceFingerprint: String,
         requestID: UUID
     ) {
@@ -555,7 +558,7 @@ public final class OpenQuicklySearchCoordinator {
 
         preparedIndex = index
         preparedIndexFingerprint = sourceFingerprint
-        preparedIndexCacheMode = cacheMode
+        preparedIndexPreparationMode = preparationMode
         indexPreparationTask = nil
         preparedIndexBuildProgress = nil
         guard shouldInstallPreparedIndex else {
@@ -569,16 +572,16 @@ public final class OpenQuicklySearchCoordinator {
     private func clearPreparedIndexState() {
         preparedSourceFingerprint = nil
         preparedIndexFingerprint = nil
-        preparedIndexCacheMode = nil
+        preparedIndexPreparationMode = nil
         preparedIndex = nil
         shouldInstallPreparedIndex = false
     }
 
-    /// Promotes a retained disk index with the faster in-memory Apple symbol lookup cache.
+    /// Promotes a retained persistent-cache index with faster Apple symbol lookup buckets.
     ///
     /// - Parameter index: Retained index snapshot to accelerate.
-    private func prepareMemoryAcceleration(for index: SidebarSearchIndex) {
-        preparedIndexCacheMode = .memory
+    private func prepareAppleSymbolSearchAcceleration(for index: SidebarSearchIndex) {
+        preparedIndexPreparationMode = .persistentCacheWithAppleSymbolPrewarm
         Task(priority: .utility) {
             await Task.detached(priority: .utility) {
                 index.prepareStreamingAppleSymbolSearch()
@@ -908,13 +911,13 @@ public final class OpenQuicklySearchCoordinator {
     }
 }
 
-/// Cache layer to prepare for the Search Documentation index.
-private enum SearchIndexPreparationCacheMode {
-    case disk
-    case memory
+/// Preparation level for the Search Documentation index.
+private enum SearchIndexPreparationMode {
+    case persistentCache
+    case persistentCacheWithAppleSymbolPrewarm
 
-    var preparesMemoryAcceleration: Bool {
-        self == .memory
+    var preparesAppleSymbolPrewarm: Bool {
+        self == .persistentCacheWithAppleSymbolPrewarm
     }
 }
 

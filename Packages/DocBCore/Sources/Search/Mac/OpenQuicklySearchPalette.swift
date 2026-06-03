@@ -252,7 +252,7 @@ public struct OpenQuicklySearchPalette: View {
 
     private func appear() {
         focusSearchField()
-        coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+        coordinator.rebuildIndexAfterPresentation(documentationViewModel: documentationViewModel)
         coordinator.updateQuery(coordinator.query)
     }
 

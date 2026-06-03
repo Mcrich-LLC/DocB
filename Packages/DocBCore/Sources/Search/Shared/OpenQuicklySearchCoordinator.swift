@@ -19,6 +19,7 @@ public final class OpenQuicklySearchCoordinator {
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
     private var indexedSourceFingerprint: String?
     private var hasDeferredIndexRebuild = false
+    private var presentationIndexRebuildTask: Task<Void, Never>?
     
     /// Creates an empty Open Quickly coordinator.
     public init() {}
@@ -82,6 +83,24 @@ public final class OpenQuicklySearchCoordinator {
                     sourceFingerprint: sourceFingerprint
                 )
             }
+        }
+    }
+
+    /// Schedules an index rebuild after the palette has had a chance to present.
+    ///
+    /// This keeps first presentation responsive when the initial rebuild needs to load the persisted Apple index or
+    /// construct a fresh flattened search cache.
+    ///
+    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
+    public func rebuildIndexAfterPresentation(documentationViewModel: DocumentationViewModel) {
+        presentationIndexRebuildTask?.cancel()
+        presentationIndexRebuildTask = Task { @MainActor in
+            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(120))
+            guard !Task.isCancelled else { return }
+
+            rebuildIndex(documentationViewModel: documentationViewModel)
+            presentationIndexRebuildTask = nil
         }
     }
 

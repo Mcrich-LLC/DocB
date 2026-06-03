@@ -1,4 +1,3 @@
-import Foundation
 import SwiftUI
 import DocCKit
 import Observation
@@ -56,7 +55,7 @@ public final class OpenQuicklySearchCoordinator {
 
     /// Whether this device has enough memory for retained background search prewarming.
     public var canPrewarmSearchIndexInBackground: Bool {
-        Self.canPrewarmSearchIndexInBackground
+        SearchPrewarmPolicy.canPrewarmSearchIndexInBackground()
     }
     
     /// Creates an empty Open Quickly coordinator.
@@ -239,19 +238,6 @@ public final class OpenQuicklySearchCoordinator {
         isLoadingSearchIndexSnapshot = false
     }
 
-    private static var canPrewarmSearchIndexInBackground: Bool {
-        let physicalMemory = ProcessInfo.processInfo.physicalMemory
-        #if os(macOS)
-        return physicalMemory >= 12 * 1_024 * 1_024 * 1_024
-        #elseif os(iOS)
-        return physicalMemory >= 6 * 1_024 * 1_024 * 1_024
-        #elseif os(visionOS)
-        return physicalMemory >= 8 * 1_024 * 1_024 * 1_024
-        #else
-        return false
-        #endif
-    }
-    
     /// Updates the query while preserving the currently selected row when possible.
     ///
     /// - Parameters:

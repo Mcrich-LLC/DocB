@@ -794,6 +794,8 @@ public struct SidebarSearchIndex: Sendable, Codable {
             scoreBuckets: inout [[Entry]],
             totalMatches: inout Int
         ) {
+            var seenKeys: Set<String> = []
+
             func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage) {
                 if interfaceLanguage.type.lowercased() != "module", let path = interfaceLanguage.path {
                     let normalizedTitle = SidebarSearchIndex.normalize(interfaceLanguage.title)
@@ -823,6 +825,12 @@ public struct SidebarSearchIndex: Sendable, Codable {
                         ))
                     )
                     guard let score = entry.matchScore(for: normalizedQuery) else {
+                        for child in interfaceLanguage.children ?? [] {
+                            append(child)
+                        }
+                        return
+                    }
+                    guard seenKeys.insert(entry.deduplicationKey).inserted else {
                         for child in interfaceLanguage.children ?? [] {
                             append(child)
                         }

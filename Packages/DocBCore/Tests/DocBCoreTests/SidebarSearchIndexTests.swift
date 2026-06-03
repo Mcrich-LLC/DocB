@@ -77,6 +77,40 @@ struct SidebarSearchIndexTests {
     }
 
     @Test
+    func appleStreamingIndexCollapsesDuplicateLanguageSymbols() throws {
+        let duplicatedSymbol = DocCIndex.InterfaceLanguage(
+            title: "UILabel",
+            path: "/documentation/uikit/uilabel",
+            type: "class"
+        )
+        let appleIndex = DocCIndex(interfaceLanguages: [
+            "swift": [
+                .init(
+                    title: "UIKit",
+                    path: "/documentation/uikit",
+                    type: "module",
+                    children: [duplicatedSymbol]
+                )
+            ],
+            "objc": [
+                .init(
+                    title: "UIKit",
+                    path: "/documentation/uikit",
+                    type: "module",
+                    children: [duplicatedSymbol]
+                )
+            ]
+        ])
+        let appleTechnologies = try makeAppleTechnologies().withIndex(appleIndex)
+        let index = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
+
+        let rows = index.search("uilabel").flattenedRows
+
+        #expect(rows.map(\.title) == ["UILabel"])
+        #expect(Set(rows.map(\.id)).count == rows.count)
+    }
+
+    @Test
     func resultsAreGroupedBySource() {
         let firstSite = makeDocCSource(
             title: "FirstKit",

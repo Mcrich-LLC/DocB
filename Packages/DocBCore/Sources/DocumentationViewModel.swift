@@ -144,7 +144,19 @@ public final class DocumentationViewModel {
                     return "\(group.name):\(frameworkIdentifiers)"
                 }
                 .joined(separator: ";") ?? "missing"
-                return "apple:\(sourceID):\(groupFingerprint)"
+                let indexFingerprint = [
+                    appleTechnologies.index,
+                    appleDocCSiteRef?.index
+                ]
+                .compactMap { index -> String? in
+                    guard let index, !index.isSearchIndexEmpty else {
+                        return nil
+                    }
+
+                    return index.id.uuidString
+                }
+                .first ?? "missing"
+                return "apple:\(sourceID):\(indexFingerprint):\(groupFingerprint)"
             case .docC(let source):
                 return "docc:\(source.id.uuidString):\(source.index.id.uuidString)"
             }
@@ -257,10 +269,9 @@ public final class DocumentationViewModel {
         let loadedSources = await Self.loadPersistedDocCSources(customSnapshots, using: swiftDataStore)
         for loadedSource in loadedSources {
             technologies.appendOrUpdate(.docC(loadedSource.docCSource))
-            if loadedSource.shouldPersistRemoteIndex {
-                persistDocCIndex(loadedSource.index, for: loadedSource.snapshot.url)
-            }
         }
+
+        refreshPersistedDocCSources(customSnapshots)
     }
 
     /// Loads all persisted technology sites and refreshes the in-memory technology list.
@@ -563,7 +574,7 @@ public final class DocumentationViewModel {
     ///   - snapshots: Value snapshots derived from persisted sources on the main actor.
     ///   - loader: Background content actor used to fetch source indexes.
     /// - Returns: Loaded source values sorted by their original timestamp.
-    private static func loadDocCSources(_ snapshots: [PersistedDocCSourceSnapshot], using loader: DocumentationContentLoader) async -> [LoadedDocCSource] {
+    fileprivate static func loadDocCSources(_ snapshots: [PersistedDocCSourceSnapshot], using loader: DocumentationContentLoader) async -> [LoadedDocCSource] {
         return await withTaskGroup(of: LoadedDocCSource?.self, returning: [LoadedDocCSource].self) { group in
             for snapshot in snapshots {
                 group.addTask {
@@ -630,6 +641,35 @@ public final class DocumentationViewModel {
         } catch {
             print(error)
             return []
+        }
+    }
+
+    /// Refreshes persisted custom DocC indexes from their source URLs after the local snapshot is restored.
+    ///
+    /// - Parameter snapshots: Source metadata to refresh from the network.
+    @MainActor
+    private func refreshPersistedDocCSources(_ snapshots: [PersistedDocCSourceSnapshot]) {
+        guard !snapshots.isEmpty else {
+            return
+        }
+
+        let loader = contentLoader
+        Task(priority: .utility) {
+            let refreshedSources = await loader.refreshDocCSources(snapshots)
+            publishRefreshedDocCSources(refreshedSources)
+        }
+    }
+
+    /// Publishes refreshed custom DocC source indexes after background refresh work completes.
+    ///
+    /// - Parameter refreshedSources: Fresh source indexes loaded by the content actor.
+    @MainActor
+    private func publishRefreshedDocCSources(_ refreshedSources: [LoadedDocCSource]) {
+        for refreshedSource in refreshedSources {
+            technologies.appendOrUpdate(.docC(refreshedSource.docCSource))
+            if refreshedSource.shouldPersistRemoteIndex {
+                persistDocCIndex(refreshedSource.index, for: refreshedSource.snapshot.url)
+            }
         }
     }
     
@@ -954,6 +994,14 @@ actor DocumentationContentLoader {
             indexTasks[baseURL] = nil
             throw error
         }
+    }
+
+    /// Refreshes custom DocC source indexes on the content actor.
+    ///
+    /// - Parameter snapshots: Persisted source metadata to refresh.
+    /// - Returns: Refreshed source indexes sorted by their original timestamp.
+    fileprivate func refreshDocCSources(_ snapshots: [PersistedDocCSourceSnapshot]) async -> [LoadedDocCSource] {
+        await DocumentationViewModel.loadDocCSources(snapshots, using: self)
     }
     
     /// Fetches and deduplicates a framework payload request.

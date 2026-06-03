@@ -144,7 +144,10 @@ public final class DocumentationViewModel {
                     return "\(group.name):\(frameworkIdentifiers)"
                 }
                 .joined(separator: ";") ?? "missing"
-                return "apple:\(sourceID):\(groupFingerprint)"
+                let indexFingerprint = appleDocCSiteRef?.index.id.uuidString
+                    ?? appleTechnologies.index?.id.uuidString
+                    ?? "missing"
+                return "apple:\(sourceID):\(indexFingerprint):\(groupFingerprint)"
             case .docC(let source):
                 return "docc:\(source.id.uuidString):\(source.index.id.uuidString)"
             }

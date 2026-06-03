@@ -116,6 +116,11 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
+        guard loadingSnapshotFingerprint != sourceFingerprint || !shouldInstallWarmedIndex || indexWarmTask == nil else {
+            isLoadingSearchIndexSnapshot = true
+            return
+        }
+
         if sourceFingerprint.isEmpty {
             clearWarmedIndexState()
             indexedSourceFingerprint = sourceFingerprint
@@ -123,7 +128,6 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        indexedSourceFingerprint = sourceFingerprint
         warmCachedIndexIfNeeded(
             installWhenReady: true,
             priority: .userInitiated
@@ -144,6 +148,7 @@ public final class OpenQuicklySearchCoordinator {
     /// This keeps first presentation responsive when the initial rebuild needs to load the persisted Apple index or
     /// construct a fresh flattened search cache.
     public func rebuildIndexAfterPresentation() {
+        markSearchIndexPreparationIfNeeded()
         presentationIndexRebuildTask?.cancel()
         presentationIndexRebuildTask = Task { @MainActor in
             await Task.yield()
@@ -185,7 +190,6 @@ public final class OpenQuicklySearchCoordinator {
            !indexWarmTask.isCancelled {
             shouldInstallWarmedIndex = shouldInstallWarmedIndex || installWhenReady
             if installWhenReady {
-                indexedSourceFingerprint = sourceFingerprint
                 isLoadingSearchIndexSnapshot = true
                 loadingSnapshotFingerprint = sourceFingerprint
             }
@@ -208,7 +212,6 @@ public final class OpenQuicklySearchCoordinator {
         }
 
         if installWhenReady {
-            indexedSourceFingerprint = sourceFingerprint
             isLoadingSearchIndexSnapshot = true
             loadingSnapshotFingerprint = sourceFingerprint
         }
@@ -408,6 +411,26 @@ public final class OpenQuicklySearchCoordinator {
 
         loadingSnapshotFingerprint = nil
         isLoadingSearchIndexSnapshot = false
+    }
+
+    /// Marks the palette as preparing an index before the delayed rebuild starts.
+    private func markSearchIndexPreparationIfNeeded() {
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard indexedSourceFingerprint != sourceFingerprint else {
+            return
+        }
+
+        if documentationViewModel.isPreparingSearchSources {
+            isWaitingForSearchSources = true
+            return
+        }
+
+        guard !sourceFingerprint.isEmpty else {
+            return
+        }
+
+        isLoadingSearchIndexSnapshot = true
+        loadingSnapshotFingerprint = sourceFingerprint
     }
 
     /// Updates the query while preserving the currently selected row when possible.

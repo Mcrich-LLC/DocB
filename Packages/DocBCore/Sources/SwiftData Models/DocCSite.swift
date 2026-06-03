@@ -275,13 +275,14 @@ public final class DocCSite: Identifiable {
         }
     }
 
-    /// Decodes the compact offline index payload.
+    /// Decodes the compact offline index payload, falling back to the legacy relational index tree.
     public var decodedIndex: DocCIndex? {
-        guard let indexData else {
-            return nil
+        if let indexData,
+           let index = try? JSONDecoder().decode(DocCIndex.self, from: indexData) {
+            return index
         }
 
-        return try? JSONDecoder().decode(DocCIndex.self, from: indexData)
+        return indexV2?.asIndex
     }
 
     /// Encodes an index for compact offline persistence.

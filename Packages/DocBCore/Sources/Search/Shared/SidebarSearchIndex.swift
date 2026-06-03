@@ -2,6 +2,7 @@ import Foundation
 import FactoryKit
 import Observation
 import DocCKit
+import Synchronization
 
 /// Flattened sidebar search index used to keep keystroke matching off the main actor.
 public struct SidebarSearchIndex: Sendable, Codable {
@@ -37,8 +38,9 @@ public struct SidebarSearchIndex: Sendable, Codable {
 
     /// Creates a sidebar search index from loaded technology snapshots.
     ///
-    /// - Parameter technologies: Runtime technology sources from `DocumentationViewModel`.
-    /// - Parameter progress: Optional build-progress callback reported from `0...1`.
+    /// - Parameters:
+    ///   - technologies: Runtime technology sources from `DocumentationViewModel`.
+    ///   - progress: Optional build-progress callback reported from `0...1`.
     public init(technologies: [TechnologyTypes], progress: (@Sendable (Double) -> Void)? = nil) {
         let docCSites = technologies.docCSites.sorted { lhs, rhs in
             lhs.timestamp < rhs.timestamp
@@ -691,13 +693,12 @@ public struct SidebarSearchIndex: Sendable, Codable {
     }
 
     /// Apple DocC index searched without duplicating every symbol as a retained entry.
-    private final class StreamingAppleIndex: @unchecked Sendable {
+    private final class StreamingAppleIndex: Sendable {
         /// Result grouping metadata.
         let source: Source
         /// Apple documentation index to scan per query.
         let index: DocCIndex
-        private let lock = NSLock()
-        private var preparedIndex: PreparedIndex?
+        private let preparedIndex = Mutex<PreparedIndex?>(nil)
 
         init(source: Source, index: DocCIndex) {
             self.source = source
@@ -713,16 +714,16 @@ public struct SidebarSearchIndex: Sendable, Codable {
             var entries: [Entry] = []
             SidebarSearchIndex.appendDocCEntries(from: nil, index: index, source: source, to: &entries)
             let deduplicatedEntries = SidebarSearchIndex.deduplicatedEntries(entries)
-            let preparedIndex = PreparedIndex(
+            let builtIndex = PreparedIndex(
                 entries: deduplicatedEntries,
                 searchBuckets: SidebarSearchIndex.makeSearchBuckets(deduplicatedEntries)
             )
 
-            lock.lock()
-            if self.preparedIndex == nil {
-                self.preparedIndex = preparedIndex
+            preparedIndex.withLock { preparedIndex in
+                if preparedIndex == nil {
+                    preparedIndex = builtIndex
+                }
             }
-            lock.unlock()
         }
 
         /// Appends all Apple entries for the existing flattened disk cache format.
@@ -763,10 +764,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         private var preparedIndexSnapshot: PreparedIndex? {
-            lock.lock()
-            defer { lock.unlock() }
-
-            return preparedIndex
+            preparedIndex.withLock { $0 }
         }
 
         private func appendPreparedMatches(
@@ -850,7 +848,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
             }
         }
 
-        private struct PreparedIndex {
+        private struct PreparedIndex: Sendable {
             let entries: [Entry]
             let searchBuckets: [[Int]]
 
@@ -876,43 +874,46 @@ public struct SidebarSearchIndex: Sendable, Codable {
     }
 
     /// Bounded in-memory cache for streamed Apple query result buckets.
-    private final class StreamingAppleQueryCache: @unchecked Sendable {
-        struct Value {
+    private final class StreamingAppleQueryCache: Sendable {
+        struct Value: Sendable {
             let buckets: [[Entry]]
             let totalMatches: Int
         }
 
-        private let lock = NSLock()
         private let capacity = 16
-        private var values: [String: Value] = [:]
-        private var keys: [String] = []
+        private let state = Mutex(State())
 
         func value(for normalizedQuery: String, collectionLimit: Int) -> Value? {
             let key = key(for: normalizedQuery, collectionLimit: collectionLimit)
-            lock.lock()
-            defer { lock.unlock() }
 
-            return values[key]
+            return state.withLock { state in
+                state.values[key]
+            }
         }
 
         func store(_ value: Value, for normalizedQuery: String, collectionLimit: Int) {
             let key = key(for: normalizedQuery, collectionLimit: collectionLimit)
-            lock.lock()
-            defer { lock.unlock() }
 
-            if values[key] == nil {
-                keys.append(key)
-            }
-            values[key] = value
+            state.withLock { state in
+                if state.values[key] == nil {
+                    state.keys.append(key)
+                }
+                state.values[key] = value
 
-            while keys.count > capacity {
-                let removedKey = keys.removeFirst()
-                values[removedKey] = nil
+                while state.keys.count > capacity {
+                    let removedKey = state.keys.removeFirst()
+                    state.values[removedKey] = nil
+                }
             }
         }
 
         private func key(for normalizedQuery: String, collectionLimit: Int) -> String {
             "\(collectionLimit)\u{0}\(normalizedQuery)"
+        }
+
+        private struct State: Sendable {
+            var values: [String: Value] = [:]
+            var keys: [String] = []
         }
     }
 

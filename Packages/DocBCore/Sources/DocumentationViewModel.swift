@@ -909,6 +909,7 @@ actor DocumentationContentLoader {
 
     /// Fetches the Apple Developer Documentation index.
     ///
+    /// - Parameter technologies: Apple technologies payload used to discover framework index URLs.
     /// - Returns: Decoded DocC index.
     func fetchAppleIndex(technologies: AppleTechnologies) async throws -> DocCIndex {
         let url = URL(string: "\(DocCConstants.aDeveloperURLBase)/tutorials/data/index/apple-technologies.json")!

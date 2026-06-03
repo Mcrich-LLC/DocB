@@ -13,7 +13,6 @@ public struct SearchResultList: View {
     private let openSelectedResult: () -> Void
 
     @Environment(OpenQuicklySearchCoordinator.self) private var coordinator
-    @Environment(DocumentationViewModel.self) private var documentationViewModel
 
     /// Creates a scrolling Search Documentation results list.
     ///

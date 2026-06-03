@@ -21,6 +21,7 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Creates a DocC index from grouped interface-language entries.
     ///
     /// - Parameters:
+    ///   - id: Stable identifier for diffable/UI usage and cache identity.
     ///   - interfaceLanguages: Interface-language entries keyed by language token.
     ///   - includedArchiveIdentifiers: Archive identifiers used to resolve custom image assets.
     public init(

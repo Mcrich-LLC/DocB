@@ -29,8 +29,8 @@ struct DocBApp: App {
     @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
     @State var appSettings: AppSettings
-    /// Shared macOS Open Quickly coordinator.
-    @State var openQuicklySearchCoordinator = OpenQuicklySearchCoordinator()
+    /// Shared Search Documentation coordinator injected into app scenes.
+    @State var openQuicklySearchCoordinator: OpenQuicklySearchCoordinator
     #if os(macOS)
     /// AppKit owner for the floating Open Quickly panel.
     @State private var openQuicklyPanelController = OpenQuicklyPanelController()
@@ -62,6 +62,7 @@ struct DocBApp: App {
         cloudSyncEngine = container.docBCloudSyncEngine()
         documentationViewModel = container.documentationViewModel()
         appSettings = container.appSettings()
+        openQuicklySearchCoordinator = container.openQuicklySearchCoordinator()
         
         loadRocketSimConnect()
     }
@@ -207,7 +208,6 @@ struct DocBApp: App {
                 if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
                     openQuicklySearchCoordinator.open(
                         row,
-                        documentationViewModel: documentationViewModel,
                         openURL: OpenURLAction { url in
                             NSWorkspace.shared.open(url)
                             return .handled
@@ -242,7 +242,6 @@ struct DocBApp: App {
                 if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
                     openQuicklySearchCoordinator.open(
                         row,
-                        documentationViewModel: documentationViewModel,
                         openURL: OpenURLAction { url in
                             .systemAction(url)
                         }
@@ -290,6 +289,7 @@ private struct MainView: View {
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(AppSettings.self) private var appSettings
+    @Environment(OpenQuicklySearchCoordinator.self) private var openQuicklySearchCoordinator
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
     @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.appearsActive) var appearsActive
@@ -343,9 +343,14 @@ private struct MainView: View {
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
-            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources)
+            await documentationViewModel.loadTechnologies(docCSiteSnapshots)
         }
         .onChange(of: docCSiteSnapshots, onSwiftDataChange)
+        .onChange(of: documentationViewModel.isPreparingSearchSources, initial: true) { _, isPreparingSearchSources in
+            guard !isPreparingSearchSources else { return }
+
+            openQuicklySearchCoordinator.restoreCachedIndexIfAvailable()
+        }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
             Task {
@@ -383,7 +388,7 @@ private struct MainView: View {
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources)
+                await documentationViewModel.loadTechnologies(insertedSites)
             }
         }
         

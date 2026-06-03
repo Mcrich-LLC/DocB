@@ -1,11 +1,15 @@
 import SwiftUI
 import DocCKit
+import FactoryKit
 import Observation
 
 /// Coordinates Search Documentation palette state and navigation.
 @MainActor
 @Observable
 public final class OpenQuicklySearchCoordinator {
+    @ObservationIgnored @Injected(\.documentationViewModel) private var documentationViewModel
+    @ObservationIgnored @Injected(\.sidebarSearchIndexCache) private var searchIndexCache
+
     /// Current palette query.
     public var query = ""
     /// Identifier of the currently highlighted result row.
@@ -14,9 +18,56 @@ public final class OpenQuicklySearchCoordinator {
     public let searchStore = SidebarSearchStore()
     /// Handler invoked when a result is activated before any main window can receive navigation.
     public var openResultWithoutActiveWindow: (@MainActor @Sendable (SidebarSearchResultRow) -> Void)?
+    /// Whether the palette is waiting for saved documentation sources before indexing.
+    public private(set) var isWaitingForSearchSources = false
+    /// Whether the palette is loading source snapshots for a search-index rebuild.
+    public private(set) var isLoadingSearchIndexSnapshot = false
+
+    /// Whether the palette should show search-index loading or rebuild progress.
+    public var isPreparingSearchIndex: Bool {
+        isWaitingForSearchSources || isLoadingSearchIndexSnapshot || searchStore.isRebuildingIndex
+    }
+
+    /// User-facing title for the current search-index preparation phase.
+    public var searchIndexStatusTitle: String {
+        if searchStore.isRebuildingIndex {
+            return searchStore.indexBuildTitle
+        }
+
+        if isLoadingSearchIndexSnapshot {
+            return "Loading Index"
+        }
+
+        if isWaitingForSearchSources {
+            return "Loading Documentation"
+        }
+
+        return searchStore.indexBuildTitle
+    }
+
+    /// Current search-index progress, or `nil` while progress is indeterminate.
+    public var searchIndexProgress: Double? {
+        searchStore.isRebuildingIndex ? searchStore.indexBuildProgress : warmedIndexBuildProgress
+    }
     
     private weak var activeNavigationViewModel: NavigationViewModel?
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
+    private var indexedSourceFingerprint: String?
+    private var warmedSourceFingerprint: String?
+    private var warmedIndexFingerprint: String?
+    private var warmedIndex: SidebarSearchIndex?
+    private var shouldInstallWarmedIndex = false
+    private var loadingSnapshotFingerprint: String?
+    private var warmedIndexBuildProgress: Double?
+    private var hasDeferredIndexRebuild = false
+    private var presentationIndexRebuildTask: Task<Void, Never>?
+    private var indexWarmTask: Task<Void, Never>?
+    private var indexWarmRequestID = UUID()
+
+    /// Whether this device has enough memory for retained background search prewarming.
+    public var canPrewarmSearchIndexInBackground: Bool {
+        SearchPrewarmPolicy.canPrewarmSearchIndexInBackground()
+    }
     
     /// Creates an empty Open Quickly coordinator.
     public init() {}
@@ -43,12 +94,322 @@ public final class OpenQuicklySearchCoordinator {
     }
     
     /// Rebuilds the search index from the current documentation source snapshot.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
-    public func rebuildIndex(documentationViewModel: DocumentationViewModel) {
-        searchStore.rebuildIndex(technologies: documentationViewModel.technologySnapshot(), searchText: query)
+    public func rebuildIndex() {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            hasDeferredIndexRebuild = true
+            isWaitingForSearchSources = true
+            return
+        }
+
+        isWaitingForSearchSources = false
+        hasDeferredIndexRebuild = false
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard sourceFingerprint != indexedSourceFingerprint else {
+            if loadingSnapshotFingerprint != sourceFingerprint {
+                clearSnapshotLoadingState(for: sourceFingerprint)
+            }
+            return
+        }
+
+        guard !sourceFingerprint.isEmpty || indexedSourceFingerprint != nil else {
+            clearSnapshotLoadingState(for: sourceFingerprint)
+            return
+        }
+
+        if sourceFingerprint.isEmpty {
+            clearWarmedIndexState()
+            indexedSourceFingerprint = sourceFingerprint
+            searchStore.installIndex(.empty, searchDebounce: .milliseconds(0))
+            return
+        }
+
+        indexedSourceFingerprint = sourceFingerprint
+        warmCachedIndexIfNeeded(
+            installWhenReady: true,
+            priority: .userInitiated
+        )
     }
-    
+
+    /// Starts warming the search index in the background when the current source snapshot is not indexed yet.
+    public func warmSearchIndexIfNeeded() {
+        guard canPrewarmSearchIndexInBackground else {
+            return
+        }
+
+        warmCachedIndexIfNeeded()
+    }
+
+    /// Schedules an index rebuild after the palette has had a chance to present.
+    ///
+    /// This keeps first presentation responsive when the initial rebuild needs to load the persisted Apple index or
+    /// construct a fresh flattened search cache.
+    public func rebuildIndexAfterPresentation() {
+        presentationIndexRebuildTask?.cancel()
+        presentationIndexRebuildTask = Task { @MainActor in
+            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(120))
+            guard !Task.isCancelled else { return }
+
+            rebuildIndex()
+            presentationIndexRebuildTask = nil
+        }
+    }
+
+    /// Builds and retains a cached search index in the background, optionally installing it once ready.
+    ///
+    /// - Parameters:
+    ///   - installWhenReady: Whether the warmed index should be installed into palette state.
+    ///   - priority: Priority for snapshot loading and index construction.
+    private func warmCachedIndexIfNeeded(
+        installWhenReady: Bool = false,
+        priority: TaskPriority = .utility
+    ) {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            return
+        }
+
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard !sourceFingerprint.isEmpty else {
+            return
+        }
+
+        if let warmedIndex, warmedIndexFingerprint == sourceFingerprint {
+            guard installWhenReady else { return }
+
+            installWarmedIndex(warmedIndex, sourceFingerprint: sourceFingerprint)
+            return
+        }
+
+        if sourceFingerprint == warmedSourceFingerprint,
+           let indexWarmTask,
+           !indexWarmTask.isCancelled {
+            shouldInstallWarmedIndex = shouldInstallWarmedIndex || installWhenReady
+            if installWhenReady {
+                indexedSourceFingerprint = sourceFingerprint
+                isLoadingSearchIndexSnapshot = true
+                loadingSnapshotFingerprint = sourceFingerprint
+            }
+
+            guard priority == .userInitiated else { return }
+
+            indexWarmTask.cancel()
+            self.indexWarmTask = nil
+        } else if sourceFingerprint != warmedSourceFingerprint || installWhenReady {
+            indexWarmTask?.cancel()
+        } else {
+            return
+        }
+
+        warmedSourceFingerprint = sourceFingerprint
+        shouldInstallWarmedIndex = installWhenReady
+        if warmedIndexFingerprint != sourceFingerprint {
+            warmedIndexFingerprint = nil
+            warmedIndex = nil
+        }
+
+        if installWhenReady {
+            indexedSourceFingerprint = sourceFingerprint
+            isLoadingSearchIndexSnapshot = true
+            loadingSnapshotFingerprint = sourceFingerprint
+        }
+
+        let requestID = UUID()
+        indexWarmRequestID = requestID
+        let searchIndexCache = searchIndexCache
+        indexWarmTask = Task(priority: priority) {
+            if !installWhenReady {
+                try? await Task.sleep(for: .milliseconds(1_250))
+                guard !Task.isCancelled else { return }
+            }
+
+            if let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
+                await MainActor.run {
+                    guard self.warmedSourceFingerprint == sourceFingerprint,
+                          self.indexWarmRequestID == requestID
+                    else {
+                        return
+                    }
+
+                    self.finishWarmingIndex(
+                        cachedIndex,
+                        sourceFingerprint: sourceFingerprint,
+                        requestID: requestID
+                    )
+                }
+                return
+            }
+
+            let technologies = await documentationViewModel.searchTechnologySnapshot()
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.warmedIndexBuildProgress = installWhenReady ? 0 : nil
+                self.loadingSnapshotFingerprint = installWhenReady ? sourceFingerprint : self.loadingSnapshotFingerprint
+            }
+
+            let progress: @Sendable (Double) -> Void = { value in
+                Task { @MainActor in
+                    guard self.warmedSourceFingerprint == sourceFingerprint,
+                          self.indexWarmRequestID == requestID,
+                          self.loadingSnapshotFingerprint == sourceFingerprint,
+                          self.warmedIndexBuildProgress != nil
+                    else {
+                        return
+                    }
+
+                    self.warmedIndexBuildProgress = min(max(value, 0), 1)
+                }
+            }
+
+            let index = await Task.detached(priority: priority) {
+                SidebarSearchIndex(
+                    technologies: technologies,
+                    progress: installWhenReady ? progress : nil
+                )
+            }.value
+            guard !Task.isCancelled else { return }
+
+            if !installWhenReady {
+                await Task.detached(priority: priority) {
+                    index.prepareStreamingAppleSymbolSearch()
+                }.value
+                guard !Task.isCancelled else { return }
+            }
+
+            await searchIndexCache.store(index, for: sourceFingerprint)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.finishWarmingIndex(
+                    index,
+                    sourceFingerprint: sourceFingerprint,
+                    requestID: requestID
+                )
+            }
+        }
+    }
+
+    /// Performs a deferred rebuild once documentation sources have finished their initial restore.
+    public func rebuildDeferredIndexIfNeeded() {
+        guard hasDeferredIndexRebuild || indexedSourceFingerprint == nil else {
+            isWaitingForSearchSources = false
+            return
+        }
+
+        rebuildIndex()
+    }
+
+    /// Restores a cached search index after sources finish loading without rebuilding on a cache miss.
+    public func restoreCachedIndexIfAvailable() {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            return
+        }
+
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard !sourceFingerprint.isEmpty, sourceFingerprint != indexedSourceFingerprint else {
+            return
+        }
+
+        let currentQuery = query
+        let searchIndexCache = searchIndexCache
+        Task(priority: .utility) {
+            guard let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) else {
+                return
+            }
+
+            await MainActor.run {
+                guard sourceFingerprint != self.indexedSourceFingerprint else {
+                    return
+                }
+
+                self.indexedSourceFingerprint = sourceFingerprint
+                self.searchStore.updateSearchText(currentQuery)
+                self.searchStore.installIndex(cachedIndex)
+            }
+        }
+    }
+
+    /// Releases retained search index memory while preserving disk caches.
+    public func releaseSearchIndexForMemoryPressure() {
+        presentationIndexRebuildTask?.cancel()
+        presentationIndexRebuildTask = nil
+        indexWarmTask?.cancel()
+        indexWarmTask = nil
+        indexWarmRequestID = UUID()
+        indexedSourceFingerprint = nil
+        clearWarmedIndexState()
+        loadingSnapshotFingerprint = nil
+        warmedIndexBuildProgress = nil
+        isWaitingForSearchSources = false
+        isLoadingSearchIndexSnapshot = false
+        searchStore.releaseIndex()
+    }
+
+    /// Installs a warmed index into palette search state.
+    ///
+    /// - Parameters:
+    ///   - index: Warmed index to install.
+    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
+    private func installWarmedIndex(_ index: SidebarSearchIndex, sourceFingerprint: String) {
+        indexedSourceFingerprint = sourceFingerprint
+        clearSnapshotLoadingState(for: sourceFingerprint)
+        warmedIndexBuildProgress = nil
+        searchStore.updateSearchText(query, debounce: .milliseconds(0))
+        searchStore.installIndex(index, searchDebounce: .milliseconds(0))
+    }
+
+    /// Records a warmed index and installs it if a presentation requested it.
+    ///
+    /// - Parameters:
+    ///   - index: Warmed index snapshot.
+    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
+    ///   - requestID: Request identity for rejecting stale warm completions.
+    private func finishWarmingIndex(_ index: SidebarSearchIndex, sourceFingerprint: String, requestID: UUID) {
+        guard indexWarmRequestID == requestID else { return }
+
+        warmedIndex = index
+        warmedIndexFingerprint = sourceFingerprint
+        indexWarmTask = nil
+        warmedIndexBuildProgress = nil
+        guard shouldInstallWarmedIndex else {
+            return
+        }
+
+        installWarmedIndex(index, sourceFingerprint: sourceFingerprint)
+    }
+
+    /// Clears retained warmed-index state without touching the installed palette index.
+    private func clearWarmedIndexState() {
+        warmedSourceFingerprint = nil
+        warmedIndexFingerprint = nil
+        warmedIndex = nil
+        shouldInstallWarmedIndex = false
+    }
+
+    /// Clears snapshot-loading state for the matching source fingerprint.
+    ///
+    /// - Parameter sourceFingerprint: Fingerprint for the rebuild request that is no longer loading snapshots.
+    private func clearSnapshotLoadingState(for sourceFingerprint: String) {
+        guard loadingSnapshotFingerprint == sourceFingerprint else {
+            return
+        }
+
+        loadingSnapshotFingerprint = nil
+        isLoadingSearchIndexSnapshot = false
+    }
+
     /// Updates the query while preserving the currently selected row when possible.
     ///
     /// - Parameters:
@@ -57,15 +418,14 @@ public final class OpenQuicklySearchCoordinator {
     public func updateQuery(_ query: String, debounce: Duration = .milliseconds(80)) {
         self.query = query
         preloadedRowIDs.removeAll()
+        selectedRowID = nil
         searchStore.updateSearchText(query, debounce: debounce)
     }
 
     /// Starts loading content for a visible result row before the user activates it.
     ///
-    /// - Parameters:
-    ///   - row: Result row that has become visible in the palette.
-    ///   - documentationViewModel: Documentation source model used to fetch article or framework payloads.
-    public func preloadVisibleResult(_ row: SidebarSearchResultRow, documentationViewModel: DocumentationViewModel) {
+    /// - Parameter row: Result row that has become visible in the palette.
+    public func preloadVisibleResult(_ row: SidebarSearchResultRow) {
         guard preloadedRowIDs.insert(row.id).inserted else { return }
 
         switch row {
@@ -130,11 +490,10 @@ public final class OpenQuicklySearchCoordinator {
     /// Opens the currently selected row when one is available.
     ///
     /// - Parameters:
-    ///   - documentationViewModel: Documentation model used to resolve article/framework links.
     ///   - openURL: System URL opener for external destinations.
     /// - Returns: `true` when a result was activated.
     @discardableResult
-    public func openSelectedResult(documentationViewModel: DocumentationViewModel, openURL: OpenURLAction) -> Bool {
+    public func openSelectedResult(openURL: OpenURLAction) -> Bool {
         guard let selectedRowID,
               let row = searchStore.results.flattenedRows.first(where: { $0.id == selectedRowID })
         else {
@@ -146,18 +505,17 @@ public final class OpenQuicklySearchCoordinator {
             return openResultWithoutActiveWindow != nil
         }
 
-        return open(row, documentationViewModel: documentationViewModel, openURL: openURL)
+        return open(row, openURL: openURL)
     }
     
     /// Opens a search result in the active main window.
     ///
     /// - Parameters:
     ///   - row: Existing search result row payload to activate.
-    ///   - documentationViewModel: Documentation model used to resolve article/framework links.
     ///   - openURL: System URL opener for external destinations.
     /// - Returns: `true` when a result was activated.
     @discardableResult
-    public func open(_ row: SidebarSearchResultRow, documentationViewModel: DocumentationViewModel, openURL: OpenURLAction) -> Bool {
+    public func open(_ row: SidebarSearchResultRow, openURL: OpenURLAction) -> Bool {
         guard let activeNavigationViewModel else {
             return false
         }
@@ -175,7 +533,6 @@ public final class OpenQuicklySearchCoordinator {
                 result.reference(deepLinkScheme: activeNavigationViewModel.deepLinkScheme),
                 site: result.site,
                 navigationViewModel: activeNavigationViewModel,
-                documentationViewModel: documentationViewModel,
                 openURL: openURL
             )
             return true
@@ -197,6 +554,8 @@ public final class OpenQuicklySearchCoordinator {
         
         withAnimation(.snappy) {
             navigationViewModel.setTechnology(technology)
+        } completion: {
+            Self.revealSidebarIfNeeded(in: navigationViewModel)
         }
         
         if navigationViewModel.isUsingSplitView {
@@ -206,9 +565,8 @@ public final class OpenQuicklySearchCoordinator {
     
     private func navigateToReference(
         _ reference: Reference,
-        site: DocCSource,
+        site: DocCSource?,
         navigationViewModel: NavigationViewModel,
-        documentationViewModel: DocumentationViewModel,
         openURL: OpenURLAction
     ) {
         if let url = reference.externalURL, reference.isExternalReference {
@@ -216,7 +574,11 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
         
-        selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
+        if let site {
+            selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
+        } else if let appleTechnologies = documentationViewModel.technologySnapshot().appleTechnologies.first {
+            selectAppleTechnology(for: reference, technologies: appleTechnologies, navigationViewModel: navigationViewModel)
+        }
         
         navigationViewModel.setReference(reference)
     }
@@ -233,17 +595,21 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
         
-        let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+        let identifier = "doc://com.apple.documentation/documentation/\(moduleString)"
+        let normalizedIdentifier = identifier.lowercased()
         guard let technologyGroup = groups.first(where: { group in
-            group.technologies.contains(where: { $0.destination.identifier == identifier })
+            group.technologies.contains(where: { $0.destination.identifier.lowercased() == normalizedIdentifier })
         }),
-              let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier })
+              let technology = technologyGroup.technologies.first(where: { $0.destination.identifier.lowercased() == normalizedIdentifier })
         else {
             return
         }
         
+        navigationViewModel.technologyHistoryUpdatingIsEnabled = true
         withAnimation(.snappy) {
             navigationViewModel.setTechnology(technology)
+        } completion: {
+            Self.revealSidebarIfNeeded(in: navigationViewModel)
         }
     }
     
@@ -261,8 +627,11 @@ public final class OpenQuicklySearchCoordinator {
         
         for group in groups {
             if group.path?.lowercased() == identifier.lowercased() {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 withAnimation(.snappy) {
                     navigationViewModel.setTechnology(site.frameworkSection(for: group))
+                } completion: {
+                    Self.revealSidebarIfNeeded(in: navigationViewModel)
                 }
                 return
             }
@@ -272,11 +641,22 @@ public final class OpenQuicklySearchCoordinator {
                     child.path?.lowercased() == identifier.lowercased()
                 })
             }) {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 withAnimation(.snappy) {
                     navigationViewModel.setTechnology(site.frameworkSection(for: technologyGroup))
+                } completion: {
+                    Self.revealSidebarIfNeeded(in: navigationViewModel)
                 }
                 return
             }
         }
+    }
+
+    private static func revealSidebarIfNeeded(in navigationViewModel: NavigationViewModel) {
+        guard navigationViewModel.isUsingSplitView else {
+            return
+        }
+
+        navigationViewModel.splitViewColumnVisibility = .all
     }
 }

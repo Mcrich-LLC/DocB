@@ -13,7 +13,6 @@ public struct SearchResultList: View {
     private let openSelectedResult: () -> Void
 
     @Environment(OpenQuicklySearchCoordinator.self) private var coordinator
-    @Environment(DocumentationViewModel.self) private var documentationViewModel
 
     /// Creates a scrolling Search Documentation results list.
     ///
@@ -62,7 +61,7 @@ public struct SearchResultList: View {
                             }
                             .id(row.id)
                             .onAppear {
-                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
+                                coordinator.preloadVisibleResult(row)
                             }
                             .padding(.horizontal, listMetrics.rowHorizontalPadding)
                             .padding(.vertical, listMetrics.rowVerticalPadding)
@@ -70,7 +69,7 @@ public struct SearchResultList: View {
                     }
 
                     if results.isTruncated {
-                        Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(results.totalMatches) matches. Refine your search to narrow the results.")
+                        Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) matches. Refine your search to narrow the results.")
                             .font(listMetrics.footerFont)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -316,7 +315,7 @@ public struct SearchResultSymbolBadge: View {
             return nil
         }
 
-        return result.site.index.includedArchiveIdentifiers?.first
+        return result.site?.index.includedArchiveIdentifiers?.first
     }
 
     private var resolvedSymbolKind: SidebarSearchSymbolKind {

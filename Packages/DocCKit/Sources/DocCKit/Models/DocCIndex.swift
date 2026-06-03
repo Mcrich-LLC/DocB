@@ -9,10 +9,9 @@ import Foundation
 import EnhancedCodable
 
 /// Top-level DocC index payload describing available interface-language trees.
-@CodableIgnoreInitializedProperties
 public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Stable identifier for diffable/UI usage.
-    public let id = UUID()
+    public let id: UUID
     
     /// Interface-language entries keyed by language token (for example, `swift`).
     public let interfaceLanguages: [String : [InterfaceLanguage]]
@@ -22,11 +21,31 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     /// Creates a DocC index from grouped interface-language entries.
     ///
     /// - Parameters:
+    ///   - id: Stable identifier for diffable/UI usage and cache identity.
     ///   - interfaceLanguages: Interface-language entries keyed by language token.
     ///   - includedArchiveIdentifiers: Archive identifiers used to resolve custom image assets.
-    public init(interfaceLanguages: [String : [InterfaceLanguage]], includedArchiveIdentifiers: [String]? = nil) {
+    public init(
+        id: UUID = UUID(),
+        interfaceLanguages: [String : [InterfaceLanguage]],
+        includedArchiveIdentifiers: [String]? = nil
+    ) {
+        self.id = id
         self.interfaceLanguages = interfaceLanguages
         self.includedArchiveIdentifiers = includedArchiveIdentifiers
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.interfaceLanguages = try container.decode([String : [InterfaceLanguage]].self, forKey: .interfaceLanguages)
+        self.includedArchiveIdentifiers = try container.decodeIfPresent([String].self, forKey: .includedArchiveIdentifiers)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(interfaceLanguages, forKey: .interfaceLanguages)
+        try container.encodeIfPresent(includedArchiveIdentifiers, forKey: .includedArchiveIdentifiers)
     }
     
     public static func == (lhs: DocCIndex, rhs: DocCIndex) -> Bool {
@@ -37,6 +56,18 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(interfaceLanguages)
         hasher.combine(includedArchiveIdentifiers)
+    }
+
+    /// Coding keys for stable index serialization.
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case interfaceLanguages
+        case includedArchiveIdentifiers
+    }
+
+    /// Indicates whether the index has any searchable interface-language entries.
+    public var isSearchIndexEmpty: Bool {
+        interfaceLanguages.values.allSatisfy(\.isEmpty)
     }
     
     /// A node in a DocC index tree representing modules, frameworks, and related groups.

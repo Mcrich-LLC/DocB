@@ -40,6 +40,13 @@ public extension Container {
         self { @MainActor in AppSettings() }
             .singleton
     }
+
+    /// Shared Search Documentation coordinator used by app scenes and palette windows.
+    @MainActor
+    var openQuicklySearchCoordinator: Factory<OpenQuicklySearchCoordinator> {
+        self { @MainActor in OpenQuicklySearchCoordinator() }
+            .singleton
+    }
     
     /// Required CloudKit container identifier supplied by the app target's Info.plist.
     var docBCloudKitContainerIdentifier: Factory<String> {
@@ -74,5 +81,11 @@ extension Container {
     /// SwiftData store actor used for background source persistence.
     var documentationSwiftDataStore: Factory<DocumentationSwiftDataStore> {
         self { DocumentationSwiftDataStore(modelContainer: self.docBModelContainer()) }
+    }
+
+    /// Local search index cache used by sidebar and Search Documentation indexing.
+    var sidebarSearchIndexCache: Factory<SidebarSearchIndexCache> {
+        self { SidebarSearchIndexCache() }
+            .singleton
     }
 }

@@ -100,7 +100,7 @@ extension [TechnologyTypes] {
 /// Decoded Apple technologies payload used to build homepage and framework navigation.
 public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Sendable {
     /// Stable identifier for diffable/UI usage.
-    public let id = UUID()
+    public let id: UUID
     
     /// Optional hero/header section metadata.
     public let header: Header?
@@ -110,6 +110,8 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
     public let references: [String : Reference]
     /// Optional legal notices payload.
     public let legalNotices: LegalNotices?
+    /// Optional persisted Apple DocC index used for offline search.
+    public let index: DocCIndex?
     
     /// Coding keys used for decoding shared section payloads.
     public enum CodingKeys: CodingKey {
@@ -118,10 +120,12 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
     
     /// Decodes Apple technologies by extracting hero and technology sections from the shared sections array.
     public init(from decoder: any Decoder) throws {
+        self.id = UUID()
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         self.legalNotices = try container.decodeIfPresent(LegalNotices.self, forKey: .legalNotices)
         self.references = try container.decode([String : Reference].self, forKey: .references)
+        self.index = nil
         let sectionsArray = try container.decode([CommonTechnologiesSection].self, forKey: .sections)
         
         if let header = sectionsArray.first(where: { $0.kind == "hero" }), let backgroundImage = header.backgroundImage, let image = header.image, let title = header.title {
@@ -135,6 +139,46 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         } else {
             self.groups = nil
         }
+    }
+
+    /// Creates an Apple technologies value from already-available pieces.
+    ///
+    /// - Parameters:
+    ///   - id: Stable identifier used for list and search identity.
+    ///   - header: Optional hero/header section metadata.
+    ///   - groups: Optional grouped technology sections.
+    ///   - references: Reference metadata keyed by identifier.
+    ///   - legalNotices: Optional legal notices payload.
+    ///   - index: Optional persisted Apple DocC index used for offline search.
+    public init(
+        id: UUID = UUID(),
+        header: Header? = nil,
+        groups: [Technology]? = nil,
+        references: [String : Reference] = [:],
+        legalNotices: LegalNotices? = nil,
+        index: DocCIndex? = nil
+    ) {
+        self.id = id
+        self.header = header
+        self.groups = groups
+        self.references = references
+        self.legalNotices = legalNotices
+        self.index = index
+    }
+
+    /// Returns a copy that carries the Apple DocC index used for offline search.
+    ///
+    /// - Parameter index: Persisted Apple DocC index.
+    /// - Returns: A technologies payload with the index attached.
+    public func withIndex(_ index: DocCIndex?) -> AppleTechnologies {
+        AppleTechnologies(
+            id: id,
+            header: header,
+            groups: groups,
+            references: references,
+            legalNotices: legalNotices,
+            index: index
+        )
     }
     
     /// Raw section model used to decode mixed section content before normalization.

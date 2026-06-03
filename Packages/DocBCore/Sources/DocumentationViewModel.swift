@@ -16,6 +16,9 @@ import FactoryKit
 public final class DocumentationViewModel {
     @ObservationIgnored @Injected(\.documentationContentLoader) private var contentLoader
     @ObservationIgnored @Injected(\.documentationSwiftDataStore) private var swiftDataStore
+    @ObservationIgnored @MainActor private var hasStartedAppleIndexRefresh = false
+    @ObservationIgnored @MainActor private var hasStartedAppleMetadataRefresh = false
+    @ObservationIgnored @MainActor private var hasCompletedInitialTechnologyLoad = false
     
     public init() {}
     
@@ -75,6 +78,9 @@ public final class DocumentationViewModel {
     /// Stored reference to the Apple site entry persisted in SwiftData.
     @MainActor
     public private(set) var appleDocCSiteRef: PersistedDocCSource?
+    /// Whether persisted documentation sources are still being restored for the initial app load.
+    @MainActor
+    public private(set) var isPreparingSearchSources = true
     
     @MainActor
     public func fetchTechnologies() async {
@@ -91,6 +97,72 @@ public final class DocumentationViewModel {
     public func technologySnapshot() -> [TechnologyTypes] {
         technologies
     }
+
+    /// Returns a technology snapshot suitable for rebuilding search when no flattened cache exists.
+    ///
+    /// This keeps the large Apple symbol index out of launch and normal UI state, loading it only for a search rebuild.
+    @MainActor
+    public func searchTechnologySnapshot() async -> [TechnologyTypes] {
+        guard let appleURL = appleDocCSiteRef?.url,
+              let appleTechnologyIndex = technologies.firstIndex(where: { $0.isApple }),
+              case .apple(let appleTechnologies) = technologies[appleTechnologyIndex],
+              appleTechnologies.index?.isSearchIndexEmpty != false
+        else {
+            return technologies
+        }
+
+        do {
+            guard let persistedSource = try await swiftDataStore.fetchAppleDocCIndex(preferredURL: appleURL),
+                  !persistedSource.index.isSearchIndexEmpty
+            else {
+                return technologies
+            }
+
+            appleDocCSiteRef = persistedSource.persistedSource(index: persistedSource.index.identityIndex)
+            var snapshot = technologies
+            snapshot[appleTechnologyIndex] = .apple(appleTechnologies.withIndex(persistedSource.index))
+            return snapshot
+        } catch {
+            print(error)
+            return technologies
+        }
+    }
+
+    /// Cheap fingerprint for rebuilding search indexes when source content changes.
+    @MainActor
+    public var searchContentFingerprint: String {
+        technologies.map { technology in
+            switch technology {
+            case .apple(let appleTechnologies):
+                let sourceID = appleDocCSiteRef?.id.uuidString
+                    ?? appleDocCSiteRef?.url.absoluteString
+                    ?? "apple"
+                let groupFingerprint = appleTechnologies.groups?.map { group in
+                    let frameworkIdentifiers = group.technologies
+                        .map(\.destination.identifier)
+                        .joined(separator: ",")
+                    return "\(group.name):\(frameworkIdentifiers)"
+                }
+                .joined(separator: ";") ?? "missing"
+                let indexFingerprint = [
+                    appleTechnologies.index,
+                    appleDocCSiteRef?.index
+                ]
+                .compactMap { index -> String? in
+                    guard let index, !index.isSearchIndexEmpty else {
+                        return nil
+                    }
+
+                    return index.id.uuidString
+                }
+                .first ?? "missing"
+                return "apple:\(sourceID):\(indexFingerprint):\(groupFingerprint)"
+            case .docC(let source):
+                return "docc:\(source.id.uuidString):\(source.index.id.uuidString)"
+            }
+        }
+        .joined(separator: "|")
+    }
     
     /// Adds a new technology source and updates in-memory technology listings.
     ///
@@ -103,14 +175,23 @@ public final class DocumentationViewModel {
     @MainActor
     public func addTechnology(baseUrl: URL, overrideName: String? = nil) async throws {
         guard !baseUrl.absoluteString.lowercased().contains("developer.apple.com") else {
-            let index = DocCIndex(interfaceLanguages: [:])
+            guard !technologies.contains(where: { $0.isApple }) else {
+                return
+            }
+
+            let preferredLanguage = preferedProgrammingLanguage
+            let loader = contentLoader
+            async let homepage = loader.fetchHomepage(preferredLanguage: preferredLanguage)
+            let appleTechnologies = try await loader.fetchTechnologies(preferredLanguage: preferredLanguage)
             let insertedSource = try await swiftDataStore.insertDocCSite(
                 url: baseUrl,
                 overrideName: nil,
-                index: index
+                index: .init(interfaceLanguages: [:])
             )
-            appleDocCSiteRef = insertedSource.persistedSource(index: index)
-            await loadAppleDocumentation(preferredLanguage: preferedProgrammingLanguage)
+            appleDocCSiteRef = insertedSource.persistedSource(index: .init(interfaceLanguages: [:]))
+            self.homepage = try? await homepage
+            publishAppleTechnologies(appleTechnologies)
+            refreshAppleIndexIfNeeded(using: appleTechnologies, force: true)
             return
         }
         
@@ -138,22 +219,37 @@ public final class DocumentationViewModel {
         }
     }
     
-    /// Loads all persisted technology sites and refreshes the in-memory technology list.
+    /// Loads all persisted technology sites from lightweight metadata and refreshes the in-memory technology list.
     ///
-    /// - Parameter sites: Persisted DocC source snapshots.
+    /// - Parameter siteSnapshots: Persisted DocC site metadata that does not require decoding local indexes on the main actor.
     @MainActor
-    public func loadTechnologies(_ sites: [PersistedDocCSource]) async {
+    public func loadTechnologies(_ siteSnapshots: [DocCSiteSnapshot]) async {
+        let isInitialTechnologyLoad = !hasCompletedInitialTechnologyLoad
+        if isInitialTechnologyLoad {
+            isPreparingSearchSources = true
+        }
+
+        defer {
+            if isInitialTechnologyLoad {
+                hasCompletedInitialTechnologyLoad = true
+                isPreparingSearchSources = false
+            }
+        }
+
         let preferredLanguage = preferedProgrammingLanguage
         var customSnapshots: [PersistedDocCSourceSnapshot] = []
         var shouldLoadAppleDocumentation = false
         
-        for site in sites {
-            let snapshot = PersistedDocCSourceSnapshot(site)
+        for siteSnapshot in siteSnapshots {
+            guard let snapshot = PersistedDocCSourceSnapshot(siteSnapshot) else {
+                continue
+            }
+
             guard !snapshot.url.absoluteString.contains("developer.apple.com") else {
                 guard !technologies.contains(where: { $0.isApple }) else {
                     continue
                 }
-                appleDocCSiteRef = site
+                appleDocCSiteRef = snapshot.persistedSource
                 shouldLoadAppleDocumentation = true
                 continue
             }
@@ -166,16 +262,24 @@ public final class DocumentationViewModel {
         }
         
         if shouldLoadAppleDocumentation {
-            await loadAppleDocumentation(preferredLanguage: preferredLanguage)
+            publishOfflineAppleDocumentationIfNeeded()
+            await loadPersistedAppleIndexOrRefresh(preferredLanguage: preferredLanguage)
         }
         
-        let loadedSources = await Self.loadDocCSources(customSnapshots, using: contentLoader)
+        let loadedSources = await Self.loadPersistedDocCSources(customSnapshots, using: swiftDataStore)
         for loadedSource in loadedSources {
             technologies.appendOrUpdate(.docC(loadedSource.docCSource))
-            if loadedSource.shouldPersistRemoteIndex {
-                persistDocCIndex(loadedSource.index, for: loadedSource.snapshot.url)
-            }
         }
+
+        refreshPersistedDocCSources(customSnapshots)
+    }
+
+    /// Loads all persisted technology sites and refreshes the in-memory technology list.
+    ///
+    /// - Parameter sites: Persisted DocC source snapshots.
+    @MainActor
+    public func loadTechnologies(_ sites: [PersistedDocCSource]) async {
+        await loadTechnologies(sites.map(DocCSiteSnapshot.init(source:)))
     }
     
     /// Removes a technology from memory and deletes persisted source data using a background context.
@@ -351,6 +455,16 @@ public final class DocumentationViewModel {
             technologies.append(.apple(appleTechnologies))
         }
     }
+
+    /// Publishes a lightweight Apple entry backed by the persisted offline search index.
+    @MainActor
+    private func publishOfflineAppleDocumentationIfNeeded() {
+        guard !technologies.contains(where: { $0.isApple }) else {
+            return
+        }
+
+        publishAppleTechnologies(AppleTechnologies())
+    }
     
     /// Checks whether the observed technology list already includes a custom DocC source for a URL.
     ///
@@ -368,22 +482,90 @@ public final class DocumentationViewModel {
         }
     }
     
-    /// Loads Apple homepage and technology payloads concurrently, then publishes both results together.
+    /// Loads the persisted Apple search index first, then refreshes Apple metadata in the background.
     ///
     /// - Parameter preferredLanguage: Language to use for Apple documentation requests.
     @MainActor
-    private func loadAppleDocumentation(preferredLanguage: PreferredProgrammingLanguage) async {
-        let loader = contentLoader
-        async let homepage = loader.fetchHomepage(preferredLanguage: preferredLanguage)
-        async let technologies = loader.fetchTechnologies(preferredLanguage: preferredLanguage)
-        
-        do {
-            let (loadedHomepage, loadedTechnologies) = try await (homepage, technologies)
-            self.homepage = loadedHomepage
-            publishAppleTechnologies(loadedTechnologies)
-        } catch {
-            print(error)
+    private func loadPersistedAppleIndexOrRefresh(preferredLanguage: PreferredProgrammingLanguage) async {
+        guard !hasStartedAppleMetadataRefresh else {
+            return
         }
+
+        guard appleDocCSiteRef != nil else {
+            return
+        }
+
+        hasStartedAppleMetadataRefresh = true
+        let loader = contentLoader
+
+        Task(priority: .background) {
+            do {
+                async let homepage = loader.fetchHomepage(preferredLanguage: preferredLanguage)
+                let loadedTechnologies = try await loader.fetchTechnologies(preferredLanguage: preferredLanguage)
+                let loadedHomepage = try? await homepage
+
+                await MainActor.run {
+                    if let loadedHomepage {
+                        self.homepage = loadedHomepage
+                    }
+                    self.publishAppleTechnologies(loadedTechnologies)
+                    self.refreshAppleIndexIfNeeded(using: loadedTechnologies)
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+
+    /// Starts the large Apple framework index refresh once per launch when offline search data is missing.
+    ///
+    /// - Parameters:
+    ///   - appleTechnologies: Apple technologies payload used to discover framework indexes.
+    ///   - force: Whether to refresh even when the persisted Apple index already has entries.
+    @MainActor
+    private func refreshAppleIndexIfNeeded(using appleTechnologies: AppleTechnologies, force: Bool = false) {
+        guard !hasStartedAppleIndexRefresh else {
+            return
+        }
+
+        guard force || appleDocCSiteRef?.index.isSearchIndexEmpty != false else {
+            return
+        }
+
+        hasStartedAppleIndexRefresh = true
+        let loader = contentLoader
+        Task(priority: .utility) {
+            do {
+                let loadedAppleIndex = try await loader.fetchAppleIndex(technologies: appleTechnologies)
+                await MainActor.run {
+                    guard !loadedAppleIndex.isSearchIndexEmpty else {
+                        return
+                    }
+
+                    self.appleDocCSiteRef?.setIndex(loadedAppleIndex)
+                    let appleURL = self.appleDocCSiteRef?.url ?? URL(string: "\(DocCConstants.aDeveloperURLBase)/documentation")!
+                    self.persistDocCIndex(loadedAppleIndex, for: appleURL)
+                    self.publishAppleTechnologies(appleTechnologies.withIndex(loadedAppleIndex))
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+
+    /// Attaches an Apple search index to the existing Apple technology entry without replacing sidebar metadata.
+    ///
+    /// - Parameter index: Persisted Apple DocC search index.
+    @MainActor
+    private func publishAppleIndex(_ index: DocCIndex) {
+        guard let technologyIndex = technologies.firstIndex(where: { $0.isApple }),
+              case .apple(let appleTechnologies) = technologies[technologyIndex]
+        else {
+            publishAppleTechnologies(AppleTechnologies(index: index))
+            return
+        }
+
+        technologies[technologyIndex] = .apple(appleTechnologies.withIndex(index))
     }
     
     /// Loads fresh custom DocC source indexes concurrently from sendable persisted-source snapshots.
@@ -392,7 +574,7 @@ public final class DocumentationViewModel {
     ///   - snapshots: Value snapshots derived from persisted sources on the main actor.
     ///   - loader: Background content actor used to fetch source indexes.
     /// - Returns: Loaded source values sorted by their original timestamp.
-    private static func loadDocCSources(_ snapshots: [PersistedDocCSourceSnapshot], using loader: DocumentationContentLoader) async -> [LoadedDocCSource] {
+    fileprivate static func loadDocCSources(_ snapshots: [PersistedDocCSourceSnapshot], using loader: DocumentationContentLoader) async -> [LoadedDocCSource] {
         return await withTaskGroup(of: LoadedDocCSource?.self, returning: [LoadedDocCSource].self) { group in
             for snapshot in snapshots {
                 group.addTask {
@@ -422,6 +604,71 @@ public final class DocumentationViewModel {
             
             return loadedSources.sorted { lhs, rhs in
                 lhs.snapshot.timestamp < rhs.snapshot.timestamp
+            }
+        }
+    }
+
+    /// Loads persisted custom DocC source indexes without refreshing them from the network.
+    ///
+    /// - Parameters:
+    ///   - snapshots: Lightweight source metadata collected on the main actor.
+    ///   - store: SwiftData store actor used to decode persisted indexes off the main actor.
+    /// - Returns: Persisted source values sorted by their original timestamp.
+    private static func loadPersistedDocCSources(
+        _ snapshots: [PersistedDocCSourceSnapshot],
+        using store: DocumentationSwiftDataStore
+    ) async -> [LoadedDocCSource] {
+        do {
+            let persistedSources = try await store.fetchDocCIndexes(preferredURLs: snapshots.map(\.url))
+            let persistedSourceByURL = persistedSources.reduce(into: [URL: LoadedPersistedDocCIndex]()) { result, source in
+                result[source.url, default: source] = source
+            }
+
+            return snapshots.compactMap { snapshot in
+                guard let persistedSource = persistedSourceByURL[snapshot.url] else {
+                    return nil
+                }
+
+                return LoadedDocCSource(
+                    snapshot: snapshot,
+                    index: persistedSource.index,
+                    shouldPersistRemoteIndex: false
+                )
+            }
+            .sorted { lhs, rhs in
+                lhs.snapshot.timestamp < rhs.snapshot.timestamp
+            }
+        } catch {
+            print(error)
+            return []
+        }
+    }
+
+    /// Refreshes persisted custom DocC indexes from their source URLs after the local snapshot is restored.
+    ///
+    /// - Parameter snapshots: Source metadata to refresh from the network.
+    @MainActor
+    private func refreshPersistedDocCSources(_ snapshots: [PersistedDocCSourceSnapshot]) {
+        guard !snapshots.isEmpty else {
+            return
+        }
+
+        let loader = contentLoader
+        Task(priority: .utility) {
+            let refreshedSources = await loader.refreshDocCSources(snapshots)
+            publishRefreshedDocCSources(refreshedSources)
+        }
+    }
+
+    /// Publishes refreshed custom DocC source indexes after background refresh work completes.
+    ///
+    /// - Parameter refreshedSources: Fresh source indexes loaded by the content actor.
+    @MainActor
+    private func publishRefreshedDocCSources(_ refreshedSources: [LoadedDocCSource]) {
+        for refreshedSource in refreshedSources {
+            technologies.appendOrUpdate(.docC(refreshedSource.docCSource))
+            if refreshedSource.shouldPersistRemoteIndex {
+                persistDocCIndex(refreshedSource.index, for: refreshedSource.snapshot.url)
             }
         }
     }
@@ -466,6 +713,17 @@ public final class DocumentationViewModel {
                 print(error)
             }
         }
+    }
+}
+
+private extension DocCIndex {
+    /// Empty index that preserves only this index's stable identity.
+    var identityIndex: DocCIndex {
+        DocCIndex(
+            id: id,
+            interfaceLanguages: [:],
+            includedArchiveIdentifiers: includedArchiveIdentifiers
+        )
     }
 }
 
@@ -517,6 +775,41 @@ private struct PersistedDocCSourceSnapshot: Sendable {
         self.overrideName = source.overrideName
         self.index = source.index
     }
+
+    /// Creates a sendable snapshot from lightweight persisted site metadata.
+    ///
+    /// - Parameter snapshot: Persisted source metadata that does not include decoded index content.
+    init?(_ snapshot: DocCSiteSnapshot) {
+        guard let timestamp = snapshot.timestamp, let url = snapshot.url else {
+            return nil
+        }
+
+        self.id = snapshot.id
+        self.timestamp = timestamp
+        self.url = url
+        self.overrideName = snapshot.overrideName
+        self.index = DocCIndex(interfaceLanguages: [:])
+    }
+
+    /// Lightweight persisted source value with an empty index for identity and URL matching.
+    @MainActor
+    var persistedSource: PersistedDocCSource {
+        persistedSource(index: index)
+    }
+
+    /// Runtime persisted source value ready to attach to the UI model.
+    ///
+    /// - Parameter index: Index payload to attach to the source.
+    @MainActor
+    func persistedSource(index: DocCIndex) -> PersistedDocCSource {
+        PersistedDocCSource(
+            id: id,
+            timestamp: timestamp,
+            url: url,
+            overrideName: overrideName,
+            index: index
+        )
+    }
 }
 
 /// Sendable inserted source metadata returned from the SwiftData store actor.
@@ -534,6 +827,40 @@ struct InsertedDocCSource: Sendable {
     ///
     /// - Parameter index: Runtime index to attach to the source snapshot.
     /// - Returns: A persisted source snapshot for UI and DocCKit use.
+    @MainActor
+    func persistedSource(index: DocCIndex) -> PersistedDocCSource {
+        PersistedDocCSource(
+            id: id,
+            timestamp: timestamp,
+            url: url,
+            overrideName: overrideName,
+            index: index
+        )
+    }
+}
+
+/// Result of loading a persisted DocC index from SwiftData.
+private struct LoadedPersistedDocCIndex: Sendable {
+    /// Stable source identifier copied from SwiftData.
+    var id: UUID
+    /// Creation timestamp copied from SwiftData.
+    var timestamp: Date
+    /// Root URL for the DocC source.
+    var url: URL
+    /// Optional display-name override.
+    var overrideName: String?
+    /// Reconstructed DocC index.
+    var index: DocCIndex
+
+    /// Runtime persisted source value ready to attach to the UI model.
+    @MainActor
+    var persistedSource: PersistedDocCSource {
+        persistedSource(index: index)
+    }
+
+    /// Runtime persisted source value ready to attach to the UI model.
+    ///
+    /// - Parameter index: Index payload to attach to the source.
     @MainActor
     func persistedSource(index: DocCIndex) -> PersistedDocCSource {
         PersistedDocCSource(
@@ -619,6 +946,31 @@ actor DocumentationContentLoader {
     func fetchTechnologies(preferredLanguage: PreferredProgrammingLanguage) async throws -> AppleTechnologies {
         try await AppleDocsClient(preferredLanguage: preferredLanguage).fetchTechnologies()
     }
+
+    /// Fetches the Apple Developer Documentation index.
+    ///
+    /// - Parameter technologies: Apple technologies payload used to discover framework index URLs.
+    /// - Returns: Decoded DocC index.
+    func fetchAppleIndex(technologies: AppleTechnologies) async throws -> DocCIndex {
+        let url = URL(string: "\(DocCConstants.aDeveloperURLBase)/tutorials/data/index/apple-technologies.json")!
+        if let task = indexTasks[url] {
+            return try await task.value
+        }
+
+        let task = Task {
+            try await AppleDocsClient().fetchIndex(for: technologies)
+        }
+        indexTasks[url] = task
+
+        do {
+            let index = try await task.value
+            indexTasks[url] = nil
+            return index
+        } catch {
+            indexTasks[url] = nil
+            throw error
+        }
+    }
     
     /// Fetches and deduplicates a custom DocC index request.
     ///
@@ -642,6 +994,14 @@ actor DocumentationContentLoader {
             indexTasks[baseURL] = nil
             throw error
         }
+    }
+
+    /// Refreshes custom DocC source indexes on the content actor.
+    ///
+    /// - Parameter snapshots: Persisted source metadata to refresh.
+    /// - Returns: Refreshed source indexes sorted by their original timestamp.
+    fileprivate func refreshDocCSources(_ snapshots: [PersistedDocCSourceSnapshot]) async -> [LoadedDocCSource] {
+        await DocumentationViewModel.loadDocCSources(snapshots, using: self)
     }
     
     /// Fetches and deduplicates a framework payload request.
@@ -764,8 +1124,106 @@ actor DocumentationSwiftDataStore {
             return
         }
         
-        site.indexV2 = DocCSite.DocCIndexModel(index)
+        site.indexData = DocCSite.encodeIndex(index)
+        site.indexV2 = nil
         try modelContext.save()
+    }
+
+    /// Reconstructs a persisted custom DocC index on the model actor.
+    ///
+    /// - Parameter preferredURL: Source URL used to find the persisted source record.
+    /// - Returns: The persisted source and index when one exists.
+    fileprivate func fetchDocCIndex(preferredURL: URL) throws -> LoadedPersistedDocCIndex? {
+        let descriptor = FetchDescriptor<DocCSite>(
+            predicate: #Predicate { site in
+                site.url == preferredURL
+            }
+        )
+
+        guard let site = try modelContext.fetch(descriptor).first else {
+            return nil
+        }
+
+        return loadedPersistedIndex(from: site)
+    }
+
+    /// Reconstructs persisted custom DocC indexes in one SwiftData fetch.
+    ///
+    /// - Parameter preferredURLs: Source URLs to restore from local persistence.
+    /// - Returns: Persisted sources and indexes matching the requested URLs.
+    fileprivate func fetchDocCIndexes(preferredURLs: [URL]) throws -> [LoadedPersistedDocCIndex] {
+        guard !preferredURLs.isEmpty else {
+            return []
+        }
+
+        let preferredURLSet = Set(preferredURLs)
+        let sites = try modelContext.fetch(FetchDescriptor<DocCSite>())
+        var loadedIndexes: [LoadedPersistedDocCIndex] = []
+        loadedIndexes.reserveCapacity(preferredURLSet.count)
+
+        for site in sites {
+            guard let url = site.url, preferredURLSet.contains(url),
+                  let loadedIndex = loadedPersistedIndex(from: site)
+            else {
+                continue
+            }
+
+            loadedIndexes.append(loadedIndex)
+        }
+
+        return loadedIndexes
+    }
+
+    /// Reconstructs a persisted Apple DocC index on the model actor instead of the main actor.
+    ///
+    /// - Parameter preferredURL: Preferred source URL to try before falling back to any Apple source.
+    /// - Returns: The persisted Apple source and index when one exists.
+    fileprivate func fetchAppleDocCIndex(preferredURL: URL) throws -> LoadedPersistedDocCIndex? {
+        let descriptor = FetchDescriptor<DocCSite>(
+            predicate: #Predicate { site in
+                site.url == preferredURL
+            }
+        )
+
+        if let preferredSite = try modelContext.fetch(descriptor).first,
+           let loadedIndex = loadedPersistedIndex(from: preferredSite) {
+            return loadedIndex
+        }
+
+        let allSites = try modelContext.fetch(FetchDescriptor<DocCSite>())
+        for site in allSites {
+            guard site.url?.absoluteString.lowercased().contains("developer.apple.com") == true else {
+                continue
+            }
+
+            if let loadedIndex = loadedPersistedIndex(from: site) {
+                return loadedIndex
+            }
+        }
+
+        return nil
+    }
+
+    /// Reconstructs a persisted source/index pair from a SwiftData model if its required fields are valid.
+    ///
+    /// - Parameter site: Persisted site model to read.
+    /// - Returns: Sendable source/index data when the persisted model is complete.
+    private func loadedPersistedIndex(from site: DocCSite) -> LoadedPersistedDocCIndex? {
+        guard let timestamp = site.timestamp, let url = site.url else {
+            return nil
+        }
+
+        guard let index = site.decodedIndex ?? site.indexV2?.asIndex else {
+            return nil
+        }
+
+        return LoadedPersistedDocCIndex(
+            id: site.id,
+            timestamp: timestamp,
+            url: url,
+            overrideName: site.overrideName,
+            index: index
+        )
     }
     
     /// Deletes persisted DocC sources matching a URL.

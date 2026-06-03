@@ -127,7 +127,8 @@ public enum SearchSymbolResolver {
         for result: SidebarSearchReferenceResult,
         documentationViewModel: DocumentationViewModel
     ) -> SidebarSearchSymbolKind? {
-        if let indexedSymbolKind = symbolKind(in: result.site, matchingPath: result.path, title: result.title) {
+        if let site = result.site,
+           let indexedSymbolKind = symbolKind(in: site, matchingPath: result.path, title: result.title) {
             return indexedSymbolKind
         }
 

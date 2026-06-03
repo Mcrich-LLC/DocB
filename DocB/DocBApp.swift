@@ -29,8 +29,8 @@ struct DocBApp: App {
     @State var documentationViewModel: DocumentationViewModel
     /// Shared app settings model injected into app scenes.
     @State var appSettings: AppSettings
-    /// Shared macOS Open Quickly coordinator.
-    @State var openQuicklySearchCoordinator = OpenQuicklySearchCoordinator()
+    /// Shared Search Documentation coordinator injected into app scenes.
+    @State var openQuicklySearchCoordinator: OpenQuicklySearchCoordinator
     #if os(macOS)
     /// AppKit owner for the floating Open Quickly panel.
     @State private var openQuicklyPanelController = OpenQuicklyPanelController()
@@ -62,6 +62,7 @@ struct DocBApp: App {
         cloudSyncEngine = container.docBCloudSyncEngine()
         documentationViewModel = container.documentationViewModel()
         appSettings = container.appSettings()
+        openQuicklySearchCoordinator = container.openQuicklySearchCoordinator()
         
         loadRocketSimConnect()
     }

@@ -40,6 +40,13 @@ public extension Container {
         self { @MainActor in AppSettings() }
             .singleton
     }
+
+    /// Shared Search Documentation coordinator used by app scenes and palette windows.
+    @MainActor
+    var openQuicklySearchCoordinator: Factory<OpenQuicklySearchCoordinator> {
+        self { @MainActor in OpenQuicklySearchCoordinator() }
+            .singleton
+    }
     
     /// Required CloudKit container identifier supplied by the app target's Info.plist.
     var docBCloudKitContainerIdentifier: Factory<String> {

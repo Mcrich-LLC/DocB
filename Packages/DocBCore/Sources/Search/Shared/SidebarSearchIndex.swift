@@ -177,6 +177,16 @@ public struct SidebarSearchIndex: Sendable, Codable {
     private init(id: UUID, entries: [Entry], progress: (@Sendable (Double) -> Void)? = nil) {
         let entries = Self.deduplicatedEntries(entries)
         let searchBuckets = Self.makeSearchBuckets(entries, progress: progress)
+        self.init(id: id, entries: entries, searchBuckets: searchBuckets)
+    }
+
+    /// Creates an index from prebuilt entries and lookup buckets.
+    ///
+    /// - Parameters:
+    ///   - id: Snapshot identity.
+    ///   - entries: Flattened searchable entries.
+    ///   - searchBuckets: Prebuilt ASCII lookup buckets matching `entries`.
+    private init(id: UUID, entries: [Entry], searchBuckets: [[Int]]) {
         self.id = id
         self.entries = entries
         self.entryIndexesByASCIIByte = searchBuckets
@@ -201,7 +211,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
     public func cacheData() -> Data {
         var writer = CacheWriter()
         writer.writeString("DocBSearchIndex")
-        writer.writeUInt32(3)
+        writer.writeUInt32(4)
         writer.writeString(id.uuidString)
         writer.writeUInt32(UInt32(entries.count))
 
@@ -216,6 +226,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
             writer.writeRow(entry.row)
         }
 
+        writer.writeSearchBuckets(entryIndexesByASCIIByte)
         return writer.data
     }
 
@@ -224,10 +235,13 @@ public struct SidebarSearchIndex: Sendable, Codable {
     /// - Parameter data: Binary cache data previously produced by `cacheData()`.
     public init(cacheData data: Data) throws {
         var reader = CacheReader(data: data)
-        guard try reader.readString() == "DocBSearchIndex",
-              try reader.readUInt32() == 3,
-              let id = UUID(uuidString: try reader.readString())
-        else {
+        guard try reader.readString() == "DocBSearchIndex" else {
+            throw CacheError.invalidHeader
+        }
+
+        let version = try reader.readUInt32()
+        guard version == 3 || version == 4,
+              let id = UUID(uuidString: try reader.readString()) else {
             throw CacheError.invalidHeader
         }
 
@@ -254,7 +268,14 @@ public struct SidebarSearchIndex: Sendable, Codable {
             ))
         }
 
-        self.init(id: id, entries: entries)
+        let searchBuckets: [[Int]]
+        if version >= 4 {
+            searchBuckets = try reader.readSearchBuckets(entryCount: entries.count)
+        } else {
+            searchBuckets = Self.makeSearchBuckets(entries)
+        }
+
+        self.init(id: id, entries: entries, searchBuckets: searchBuckets)
     }
 
     /// Removes repeated logical rows while preserving first-match ordering.
@@ -295,7 +316,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
     /// Builds compact ASCII lookup buckets while preserving original entry order inside each bucket.
     ///
     /// - Parameter entries: Flattened searchable entries.
-    /// - Returns: A complete set of ASCII lookup buckets keyed by byte, pair, and trigram.
+    /// - Returns: A complete set of ASCII lookup buckets keyed by byte.
     private static func makeSearchBuckets(
         _ entries: [Entry],
         progress: (@Sendable (Double) -> Void)? = nil
@@ -636,6 +657,16 @@ public struct SidebarSearchIndex: Sendable, Codable {
             data.append(value)
         }
 
+        mutating func writeSearchBuckets(_ buckets: [[Int]]) {
+            writeUInt32(UInt32(buckets.count))
+            for bucket in buckets {
+                writeUInt32(UInt32(bucket.count))
+                for entryIndex in bucket {
+                    writeUInt32(UInt32(entryIndex))
+                }
+            }
+        }
+
         mutating func writeRow(_ row: SidebarSearchResultRow) {
             switch row {
             case .homepage(let id, let title):
@@ -760,6 +791,27 @@ public struct SidebarSearchIndex: Sendable, Codable {
             let value = data[offset..<(offset + length)]
             offset += length
             return Data(value)
+        }
+
+        mutating func readSearchBuckets(entryCount: Int) throws -> [[Int]] {
+            let bucketCount = Int(try readUInt32())
+            guard bucketCount == 128 else { throw CacheError.invalidData }
+
+            var buckets = Array(repeating: [Int](), count: bucketCount)
+            for bucketIndex in 0..<bucketCount {
+                let entryIndexCount = Int(try readUInt32())
+                buckets[bucketIndex].reserveCapacity(entryIndexCount)
+                for _ in 0..<entryIndexCount {
+                    let entryIndex = Int(try readUInt32())
+                    guard entryIndex >= 0, entryIndex < entryCount else {
+                        throw CacheError.invalidData
+                    }
+
+                    buckets[bucketIndex].append(entryIndex)
+                }
+            }
+
+            return buckets
         }
 
         mutating func readRow() throws -> SidebarSearchResultRow {

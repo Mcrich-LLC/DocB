@@ -208,7 +208,6 @@ struct DocBApp: App {
                 if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
                     openQuicklySearchCoordinator.open(
                         row,
-                        documentationViewModel: documentationViewModel,
                         openURL: OpenURLAction { url in
                             NSWorkspace.shared.open(url)
                             return .handled
@@ -243,7 +242,6 @@ struct DocBApp: App {
                 if openQuicklySearchCoordinator.hasActiveNavigationViewModel {
                     openQuicklySearchCoordinator.open(
                         row,
-                        documentationViewModel: documentationViewModel,
                         openURL: OpenURLAction { url in
                             .systemAction(url)
                         }
@@ -351,7 +349,7 @@ private struct MainView: View {
         .onChange(of: documentationViewModel.isPreparingSearchSources, initial: true) { _, isPreparingSearchSources in
             guard !isPreparingSearchSources else { return }
 
-            openQuicklySearchCoordinator.restoreCachedIndexIfAvailable(documentationViewModel: documentationViewModel)
+            openQuicklySearchCoordinator.restoreCachedIndexIfAvailable()
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }

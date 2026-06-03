@@ -62,7 +62,7 @@ public struct SearchResultList: View {
                             }
                             .id(row.id)
                             .onAppear {
-                                coordinator.preloadVisibleResult(row, documentationViewModel: documentationViewModel)
+                                coordinator.preloadVisibleResult(row)
                             }
                             .padding(.horizontal, listMetrics.rowHorizontalPadding)
                             .padding(.vertical, listMetrics.rowVerticalPadding)

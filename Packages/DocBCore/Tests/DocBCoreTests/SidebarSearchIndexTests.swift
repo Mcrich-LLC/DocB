@@ -611,7 +611,6 @@ struct SidebarSearchIndexTests {
         }
 
         let opened = coordinator.openSelectedResult(
-            documentationViewModel: DocumentationViewModel(),
             openURL: OpenURLAction { _ in .handled }
         )
 
@@ -629,7 +628,7 @@ struct SidebarSearchIndexTests {
         let openURL = OpenURLAction { _ in .handled }
         coordinator.registerActiveNavigationViewModel(navigationViewModel)
 
-        #expect(coordinator.open(.homepage(id: "home", title: "Discover"), documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(coordinator.open(.homepage(id: "home", title: "Discover"), openURL: openURL))
         #expect(navigationViewModel.path.last == .homepage)
 
         let technologyRow = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
@@ -643,7 +642,7 @@ struct SidebarSearchIndexTests {
             return
         }
 
-        #expect(coordinator.open(technologyRow, documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(coordinator.open(technologyRow, openURL: openURL))
         #expect(navigationViewModel.technology?.title == "SwiftUI")
         #expect(navigationViewModel.reference?.title == "SwiftUI")
 
@@ -684,7 +683,7 @@ struct SidebarSearchIndexTests {
             return
         }
 
-        #expect(coordinator.open(referenceRow, documentationViewModel: documentationViewModel, openURL: openURL))
+        #expect(coordinator.open(referenceRow, openURL: openURL))
         #expect(navigationViewModel.technology?.title == "PaletteGroup")
         #expect(navigationViewModel.reference?.title == "PaletteSymbol")
     }

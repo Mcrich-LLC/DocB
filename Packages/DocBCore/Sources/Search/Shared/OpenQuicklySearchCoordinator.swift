@@ -7,6 +7,7 @@ import Observation
 @MainActor
 @Observable
 public final class OpenQuicklySearchCoordinator {
+    @ObservationIgnored @Injected(\.documentationViewModel) private var documentationViewModel
     @ObservationIgnored @Injected(\.sidebarSearchIndexCache) private var searchIndexCache
 
     /// Current palette query.
@@ -93,9 +94,7 @@ public final class OpenQuicklySearchCoordinator {
     }
     
     /// Rebuilds the search index from the current documentation source snapshot.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
-    public func rebuildIndex(documentationViewModel: DocumentationViewModel) {
+    public func rebuildIndex() {
         guard !documentationViewModel.isPreparingSearchSources else {
             hasDeferredIndexRebuild = true
             isWaitingForSearchSources = true
@@ -126,37 +125,32 @@ public final class OpenQuicklySearchCoordinator {
 
         indexedSourceFingerprint = sourceFingerprint
         warmCachedIndexIfNeeded(
-            documentationViewModel: documentationViewModel,
             installWhenReady: true,
             priority: .userInitiated
         )
     }
 
     /// Starts warming the search index in the background when the current source snapshot is not indexed yet.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
-    public func warmSearchIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
+    public func warmSearchIndexIfNeeded() {
         guard canPrewarmSearchIndexInBackground else {
             return
         }
 
-        warmCachedIndexIfNeeded(documentationViewModel: documentationViewModel)
+        warmCachedIndexIfNeeded()
     }
 
     /// Schedules an index rebuild after the palette has had a chance to present.
     ///
     /// This keeps first presentation responsive when the initial rebuild needs to load the persisted Apple index or
     /// construct a fresh flattened search cache.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
-    public func rebuildIndexAfterPresentation(documentationViewModel: DocumentationViewModel) {
+    public func rebuildIndexAfterPresentation() {
         presentationIndexRebuildTask?.cancel()
         presentationIndexRebuildTask = Task { @MainActor in
             await Task.yield()
             try? await Task.sleep(for: .milliseconds(120))
             guard !Task.isCancelled else { return }
 
-            rebuildIndex(documentationViewModel: documentationViewModel)
+            rebuildIndex()
             presentationIndexRebuildTask = nil
         }
     }
@@ -164,11 +158,9 @@ public final class OpenQuicklySearchCoordinator {
     /// Builds and retains a cached search index in the background, optionally installing it once ready.
     ///
     /// - Parameters:
-    ///   - documentationViewModel: Documentation source model to snapshot for indexing.
     ///   - installWhenReady: Whether the warmed index should be installed into palette state.
     ///   - priority: Priority for snapshot loading and index construction.
     private func warmCachedIndexIfNeeded(
-        documentationViewModel: DocumentationViewModel,
         installWhenReady: Bool = false,
         priority: TaskPriority = .utility
     ) {
@@ -310,21 +302,17 @@ public final class OpenQuicklySearchCoordinator {
     }
 
     /// Performs a deferred rebuild once documentation sources have finished their initial restore.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
-    public func rebuildDeferredIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
+    public func rebuildDeferredIndexIfNeeded() {
         guard hasDeferredIndexRebuild || indexedSourceFingerprint == nil else {
             isWaitingForSearchSources = false
             return
         }
 
-        rebuildIndex(documentationViewModel: documentationViewModel)
+        rebuildIndex()
     }
 
     /// Restores a cached search index after sources finish loading without rebuilding on a cache miss.
-    ///
-    /// - Parameter documentationViewModel: Documentation source model that supplies the current fingerprint.
-    public func restoreCachedIndexIfAvailable(documentationViewModel: DocumentationViewModel) {
+    public func restoreCachedIndexIfAvailable() {
         guard !documentationViewModel.isPreparingSearchSources else {
             return
         }
@@ -436,10 +424,8 @@ public final class OpenQuicklySearchCoordinator {
 
     /// Starts loading content for a visible result row before the user activates it.
     ///
-    /// - Parameters:
-    ///   - row: Result row that has become visible in the palette.
-    ///   - documentationViewModel: Documentation source model used to fetch article or framework payloads.
-    public func preloadVisibleResult(_ row: SidebarSearchResultRow, documentationViewModel: DocumentationViewModel) {
+    /// - Parameter row: Result row that has become visible in the palette.
+    public func preloadVisibleResult(_ row: SidebarSearchResultRow) {
         guard preloadedRowIDs.insert(row.id).inserted else { return }
 
         switch row {
@@ -504,11 +490,10 @@ public final class OpenQuicklySearchCoordinator {
     /// Opens the currently selected row when one is available.
     ///
     /// - Parameters:
-    ///   - documentationViewModel: Documentation model used to resolve article/framework links.
     ///   - openURL: System URL opener for external destinations.
     /// - Returns: `true` when a result was activated.
     @discardableResult
-    public func openSelectedResult(documentationViewModel: DocumentationViewModel, openURL: OpenURLAction) -> Bool {
+    public func openSelectedResult(openURL: OpenURLAction) -> Bool {
         guard let selectedRowID,
               let row = searchStore.results.flattenedRows.first(where: { $0.id == selectedRowID })
         else {
@@ -520,18 +505,17 @@ public final class OpenQuicklySearchCoordinator {
             return openResultWithoutActiveWindow != nil
         }
 
-        return open(row, documentationViewModel: documentationViewModel, openURL: openURL)
+        return open(row, openURL: openURL)
     }
     
     /// Opens a search result in the active main window.
     ///
     /// - Parameters:
     ///   - row: Existing search result row payload to activate.
-    ///   - documentationViewModel: Documentation model used to resolve article/framework links.
     ///   - openURL: System URL opener for external destinations.
     /// - Returns: `true` when a result was activated.
     @discardableResult
-    public func open(_ row: SidebarSearchResultRow, documentationViewModel: DocumentationViewModel, openURL: OpenURLAction) -> Bool {
+    public func open(_ row: SidebarSearchResultRow, openURL: OpenURLAction) -> Bool {
         guard let activeNavigationViewModel else {
             return false
         }
@@ -549,7 +533,6 @@ public final class OpenQuicklySearchCoordinator {
                 result.reference(deepLinkScheme: activeNavigationViewModel.deepLinkScheme),
                 site: result.site,
                 navigationViewModel: activeNavigationViewModel,
-                documentationViewModel: documentationViewModel,
                 openURL: openURL
             )
             return true
@@ -584,7 +567,6 @@ public final class OpenQuicklySearchCoordinator {
         _ reference: Reference,
         site: DocCSource?,
         navigationViewModel: NavigationViewModel,
-        documentationViewModel: DocumentationViewModel,
         openURL: OpenURLAction
     ) {
         if let url = reference.externalURL, reference.isExternalReference {

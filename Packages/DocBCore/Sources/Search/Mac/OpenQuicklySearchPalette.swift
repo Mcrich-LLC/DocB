@@ -49,12 +49,12 @@ public struct OpenQuicklySearchPalette: View {
                 coordinator.selectDefaultResultIfNeeded()
             }
             .onChange(of: documentationViewModel.searchContentFingerprint) {
-                coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+                coordinator.rebuildIndex()
             }
             .onChange(of: documentationViewModel.isPreparingSearchSources) { _, isPreparingSearchSources in
                 guard !isPreparingSearchSources else { return }
 
-                coordinator.rebuildDeferredIndexIfNeeded(documentationViewModel: documentationViewModel)
+                coordinator.rebuildDeferredIndexIfNeeded()
             }
             .onSubmit(openSelectedResult)
             .onKeyPress(.upArrow) {
@@ -257,12 +257,12 @@ public struct OpenQuicklySearchPalette: View {
 
     private func appear() {
         focusSearchField()
-        coordinator.rebuildIndexAfterPresentation(documentationViewModel: documentationViewModel)
+        coordinator.rebuildIndexAfterPresentation()
         coordinator.updateQuery(coordinator.query)
     }
 
     private func openSelectedResult() {
-        guard coordinator.openSelectedResult(documentationViewModel: documentationViewModel, openURL: openURL) else {
+        guard coordinator.openSelectedResult(openURL: openURL) else {
             return
         }
 

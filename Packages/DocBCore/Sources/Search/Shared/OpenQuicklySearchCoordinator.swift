@@ -47,7 +47,23 @@ public final class OpenQuicklySearchCoordinator {
 
     /// Current search-index progress, or `nil` while progress is indeterminate.
     public var searchIndexProgress: Double? {
-        searchStore.isRebuildingIndex ? searchStore.indexBuildProgress : warmedIndexBuildProgress
+        if searchStore.isRebuildingIndex {
+            return searchStore.indexBuildProgress ?? SearchIndexInstallProgress.cacheLookup
+        }
+
+        if let warmedIndexBuildProgress {
+            return warmedIndexBuildProgress
+        }
+
+        if isLoadingSearchIndexSnapshot {
+            return SearchIndexInstallProgress.presentation
+        }
+
+        if isWaitingForSearchSources {
+            return SearchIndexInstallProgress.waitingForSources
+        }
+
+        return nil
     }
     
     private weak var activeNavigationViewModel: NavigationViewModel?
@@ -181,6 +197,7 @@ public final class OpenQuicklySearchCoordinator {
         if let warmedIndex, warmedIndexFingerprint == sourceFingerprint {
             guard installWhenReady else { return }
 
+            warmedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
             installWarmedIndex(warmedIndex, sourceFingerprint: sourceFingerprint)
             return
         }
@@ -192,6 +209,10 @@ public final class OpenQuicklySearchCoordinator {
             if installWhenReady {
                 isLoadingSearchIndexSnapshot = true
                 loadingSnapshotFingerprint = sourceFingerprint
+                warmedIndexBuildProgress = max(
+                    warmedIndexBuildProgress ?? 0,
+                    SearchIndexInstallProgress.cacheLookup
+                )
             }
 
             guard priority == .userInitiated else { return }
@@ -214,6 +235,7 @@ public final class OpenQuicklySearchCoordinator {
         if installWhenReady {
             isLoadingSearchIndexSnapshot = true
             loadingSnapshotFingerprint = sourceFingerprint
+            warmedIndexBuildProgress = SearchIndexInstallProgress.cacheLookup
         }
 
         let requestID = UUID()
@@ -233,6 +255,9 @@ public final class OpenQuicklySearchCoordinator {
                         return
                     }
 
+                    self.warmedIndexBuildProgress = installWhenReady
+                        ? SearchIndexInstallProgress.installingCachedIndex
+                        : nil
                     self.finishWarmingIndex(
                         cachedIndex,
                         sourceFingerprint: sourceFingerprint,
@@ -240,6 +265,18 @@ public final class OpenQuicklySearchCoordinator {
                     )
                 }
                 return
+            }
+
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.warmedIndexBuildProgress = installWhenReady
+                    ? SearchIndexInstallProgress.loadingSourceSnapshot
+                    : nil
             }
 
             let technologies = await documentationViewModel.searchTechnologySnapshot()
@@ -252,7 +289,9 @@ public final class OpenQuicklySearchCoordinator {
                     return
                 }
 
-                self.warmedIndexBuildProgress = installWhenReady ? 0 : nil
+                self.warmedIndexBuildProgress = installWhenReady
+                    ? SearchIndexInstallProgress.buildingIndexStart
+                    : nil
                 self.loadingSnapshotFingerprint = installWhenReady ? sourceFingerprint : self.loadingSnapshotFingerprint
             }
 
@@ -266,7 +305,8 @@ public final class OpenQuicklySearchCoordinator {
                         return
                     }
 
-                    self.warmedIndexBuildProgress = min(max(value, 0), 1)
+                    self.warmedIndexBuildProgress = SearchIndexInstallProgress.buildingIndexStart
+                        + (SearchIndexInstallProgress.buildingIndexRange * min(max(value, 0), 1))
                 }
             }
 
@@ -295,6 +335,9 @@ public final class OpenQuicklySearchCoordinator {
                     return
                 }
 
+                self.warmedIndexBuildProgress = installWhenReady
+                    ? SearchIndexInstallProgress.installingBuiltIndex
+                    : nil
                 self.finishWarmingIndex(
                     index,
                     sourceFingerprint: sourceFingerprint,
@@ -431,6 +474,7 @@ public final class OpenQuicklySearchCoordinator {
 
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
+        warmedIndexBuildProgress = SearchIndexInstallProgress.presentation
     }
 
     /// Updates the query while preserving the currently selected row when possible.
@@ -682,4 +726,16 @@ public final class OpenQuicklySearchCoordinator {
 
         navigationViewModel.splitViewColumnVisibility = .all
     }
+}
+
+/// Determinate progress checkpoints for installing the Search Documentation index into the palette.
+private enum SearchIndexInstallProgress {
+    static let waitingForSources = 0.03
+    static let presentation = 0.06
+    static let cacheLookup = 0.12
+    static let loadingSourceSnapshot = 0.24
+    static let buildingIndexStart = 0.32
+    static let buildingIndexRange = 0.58
+    static let installingBuiltIndex = 0.95
+    static let installingCachedIndex = 0.85
 }

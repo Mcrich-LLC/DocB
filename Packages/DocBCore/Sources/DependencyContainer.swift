@@ -75,4 +75,10 @@ extension Container {
     var documentationSwiftDataStore: Factory<DocumentationSwiftDataStore> {
         self { DocumentationSwiftDataStore(modelContainer: self.docBModelContainer()) }
     }
+
+    /// Local search index cache used by sidebar and Search Documentation indexing.
+    var sidebarSearchIndexCache: Factory<SidebarSearchIndexCache> {
+        self { SidebarSearchIndexCache() }
+            .singleton
+    }
 }

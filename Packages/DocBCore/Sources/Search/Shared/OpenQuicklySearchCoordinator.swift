@@ -1,11 +1,14 @@
 import SwiftUI
 import DocCKit
+import FactoryKit
 import Observation
 
 /// Coordinates Search Documentation palette state and navigation.
 @MainActor
 @Observable
 public final class OpenQuicklySearchCoordinator {
+    @ObservationIgnored @Injected(\.sidebarSearchIndexCache) private var searchIndexCache
+
     /// Current palette query.
     public var query = ""
     /// Identifier of the currently highlighted result row.
@@ -220,13 +223,14 @@ public final class OpenQuicklySearchCoordinator {
 
         let requestID = UUID()
         indexWarmRequestID = requestID
+        let searchIndexCache = searchIndexCache
         indexWarmTask = Task(priority: priority) {
             if !installWhenReady {
                 try? await Task.sleep(for: .milliseconds(1_250))
                 guard !Task.isCancelled else { return }
             }
 
-            if let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) {
+            if let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
                 await MainActor.run {
                     guard self.warmedSourceFingerprint == sourceFingerprint,
                           self.indexWarmRequestID == requestID
@@ -286,7 +290,7 @@ public final class OpenQuicklySearchCoordinator {
                 guard !Task.isCancelled else { return }
             }
 
-            await SidebarSearchIndexCache.shared.store(index, for: sourceFingerprint)
+            await searchIndexCache.store(index, for: sourceFingerprint)
             guard !Task.isCancelled else { return }
 
             await MainActor.run {
@@ -331,8 +335,9 @@ public final class OpenQuicklySearchCoordinator {
         }
 
         let currentQuery = query
+        let searchIndexCache = searchIndexCache
         Task(priority: .utility) {
-            guard let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) else {
+            guard let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) else {
                 return
             }
 

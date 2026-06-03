@@ -1,4 +1,5 @@
 import Foundation
+import FactoryKit
 import Observation
 import DocCKit
 
@@ -1270,9 +1271,6 @@ public struct SidebarSearchResults: Sendable {
 
 /// Local, unsynced cache for flattened search indexes.
 public actor SidebarSearchIndexCache {
-    /// Shared cache instance used by sidebar and Search Documentation.
-    public static let shared = SidebarSearchIndexCache()
-
     private static let cacheVersion = 4
 
     private let fileManager: FileManager
@@ -1666,6 +1664,8 @@ public struct SidebarSearchTechnologyResult: Identifiable, Sendable, Codable {
 @MainActor
 @Observable
 public final class SidebarSearchStore {
+    @ObservationIgnored @Injected(\.sidebarSearchIndexCache) private var searchIndexCache
+
     /// Latest raw search text received from the sidebar field.
     public private(set) var rawSearchText = ""
     /// Current visible search results.
@@ -1719,10 +1719,11 @@ public final class SidebarSearchStore {
         indexBuildRequestID = requestID
         isRebuildingIndex = sourceFingerprint != nil
         indexBuildProgress = nil
+        let searchIndexCache = searchIndexCache
 
         indexBuildTask = Task(priority: .utility) {
             if let sourceFingerprint,
-               let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) {
+               let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
                 await MainActor.run {
                     guard self.indexBuildRequestID == requestID else { return }
 
@@ -1755,7 +1756,7 @@ public final class SidebarSearchStore {
 
                 if let sourceFingerprint {
                     Task.detached(priority: .utility) {
-                        await SidebarSearchIndexCache.shared.store(index, for: sourceFingerprint)
+                        await searchIndexCache.store(index, for: sourceFingerprint)
                     }
                 }
                 self.indexBuildTask = nil

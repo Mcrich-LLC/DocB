@@ -259,7 +259,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = "DocB/DocB Staging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = NO;
@@ -282,7 +282,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;
@@ -314,7 +314,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = "DocB/DocB Staging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = NO;
@@ -338,7 +338,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;
@@ -497,7 +497,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation.Debug";
 				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;
@@ -531,7 +531,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation.Debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;
@@ -564,7 +564,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;
@@ -598,7 +598,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.Mcrich.Apple-Documentation";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = NO;

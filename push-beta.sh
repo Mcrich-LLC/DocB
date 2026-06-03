@@ -182,6 +182,7 @@ if [ "$dry_run" = true ]; then
 else
     echo "Committing the build number change"
     git commit -a -m "Bumped Build Number"
+    git push
 
     # Commit and push the build number change
     commit_message="$version($build_number)"

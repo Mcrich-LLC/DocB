@@ -4,13 +4,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "DocBCore",
+    name: "DocB",
     platforms: [.macOS(.v15), .iOS(.v18), .visionOS(.v2)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "DocBCore",
             targets: ["DocBCore"]
+        ),
+        .library(
+            name: "DocCKit",
+            targets: ["DocCKit"]
         )
     ],
     dependencies: [
@@ -22,11 +26,9 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.3.0"),
         .package(url: "https://github.com/simonbs/SFSymbols", from: "1.5.0"),
         .package(url: "https://github.com/hmlongco/Factory", from: "3.0.0"),
-        .package(url: "https://github.com/mcrich-llc/DocCKit", branch: "main")
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        // MARK: - DocBCore
         .target(
             name: "DocBCore",
             dependencies: [
@@ -40,13 +42,33 @@ let package = Package(
                 "SFSymbols",
                 "DocCKit"
             ],
+            path: "Packages/DocBCore/Sources",
             resources: [
                 .process("Resources") // Processes all files in this folder
             ]
         ),
         .testTarget(
             name: "DocBCoreTests",
-            dependencies: ["DocBCore", "MYCloudKit", "DocCKit"]
-        )
+            dependencies: ["DocBCore", "MYCloudKit", "DocCKit"],
+            path: "Packages/DocBCore/Tests"
+        ),
+        
+        // MARK: - DocCKit
+        .target(
+            name: "DocCKit",
+            dependencies: [
+                "EnhancedCodable",
+                "SFSafeSymbols",
+                "HighlightSwift",
+                "Nuke",
+                .product(name: "NukeUI", package: "Nuke"),
+            ],
+            path: "Packages/DocCKit/Sources"
+        ),
+        .testTarget(
+            name: "DocCKitTests",
+            dependencies: ["DocCKit"],
+            path: "Packages/DocCKit/Tests"
+        ),
     ]
 )

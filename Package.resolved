@@ -1,15 +1,6 @@
 {
-  "originHash" : "a705c0a9a5af7c7405aa955732142f425dcdd42c47c8fe88c8e2253f657d003f",
+  "originHash" : "bf43150015ff6821e6e012c63041e8e1df262ccce34e3edc4bdd8abc09fa8a82",
   "pins" : [
-    {
-      "identity" : "docckit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mcrich-llc/DocCKit",
-      "state" : {
-        "branch" : "main",
-        "revision" : "7b1d673f5ed4cb4f5d5bbce2a8ccdc1250a3f8f7"
-      }
-    },
     {
       "identity" : "enhancedcodable",
       "kind" : "remoteSourceControl",

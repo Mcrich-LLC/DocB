@@ -1369,8 +1369,10 @@ public final class SidebarSearchStore {
 
     /// Installs an already-built index.
     ///
-    /// - Parameter index: Search index snapshot to publish.
-    public func installIndex(_ index: SidebarSearchIndex) {
+    /// - Parameters:
+    ///   - index: Search index snapshot to publish.
+    ///   - searchDebounce: Delay before re-running the current query against the installed index.
+    public func installIndex(_ index: SidebarSearchIndex, searchDebounce: Duration = .milliseconds(120)) {
         searchTask?.cancel()
         indexBuildTask?.cancel()
         searchRequestID = UUID()
@@ -1379,7 +1381,7 @@ public final class SidebarSearchStore {
         isRebuildingIndex = false
         indexBuildProgress = nil
         indexBuildCount += 1
-        updateSearchText(rawSearchText)
+        updateSearchText(rawSearchText, debounce: searchDebounce)
     }
 
     /// Releases the installed flattened index and any visible results.

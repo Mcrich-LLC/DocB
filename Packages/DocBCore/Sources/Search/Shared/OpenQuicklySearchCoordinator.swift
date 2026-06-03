@@ -43,15 +43,22 @@ public final class OpenQuicklySearchCoordinator {
 
     /// Current search-index progress, or `nil` while progress is indeterminate.
     public var searchIndexProgress: Double? {
-        searchStore.isRebuildingIndex ? searchStore.indexBuildProgress : nil
+        searchStore.isRebuildingIndex ? searchStore.indexBuildProgress : warmedIndexBuildProgress
     }
     
     private weak var activeNavigationViewModel: NavigationViewModel?
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
     private var indexedSourceFingerprint: String?
+    private var warmedSourceFingerprint: String?
+    private var warmedIndexFingerprint: String?
+    private var warmedIndex: SidebarSearchIndex?
+    private var shouldInstallWarmedIndex = false
     private var loadingSnapshotFingerprint: String?
+    private var warmedIndexBuildProgress: Double?
     private var hasDeferredIndexRebuild = false
     private var presentationIndexRebuildTask: Task<Void, Never>?
+    private var indexWarmTask: Task<Void, Never>?
+    private var indexWarmRequestID = UUID()
 
     /// Whether this device has enough memory for retained background search prewarming.
     public var canPrewarmSearchIndexInBackground: Bool {
@@ -107,40 +114,19 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        indexedSourceFingerprint = sourceFingerprint
-        isLoadingSearchIndexSnapshot = true
-        loadingSnapshotFingerprint = sourceFingerprint
-        Task(priority: .utility) {
-            if let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) {
-                await MainActor.run {
-                    guard self.indexedSourceFingerprint == sourceFingerprint else {
-                        self.clearSnapshotLoadingState(for: sourceFingerprint)
-                        return
-                    }
-
-                    self.clearSnapshotLoadingState(for: sourceFingerprint)
-                    self.searchStore.updateSearchText(self.query)
-                    self.searchStore.installIndex(cachedIndex)
-                }
-                return
-            }
-
-            let technologies = await documentationViewModel.searchTechnologySnapshot()
-
-            await MainActor.run {
-                guard self.indexedSourceFingerprint == sourceFingerprint else {
-                    self.clearSnapshotLoadingState(for: sourceFingerprint)
-                    return
-                }
-
-                self.clearSnapshotLoadingState(for: sourceFingerprint)
-                self.searchStore.rebuildIndex(
-                    technologies: technologies,
-                    searchText: self.query,
-                    sourceFingerprint: sourceFingerprint
-                )
-            }
+        if sourceFingerprint.isEmpty {
+            clearWarmedIndexState()
+            indexedSourceFingerprint = sourceFingerprint
+            searchStore.installIndex(.empty, searchDebounce: .milliseconds(0))
+            return
         }
+
+        indexedSourceFingerprint = sourceFingerprint
+        warmCachedIndexIfNeeded(
+            documentationViewModel: documentationViewModel,
+            installWhenReady: true,
+            priority: .userInitiated
+        )
     }
 
     /// Starts warming the search index in the background when the current source snapshot is not indexed yet.
@@ -151,7 +137,7 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        rebuildIndex(documentationViewModel: documentationViewModel)
+        warmCachedIndexIfNeeded(documentationViewModel: documentationViewModel)
     }
 
     /// Schedules an index rebuild after the palette has had a chance to present.
@@ -169,6 +155,146 @@ public final class OpenQuicklySearchCoordinator {
 
             rebuildIndex(documentationViewModel: documentationViewModel)
             presentationIndexRebuildTask = nil
+        }
+    }
+
+    /// Builds and retains a cached search index in the background, optionally installing it once ready.
+    ///
+    /// - Parameters:
+    ///   - documentationViewModel: Documentation source model to snapshot for indexing.
+    ///   - installWhenReady: Whether the warmed index should be installed into palette state.
+    ///   - priority: Priority for snapshot loading and index construction.
+    private func warmCachedIndexIfNeeded(
+        documentationViewModel: DocumentationViewModel,
+        installWhenReady: Bool = false,
+        priority: TaskPriority = .utility
+    ) {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            return
+        }
+
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard !sourceFingerprint.isEmpty else {
+            return
+        }
+
+        if let warmedIndex, warmedIndexFingerprint == sourceFingerprint {
+            guard installWhenReady else { return }
+
+            installWarmedIndex(warmedIndex, sourceFingerprint: sourceFingerprint)
+            return
+        }
+
+        if sourceFingerprint == warmedSourceFingerprint,
+           let indexWarmTask,
+           !indexWarmTask.isCancelled {
+            shouldInstallWarmedIndex = shouldInstallWarmedIndex || installWhenReady
+            if installWhenReady {
+                indexedSourceFingerprint = sourceFingerprint
+                isLoadingSearchIndexSnapshot = true
+                loadingSnapshotFingerprint = sourceFingerprint
+            }
+
+            guard priority == .userInitiated else { return }
+
+            indexWarmTask.cancel()
+            self.indexWarmTask = nil
+        } else if sourceFingerprint != warmedSourceFingerprint || installWhenReady {
+            indexWarmTask?.cancel()
+        } else {
+            return
+        }
+
+        warmedSourceFingerprint = sourceFingerprint
+        shouldInstallWarmedIndex = installWhenReady
+        if warmedIndexFingerprint != sourceFingerprint {
+            warmedIndexFingerprint = nil
+            warmedIndex = nil
+        }
+
+        if installWhenReady {
+            indexedSourceFingerprint = sourceFingerprint
+            isLoadingSearchIndexSnapshot = true
+            loadingSnapshotFingerprint = sourceFingerprint
+        }
+
+        let requestID = UUID()
+        indexWarmRequestID = requestID
+        indexWarmTask = Task(priority: priority) {
+            if !installWhenReady {
+                try? await Task.sleep(for: .milliseconds(1_250))
+                guard !Task.isCancelled else { return }
+            }
+
+            if let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) {
+                await MainActor.run {
+                    guard self.warmedSourceFingerprint == sourceFingerprint,
+                          self.indexWarmRequestID == requestID
+                    else {
+                        return
+                    }
+
+                    self.finishWarmingIndex(
+                        cachedIndex,
+                        sourceFingerprint: sourceFingerprint,
+                        requestID: requestID
+                    )
+                }
+                return
+            }
+
+            let technologies = await documentationViewModel.searchTechnologySnapshot()
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.warmedIndexBuildProgress = installWhenReady ? 0 : nil
+                self.loadingSnapshotFingerprint = installWhenReady ? sourceFingerprint : self.loadingSnapshotFingerprint
+            }
+
+            let progress: @Sendable (Double) -> Void = { value in
+                Task { @MainActor in
+                    guard self.warmedSourceFingerprint == sourceFingerprint,
+                          self.indexWarmRequestID == requestID,
+                          self.loadingSnapshotFingerprint == sourceFingerprint,
+                          self.warmedIndexBuildProgress != nil
+                    else {
+                        return
+                    }
+
+                    self.warmedIndexBuildProgress = min(max(value, 0), 1)
+                }
+            }
+
+            let index = await Task.detached(priority: priority) {
+                SidebarSearchIndex(
+                    technologies: technologies,
+                    progress: installWhenReady ? progress : nil
+                )
+            }.value
+            guard !Task.isCancelled else { return }
+
+            await SidebarSearchIndexCache.shared.store(index, for: sourceFingerprint)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.finishWarmingIndex(
+                    index,
+                    sourceFingerprint: sourceFingerprint,
+                    requestID: requestID
+                )
+            }
         }
     }
 
@@ -219,11 +345,57 @@ public final class OpenQuicklySearchCoordinator {
     public func releaseSearchIndexForMemoryPressure() {
         presentationIndexRebuildTask?.cancel()
         presentationIndexRebuildTask = nil
+        indexWarmTask?.cancel()
+        indexWarmTask = nil
+        indexWarmRequestID = UUID()
         indexedSourceFingerprint = nil
+        clearWarmedIndexState()
         loadingSnapshotFingerprint = nil
+        warmedIndexBuildProgress = nil
         isWaitingForSearchSources = false
         isLoadingSearchIndexSnapshot = false
         searchStore.releaseIndex()
+    }
+
+    /// Installs a warmed index into palette search state.
+    ///
+    /// - Parameters:
+    ///   - index: Warmed index to install.
+    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
+    private func installWarmedIndex(_ index: SidebarSearchIndex, sourceFingerprint: String) {
+        indexedSourceFingerprint = sourceFingerprint
+        clearSnapshotLoadingState(for: sourceFingerprint)
+        warmedIndexBuildProgress = nil
+        searchStore.updateSearchText(query, debounce: .milliseconds(0))
+        searchStore.installIndex(index, searchDebounce: .milliseconds(0))
+    }
+
+    /// Records a warmed index and installs it if a presentation requested it.
+    ///
+    /// - Parameters:
+    ///   - index: Warmed index snapshot.
+    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
+    ///   - requestID: Request identity for rejecting stale warm completions.
+    private func finishWarmingIndex(_ index: SidebarSearchIndex, sourceFingerprint: String, requestID: UUID) {
+        guard indexWarmRequestID == requestID else { return }
+
+        warmedIndex = index
+        warmedIndexFingerprint = sourceFingerprint
+        indexWarmTask = nil
+        warmedIndexBuildProgress = nil
+        guard shouldInstallWarmedIndex else {
+            return
+        }
+
+        installWarmedIndex(index, sourceFingerprint: sourceFingerprint)
+    }
+
+    /// Clears retained warmed-index state without touching the installed palette index.
+    private func clearWarmedIndexState() {
+        warmedSourceFingerprint = nil
+        warmedIndexFingerprint = nil
+        warmedIndex = nil
+        shouldInstallWarmedIndex = false
     }
 
     /// Clears snapshot-loading state for the matching source fingerprint.

@@ -258,7 +258,7 @@ public struct SearchPaletteOverlay: View {
 
     private func appear() {
         focusSearchField()
-        coordinator.rebuildIndexAfterPresentation()
+        coordinator.prepareSearchIndexForPalette()
         coordinator.updateQuery(coordinator.query)
     }
 

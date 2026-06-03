@@ -276,11 +276,10 @@ public struct SidebarSearchIndex: Sendable, Codable {
     /// - Returns: Binary data containing only the fields required to restore search rows.
     public func cacheData() -> Data {
         let cachedEntries = flattenedEntriesForCache()
-        let cachedSearchBuckets = streamingAppleIndexes.isEmpty ? entryIndexesByASCIIByte : Self.makeSearchBuckets(cachedEntries)
 
         var writer = CacheWriter()
         writer.writeString("DocBSearchIndex")
-        writer.writeUInt32(4)
+        writer.writeUInt32(5)
         writer.writeString(id.uuidString)
         writer.writeUInt32(UInt32(cachedEntries.count))
 
@@ -295,7 +294,6 @@ public struct SidebarSearchIndex: Sendable, Codable {
             writer.writeRow(entry.row)
         }
 
-        writer.writeSearchBuckets(cachedSearchBuckets)
         return writer.data
     }
 
@@ -309,7 +307,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         let version = try reader.readUInt32()
-        guard version == 3 || version == 4,
+        guard version == 3 || version == 4 || version == 5,
               let id = UUID(uuidString: try reader.readString()) else {
             throw CacheError.invalidHeader
         }
@@ -338,7 +336,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         let searchBuckets: [[Int]]
-        if version >= 4 {
+        if version == 4 {
             searchBuckets = try reader.readSearchBuckets(entryCount: entries.count)
         } else {
             searchBuckets = Self.makeSearchBuckets(entries)
@@ -1012,16 +1010,6 @@ public struct SidebarSearchIndex: Sendable, Codable {
             data.append(value)
         }
 
-        mutating func writeSearchBuckets(_ buckets: [[Int]]) {
-            writeUInt32(UInt32(buckets.count))
-            for bucket in buckets {
-                writeUInt32(UInt32(bucket.count))
-                for entryIndex in bucket {
-                    writeUInt32(UInt32(entryIndex))
-                }
-            }
-        }
-
         mutating func writeRow(_ row: SidebarSearchResultRow) {
             switch row {
             case .homepage(let id, let title):
@@ -1286,10 +1274,15 @@ public actor SidebarSearchIndexCache {
     private let cacheDirectory: URL
 
     /// Creates a search index cache rooted in the user's Application Support directory.
-    public init(fileManager: FileManager = .default) {
+    ///
+    /// - Parameters:
+    ///   - fileManager: File manager used for cache reads and writes.
+    ///   - applicationSupportDirectory: Optional Application Support override used by tests.
+    public init(fileManager: FileManager = .default, applicationSupportDirectory: URL? = nil) {
         self.fileManager = fileManager
 
-        let baseDirectory = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        let baseDirectory = applicationSupportDirectory
+            ?? fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.cacheDirectory = baseDirectory
             .appendingPathComponent("DocB", isDirectory: true)
@@ -1339,6 +1332,20 @@ public actor SidebarSearchIndexCache {
         }
     }
 
+    /// Returns whether the search-index cache directory contains any local index payloads.
+    public func containsAnyIndexFiles() -> Bool {
+        do {
+            return try fileManager.contentsOfDirectory(
+                at: cacheDirectory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+            .contains { $0.pathExtension == "bin" }
+        } catch {
+            return false
+        }
+    }
+
     /// Stores a flattened search index for a source fingerprint.
     ///
     /// - Parameters:
@@ -1349,10 +1356,27 @@ public actor SidebarSearchIndexCache {
 
         do {
             try fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+            let url = cacheURL(for: fingerprint)
             let payload = Payload(version: Self.cacheVersion, fingerprint: fingerprint, index: index)
-            try payload.data().write(to: cacheURL(for: fingerprint), options: .atomic)
+            try payload.data().write(to: url, options: .atomic)
+            try removeStaleCacheFiles(keeping: url)
         } catch {
             print(error)
+        }
+    }
+
+    private func removeStaleCacheFiles(keeping currentCacheURL: URL) throws {
+        let cacheFileURLs = try fileManager.contentsOfDirectory(
+            at: cacheDirectory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )
+        let currentCachePath = currentCacheURL.standardizedFileURL.path
+
+        for cacheFileURL in cacheFileURLs where cacheFileURL.pathExtension == "bin" {
+            guard cacheFileURL.standardizedFileURL.path != currentCachePath else { continue }
+
+            try fileManager.removeItem(at: cacheFileURL)
         }
     }
 
@@ -1687,14 +1711,18 @@ public final class SidebarSearchStore {
     public private(set) var indexBuildProgress: Double?
     /// Number of installed index snapshots, used by tests to guard against query-time rebuilds.
     public private(set) var indexBuildCount = 0
+    /// Whether a non-empty search index is currently installed.
+    public var hasInstalledIndex: Bool {
+        indexBuildCount > 0 && index.entryCount > 0
+    }
 
     /// User-facing title for the current index-build phase.
     public var indexBuildTitle: String {
         if isRebuildingIndex && indexBuildProgress == nil {
-            return "Loading Index"
+            return hasInstalledIndex ? "Updating Index" : "Loading Index"
         }
 
-        return indexBuildCount == 0 && index.entryCount == 0 ? "Indexing" : "Updating Index"
+        return hasInstalledIndex ? "Updating Index" : "Indexing"
     }
 
     /// Current flattened index.
@@ -1729,6 +1757,7 @@ public final class SidebarSearchStore {
         isRebuildingIndex = sourceFingerprint != nil
         indexBuildProgress = nil
         let searchIndexCache = searchIndexCache
+        let preservesExistingResults = hasInstalledIndex
 
         indexBuildTask = Task(priority: .utility) {
             if let sourceFingerprint,
@@ -1736,7 +1765,7 @@ public final class SidebarSearchStore {
                 await MainActor.run {
                     guard self.indexBuildRequestID == requestID else { return }
 
-                    self.installIndex(cachedIndex)
+                    self.installIndex(cachedIndex, preserveExistingResults: preservesExistingResults)
                 }
                 return
             }
@@ -1769,7 +1798,7 @@ public final class SidebarSearchStore {
                     }
                 }
                 self.indexBuildTask = nil
-                self.installIndex(index)
+                self.installIndex(index, preserveExistingResults: preservesExistingResults)
             }
         }
     }
@@ -1779,7 +1808,12 @@ public final class SidebarSearchStore {
     /// - Parameters:
     ///   - index: Search index snapshot to publish.
     ///   - searchDebounce: Delay before re-running the current query against the installed index.
-    public func installIndex(_ index: SidebarSearchIndex, searchDebounce: Duration = .milliseconds(120)) {
+    ///   - preserveExistingResults: Whether visible rows should remain while the current query reruns.
+    public func installIndex(
+        _ index: SidebarSearchIndex,
+        searchDebounce: Duration = .milliseconds(120),
+        preserveExistingResults: Bool = false
+    ) {
         searchTask?.cancel()
         indexBuildTask?.cancel()
         searchRequestID = UUID()
@@ -1788,7 +1822,7 @@ public final class SidebarSearchStore {
         isRebuildingIndex = false
         indexBuildProgress = nil
         indexBuildCount += 1
-        updateSearchText(rawSearchText, debounce: searchDebounce)
+        updateSearchText(rawSearchText, debounce: searchDebounce, preserveExistingResults: preserveExistingResults)
     }
 
     /// Releases the installed flattened index and any visible results.
@@ -1809,7 +1843,12 @@ public final class SidebarSearchStore {
     /// - Parameters:
     ///   - searchText: Raw sidebar search text.
     ///   - debounce: Delay before non-empty queries are evaluated.
-    public func updateSearchText(_ searchText: String, debounce: Duration = .milliseconds(120)) {
+    ///   - preserveExistingResults: Whether visible rows should remain while the search is running.
+    public func updateSearchText(
+        _ searchText: String,
+        debounce: Duration = .milliseconds(120),
+        preserveExistingResults: Bool = false
+    ) {
         rawSearchText = searchText
         searchTask?.cancel()
         searchRequestID = UUID()
@@ -1824,7 +1863,9 @@ public final class SidebarSearchStore {
         let requestID = searchRequestID
         let index = index
         isSearching = true
-        results = .empty
+        if !preserveExistingResults {
+            results = .empty
+        }
 
         searchTask = Task(priority: .userInitiated) {
             do {

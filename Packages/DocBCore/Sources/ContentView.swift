@@ -81,7 +81,7 @@ public struct ContentView: View {
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
             openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
-            openQuicklySearchCoordinator.warmSearchIndexIfNeeded()
+            openQuicklySearchCoordinator.prepareSearchIndexInBackgroundIfNeeded()
             if navigationViewModel.isUsingSplitView {
                 navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
@@ -110,12 +110,12 @@ public struct ContentView: View {
             self.navigationViewModel.isShowingTechnology = newValue != nil
         })
         .onChange(of: documentationViewModel.searchContentFingerprint, initial: true) {
-            openQuicklySearchCoordinator.warmSearchIndexIfNeeded()
+            openQuicklySearchCoordinator.prepareSearchIndexInBackgroundIfNeeded()
         }
         .onChange(of: documentationViewModel.isPreparingSearchSources) { _, isPreparingSearchSources in
             guard !isPreparingSearchSources else { return }
 
-            openQuicklySearchCoordinator.warmSearchIndexIfNeeded()
+            openQuicklySearchCoordinator.prepareSearchIndexInBackgroundIfNeeded()
         }
         .environment(\.openURL, urlActionHandler)
         .docCDeepLinkScheme(navigationViewModel.deepLinkScheme)

@@ -607,27 +607,29 @@ public final class DocumentationViewModel {
         _ snapshots: [PersistedDocCSourceSnapshot],
         using store: DocumentationSwiftDataStore
     ) async -> [LoadedDocCSource] {
-        var loadedSources: [LoadedDocCSource] = []
-        loadedSources.reserveCapacity(snapshots.count)
+        do {
+            let persistedSources = try await store.fetchDocCIndexes(preferredURLs: snapshots.map(\.url))
+            let persistedSourceByURL = persistedSources.reduce(into: [URL: LoadedPersistedDocCIndex]()) { result, source in
+                result[source.url, default: source] = source
+            }
 
-        for snapshot in snapshots {
-            do {
-                guard let persistedSource = try await store.fetchDocCIndex(preferredURL: snapshot.url) else {
-                    continue
+            return snapshots.compactMap { snapshot in
+                guard let persistedSource = persistedSourceByURL[snapshot.url] else {
+                    return nil
                 }
 
-                loadedSources.append(LoadedDocCSource(
+                return LoadedDocCSource(
                     snapshot: snapshot,
                     index: persistedSource.index,
                     shouldPersistRemoteIndex: false
-                ))
-            } catch {
-                print(error)
+                )
             }
-        }
-
-        return loadedSources.sorted { lhs, rhs in
-            lhs.snapshot.timestamp < rhs.snapshot.timestamp
+            .sorted { lhs, rhs in
+                lhs.snapshot.timestamp < rhs.snapshot.timestamp
+            }
+        } catch {
+            print(error)
+            return []
         }
     }
     
@@ -1094,6 +1096,33 @@ actor DocumentationSwiftDataStore {
         }
 
         return loadedPersistedIndex(from: site)
+    }
+
+    /// Reconstructs persisted custom DocC indexes in one SwiftData fetch.
+    ///
+    /// - Parameter preferredURLs: Source URLs to restore from local persistence.
+    /// - Returns: Persisted sources and indexes matching the requested URLs.
+    fileprivate func fetchDocCIndexes(preferredURLs: [URL]) throws -> [LoadedPersistedDocCIndex] {
+        guard !preferredURLs.isEmpty else {
+            return []
+        }
+
+        let preferredURLSet = Set(preferredURLs)
+        let sites = try modelContext.fetch(FetchDescriptor<DocCSite>())
+        var loadedIndexes: [LoadedPersistedDocCIndex] = []
+        loadedIndexes.reserveCapacity(preferredURLSet.count)
+
+        for site in sites {
+            guard let url = site.url, preferredURLSet.contains(url),
+                  let loadedIndex = loadedPersistedIndex(from: site)
+            else {
+                continue
+            }
+
+            loadedIndexes.append(loadedIndex)
+        }
+
+        return loadedIndexes
     }
 
     /// Reconstructs a persisted Apple DocC index on the model actor instead of the main actor.

@@ -6,6 +6,8 @@ import DocCKit
 public struct SidebarSearchIndex: Sendable, Codable {
     /// Maximum number of rows published for a single sidebar query.
     public static let defaultResultLimit = 250
+    /// Minimum query length before scanning the streamed Apple symbol index.
+    private static let minimumStreamingAppleQueryLength = 3
 
     /// Empty index used before documentation sources are loaded.
     public static let empty = SidebarSearchIndex(id: UUID(), entries: [])
@@ -20,6 +22,10 @@ public struct SidebarSearchIndex: Sendable, Codable {
 
     /// Flattened, pre-normalized entries.
     private let entries: [Entry]
+    /// Apple DocC indexes searched on demand without flattening every symbol into memory.
+    private let streamingAppleIndexes: [StreamingAppleIndex]
+    /// Bounded in-memory cache of streamed Apple query results.
+    private let streamingAppleQueryCache: StreamingAppleQueryCache
     /// Entry indexes grouped by searchable ASCII byte for faster substring candidates.
     private let entryIndexesByASCIIByte: [[Int]]
 
@@ -37,6 +43,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
             lhs.timestamp < rhs.timestamp
         }
         var entries: [Entry] = []
+        var streamingAppleIndexes: [StreamingAppleIndex] = []
         var completedEntries = 0
         let estimatedEntryCount = max(Self.estimatedEntryCount(in: docCSites, appleTechnologies: technologies.appleTechnologies), 1)
 
@@ -91,11 +98,11 @@ public struct SidebarSearchIndex: Sendable, Codable {
             }
 
             if let index = appleTechnologies.index {
-                Self.appendDocCEntries(from: nil, index: index, source: source, to: &entries, onAppendEntry: reportEntryProgress)
+                streamingAppleIndexes.append(StreamingAppleIndex(source: source, index: index))
             }
         }
 
-        self.init(id: UUID(), entries: entries, progress: progress)
+        self.init(id: UUID(), entries: entries, streamingAppleIndexes: streamingAppleIndexes, progress: progress)
         progress?(1)
     }
 
@@ -124,10 +131,9 @@ public struct SidebarSearchIndex: Sendable, Codable {
         var scoreBuckets = Array(repeating: [Entry](), count: SearchScore.bucketCount)
         var totalMatches = 0
 
-        for entryIndex in candidateEntryIndexes(for: normalizedQuery) {
-            let entry = entries[entryIndex]
+        func appendMatch(_ entry: Entry) {
             guard let score = entry.matchScore(for: normalizedQuery) else {
-                continue
+                return
             }
 
             totalMatches += 1
@@ -136,6 +142,17 @@ public struct SidebarSearchIndex: Sendable, Codable {
                 scoreBuckets[bucketIndex].append(entry)
             }
         }
+
+        for entryIndex in candidateEntryIndexes(for: normalizedQuery) {
+            appendMatch(entries[entryIndex])
+        }
+
+        appendStreamingAppleMatches(
+            normalizedQuery: normalizedQuery,
+            collectionLimit: collectionLimit,
+            scoreBuckets: &scoreBuckets,
+            totalMatches: &totalMatches
+        )
 
         for bucket in scoreBuckets {
             guard matches.count < collectionLimit else { break }
@@ -169,15 +186,52 @@ public struct SidebarSearchIndex: Sendable, Codable {
         )
     }
 
+    /// Warms the streamed Apple symbol result cache for a query without publishing search results.
+    ///
+    /// - Parameters:
+    ///   - query: Raw or normalized query text.
+    ///   - limit: Maximum number of rows the matching search will request.
+    public func warmStreamingAppleMatches(for query: String, limit: Int = defaultResultLimit) {
+        let normalizedQuery = Self.normalize(query)
+        guard normalizedQuery.count >= Self.minimumStreamingAppleQueryLength, !streamingAppleIndexes.isEmpty else { return }
+
+        let collectionLimit = max(0, limit) + 1
+        var scoreBuckets = Array(repeating: [Entry](), count: SearchScore.bucketCount)
+        var totalMatches = 0
+        appendStreamingAppleMatches(
+            normalizedQuery: normalizedQuery,
+            collectionLimit: collectionLimit,
+            scoreBuckets: &scoreBuckets,
+            totalMatches: &totalMatches
+        )
+    }
+
+    /// Prepares in-memory Apple symbol lookup buckets for faster streamed searches.
+    public func prepareStreamingAppleSymbolSearch() {
+        for streamingAppleIndex in streamingAppleIndexes {
+            streamingAppleIndex.prepare()
+        }
+    }
+
     /// Creates an index from a prebuilt entry array.
     ///
     /// - Parameters:
     ///   - id: Snapshot identity.
     ///   - entries: Flattened searchable entries.
-    private init(id: UUID, entries: [Entry], progress: (@Sendable (Double) -> Void)? = nil) {
+    private init(
+        id: UUID,
+        entries: [Entry],
+        streamingAppleIndexes: [StreamingAppleIndex] = [],
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) {
         let entries = Self.deduplicatedEntries(entries)
         let searchBuckets = Self.makeSearchBuckets(entries, progress: progress)
-        self.init(id: id, entries: entries, searchBuckets: searchBuckets)
+        self.init(
+            id: id,
+            entries: entries,
+            streamingAppleIndexes: streamingAppleIndexes,
+            searchBuckets: searchBuckets
+        )
     }
 
     /// Creates an index from prebuilt entries and lookup buckets.
@@ -185,10 +239,19 @@ public struct SidebarSearchIndex: Sendable, Codable {
     /// - Parameters:
     ///   - id: Snapshot identity.
     ///   - entries: Flattened searchable entries.
+    ///   - streamingAppleIndexes: Apple indexes searched on demand.
     ///   - searchBuckets: Prebuilt ASCII lookup buckets matching `entries`.
-    private init(id: UUID, entries: [Entry], searchBuckets: [[Int]]) {
+    private init(
+        id: UUID,
+        entries: [Entry],
+        streamingAppleIndexes: [StreamingAppleIndex] = [],
+        streamingAppleQueryCache: StreamingAppleQueryCache = StreamingAppleQueryCache(),
+        searchBuckets: [[Int]]
+    ) {
         self.id = id
         self.entries = entries
+        self.streamingAppleIndexes = streamingAppleIndexes
+        self.streamingAppleQueryCache = streamingAppleQueryCache
         self.entryIndexesByASCIIByte = searchBuckets
     }
 
@@ -209,13 +272,16 @@ public struct SidebarSearchIndex: Sendable, Codable {
     ///
     /// - Returns: Binary data containing only the fields required to restore search rows.
     public func cacheData() -> Data {
+        let cachedEntries = flattenedEntriesForCache()
+        let cachedSearchBuckets = streamingAppleIndexes.isEmpty ? entryIndexesByASCIIByte : Self.makeSearchBuckets(cachedEntries)
+
         var writer = CacheWriter()
         writer.writeString("DocBSearchIndex")
         writer.writeUInt32(4)
         writer.writeString(id.uuidString)
-        writer.writeUInt32(UInt32(entries.count))
+        writer.writeUInt32(UInt32(cachedEntries.count))
 
-        for entry in entries {
+        for entry in cachedEntries {
             writer.writeString(entry.id)
             writer.writeString(entry.source.id)
             writer.writeString(entry.source.title)
@@ -226,7 +292,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
             writer.writeRow(entry.row)
         }
 
-        writer.writeSearchBuckets(entryIndexesByASCIIByte)
+        writer.writeSearchBuckets(cachedSearchBuckets)
         return writer.data
     }
 
@@ -276,6 +342,59 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         self.init(id: id, entries: entries, searchBuckets: searchBuckets)
+    }
+
+    private func flattenedEntriesForCache() -> [Entry] {
+        guard !streamingAppleIndexes.isEmpty else {
+            return entries
+        }
+
+        var cachedEntries = entries
+        for streamingAppleIndex in streamingAppleIndexes {
+            streamingAppleIndex.appendCacheEntries(to: &cachedEntries)
+        }
+
+        return Self.deduplicatedEntries(cachedEntries)
+    }
+
+    private func appendStreamingAppleMatches(
+        normalizedQuery: String,
+        collectionLimit: Int,
+        scoreBuckets: inout [[Entry]],
+        totalMatches: inout Int
+    ) {
+        guard normalizedQuery.count >= Self.minimumStreamingAppleQueryLength else { return }
+
+        if let cachedResult = streamingAppleQueryCache.value(for: normalizedQuery, collectionLimit: collectionLimit) {
+            totalMatches += cachedResult.totalMatches
+            for bucketIndex in cachedResult.buckets.indices {
+                scoreBuckets[bucketIndex].append(contentsOf: cachedResult.buckets[bucketIndex])
+            }
+            return
+        }
+
+        guard !streamingAppleIndexes.isEmpty else { return }
+
+        var streamedBuckets = Array(repeating: [Entry](), count: SearchScore.bucketCount)
+        var streamedTotalMatches = 0
+        for streamingAppleIndex in streamingAppleIndexes {
+            streamingAppleIndex.appendMatches(
+                normalizedQuery: normalizedQuery,
+                collectionLimit: collectionLimit,
+                scoreBuckets: &streamedBuckets,
+                totalMatches: &streamedTotalMatches
+            )
+        }
+
+        streamingAppleQueryCache.store(
+            StreamingAppleQueryCache.Value(buckets: streamedBuckets, totalMatches: streamedTotalMatches),
+            for: normalizedQuery,
+            collectionLimit: collectionLimit
+        )
+        totalMatches += streamedTotalMatches
+        for bucketIndex in streamedBuckets.indices {
+            scoreBuckets[bucketIndex].append(contentsOf: streamedBuckets[bucketIndex])
+        }
     }
 
     /// Removes repeated logical rows while preserving first-match ordering.
@@ -568,6 +687,232 @@ public struct SidebarSearchIndex: Sendable, Codable {
         let id: String
         /// Display title.
         let title: String
+    }
+
+    /// Apple DocC index searched without duplicating every symbol as a retained entry.
+    private final class StreamingAppleIndex: @unchecked Sendable {
+        /// Result grouping metadata.
+        let source: Source
+        /// Apple documentation index to scan per query.
+        let index: DocCIndex
+        private let lock = NSLock()
+        private var preparedIndex: PreparedIndex?
+
+        init(source: Source, index: DocCIndex) {
+            self.source = source
+            self.index = index
+        }
+
+        /// Prepares in-memory lookup buckets for repeated streamed searches.
+        func prepare() {
+            if preparedIndexSnapshot != nil {
+                return
+            }
+
+            var entries: [Entry] = []
+            SidebarSearchIndex.appendDocCEntries(from: nil, index: index, source: source, to: &entries)
+            let deduplicatedEntries = SidebarSearchIndex.deduplicatedEntries(entries)
+            let preparedIndex = PreparedIndex(
+                entries: deduplicatedEntries,
+                searchBuckets: SidebarSearchIndex.makeSearchBuckets(deduplicatedEntries)
+            )
+
+            lock.lock()
+            if self.preparedIndex == nil {
+                self.preparedIndex = preparedIndex
+            }
+            lock.unlock()
+        }
+
+        /// Appends all Apple entries for the existing flattened disk cache format.
+        ///
+        /// - Parameter entries: Destination entry buffer.
+        func appendCacheEntries(to entries: inout [Entry]) {
+            if let preparedIndex = preparedIndexSnapshot {
+                entries.append(contentsOf: preparedIndex.entries)
+                return
+            }
+
+            SidebarSearchIndex.appendDocCEntries(from: nil, index: index, source: source, to: &entries)
+        }
+
+        func appendMatches(
+            normalizedQuery: String,
+            collectionLimit: Int,
+            scoreBuckets: inout [[Entry]],
+            totalMatches: inout Int
+        ) {
+            if let preparedIndex = preparedIndexSnapshot {
+                appendPreparedMatches(
+                    preparedIndex,
+                    normalizedQuery: normalizedQuery,
+                    collectionLimit: collectionLimit,
+                    scoreBuckets: &scoreBuckets,
+                    totalMatches: &totalMatches
+                )
+                return
+            }
+
+            appendStreamingMatches(
+                normalizedQuery: normalizedQuery,
+                collectionLimit: collectionLimit,
+                scoreBuckets: &scoreBuckets,
+                totalMatches: &totalMatches
+            )
+        }
+
+        private var preparedIndexSnapshot: PreparedIndex? {
+            lock.lock()
+            defer { lock.unlock() }
+
+            return preparedIndex
+        }
+
+        private func appendPreparedMatches(
+            _ preparedIndex: PreparedIndex,
+            normalizedQuery: String,
+            collectionLimit: Int,
+            scoreBuckets: inout [[Entry]],
+            totalMatches: inout Int
+        ) {
+            for entryIndex in preparedIndex.candidateEntryIndexes(for: normalizedQuery) {
+                let entry = preparedIndex.entries[entryIndex]
+                guard let score = entry.matchScore(for: normalizedQuery) else {
+                    continue
+                }
+
+                totalMatches += 1
+                let bucketIndex = score.bucketIndex
+                if scoreBuckets[bucketIndex].count < collectionLimit {
+                    scoreBuckets[bucketIndex].append(entry)
+                }
+            }
+        }
+
+        private func appendStreamingMatches(
+            normalizedQuery: String,
+            collectionLimit: Int,
+            scoreBuckets: inout [[Entry]],
+            totalMatches: inout Int
+        ) {
+            func append(_ interfaceLanguage: DocCIndex.InterfaceLanguage) {
+                if interfaceLanguage.type.lowercased() != "module", let path = interfaceLanguage.path {
+                    let normalizedTitle = SidebarSearchIndex.normalize(interfaceLanguage.title)
+                    guard normalizedTitle.contains(normalizedQuery) else {
+                        for child in interfaceLanguage.children ?? [] {
+                            append(child)
+                        }
+                        return
+                    }
+
+                    let symbolKind = SidebarSearchSymbolKind(interfaceLanguage: interfaceLanguage)
+                    let entry = Entry(
+                        id: "\(source.id)-\(SidebarSearchIndex.normalizedPath(path))-\(normalizedTitle)",
+                        source: source,
+                        title: interfaceLanguage.title,
+                        normalizedTitle: normalizedTitle,
+                        normalizedTags: [],
+                        kindRank: SidebarSearchIndex.kindRank(for: symbolKind),
+                        row: .reference(.init(
+                            id: "\(source.id)-\(SidebarSearchIndex.normalizedPath(path))-\(normalizedTitle)",
+                            title: interfaceLanguage.title,
+                            path: path,
+                            type: interfaceLanguage.type,
+                            symbolKind: symbolKind,
+                            customIconIdentifier: interfaceLanguage.icon,
+                            site: nil
+                        ))
+                    )
+                    guard let score = entry.matchScore(for: normalizedQuery) else {
+                        for child in interfaceLanguage.children ?? [] {
+                            append(child)
+                        }
+                        return
+                    }
+
+                    totalMatches += 1
+                    let bucketIndex = score.bucketIndex
+                    if scoreBuckets[bucketIndex].count < collectionLimit {
+                        scoreBuckets[bucketIndex].append(entry)
+                    }
+                }
+
+                for child in interfaceLanguage.children ?? [] {
+                    append(child)
+                }
+            }
+
+            for languageKey in SidebarSearchIndex.sortedLanguageKeys(index.interfaceLanguages.keys) {
+                for language in index.interfaceLanguages[languageKey] ?? [] {
+                    append(language)
+                }
+            }
+        }
+
+        private struct PreparedIndex {
+            let entries: [Entry]
+            let searchBuckets: [[Int]]
+
+            func candidateEntryIndexes(for normalizedQuery: String) -> AnySequence<Int> {
+                let queryBytes = Array(normalizedQuery.utf8)
+                guard queryBytes.allSatisfy({ $0 < 128 }) else {
+                    return AnySequence(entries.indices)
+                }
+
+                guard let firstByte = queryBytes.first else { return AnySequence([].lazy) }
+
+                var candidateIndexes = searchBuckets[Int(firstByte)]
+                for byte in queryBytes.dropFirst() {
+                    let indexes = searchBuckets[Int(byte)]
+                    if indexes.count < candidateIndexes.count {
+                        candidateIndexes = indexes
+                    }
+                }
+
+                return AnySequence(candidateIndexes)
+            }
+        }
+    }
+
+    /// Bounded in-memory cache for streamed Apple query result buckets.
+    private final class StreamingAppleQueryCache: @unchecked Sendable {
+        struct Value {
+            let buckets: [[Entry]]
+            let totalMatches: Int
+        }
+
+        private let lock = NSLock()
+        private let capacity = 16
+        private var values: [String: Value] = [:]
+        private var keys: [String] = []
+
+        func value(for normalizedQuery: String, collectionLimit: Int) -> Value? {
+            let key = key(for: normalizedQuery, collectionLimit: collectionLimit)
+            lock.lock()
+            defer { lock.unlock() }
+
+            return values[key]
+        }
+
+        func store(_ value: Value, for normalizedQuery: String, collectionLimit: Int) {
+            let key = key(for: normalizedQuery, collectionLimit: collectionLimit)
+            lock.lock()
+            defer { lock.unlock() }
+
+            if values[key] == nil {
+                keys.append(key)
+            }
+            values[key] = value
+
+            while keys.count > capacity {
+                let removedKey = keys.removeFirst()
+                values[removedKey] = nil
+            }
+        }
+
+        private func key(for normalizedQuery: String, collectionLimit: Int) -> String {
+            "\(collectionLimit)\u{0}\(normalizedQuery)"
+        }
     }
 
     /// Collects unique searchable bytes for one entry.

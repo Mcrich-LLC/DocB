@@ -279,6 +279,13 @@ public final class OpenQuicklySearchCoordinator {
             }.value
             guard !Task.isCancelled else { return }
 
+            if !installWhenReady {
+                await Task.detached(priority: priority) {
+                    index.prepareStreamingAppleSymbolSearch()
+                }.value
+                guard !Task.isCancelled else { return }
+            }
+
             await SidebarSearchIndexCache.shared.store(index, for: sourceFingerprint)
             guard !Task.isCancelled else { return }
 

@@ -17,6 +17,8 @@ public final class OpenQuicklySearchCoordinator {
     
     private weak var activeNavigationViewModel: NavigationViewModel?
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
+    private var indexedSourceFingerprint: String?
+    private var hasDeferredIndexRebuild = false
     
     /// Creates an empty Open Quickly coordinator.
     public init() {}
@@ -46,7 +48,83 @@ public final class OpenQuicklySearchCoordinator {
     ///
     /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
     public func rebuildIndex(documentationViewModel: DocumentationViewModel) {
-        searchStore.rebuildIndex(technologies: documentationViewModel.technologySnapshot(), searchText: query)
+        guard !documentationViewModel.isPreparingSearchSources else {
+            hasDeferredIndexRebuild = true
+            return
+        }
+
+        hasDeferredIndexRebuild = false
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard sourceFingerprint != indexedSourceFingerprint else {
+            return
+        }
+
+        guard !sourceFingerprint.isEmpty || indexedSourceFingerprint != nil else {
+            return
+        }
+
+        indexedSourceFingerprint = sourceFingerprint
+        let currentQuery = query
+        Task(priority: .utility) {
+            let hasCachedIndex = await SidebarSearchIndexCache.shared.containsIndex(for: sourceFingerprint)
+            let technologies = hasCachedIndex
+                ? documentationViewModel.technologySnapshot()
+                : await documentationViewModel.searchTechnologySnapshot()
+
+            await MainActor.run {
+                guard self.indexedSourceFingerprint == sourceFingerprint else {
+                    return
+                }
+
+                self.searchStore.rebuildIndex(
+                    technologies: technologies,
+                    searchText: currentQuery,
+                    sourceFingerprint: sourceFingerprint
+                )
+            }
+        }
+    }
+
+    /// Performs a deferred rebuild once documentation sources have finished their initial restore.
+    ///
+    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
+    public func rebuildDeferredIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
+        guard hasDeferredIndexRebuild || indexedSourceFingerprint == nil else {
+            return
+        }
+
+        rebuildIndex(documentationViewModel: documentationViewModel)
+    }
+
+    /// Restores a cached search index after sources finish loading without rebuilding on a cache miss.
+    ///
+    /// - Parameter documentationViewModel: Documentation source model that supplies the current fingerprint.
+    public func restoreCachedIndexIfAvailable(documentationViewModel: DocumentationViewModel) {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            return
+        }
+
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
+        guard !sourceFingerprint.isEmpty, sourceFingerprint != indexedSourceFingerprint else {
+            return
+        }
+
+        let currentQuery = query
+        Task(priority: .utility) {
+            guard let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) else {
+                return
+            }
+
+            await MainActor.run {
+                guard sourceFingerprint != self.indexedSourceFingerprint else {
+                    return
+                }
+
+                self.indexedSourceFingerprint = sourceFingerprint
+                self.searchStore.updateSearchText(currentQuery)
+                self.searchStore.installIndex(cachedIndex)
+            }
+        }
     }
     
     /// Updates the query while preserving the currently selected row when possible.
@@ -57,6 +135,7 @@ public final class OpenQuicklySearchCoordinator {
     public func updateQuery(_ query: String, debounce: Duration = .milliseconds(80)) {
         self.query = query
         preloadedRowIDs.removeAll()
+        selectedRowID = nil
         searchStore.updateSearchText(query, debounce: debounce)
     }
 
@@ -197,6 +276,8 @@ public final class OpenQuicklySearchCoordinator {
         
         withAnimation(.snappy) {
             navigationViewModel.setTechnology(technology)
+        } completion: {
+            Self.revealSidebarIfNeeded(in: navigationViewModel)
         }
         
         if navigationViewModel.isUsingSplitView {
@@ -206,7 +287,7 @@ public final class OpenQuicklySearchCoordinator {
     
     private func navigateToReference(
         _ reference: Reference,
-        site: DocCSource,
+        site: DocCSource?,
         navigationViewModel: NavigationViewModel,
         documentationViewModel: DocumentationViewModel,
         openURL: OpenURLAction
@@ -216,7 +297,11 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
         
-        selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
+        if let site {
+            selectClosestDocCTechnology(for: reference, site: site, navigationViewModel: navigationViewModel)
+        } else if let appleTechnologies = documentationViewModel.technologySnapshot().appleTechnologies.first {
+            selectAppleTechnology(for: reference, technologies: appleTechnologies, navigationViewModel: navigationViewModel)
+        }
         
         navigationViewModel.setReference(reference)
     }
@@ -233,17 +318,21 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
         
-        let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
+        let identifier = "doc://com.apple.documentation/documentation/\(moduleString)"
+        let normalizedIdentifier = identifier.lowercased()
         guard let technologyGroup = groups.first(where: { group in
-            group.technologies.contains(where: { $0.destination.identifier == identifier })
+            group.technologies.contains(where: { $0.destination.identifier.lowercased() == normalizedIdentifier })
         }),
-              let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier })
+              let technology = technologyGroup.technologies.first(where: { $0.destination.identifier.lowercased() == normalizedIdentifier })
         else {
             return
         }
         
+        navigationViewModel.technologyHistoryUpdatingIsEnabled = true
         withAnimation(.snappy) {
             navigationViewModel.setTechnology(technology)
+        } completion: {
+            Self.revealSidebarIfNeeded(in: navigationViewModel)
         }
     }
     
@@ -261,8 +350,11 @@ public final class OpenQuicklySearchCoordinator {
         
         for group in groups {
             if group.path?.lowercased() == identifier.lowercased() {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 withAnimation(.snappy) {
                     navigationViewModel.setTechnology(site.frameworkSection(for: group))
+                } completion: {
+                    Self.revealSidebarIfNeeded(in: navigationViewModel)
                 }
                 return
             }
@@ -272,11 +364,22 @@ public final class OpenQuicklySearchCoordinator {
                     child.path?.lowercased() == identifier.lowercased()
                 })
             }) {
+                navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 withAnimation(.snappy) {
                     navigationViewModel.setTechnology(site.frameworkSection(for: technologyGroup))
+                } completion: {
+                    Self.revealSidebarIfNeeded(in: navigationViewModel)
                 }
                 return
             }
         }
+    }
+
+    private static func revealSidebarIfNeeded(in navigationViewModel: NavigationViewModel) {
+        guard navigationViewModel.isUsingSplitView else {
+            return
+        }
+
+        navigationViewModel.splitViewColumnVisibility = .all
     }
 }

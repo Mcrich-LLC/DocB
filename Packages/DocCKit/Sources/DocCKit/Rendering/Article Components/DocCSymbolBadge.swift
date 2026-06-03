@@ -4,7 +4,7 @@ import NukeUI
 import SwiftUI
 
 /// Xcode documentation-style symbol categories used by DocC badges.
-public enum SidebarSearchSymbolKind: String, Sendable {
+public enum SidebarSearchSymbolKind: String, Codable, Sendable {
     case article
     case classSymbol
     case collection

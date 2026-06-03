@@ -8,6 +8,7 @@ public struct SearchPaletteWindow: View {
     private static let maximumHeight: CGFloat = 560
     private static let cornerRadius: CGFloat = 28
     private static let searchHeaderHeight: CGFloat = 82
+    private static let indexStatusHeight: CGFloat = 40
     private static let resultRowHeight: CGFloat = 74
     private static let sectionHeaderHeight: CGFloat = 44
     private static let idleContentHeight: CGFloat = 148
@@ -46,6 +47,14 @@ public struct SearchPaletteWindow: View {
 
                 coordinator.selectDefaultResultIfNeeded()
             }
+            .onChange(of: documentationViewModel.searchContentFingerprint) {
+                coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+            }
+            .onChange(of: documentationViewModel.isPreparingSearchSources) { _, isPreparingSearchSources in
+                guard !isPreparingSearchSources else { return }
+
+                coordinator.rebuildDeferredIndexIfNeeded(documentationViewModel: documentationViewModel)
+            }
             .onSubmit(openSelectedResult)
             .onKeyPress(.upArrow) {
                 coordinator.moveSelection(by: -1)
@@ -69,6 +78,10 @@ public struct SearchPaletteWindow: View {
     private var paletteContent: some View {
         VStack(spacing: 0) {
             searchHeader(query: Bindable(coordinator).query)
+
+            if coordinator.searchStore.isRebuildingIndex {
+                indexStatusView
+            }
 
             Divider()
 
@@ -164,14 +177,24 @@ public struct SearchPaletteWindow: View {
         !SidebarSearchIndex.normalize(coordinator.query).isEmpty
     }
 
+    private var showsIndexStatus: Bool {
+        coordinator.searchStore.isRebuildingIndex
+    }
+
     private var paletteHeight: CGFloat {
-        Self.searchHeaderHeight + 1 + (showsResultsContent ? resultsHeight : Self.idleContentHeight)
+        Self.searchHeaderHeight
+            + (showsIndexStatus ? Self.indexStatusHeight : 0)
+            + 1
+            + (showsResultsContent ? resultsHeight : Self.idleContentHeight)
     }
 
     private var resultsHeight: CGFloat {
         guard showsResultsContent else { return 0 }
 
-        let maximumResultsHeight = Self.maximumHeight - Self.searchHeaderHeight - 1
+        let maximumResultsHeight = Self.maximumHeight
+            - Self.searchHeaderHeight
+            - (showsIndexStatus ? Self.indexStatusHeight : 0)
+            - 1
         let results = coordinator.searchStore.results
         guard !results.isEmpty else { return min(Self.statusHeight, maximumResultsHeight) }
 
@@ -183,6 +206,20 @@ public struct SearchPaletteWindow: View {
             + Self.resultsBottomInset
 
         return min(naturalResultsHeight, maximumResultsHeight)
+    }
+
+    private var indexStatusView: some View {
+        HStack(spacing: 10) {
+            Text(coordinator.searchStore.indexBuildTitle)
+                .font(.footnote)
+                .foregroundStyle(.white.opacity(0.62))
+
+            ProgressView(value: coordinator.searchStore.indexBuildProgress ?? 0)
+                .controlSize(.small)
+        }
+        .padding(.horizontal, 24)
+        .frame(height: Self.indexStatusHeight)
+        .accessibilityElement(children: .combine)
     }
 
     private func searchHeader(query: Binding<String>) -> some View {
@@ -217,6 +254,7 @@ public struct SearchPaletteWindow: View {
                 .contentShape(Circle())
                 .accessibilityLabel("Clear Search")
             }
+
         }
         .padding(.horizontal, 24)
         .frame(height: Self.searchHeaderHeight)

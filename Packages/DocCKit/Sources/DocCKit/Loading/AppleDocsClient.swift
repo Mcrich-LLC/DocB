@@ -45,6 +45,46 @@ public struct AppleDocsClient: Sendable {
         let (data, _) = try await URLSession.shared.data(from: url)
         return try JSONDecoder().decode(AppleTechnologies.self, from: data)
     }
+
+    /// Loads and merges search indexes for every active Apple technology.
+    ///
+    /// - Parameter technologies: Apple technologies payload used to discover per-framework indexes.
+    /// - Returns: A merged DocC index containing entries from each available framework index.
+    public func fetchIndex(for technologies: AppleTechnologies) async throws -> DocCIndex {
+        let indexURLs = Self.indexURLs(for: technologies)
+        guard !indexURLs.isEmpty else {
+            return DocCIndex(interfaceLanguages: [:])
+        }
+
+        let indexes = await withTaskGroup(of: DocCIndex?.self, returning: [DocCIndex].self) { group in
+            var iterator = indexURLs.makeIterator()
+            let maximumConcurrentRequests = 4
+
+            for _ in 0..<min(maximumConcurrentRequests, indexURLs.count) {
+                guard let url = iterator.next() else { break }
+                group.addTask {
+                    await Self.fetchIndexIfAvailable(from: url)
+                }
+            }
+
+            var indexes: [DocCIndex] = []
+            while let index = await group.next() {
+                if let index {
+                    indexes.append(index)
+                }
+
+                if let url = iterator.next() {
+                    group.addTask {
+                        await Self.fetchIndexIfAvailable(from: url)
+                    }
+                }
+            }
+
+            return indexes
+        }
+
+        return Self.mergedIndex(from: indexes)
+    }
     
     /// Fetches and decodes an Apple-hosted framework payload.
     public func fetchFramework(for identifier: String) async throws -> Framework {
@@ -66,5 +106,61 @@ public struct AppleDocsClient: Sendable {
         var article = try JSONDecoder().decode(Article.self, from: data)
         DocCClient.applyVariantOverrides(to: &article, preferredLanguage: preferredLanguage)
         return article
+    }
+
+    private static func indexURLs(for technologies: AppleTechnologies) -> [URL] {
+        let modules = (technologies.groups ?? [])
+            .flatMap(\.technologies)
+            .filter(\.destination.isActive)
+            .compactMap { technology -> String? in
+                guard let url = URL(string: technology.destination.identifier) else {
+                    return nil
+                }
+
+                return url.pathComponents.dropFirst(2).first?.lowercased()
+            }
+
+        return Set(modules)
+            .sorted()
+            .map { module in
+                Self.basePath
+                    .appending(path: "index")
+                    .appending(path: module)
+                    .appendingPathExtension("json")
+            }
+    }
+
+    private static func fetchIndexIfAvailable(from url: URL) async -> DocCIndex? {
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200..<300).contains(httpResponse.statusCode) {
+                return nil
+            }
+
+            return try JSONDecoder().decode(DocCIndex.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    private static func mergedIndex(from indexes: [DocCIndex]) -> DocCIndex {
+        var interfaceLanguages: [String : [DocCIndex.InterfaceLanguage]] = [:]
+        var includedArchiveIdentifiers: Set<String> = []
+
+        for index in indexes {
+            for (language, entries) in index.interfaceLanguages {
+                interfaceLanguages[language, default: []].append(contentsOf: entries)
+            }
+
+            for identifier in index.includedArchiveIdentifiers ?? [] {
+                includedArchiveIdentifiers.insert(identifier)
+            }
+        }
+
+        return DocCIndex(
+            interfaceLanguages: interfaceLanguages,
+            includedArchiveIdentifiers: includedArchiveIdentifiers.isEmpty ? nil : includedArchiveIdentifiers.sorted()
+        )
     }
 }

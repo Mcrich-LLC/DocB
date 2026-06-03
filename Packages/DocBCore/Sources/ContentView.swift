@@ -81,7 +81,6 @@ public struct ContentView: View {
         .onAppear(perform: {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
             openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
-            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
             if navigationViewModel.isUsingSplitView {
                 navigationViewModel.toggleHomepageInBeginingOfHistory()
             }
@@ -93,10 +92,6 @@ public struct ContentView: View {
             guard newValue == .active else { return }
             
             openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
-            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
-        }
-        .onChange(of: documentationViewModel.technologies.map(\.id)) {
-            openQuicklySearchCoordinator.rebuildIndex(documentationViewModel: documentationViewModel)
         }
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass
@@ -373,6 +368,8 @@ private struct TechView: View {
     @State private var isCloudKitSyncing = false
     /// Cancellable search coordinator for the sidebar search field.
     @State private var sidebarSearchStore = SidebarSearchStore()
+    /// Last documentation source fingerprint indexed by the sidebar search store.
+    @State private var indexedSidebarSearchContentFingerprint: SidebarSearchContentFingerprint?
     
     /// Determines visibility of a DocC interface-language item for the current search text.
     func isVisibleForSearch(_ interfaceLanguage: DocCIndex.InterfaceLanguage, site: DocCSource, group: DocCIndex.InterfaceLanguage) -> Bool {
@@ -468,9 +465,22 @@ private struct TechView: View {
         #endif
         .onChange(of: searchText, initial: true) { _, newValue in
             sidebarSearchStore.updateSearchText(newValue)
+            if !SidebarSearchIndex.normalize(newValue).isEmpty {
+                refreshSidebarSearchIndex()
+            }
         }
         .onChange(of: sidebarSearchContentFingerprint, initial: true) {
-            refreshSidebarSearchIndex()
+            indexedSidebarSearchContentFingerprint = nil
+            if !SidebarSearchIndex.normalize(searchText).isEmpty {
+                refreshSidebarSearchIndex()
+            }
+        }
+        .onChange(of: documentationViewModel.isPreparingSearchSources) { _, isPreparingSearchSources in
+            guard !isPreparingSearchSources else { return }
+
+            if !SidebarSearchIndex.normalize(searchText).isEmpty {
+                refreshSidebarSearchIndex()
+            }
         }
         .overlay(content: {
             if isLoading {
@@ -525,9 +535,20 @@ private struct TechView: View {
     /// Captures main-actor source snapshots and asks the search store to rebuild off-main.
     @MainActor
     private func refreshSidebarSearchIndex() {
+        guard !documentationViewModel.isPreparingSearchSources else {
+            return
+        }
+
+        let fingerprint = sidebarSearchContentFingerprint
+        guard indexedSidebarSearchContentFingerprint != fingerprint else {
+            return
+        }
+
+        indexedSidebarSearchContentFingerprint = fingerprint
         sidebarSearchStore.rebuildIndex(
             technologies: documentationViewModel.technologySnapshot(),
-            searchText: searchText
+            searchText: searchText,
+            sourceFingerprint: documentationViewModel.searchContentFingerprint
         )
     }
     
@@ -543,8 +564,22 @@ private struct TechView: View {
     /// Search-result list for both DocC and Apple technologies.
     @ViewBuilder
     private func searchList(_ results: SidebarSearchResults) -> some View {
+        if sidebarSearchStore.isRebuildingIndex {
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(sidebarSearchStore.indexBuildTitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    ProgressView(value: sidebarSearchStore.indexBuildProgress ?? 0)
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+        }
+
         if results.isEmpty {
-            if sidebarSearchStore.isSearching || sidebarSearchStore.isRebuildingIndex {
+            if sidebarSearchStore.isSearching {
                 Section {
                     ProgressView("Searching")
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -565,7 +600,7 @@ private struct TechView: View {
             
             if results.isTruncated {
                 Section {} footer: {
-                    Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) of \(results.totalMatches) matches. Refine your search to narrow the results.")
+                    Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) matches. Refine your search to narrow the results.")
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.bottom)
@@ -676,7 +711,7 @@ private struct PreparedTechnologyData {
 
 /// Cheap Equatable source signature used to trigger async sidebar search index rebuilds.
 private struct SidebarSearchContentFingerprint: Equatable {
-    /// Persisted source identities and local index identities.
+    /// Persisted source identities.
     private let persistedSites: [PersistedSiteFingerprint]
     /// Runtime technology identities and loaded DocC index identities.
     private let technologies: [TechnologyFingerprint]
@@ -699,8 +734,6 @@ private struct SidebarSearchContentFingerprint: Equatable {
         let url: URL?
         /// Optional display override.
         let overrideName: String?
-        /// Current local index model identity.
-        let indexID: UUID?
         
         /// Creates a persisted-site fingerprint.
         ///
@@ -709,7 +742,6 @@ private struct SidebarSearchContentFingerprint: Equatable {
             self.id = site.id
             self.url = site.url
             self.overrideName = site.overrideName
-            self.indexID = site.indexV2?.id
         }
     }
     
@@ -719,17 +751,28 @@ private struct SidebarSearchContentFingerprint: Equatable {
         let id: UUID
         /// Loaded DocC index identity for custom sources.
         let docCIndexID: UUID?
+        /// Stable Apple framework grouping signature.
+        let appleGroupSignature: String?
         
         /// Creates a runtime technology fingerprint.
         ///
         /// - Parameter technology: Runtime technology value.
         init(technology: TechnologyTypes) {
-            self.id = technology.id
             switch technology {
-            case .apple:
-                self.docCIndexID = nil
+            case .apple(let appleTechnologies):
+                self.id = appleTechnologies.index?.id ?? UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+                self.docCIndexID = appleTechnologies.index?.id
+                self.appleGroupSignature = appleTechnologies.groups?.map { group in
+                    let frameworkIdentifiers = group.technologies
+                        .map(\.destination.identifier)
+                        .joined(separator: ",")
+                    return "\(group.name):\(frameworkIdentifiers)"
+                }
+                .joined(separator: ";")
             case .docC(let site):
+                self.id = site.id
                 self.docCIndexID = site.index.id
+                self.appleGroupSignature = nil
             }
         }
     }

@@ -9,6 +9,7 @@ public struct OpenQuicklySearchPalette: View {
     private static let maximumHeight: CGFloat = 400
     private static let cornerRadius: CGFloat = 12
     private static let searchHeaderHeight: CGFloat = 50
+    private static let indexStatusHeight: CGFloat = 30
     private static let resultRowHeight: CGFloat = 52
     private static let sectionHeaderHeight: CGFloat = 32
     private static let resultsBottomInset: CGFloat = 7
@@ -47,6 +48,14 @@ public struct OpenQuicklySearchPalette: View {
 
                 coordinator.selectDefaultResultIfNeeded()
             }
+            .onChange(of: documentationViewModel.searchContentFingerprint) {
+                coordinator.rebuildIndex(documentationViewModel: documentationViewModel)
+            }
+            .onChange(of: documentationViewModel.isPreparingSearchSources) { _, isPreparingSearchSources in
+                guard !isPreparingSearchSources else { return }
+
+                coordinator.rebuildDeferredIndexIfNeeded(documentationViewModel: documentationViewModel)
+            }
             .onSubmit(openSelectedResult)
             .onKeyPress(.upArrow) {
                 coordinator.moveSelection(by: -1)
@@ -83,6 +92,10 @@ public struct OpenQuicklySearchPalette: View {
     private var paletteContent: some View {
         VStack(spacing: 0) {
             searchHeader(query: Bindable(coordinator).query)
+
+            if coordinator.searchStore.isRebuildingIndex {
+                indexStatusView
+            }
 
             if showsResultsContent {
                 Divider()
@@ -163,14 +176,23 @@ public struct OpenQuicklySearchPalette: View {
         !SidebarSearchIndex.normalize(coordinator.query).isEmpty
     }
 
+    private var showsIndexStatus: Bool {
+        coordinator.searchStore.isRebuildingIndex
+    }
+
     private var paletteHeight: CGFloat {
-        Self.searchHeaderHeight + (showsResultsContent ? 1 + resultsHeight : 0)
+        Self.searchHeaderHeight
+            + (showsIndexStatus ? Self.indexStatusHeight : 0)
+            + (showsResultsContent ? 1 + resultsHeight : 0)
     }
 
     private var resultsHeight: CGFloat {
         guard showsResultsContent else { return 0 }
 
-        let maximumResultsHeight = Self.maximumHeight - Self.searchHeaderHeight - 1
+        let maximumResultsHeight = Self.maximumHeight
+            - Self.searchHeaderHeight
+            - (showsIndexStatus ? Self.indexStatusHeight : 0)
+            - 1
         let results = coordinator.searchStore.results
         guard !results.isEmpty else { return min(Self.statusHeight, maximumResultsHeight) }
 
@@ -182,6 +204,20 @@ public struct OpenQuicklySearchPalette: View {
             + Self.resultsBottomInset
 
         return min(naturalResultsHeight, maximumResultsHeight)
+    }
+
+    private var indexStatusView: some View {
+        HStack(spacing: 8) {
+            Text(coordinator.searchStore.indexBuildTitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ProgressView(value: coordinator.searchStore.indexBuildProgress ?? 0)
+                .controlSize(.small)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: Self.indexStatusHeight)
+        .accessibilityElement(children: .combine)
     }
 
     private func searchHeader(query: Binding<String>) -> some View {
@@ -208,6 +244,7 @@ public struct OpenQuicklySearchPalette: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear Search")
             }
+
         }
         .padding(.horizontal, 12)
         .frame(height: Self.searchHeaderHeight)

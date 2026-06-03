@@ -46,6 +46,37 @@ struct SidebarSearchIndexTests {
     }
 
     @Test
+    func applePersistedIndexMatchesSymbolsAsAppleReferences() throws {
+        let appleIndex = DocCIndex(interfaceLanguages: [
+            "swift": [
+                .init(
+                    title: "SwiftUI",
+                    path: "/documentation/swiftui",
+                    type: "module",
+                    children: [
+                        .init(
+                            title: "View",
+                            path: "/documentation/swiftui/view",
+                            type: "protocol"
+                        )
+                    ]
+                )
+            ]
+        ])
+        let appleTechnologies = try makeAppleTechnologies().withIndex(appleIndex)
+        let index = SidebarSearchIndex(technologies: [.apple(appleTechnologies)])
+
+        guard case .reference(let reference) = index.search("view").flattenedRows.first else {
+            Issue.record("Expected an Apple reference search result.")
+            return
+        }
+
+        #expect(reference.site == nil)
+        #expect(reference.symbolKind == .protocolSymbol)
+        #expect(reference.reference(deepLinkScheme: .doc).identifier == "doc://com.apple.documentation/documentation/swiftui/view")
+    }
+
+    @Test
     func resultsAreGroupedBySource() {
         let firstSite = makeDocCSource(
             title: "FirstKit",
@@ -79,9 +110,65 @@ struct SidebarSearchIndexTests {
 
         let results = index.search("item", limit: 3)
 
-        #expect(results.totalMatches == 5)
+        #expect(results.totalMatches == 4)
         #expect(results.isTruncated)
         #expect(results.sections.first?.rows.count == 3)
+    }
+
+    @Test
+    func resultLimitStopsAfterTruncationIsKnown() {
+        let children = (0..<500).map { number in
+            DocCIndex.InterfaceLanguage(
+                title: "Common Item \(number)",
+                path: "/documentation/limit/common-\(number)",
+                type: "symbol"
+            )
+        }
+        let site = makeDocCSource(title: "BoundedKit", children: children)
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        let results = index.search("common", limit: 10)
+
+        #expect(results.totalMatches == 11)
+        #expect(results.isTruncated)
+        #expect(results.sections.first?.rows.count == 10)
+    }
+
+    @Test
+    func asciiCandidateLookupPreservesSymbolMatches() {
+        let site = makeDocCSource(
+            title: "UIKit",
+            children: [
+                .init(title: "UILabel", path: "/documentation/uikit/uilabel", type: "class"),
+                .init(title: "CGSize", path: "/documentation/corefoundation/cgsize", type: "structure"),
+                .init(title: "Button", path: "/documentation/uikit/button", type: "structure")
+            ]
+        )
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        #expect(index.search("UILabel").flattenedRows.map(\.title) == ["UILabel"])
+        #expect(index.search("CGSize").flattenedRows.map(\.title) == ["CGSize"])
+    }
+
+    @Test
+    func searchRanksTypesBeforePropertiesAndMethodsMentioningTheType() {
+        let site = makeDocCSource(
+            title: "UIKit",
+            children: [
+                .init(title: "preferredContentSize: CGSize", path: "/documentation/uikit/view/preferredcontentsize", type: "property"),
+                .init(title: "sizeThatFits(_:) -> CGSize", path: "/documentation/uikit/view/sizethatfits(_:)", type: "method"),
+                .init(title: "CGSize", path: "/documentation/corefoundation/cgsize", type: "structure"),
+                .init(title: "CGSizeProtocol", path: "/documentation/corefoundation/cgsizeprotocol", type: "protocol")
+            ]
+        )
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        #expect(index.search("CGSize").flattenedRows.map(\.title) == [
+            "CGSize",
+            "CGSizeProtocol",
+            "sizeThatFits(_:) -> CGSize",
+            "preferredContentSize: CGSize"
+        ])
     }
 
     @Test
@@ -105,7 +192,43 @@ struct SidebarSearchIndexTests {
         let results = index.search("shared symbol")
         let rows = results.sections.first?.rows ?? []
 
-        #expect(rows.map(\.title) == ["Objective-C Shared Symbol", "Swift Shared Symbol"])
+        #expect(rows.map(\.title) == ["Swift Shared Symbol", "Objective-C Shared Symbol"])
+        #expect(Set(rows.map(\.id)).count == rows.count)
+    }
+
+    @Test
+    func duplicateDocCIndexRowsAreCollapsed() {
+        let duplicate = DocCIndex.InterfaceLanguage(
+            title: "Repeated Symbol",
+            path: "/documentation/repeatkit/repeatedsymbol",
+            type: "symbol"
+        )
+        let site = makeDocCSource(
+            urlSuffix: "repeatkit",
+            index: DocCIndex(interfaceLanguages: [
+                "swift": [
+                    .init(
+                        title: "RepeatKit",
+                        path: "/documentation/repeatkit",
+                        type: "module",
+                        children: [duplicate, duplicate]
+                    )
+                ],
+                "objc": [
+                    .init(
+                        title: "RepeatKit",
+                        path: "/documentation/repeatkit",
+                        type: "module",
+                        children: [duplicate]
+                    )
+                ]
+            ])
+        )
+        let index = SidebarSearchIndex(technologies: [.docC(site)])
+
+        let rows = index.search("repeated").flattenedRows
+
+        #expect(rows.map(\.title) == ["Repeated Symbol"])
         #expect(Set(rows.map(\.id)).count == rows.count)
     }
 
@@ -206,7 +329,7 @@ struct SidebarSearchIndexTests {
         }
 
         #expect(reference.customIconIdentifier == "WWDC25-Icon.png")
-        #expect(reference.site.index.includedArchiveIdentifiers == ["WWDCNotes"])
+        #expect(reference.site?.index.includedArchiveIdentifiers == ["WWDCNotes"])
         #expect(reference.symbolKind == .article)
     }
 
@@ -361,6 +484,31 @@ struct SidebarSearchIndexTests {
 
         #expect(store.indexBuildCount == buildCount)
         #expect(store.results.sections.first?.rows.first?.title == "Reusable Search Result")
+    }
+
+    @Test
+    @MainActor
+    func nonEmptyQueryClearsStaleResultsBeforeSearching() async {
+        let site = makeDocCSource(
+            title: "FreshKit",
+            children: [
+                .init(title: "First Result", path: "/documentation/fresh/first", type: "symbol"),
+                .init(title: "Second Result", path: "/documentation/fresh/second", type: "symbol")
+            ]
+        )
+        let store = SidebarSearchStore()
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(site)]))
+
+        store.updateSearchText("first", debounce: .zero)
+        await waitForSearch(store)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["First Result"])
+
+        store.updateSearchText("second", debounce: .milliseconds(200))
+        #expect(store.results.isEmpty)
+        #expect(store.isSearching)
+
+        await waitForSearch(store)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Second Result"])
     }
 
     @Test

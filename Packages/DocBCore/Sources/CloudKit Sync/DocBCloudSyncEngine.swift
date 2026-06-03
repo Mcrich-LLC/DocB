@@ -348,23 +348,18 @@ extension DocBCloudSyncEngine {
         
         let timestamp: Date = record.value(for: "timestamp") ?? .now
         let overrideName: String? = record.value(for: "overrideName")
-        let indexData: Data? = record.value(for: "indexData")
-        let index = indexData.flatMap { try? JSONDecoder().decode(DocCIndex.self, from: $0) } ?? DocCIndex(interfaceLanguages: [:])
         let descriptor = FetchDescriptor<DocCSite>(
             predicate: #Predicate { site in
                 site.id == id
             }
         )
         let existingSite = try context.fetch(descriptor).first
-        let site = existingSite ?? DocCSite(timestamp: timestamp, url: url, overrideName: overrideName, index: index)
+        let site = existingSite ?? DocCSite(timestamp: timestamp, url: url, overrideName: overrideName, index: DocCIndex(interfaceLanguages: [:]))
         
         site.id = id
         site.timestamp = timestamp
         site.url = url
         site.overrideName = overrideName
-        if indexData != nil {
-            site.indexV2 = DocCSite.DocCIndexModel(index)
-        }
         rememberSyncedState(site)
         
         if existingSite == nil {

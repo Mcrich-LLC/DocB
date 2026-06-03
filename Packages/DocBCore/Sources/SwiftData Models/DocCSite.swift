@@ -55,7 +55,7 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
     /// - Parameter model: A persisted SwiftData model.
     /// - Throws: `SwiftDataErrors.invalidShape` when required fields are missing.
     public init(_ model: DocCSite) throws {
-        guard let timestamp = model.timestamp, let url = model.url, let index = model.indexV2 else {
+        guard let timestamp = model.timestamp, let url = model.url, let index = model.decodedIndex else {
             throw SwiftDataErrors.invalidShape
         }
         
@@ -63,7 +63,7 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
         self.timestamp = timestamp
         self.url = url
         self.overrideName = model.overrideName
-        self.index = index.asIndex
+        self.index = index
         self.persistentModelID = model.persistentModelID
     }
     
@@ -166,6 +166,16 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
         self.url = site.url
         self.overrideName = site.overrideName
     }
+
+    /// Creates a lightweight snapshot from an in-memory persisted source without copying its index.
+    ///
+    /// - Parameter source: Persisted source value to summarize.
+    public init(source: PersistedDocCSource) {
+        self.id = source.id
+        self.timestamp = source.timestamp
+        self.url = source.url
+        self.overrideName = source.overrideName
+    }
     
     /// Converts this snapshot into the persisted-source value used to load remote DocC indexes.
     @MainActor
@@ -213,7 +223,9 @@ public final class DocCSite: Identifiable {
     public var url: URL?
     /// Optional user-facing override name for the source.
     public var overrideName: String?
-    /// Persisted DocC index tree used for offline navigation and search.
+    /// Compact encoded DocC index used for offline restore without walking the SwiftData relationship tree.
+    public var indexData: Data?
+    /// Legacy relational index tree kept for existing schema compatibility.
     public var indexV2: DocCIndexModel?
     
     /// Creates a persisted site model from runtime DocC index content.
@@ -221,7 +233,8 @@ public final class DocCSite: Identifiable {
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
-        self.indexV2 = DocCIndexModel(index)
+        self.indexData = Self.encodeIndex(index)
+        self.indexV2 = nil
     }
     
     /// Internal initializer used when index content is already in model form.
@@ -229,6 +242,7 @@ public final class DocCSite: Identifiable {
         self.timestamp = timestamp
         self.url = url
         self.overrideName = overrideName
+        self.indexData = nil
         self.indexV2 = index
     }
     
@@ -236,8 +250,9 @@ public final class DocCSite: Identifiable {
     @MainActor public init(_ source: PersistedDocCSource) {
         self.timestamp = source.timestamp
         self.url = source.url
-        
-        self.indexV2 = DocCIndexModel(source.index)
+        self.overrideName = source.overrideName
+        self.indexData = Self.encodeIndex(source.index)
+        self.indexV2 = nil
     }
     
     /// Converts the persisted model into a source snapshot used by app logic and UI layers.
@@ -245,13 +260,43 @@ public final class DocCSite: Identifiable {
     /// This accessor throws when persisted data is malformed or required fields are missing.
     @MainActor public var persistedSource: PersistedDocCSource {
         get throws {
-            try .init(self)
+            guard let timestamp, let url, let index = decodedIndex else {
+                throw SwiftDataErrors.invalidShape
+            }
+
+            return PersistedDocCSource(
+                id: id,
+                timestamp: timestamp,
+                url: url,
+                overrideName: overrideName,
+                index: index,
+                persistentModelID: persistentModelID
+            )
         }
+    }
+
+    /// Decodes the compact offline index payload.
+    public var decodedIndex: DocCIndex? {
+        guard let indexData else {
+            return nil
+        }
+
+        return try? JSONDecoder().decode(DocCIndex.self, from: indexData)
+    }
+
+    /// Encodes an index for compact offline persistence.
+    ///
+    /// - Parameter index: Runtime index to encode.
+    /// - Returns: Encoded index data, or `nil` when encoding fails.
+    public static func encodeIndex(_ index: DocCIndex) -> Data? {
+        try? JSONEncoder().encode(index)
     }
     
     /// Top-level grouped interface-language entries from the persisted index.
     public var groups: [InterfaceLanguageModel] {
-        indexV2?.interfaceLanguages?.flatMap({ $0.languages ?? [] }) ?? []
+        decodedIndex?.interfaceLanguages.values.flatMap { languages in
+            languages.map(InterfaceLanguageModel.init)
+        } ?? []
     }
     
     /// Performs a recursive title-based search across persisted interface-language entries.
@@ -259,9 +304,13 @@ public final class DocCSite: Identifiable {
     /// - Parameter query: Search text to match against entry titles.
     /// - Returns: `true` when any nested item matches.
     public func hasResultsForSearch(_ query: String) -> Bool {
-        guard let indexV2 else { return false }
-        
-        for interfaceLanguage in indexV2.interfaceLanguages ?? [] where (interfaceLanguage.languages ?? []).first(where: { $0.hasResultsForSearch(query) }) != nil {
+        guard let decodedIndex else { return false }
+
+        func containsMatch(_ language: DocCIndex.InterfaceLanguage) -> Bool {
+            language.title.localizedCaseInsensitiveContains(query) || (language.children ?? []).contains(where: containsMatch)
+        }
+
+        for interfaceLanguage in decodedIndex.interfaceLanguages.values.flatMap({ $0 }) where containsMatch(interfaceLanguage) {
             return true
         }
         
@@ -361,7 +410,7 @@ extension DocCSite {
                 acc[name] = languages.map({ $0.asInterfaceLanguage })
             }
             
-            return DocCIndex(interfaceLanguages: interfaceLanguages, includedArchiveIdentifiers: includedArchiveIdentifiers)
+            return DocCIndex(id: id, interfaceLanguages: interfaceLanguages, includedArchiveIdentifiers: includedArchiveIdentifiers)
         }
     }
     

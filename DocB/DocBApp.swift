@@ -290,6 +290,7 @@ private struct MainView: View {
     
     @Environment(DocumentationViewModel.self) private var documentationViewModel
     @Environment(AppSettings.self) private var appSettings
+    @Environment(OpenQuicklySearchCoordinator.self) private var openQuicklySearchCoordinator
     @Environment(DocBCloudSyncEngine.self) private var cloudSyncEngine
     @Environment(\.presentSearchPalette) private var presentSearchPalette
     @Environment(\.appearsActive) var appearsActive
@@ -343,9 +344,14 @@ private struct MainView: View {
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
-            await documentationViewModel.loadTechnologies(docCSites.asPersistedDocCSources)
+            await documentationViewModel.loadTechnologies(docCSiteSnapshots)
         }
         .onChange(of: docCSiteSnapshots, onSwiftDataChange)
+        .onChange(of: documentationViewModel.isPreparingSearchSources, initial: true) { _, isPreparingSearchSources in
+            guard !isPreparingSearchSources else { return }
+
+            openQuicklySearchCoordinator.restoreCachedIndexIfAvailable(documentationViewModel: documentationViewModel)
+        }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
             Task {
@@ -383,7 +389,7 @@ private struct MainView: View {
         
         if !insertedSites.isEmpty {
             Task {
-                await documentationViewModel.loadTechnologies(insertedSites.asPersistedDocCSources)
+                await documentationViewModel.loadTechnologies(insertedSites)
             }
         }
         

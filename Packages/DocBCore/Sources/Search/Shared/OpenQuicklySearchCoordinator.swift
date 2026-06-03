@@ -55,8 +55,8 @@ public final class OpenQuicklySearchCoordinator {
             return searchStore.indexBuildProgress ?? SearchIndexInstallProgress.cacheLookup
         }
 
-        if let warmedIndexBuildProgress {
-            return warmedIndexBuildProgress
+        if let preparedIndexBuildProgress {
+            return preparedIndexBuildProgress
         }
 
         if isLoadingSearchIndexSnapshot {
@@ -73,19 +73,20 @@ public final class OpenQuicklySearchCoordinator {
     private weak var activeNavigationViewModel: NavigationViewModel?
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
     private var indexedSourceFingerprint: String?
-    private var warmedSourceFingerprint: String?
-    private var warmedIndexFingerprint: String?
-    private var warmedIndex: SidebarSearchIndex?
-    private var shouldInstallWarmedIndex = false
+    private var preparedSourceFingerprint: String?
+    private var preparedIndexFingerprint: String?
+    private var preparedIndexCacheMode: SearchIndexPreparationCacheMode?
+    private var preparedIndex: SidebarSearchIndex?
+    private var shouldInstallPreparedIndex = false
     private var pendingIndexInstallFingerprint: String?
     private var loadingSnapshotFingerprint: String?
-    private var warmedIndexBuildProgress: Double?
+    private var preparedIndexBuildProgress: Double?
     private var searchIndexPreparationPhase: SearchIndexPreparationPhase?
     private var hasDeferredIndexRebuild = false
     private var presentationIndexRebuildTask: Task<Void, Never>?
     private var presentationIndexRebuildFingerprint: String?
-    private var indexWarmTask: Task<Void, Never>?
-    private var indexWarmRequestID = UUID()
+    private var indexPreparationTask: Task<Void, Never>?
+    private var indexPreparationRequestID = UUID()
     private var hasLocalIndexCacheFiles = false
     private var hasInstalledSearchIndex: Bool {
         indexedSourceFingerprint != nil && searchStore.hasInstalledIndex
@@ -144,14 +145,14 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        guard loadingSnapshotFingerprint != sourceFingerprint || !shouldInstallWarmedIndex || indexWarmTask == nil else {
+        guard loadingSnapshotFingerprint != sourceFingerprint || !shouldInstallPreparedIndex || indexPreparationTask == nil else {
             isLoadingSearchIndexSnapshot = true
             searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
             return
         }
 
         if sourceFingerprint.isEmpty {
-            clearWarmedIndexState()
+            clearPreparedIndexState()
             pendingIndexInstallFingerprint = nil
             searchIndexPreparationPhase = nil
             indexedSourceFingerprint = sourceFingerprint
@@ -161,17 +162,24 @@ public final class OpenQuicklySearchCoordinator {
 
         if !installPreparedIndex(for: sourceFingerprint) {
             pendingIndexInstallFingerprint = sourceFingerprint
+            prepareSearchIndexIfNeeded(
+                cacheMode: .disk,
+                installWhenReady: true,
+                priority: .userInitiated
+            )
         }
     }
 
     /// Starts preparing the local search-index cache in the background when the current source snapshot is not indexed yet.
-    public func warmSearchIndexIfNeeded() {
-        warmCachedIndexIfNeeded()
+    public func prepareSearchIndexInBackgroundIfNeeded() {
+        prepareSearchIndexIfNeeded(
+            cacheMode: canPrewarmSearchIndexInBackground ? .memory : .disk
+        )
     }
 
     /// Connects the search palette to the coordinator-owned index preparation state.
     ///
-    /// The cache lookup and indexing work are started by the app-level background warm job, not palette presentation.
+    /// The cache lookup and indexing work normally starts from the app-level background preparation job.
     public func prepareSearchIndexForPalette() {
         let sourceFingerprint = documentationViewModel.searchContentFingerprint
         markSearchIndexPreparationIfNeeded()
@@ -194,12 +202,14 @@ public final class OpenQuicklySearchCoordinator {
         }
     }
 
-    /// Builds and retains a cached search index in the background, optionally installing it once ready.
+    /// Prepares a search index in the background, optionally installing it once ready.
     ///
     /// - Parameters:
-    ///   - installWhenReady: Whether the warmed index should be installed into palette state.
+    ///   - cacheMode: Whether preparation should stop at the disk cache or include in-memory acceleration.
+    ///   - installWhenReady: Whether the prepared index should be installed into palette state.
     ///   - priority: Priority for snapshot loading and index construction.
-    private func warmCachedIndexIfNeeded(
+    private func prepareSearchIndexIfNeeded(
+        cacheMode: SearchIndexPreparationCacheMode,
         installWhenReady: Bool = false,
         priority: TaskPriority = .utility
     ) {
@@ -212,59 +222,65 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        if let warmedIndex, warmedIndexFingerprint == sourceFingerprint {
+        if let preparedIndex, preparedIndexFingerprint == sourceFingerprint {
+            if cacheMode == .memory, preparedIndexCacheMode != .memory {
+                prepareMemoryAcceleration(for: preparedIndex)
+            }
+
             guard installWhenReady else { return }
 
             searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
-            warmedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
-            installWarmedIndex(warmedIndex, sourceFingerprint: sourceFingerprint)
+            preparedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
+            installPreparedIndexSnapshot(preparedIndex, sourceFingerprint: sourceFingerprint)
             return
         }
 
-        if sourceFingerprint == warmedSourceFingerprint,
-           let indexWarmTask,
-           !indexWarmTask.isCancelled {
-            shouldInstallWarmedIndex = shouldInstallWarmedIndex
+        if sourceFingerprint == preparedSourceFingerprint,
+           let indexPreparationTask,
+           !indexPreparationTask.isCancelled {
+            shouldInstallPreparedIndex = shouldInstallPreparedIndex
                 || installWhenReady
                 || pendingIndexInstallFingerprint == sourceFingerprint
-            if shouldInstallWarmedIndex {
+            if shouldInstallPreparedIndex {
                 isLoadingSearchIndexSnapshot = true
                 loadingSnapshotFingerprint = sourceFingerprint
                 searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
-                warmedIndexBuildProgress = max(
-                    warmedIndexBuildProgress ?? 0,
+                preparedIndexBuildProgress = max(
+                    preparedIndexBuildProgress ?? 0,
                     SearchIndexInstallProgress.cacheLookup
                 )
             }
 
-            guard priority == .userInitiated else { return }
+            guard installWhenReady, priority == .userInitiated else { return }
 
-            indexWarmTask.cancel()
-            self.indexWarmTask = nil
-        } else if sourceFingerprint != warmedSourceFingerprint || installWhenReady {
-            indexWarmTask?.cancel()
+            indexPreparationTask.cancel()
+            self.indexPreparationTask = nil
+        } else if sourceFingerprint != preparedSourceFingerprint || installWhenReady {
+            indexPreparationTask?.cancel()
         } else {
             return
         }
 
-        warmedSourceFingerprint = sourceFingerprint
-        shouldInstallWarmedIndex = installWhenReady || pendingIndexInstallFingerprint == sourceFingerprint
-        if warmedIndexFingerprint != sourceFingerprint {
-            warmedIndexFingerprint = nil
-            warmedIndex = nil
+        preparedSourceFingerprint = sourceFingerprint
+        shouldInstallPreparedIndex = installWhenReady || pendingIndexInstallFingerprint == sourceFingerprint
+        if preparedIndexFingerprint != sourceFingerprint {
+            preparedIndexFingerprint = nil
+            preparedIndexCacheMode = nil
+            preparedIndex = nil
         }
 
-        if shouldInstallWarmedIndex {
+        if shouldInstallPreparedIndex {
             isLoadingSearchIndexSnapshot = true
             loadingSnapshotFingerprint = sourceFingerprint
             searchIndexPreparationPhase = cacheLookupPhase(for: sourceFingerprint)
-            warmedIndexBuildProgress = SearchIndexInstallProgress.cacheLookup
+            preparedIndexBuildProgress = SearchIndexInstallProgress.cacheLookup
         }
 
         let requestID = UUID()
-        indexWarmRequestID = requestID
+        indexPreparationRequestID = requestID
         let searchIndexCache = searchIndexCache
-        indexWarmTask = Task(priority: priority) {
+        let preparesMemoryAcceleration = cacheMode.preparesMemoryAcceleration
+        indexPreparationTask = Task(priority: priority) {
             if !installWhenReady {
                 try? await Task.sleep(for: .milliseconds(1_250))
                 guard !Task.isCancelled else { return }
@@ -272,36 +288,44 @@ public final class OpenQuicklySearchCoordinator {
 
             let hasCacheFiles = await searchIndexCache.containsAnyIndexFiles()
             await MainActor.run {
-                guard self.warmedSourceFingerprint == sourceFingerprint,
-                      self.indexWarmRequestID == requestID
+                guard self.preparedSourceFingerprint == sourceFingerprint,
+                      self.indexPreparationRequestID == requestID
                 else {
                     return
                 }
 
                 self.hasLocalIndexCacheFiles = hasCacheFiles
-                guard installWhenReady || self.shouldInstallWarmedIndex else { return }
+                guard installWhenReady || self.shouldInstallPreparedIndex else { return }
 
                 self.searchIndexPreparationPhase = self.cacheLookupPhase(for: sourceFingerprint)
             }
             guard !Task.isCancelled else { return }
 
             if let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
+                if preparesMemoryAcceleration {
+                    await Task.detached(priority: priority) {
+                        cachedIndex.prepareStreamingAppleSymbolSearch()
+                    }.value
+                    guard !Task.isCancelled else { return }
+                }
+
                 await MainActor.run {
-                    guard self.warmedSourceFingerprint == sourceFingerprint,
-                          self.indexWarmRequestID == requestID
+                    guard self.preparedSourceFingerprint == sourceFingerprint,
+                          self.indexPreparationRequestID == requestID
                     else {
                         return
                     }
 
-                    let shouldInstall = installWhenReady || self.shouldInstallWarmedIndex
+                    let shouldInstall = installWhenReady || self.shouldInstallPreparedIndex
                     self.searchIndexPreparationPhase = shouldInstall
                         ? self.preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
                         : nil
-                    self.warmedIndexBuildProgress = shouldInstall
+                    self.preparedIndexBuildProgress = shouldInstall
                         ? SearchIndexInstallProgress.installingCachedIndex
                         : nil
-                    self.finishWarmingIndex(
+                    self.finishPreparingIndex(
                         cachedIndex,
+                        cacheMode: cacheMode,
                         sourceFingerprint: sourceFingerprint,
                         requestID: requestID
                     )
@@ -310,17 +334,17 @@ public final class OpenQuicklySearchCoordinator {
             }
 
             await MainActor.run {
-                guard self.warmedSourceFingerprint == sourceFingerprint,
-                      self.indexWarmRequestID == requestID
+                guard self.preparedSourceFingerprint == sourceFingerprint,
+                      self.indexPreparationRequestID == requestID
                 else {
                     return
                 }
 
-                let shouldInstall = installWhenReady || self.shouldInstallWarmedIndex
+                let shouldInstall = installWhenReady || self.shouldInstallPreparedIndex
                 self.searchIndexPreparationPhase = shouldInstall
                     ? self.preparationPhase(for: sourceFingerprint, fallback: .indexingDocumentation)
                     : nil
-                self.warmedIndexBuildProgress = shouldInstall
+                self.preparedIndexBuildProgress = shouldInstall
                     ? SearchIndexInstallProgress.loadingSourceSnapshot
                     : nil
             }
@@ -329,17 +353,17 @@ public final class OpenQuicklySearchCoordinator {
             guard !Task.isCancelled else { return }
 
             await MainActor.run {
-                guard self.warmedSourceFingerprint == sourceFingerprint,
-                      self.indexWarmRequestID == requestID
+                guard self.preparedSourceFingerprint == sourceFingerprint,
+                      self.indexPreparationRequestID == requestID
                 else {
                     return
                 }
 
-                let shouldInstall = installWhenReady || self.shouldInstallWarmedIndex
+                let shouldInstall = installWhenReady || self.shouldInstallPreparedIndex
                 self.searchIndexPreparationPhase = shouldInstall
                     ? self.preparationPhase(for: sourceFingerprint, fallback: .indexingDocumentation)
                     : nil
-                self.warmedIndexBuildProgress = shouldInstall
+                self.preparedIndexBuildProgress = shouldInstall
                     ? SearchIndexInstallProgress.buildingIndexStart
                     : nil
                 self.loadingSnapshotFingerprint = shouldInstall ? sourceFingerprint : self.loadingSnapshotFingerprint
@@ -347,16 +371,16 @@ public final class OpenQuicklySearchCoordinator {
 
             let progress: @Sendable (Double) -> Void = { value in
                 Task { @MainActor in
-                    guard self.warmedSourceFingerprint == sourceFingerprint,
-                          self.indexWarmRequestID == requestID,
+                    guard self.preparedSourceFingerprint == sourceFingerprint,
+                          self.indexPreparationRequestID == requestID,
                           self.loadingSnapshotFingerprint == sourceFingerprint,
-                          self.warmedIndexBuildProgress != nil,
-                          self.shouldInstallWarmedIndex || installWhenReady
+                          self.preparedIndexBuildProgress != nil,
+                          self.shouldInstallPreparedIndex || installWhenReady
                     else {
                         return
                     }
 
-                    self.warmedIndexBuildProgress = SearchIndexInstallProgress.buildingIndexStart
+                    self.preparedIndexBuildProgress = SearchIndexInstallProgress.buildingIndexStart
                         + (SearchIndexInstallProgress.buildingIndexRange * min(max(value, 0), 1))
                 }
             }
@@ -369,7 +393,7 @@ public final class OpenQuicklySearchCoordinator {
             }.value
             guard !Task.isCancelled else { return }
 
-            if !installWhenReady, self.canPrewarmSearchIndexInBackground {
+            if preparesMemoryAcceleration {
                 await Task.detached(priority: priority) {
                     index.prepareStreamingAppleSymbolSearch()
                 }.value
@@ -380,21 +404,22 @@ public final class OpenQuicklySearchCoordinator {
             guard !Task.isCancelled else { return }
 
             await MainActor.run {
-                guard self.warmedSourceFingerprint == sourceFingerprint,
-                      self.indexWarmRequestID == requestID
+                guard self.preparedSourceFingerprint == sourceFingerprint,
+                      self.indexPreparationRequestID == requestID
                 else {
                     return
                 }
 
-                let shouldInstall = installWhenReady || self.shouldInstallWarmedIndex
-                self.warmedIndexBuildProgress = shouldInstall
+                let shouldInstall = installWhenReady || self.shouldInstallPreparedIndex
+                self.preparedIndexBuildProgress = shouldInstall
                     ? SearchIndexInstallProgress.installingBuiltIndex
                     : nil
                 self.searchIndexPreparationPhase = shouldInstall
                     ? self.preparationPhase(for: sourceFingerprint, fallback: .indexingDocumentation)
                     : nil
-                self.finishWarmingIndex(
+                self.finishPreparingIndex(
                     index,
+                    cacheMode: cacheMode,
                     sourceFingerprint: sourceFingerprint,
                     requestID: requestID
                 )
@@ -447,31 +472,31 @@ public final class OpenQuicklySearchCoordinator {
         presentationIndexRebuildTask?.cancel()
         presentationIndexRebuildTask = nil
         presentationIndexRebuildFingerprint = nil
-        indexWarmTask?.cancel()
-        indexWarmTask = nil
-        indexWarmRequestID = UUID()
+        indexPreparationTask?.cancel()
+        indexPreparationTask = nil
+        indexPreparationRequestID = UUID()
         indexedSourceFingerprint = nil
-        clearWarmedIndexState()
+        clearPreparedIndexState()
         pendingIndexInstallFingerprint = nil
         loadingSnapshotFingerprint = nil
-        warmedIndexBuildProgress = nil
+        preparedIndexBuildProgress = nil
         isWaitingForSearchSources = false
         isLoadingSearchIndexSnapshot = false
         searchIndexPreparationPhase = nil
         searchStore.releaseIndex()
     }
 
-    /// Installs a warmed index into palette search state.
+    /// Installs a prepared index into palette search state.
     ///
     /// - Parameters:
-    ///   - index: Warmed index to install.
-    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
-    private func installWarmedIndex(_ index: SidebarSearchIndex, sourceFingerprint: String) {
+    ///   - index: Prepared index to install.
+    ///   - sourceFingerprint: Fingerprint associated with the prepared index.
+    private func installPreparedIndexSnapshot(_ index: SidebarSearchIndex, sourceFingerprint: String) {
         let preservesExistingResults = searchStore.hasInstalledIndex
         indexedSourceFingerprint = sourceFingerprint
         pendingIndexInstallFingerprint = nil
         clearSnapshotLoadingState(for: sourceFingerprint)
-        warmedIndexBuildProgress = nil
+        preparedIndexBuildProgress = nil
         searchIndexPreparationPhase = nil
         searchStore.updateSearchText(query, debounce: .milliseconds(0), preserveExistingResults: preservesExistingResults)
         searchStore.installIndex(
@@ -481,64 +506,84 @@ public final class OpenQuicklySearchCoordinator {
         )
     }
 
-    /// Installs or subscribes to an index already prepared by the app-level background warm job.
+    /// Installs or subscribes to an index already prepared by the app-level background job.
     ///
     /// - Parameter sourceFingerprint: Source fingerprint required by the palette.
-    /// - Returns: `true` when an index was installed or an existing warm job will install it when ready.
+    /// - Returns: `true` when an index was installed or an existing preparation job will install it when ready.
     @discardableResult
     private func installPreparedIndex(for sourceFingerprint: String) -> Bool {
-        if let warmedIndex, warmedIndexFingerprint == sourceFingerprint {
+        if let preparedIndex, preparedIndexFingerprint == sourceFingerprint {
             searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
-            warmedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
-            installWarmedIndex(warmedIndex, sourceFingerprint: sourceFingerprint)
+            preparedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
+            installPreparedIndexSnapshot(preparedIndex, sourceFingerprint: sourceFingerprint)
             return true
         }
 
-        guard warmedSourceFingerprint == sourceFingerprint,
-              let indexWarmTask,
-              !indexWarmTask.isCancelled
+        guard preparedSourceFingerprint == sourceFingerprint,
+              let indexPreparationTask,
+              !indexPreparationTask.isCancelled
         else {
             return false
         }
 
-        shouldInstallWarmedIndex = true
+        shouldInstallPreparedIndex = true
         pendingIndexInstallFingerprint = nil
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
         searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
-        warmedIndexBuildProgress = max(
-            warmedIndexBuildProgress ?? 0,
+        preparedIndexBuildProgress = max(
+            preparedIndexBuildProgress ?? 0,
             SearchIndexInstallProgress.cacheLookup
         )
         return true
     }
 
-    /// Records a warmed index and installs it if a presentation requested it.
+    /// Records a prepared index and installs it if a presentation requested it.
     ///
     /// - Parameters:
-    ///   - index: Warmed index snapshot.
-    ///   - sourceFingerprint: Fingerprint associated with the warmed index.
-    ///   - requestID: Request identity for rejecting stale warm completions.
-    private func finishWarmingIndex(_ index: SidebarSearchIndex, sourceFingerprint: String, requestID: UUID) {
-        guard indexWarmRequestID == requestID else { return }
+    ///   - index: Prepared index snapshot.
+    ///   - cacheMode: Cache layer prepared for the index snapshot.
+    ///   - sourceFingerprint: Fingerprint associated with the prepared index.
+    ///   - requestID: Request identity for rejecting stale preparation completions.
+    private func finishPreparingIndex(
+        _ index: SidebarSearchIndex,
+        cacheMode: SearchIndexPreparationCacheMode,
+        sourceFingerprint: String,
+        requestID: UUID
+    ) {
+        guard indexPreparationRequestID == requestID else { return }
 
-        warmedIndex = index
-        warmedIndexFingerprint = sourceFingerprint
-        indexWarmTask = nil
-        warmedIndexBuildProgress = nil
-        guard shouldInstallWarmedIndex else {
+        preparedIndex = index
+        preparedIndexFingerprint = sourceFingerprint
+        preparedIndexCacheMode = cacheMode
+        indexPreparationTask = nil
+        preparedIndexBuildProgress = nil
+        guard shouldInstallPreparedIndex else {
             return
         }
 
-        installWarmedIndex(index, sourceFingerprint: sourceFingerprint)
+        installPreparedIndexSnapshot(index, sourceFingerprint: sourceFingerprint)
     }
 
-    /// Clears retained warmed-index state without touching the installed palette index.
-    private func clearWarmedIndexState() {
-        warmedSourceFingerprint = nil
-        warmedIndexFingerprint = nil
-        warmedIndex = nil
-        shouldInstallWarmedIndex = false
+    /// Clears retained prepared-index state without touching the installed palette index.
+    private func clearPreparedIndexState() {
+        preparedSourceFingerprint = nil
+        preparedIndexFingerprint = nil
+        preparedIndexCacheMode = nil
+        preparedIndex = nil
+        shouldInstallPreparedIndex = false
+    }
+
+    /// Promotes a retained disk index with the faster in-memory Apple symbol lookup cache.
+    ///
+    /// - Parameter index: Retained index snapshot to accelerate.
+    private func prepareMemoryAcceleration(for index: SidebarSearchIndex) {
+        preparedIndexCacheMode = .memory
+        Task(priority: .utility) {
+            await Task.detached(priority: .utility) {
+                index.prepareStreamingAppleSymbolSearch()
+            }.value
+        }
     }
 
     /// Clears snapshot-loading state for the matching source fingerprint.
@@ -571,8 +616,8 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        guard warmedIndexFingerprint == sourceFingerprint
-            || (warmedSourceFingerprint == sourceFingerprint && indexWarmTask?.isCancelled == false)
+        guard preparedIndexFingerprint == sourceFingerprint
+            || (preparedSourceFingerprint == sourceFingerprint && indexPreparationTask?.isCancelled == false)
         else {
             pendingIndexInstallFingerprint = sourceFingerprint
             return
@@ -582,12 +627,12 @@ public final class OpenQuicklySearchCoordinator {
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
         if !wasAlreadyPreparingThisFingerprint || searchIndexPreparationPhase == nil {
-            searchIndexPreparationPhase = warmedIndexFingerprint == sourceFingerprint
+            searchIndexPreparationPhase = preparedIndexFingerprint == sourceFingerprint
                 ? preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
                 : cacheLookupPhase(for: sourceFingerprint)
         }
-        warmedIndexBuildProgress = max(
-            warmedIndexBuildProgress ?? SearchIndexInstallProgress.presentation,
+        preparedIndexBuildProgress = max(
+            preparedIndexBuildProgress ?? SearchIndexInstallProgress.presentation,
             SearchIndexInstallProgress.presentation
         )
     }
@@ -860,6 +905,16 @@ public final class OpenQuicklySearchCoordinator {
         }
 
         navigationViewModel.splitViewColumnVisibility = .all
+    }
+}
+
+/// Cache layer to prepare for the Search Documentation index.
+private enum SearchIndexPreparationCacheMode {
+    case disk
+    case memory
+
+    var preparesMemoryAcceleration: Bool {
+        self == .memory
     }
 }
 

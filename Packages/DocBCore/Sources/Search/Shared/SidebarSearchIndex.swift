@@ -1286,10 +1286,15 @@ public actor SidebarSearchIndexCache {
     private let cacheDirectory: URL
 
     /// Creates a search index cache rooted in the user's Application Support directory.
-    public init(fileManager: FileManager = .default) {
+    ///
+    /// - Parameters:
+    ///   - fileManager: File manager used for cache reads and writes.
+    ///   - applicationSupportDirectory: Optional Application Support override used by tests.
+    public init(fileManager: FileManager = .default, applicationSupportDirectory: URL? = nil) {
         self.fileManager = fileManager
 
-        let baseDirectory = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        let baseDirectory = applicationSupportDirectory
+            ?? fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         self.cacheDirectory = baseDirectory
             .appendingPathComponent("DocB", isDirectory: true)
@@ -1349,10 +1354,27 @@ public actor SidebarSearchIndexCache {
 
         do {
             try fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+            let url = cacheURL(for: fingerprint)
             let payload = Payload(version: Self.cacheVersion, fingerprint: fingerprint, index: index)
-            try payload.data().write(to: cacheURL(for: fingerprint), options: .atomic)
+            try payload.data().write(to: url, options: .atomic)
+            try removeStaleCacheFiles(keeping: url)
         } catch {
             print(error)
+        }
+    }
+
+    private func removeStaleCacheFiles(keeping currentCacheURL: URL) throws {
+        let cacheFileURLs = try fileManager.contentsOfDirectory(
+            at: cacheDirectory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )
+        let currentCachePath = currentCacheURL.standardizedFileURL.path
+
+        for cacheFileURL in cacheFileURLs where cacheFileURL.pathExtension == "bin" {
+            guard cacheFileURL.standardizedFileURL.path != currentCachePath else { continue }
+
+            try fileManager.removeItem(at: cacheFileURL)
         }
     }
 

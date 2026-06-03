@@ -27,11 +27,11 @@ public enum SearchPrewarmPolicy {
         #endif
     }
 
-    /// Returns whether the current device should retain a prewarmed search index in memory.
+    /// Returns whether the current device should retain a warmed search index in memory.
     ///
     /// - Parameter physicalMemory: Physical memory in bytes. Defaults to the current device memory.
-    /// - Returns: `true` when the current platform has enough memory for retained prewarming.
-    public static func canPrewarmSearchIndexInBackground(
+    /// - Returns: `true` when the current platform has enough memory for retaining a warmed search index.
+    public static func canRetainWarmedSearchIndexInBackground(
         physicalMemory: UInt64 = ProcessInfo.processInfo.physicalMemory
     ) -> Bool {
         guard let currentPlatformMinimumPhysicalMemory else {

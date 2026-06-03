@@ -737,6 +737,39 @@ struct SidebarSearchIndexTests {
         #expect(settings.searchKeyboardShortcutIsGlobalEnabled)
         #expect(settings.searchKeyboardShortcutDescription == "⌥⌘K")
     }
+
+    @Test
+    func storingNewCachePrunesStaleCacheFiles() async throws {
+        let fileManager = FileManager.default
+        let applicationSupportDirectory = fileManager.temporaryDirectory
+            .appendingPathComponent("DocBCoreTests-\(UUID().uuidString)", isDirectory: true)
+        defer {
+            try? fileManager.removeItem(at: applicationSupportDirectory)
+        }
+
+        let cache = SidebarSearchIndexCache(applicationSupportDirectory: applicationSupportDirectory)
+        let firstIndex = SidebarSearchIndex(technologies: [.docC(makeDocCSource(
+            title: "FirstKit",
+            children: [.init(title: "FirstSymbol", path: "/documentation/firstkit/firstsymbol", type: "symbol")]
+        ))])
+        let secondIndex = SidebarSearchIndex(technologies: [.docC(makeDocCSource(
+            title: "SecondKit",
+            children: [.init(title: "SecondSymbol", path: "/documentation/secondkit/secondsymbol", type: "symbol")]
+        ))])
+
+        await cache.store(firstIndex, for: "first-fingerprint")
+        await cache.store(secondIndex, for: "second-fingerprint")
+
+        #expect(await cache.index(for: "first-fingerprint") == nil)
+        #expect(await cache.index(for: "second-fingerprint") != nil)
+
+        let cacheDirectory = applicationSupportDirectory
+            .appendingPathComponent("DocB", isDirectory: true)
+            .appendingPathComponent("SearchIndexCache", isDirectory: true)
+        let cacheFiles = try fileManager.contentsOfDirectory(atPath: cacheDirectory.path)
+            .filter { $0.hasSuffix(".bin") }
+        #expect(cacheFiles.count == 1)
+    }
 }
 
 private func makeDocCSource(title: String, children: [DocCIndex.InterfaceLanguage], timestamp: TimeInterval = 0) -> DocCSource {

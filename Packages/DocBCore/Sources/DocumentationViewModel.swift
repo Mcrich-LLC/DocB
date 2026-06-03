@@ -11,41 +11,6 @@ import SwiftData
 import DocCKit
 import FactoryKit
 
-/// Describes the current persisted documentation-source loading progress.
-public struct DocumentationSourceLoadProgress: Equatable, Sendable {
-    /// Short status suitable for display beside a progress indicator.
-    public var title: String
-    /// Secondary status text with the current source or phase.
-    public var detail: String
-    /// Number of source-loading units that have completed.
-    public var completedUnitCount: Int
-    /// Total number of source-loading units expected.
-    public var totalUnitCount: Int
-
-    /// Creates a documentation-source loading progress snapshot.
-    ///
-    /// - Parameters:
-    ///   - title: Short status suitable for display beside a progress indicator.
-    ///   - detail: Secondary status text with the current source or phase.
-    ///   - completedUnitCount: Number of source-loading units that have completed.
-    ///   - totalUnitCount: Total number of source-loading units expected.
-    public init(title: String, detail: String, completedUnitCount: Int, totalUnitCount: Int) {
-        self.title = title
-        self.detail = detail
-        self.completedUnitCount = completedUnitCount
-        self.totalUnitCount = totalUnitCount
-    }
-
-    /// Fraction of work completed, or `nil` when the total is not known yet.
-    public var fractionCompleted: Double? {
-        guard totalUnitCount > 0 else {
-            return nil
-        }
-
-        return min(1, max(0, Double(completedUnitCount) / Double(totalUnitCount)))
-    }
-}
-
 /// Central state and networking coordinator for DocC technologies, frameworks, and articles.
 @Observable
 public final class DocumentationViewModel {
@@ -116,9 +81,6 @@ public final class DocumentationViewModel {
     /// Whether persisted documentation sources are still being restored for the initial app load.
     @MainActor
     public private(set) var isPreparingSearchSources = true
-    /// Current offline documentation-source loading progress for launch UI.
-    @MainActor
-    public private(set) var sourceLoadProgress: DocumentationSourceLoadProgress?
     
     @MainActor
     public func fetchTechnologies() async {
@@ -253,19 +215,12 @@ public final class DocumentationViewModel {
         let isInitialTechnologyLoad = !hasCompletedInitialTechnologyLoad
         if isInitialTechnologyLoad {
             isPreparingSearchSources = true
-            updateSourceLoadProgress(
-                completed: 0,
-                total: 0,
-                title: "Loading Documentation",
-                detail: "Reading saved sources"
-            )
         }
 
         defer {
             if isInitialTechnologyLoad {
                 hasCompletedInitialTechnologyLoad = true
                 isPreparingSearchSources = false
-                clearSourceLoadProgress()
             }
         }
 
@@ -293,55 +248,13 @@ public final class DocumentationViewModel {
             
             customSnapshots.append(snapshot)
         }
-
-        let totalSourceCount = customSnapshots.count + (shouldLoadAppleDocumentation ? 1 : 0)
-        if isInitialTechnologyLoad {
-            updateSourceLoadProgress(
-                completed: 0,
-                total: totalSourceCount,
-                title: "Loading Documentation",
-                detail: totalSourceCount == 0 ? "Preparing sidebar" : "Preparing \(totalSourceCount) saved source\(totalSourceCount == 1 ? "" : "s")"
-            )
-        }
         
         if shouldLoadAppleDocumentation {
-            if isInitialTechnologyLoad {
-                updateSourceLoadProgress(
-                    completed: 0,
-                    total: totalSourceCount,
-                    title: "Loading Apple Documentation",
-                    detail: "Restoring saved source"
-                )
-            }
             publishOfflineAppleDocumentationIfNeeded()
             await loadPersistedAppleIndexOrRefresh(preferredLanguage: preferredLanguage)
-            if isInitialTechnologyLoad {
-                updateSourceLoadProgress(
-                    completed: 1,
-                    total: totalSourceCount,
-                    title: "Loaded Apple Documentation",
-                    detail: "Preparing saved sources"
-                )
-            }
         }
         
-        let completedBeforeCustomSources = shouldLoadAppleDocumentation ? 1 : 0
-        let loadedSources = await Self.loadPersistedDocCSources(
-            customSnapshots,
-            using: swiftDataStore,
-            progress: { [weak self] completedCustomSources, _, sourceName in
-                guard isInitialTechnologyLoad else { return }
-
-                Task { @MainActor [weak self] in
-                    self?.updateSourceLoadProgress(
-                        completed: completedBeforeCustomSources + completedCustomSources,
-                        total: totalSourceCount,
-                        title: "Loading Documentation",
-                        detail: "Restored \(sourceName)"
-                    )
-                }
-            }
-        )
+        let loadedSources = await Self.loadPersistedDocCSources(customSnapshots, using: swiftDataStore)
         for loadedSource in loadedSources {
             technologies.appendOrUpdate(.docC(loadedSource.docCSource))
             if loadedSource.shouldPersistRemoteIndex {
@@ -356,29 +269,6 @@ public final class DocumentationViewModel {
     @MainActor
     public func loadTechnologies(_ sites: [PersistedDocCSource]) async {
         await loadTechnologies(sites.map(DocCSiteSnapshot.init(source:)))
-    }
-
-    /// Publishes documentation-source loading progress on the main actor.
-    ///
-    /// - Parameters:
-    ///   - completed: Number of source-loading units that have completed.
-    ///   - total: Total number of source-loading units expected.
-    ///   - title: Short status suitable for display beside a progress indicator.
-    ///   - detail: Secondary status text with the current source or phase.
-    @MainActor
-    private func updateSourceLoadProgress(completed: Int, total: Int, title: String, detail: String) {
-        sourceLoadProgress = DocumentationSourceLoadProgress(
-            title: title,
-            detail: detail,
-            completedUnitCount: completed,
-            totalUnitCount: total
-        )
-    }
-
-    /// Clears launch documentation-source loading progress.
-    @MainActor
-    private func clearSourceLoadProgress() {
-        sourceLoadProgress = nil
     }
     
     /// Removes a technology from memory and deletes persisted source data using a background context.
@@ -715,11 +605,10 @@ public final class DocumentationViewModel {
     /// - Returns: Persisted source values sorted by their original timestamp.
     private static func loadPersistedDocCSources(
         _ snapshots: [PersistedDocCSourceSnapshot],
-        using store: DocumentationSwiftDataStore,
-        progress: (@Sendable @MainActor (Int, Int, String) -> Void)? = nil
+        using store: DocumentationSwiftDataStore
     ) async -> [LoadedDocCSource] {
         do {
-            let persistedSources = try await store.fetchDocCIndexes(preferredURLs: snapshots.map(\.url), progress: progress)
+            let persistedSources = try await store.fetchDocCIndexes(preferredURLs: snapshots.map(\.url))
             let persistedSourceByURL = persistedSources.reduce(into: [URL: LoadedPersistedDocCIndex]()) { result, source in
                 result[source.url, default: source] = source
             }
@@ -1213,10 +1102,7 @@ actor DocumentationSwiftDataStore {
     ///
     /// - Parameter preferredURLs: Source URLs to restore from local persistence.
     /// - Returns: Persisted sources and indexes matching the requested URLs.
-    fileprivate func fetchDocCIndexes(
-        preferredURLs: [URL],
-        progress: (@Sendable @MainActor (Int, Int, String) -> Void)? = nil
-    ) throws -> [LoadedPersistedDocCIndex] {
+    fileprivate func fetchDocCIndexes(preferredURLs: [URL]) throws -> [LoadedPersistedDocCIndex] {
         guard !preferredURLs.isEmpty else {
             return []
         }
@@ -1226,25 +1112,14 @@ actor DocumentationSwiftDataStore {
         var loadedIndexes: [LoadedPersistedDocCIndex] = []
         loadedIndexes.reserveCapacity(preferredURLSet.count)
 
-        var completedCount = 0
         for site in sites {
-            guard let url = site.url, preferredURLSet.contains(url) else {
+            guard let url = site.url, preferredURLSet.contains(url),
+                  let loadedIndex = loadedPersistedIndex(from: site)
+            else {
                 continue
             }
 
-            if let loadedIndex = loadedPersistedIndex(from: site) {
-                loadedIndexes.append(loadedIndex)
-            }
-
-            completedCount += 1
-            if let progress {
-                let displayName = site.overrideName ?? url.host ?? url.absoluteString
-                let completedProgressCount = completedCount
-                let totalProgressCount = preferredURLSet.count
-                Task { @MainActor in
-                    progress(completedProgressCount, totalProgressCount, displayName)
-                }
-            }
+            loadedIndexes.append(loadedIndex)
         }
 
         return loadedIndexes

@@ -407,24 +407,6 @@ private struct TechView: View {
     private var isLoading: Bool {
         documentationViewModel.technologies.isEmpty && !docCSites.isEmpty
     }
-
-    /// Current loading progress shown while saved documentation sources are restored.
-    private var sourceLoadProgress: DocumentationSourceLoadProgress? {
-        if let sourceLoadProgress = documentationViewModel.sourceLoadProgress {
-            return sourceLoadProgress
-        }
-
-        guard documentationViewModel.isPreparingSearchSources || isLoading else {
-            return nil
-        }
-
-        return DocumentationSourceLoadProgress(
-            title: "Loading Documentation",
-            detail: "Preparing saved sources",
-            completedUnitCount: 0,
-            totalUnitCount: 0
-        )
-    }
     
     @ViewBuilder
     private var syncingView: some View {
@@ -501,8 +483,8 @@ private struct TechView: View {
             }
         }
         .overlay(content: {
-            if let sourceLoadProgress {
-                sourceLoadingOverlay(sourceLoadProgress)
+            if isLoading {
+                ProgressView("Loading")
             }
         })
         .refreshable {
@@ -543,35 +525,6 @@ private struct TechView: View {
             AddTechnologySheetView()
         })
         .alert(for: $errorAlert)
-    }
-
-    /// Renders launch progress for restoring saved documentation sources.
-    ///
-    /// - Parameter progress: Current documentation-source loading progress.
-    @ViewBuilder
-    private func sourceLoadingOverlay(_ progress: DocumentationSourceLoadProgress) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(progress.title)
-                .font(.headline)
-
-            if let fractionCompleted = progress.fractionCompleted {
-                ProgressView(value: fractionCompleted)
-            } else {
-                ProgressView()
-            }
-
-            if !progress.detail.isEmpty {
-                Text(progress.detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-        }
-        .padding(14)
-        .frame(maxWidth: 260, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .shadow(radius: 8, y: 2)
-        .padding()
     }
     
     /// Cheap source fingerprint used to trigger sidebar search index rebuilds.

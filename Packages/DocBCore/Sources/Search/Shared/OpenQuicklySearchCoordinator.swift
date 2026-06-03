@@ -14,10 +14,42 @@ public final class OpenQuicklySearchCoordinator {
     public let searchStore = SidebarSearchStore()
     /// Handler invoked when a result is activated before any main window can receive navigation.
     public var openResultWithoutActiveWindow: (@MainActor @Sendable (SidebarSearchResultRow) -> Void)?
+    /// Whether the palette is waiting for saved documentation sources before indexing.
+    public private(set) var isWaitingForSearchSources = false
+    /// Whether the palette is loading source snapshots for a search-index rebuild.
+    public private(set) var isLoadingSearchIndexSnapshot = false
+
+    /// Whether the palette should show search-index loading or rebuild progress.
+    public var isPreparingSearchIndex: Bool {
+        isWaitingForSearchSources || isLoadingSearchIndexSnapshot || searchStore.isRebuildingIndex
+    }
+
+    /// User-facing title for the current search-index preparation phase.
+    public var searchIndexStatusTitle: String {
+        if searchStore.isRebuildingIndex {
+            return searchStore.indexBuildTitle
+        }
+
+        if isLoadingSearchIndexSnapshot {
+            return "Loading Index"
+        }
+
+        if isWaitingForSearchSources {
+            return "Loading Documentation"
+        }
+
+        return searchStore.indexBuildTitle
+    }
+
+    /// Current search-index progress, or `nil` while progress is indeterminate.
+    public var searchIndexProgress: Double? {
+        searchStore.isRebuildingIndex ? searchStore.indexBuildProgress : nil
+    }
     
     private weak var activeNavigationViewModel: NavigationViewModel?
     private var preloadedRowIDs: Set<SidebarSearchResultRow.ID> = []
     private var indexedSourceFingerprint: String?
+    private var loadingSnapshotFingerprint: String?
     private var hasDeferredIndexRebuild = false
     private var presentationIndexRebuildTask: Task<Void, Never>?
     
@@ -51,20 +83,28 @@ public final class OpenQuicklySearchCoordinator {
     public func rebuildIndex(documentationViewModel: DocumentationViewModel) {
         guard !documentationViewModel.isPreparingSearchSources else {
             hasDeferredIndexRebuild = true
+            isWaitingForSearchSources = true
             return
         }
 
+        isWaitingForSearchSources = false
         hasDeferredIndexRebuild = false
         let sourceFingerprint = documentationViewModel.searchContentFingerprint
         guard sourceFingerprint != indexedSourceFingerprint else {
+            if loadingSnapshotFingerprint != sourceFingerprint {
+                clearSnapshotLoadingState(for: sourceFingerprint)
+            }
             return
         }
 
         guard !sourceFingerprint.isEmpty || indexedSourceFingerprint != nil else {
+            clearSnapshotLoadingState(for: sourceFingerprint)
             return
         }
 
         indexedSourceFingerprint = sourceFingerprint
+        isLoadingSearchIndexSnapshot = true
+        loadingSnapshotFingerprint = sourceFingerprint
         let currentQuery = query
         Task(priority: .utility) {
             let hasCachedIndex = await SidebarSearchIndexCache.shared.containsIndex(for: sourceFingerprint)
@@ -74,9 +114,11 @@ public final class OpenQuicklySearchCoordinator {
 
             await MainActor.run {
                 guard self.indexedSourceFingerprint == sourceFingerprint else {
+                    self.clearSnapshotLoadingState(for: sourceFingerprint)
                     return
                 }
 
+                self.clearSnapshotLoadingState(for: sourceFingerprint)
                 self.searchStore.rebuildIndex(
                     technologies: technologies,
                     searchText: currentQuery,
@@ -109,6 +151,7 @@ public final class OpenQuicklySearchCoordinator {
     /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
     public func rebuildDeferredIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
         guard hasDeferredIndexRebuild || indexedSourceFingerprint == nil else {
+            isWaitingForSearchSources = false
             return
         }
 
@@ -144,6 +187,18 @@ public final class OpenQuicklySearchCoordinator {
                 self.searchStore.installIndex(cachedIndex)
             }
         }
+    }
+
+    /// Clears snapshot-loading state for the matching source fingerprint.
+    ///
+    /// - Parameter sourceFingerprint: Fingerprint for the rebuild request that is no longer loading snapshots.
+    private func clearSnapshotLoadingState(for sourceFingerprint: String) {
+        guard loadingSnapshotFingerprint == sourceFingerprint else {
+            return
+        }
+
+        loadingSnapshotFingerprint = nil
+        isLoadingSearchIndexSnapshot = false
     }
     
     /// Updates the query while preserving the currently selected row when possible.

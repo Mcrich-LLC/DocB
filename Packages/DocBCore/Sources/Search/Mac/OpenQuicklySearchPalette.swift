@@ -93,7 +93,7 @@ public struct OpenQuicklySearchPalette: View {
         VStack(spacing: 0) {
             searchHeader(query: Bindable(coordinator).query)
 
-            if coordinator.searchStore.isRebuildingIndex {
+            if coordinator.isPreparingSearchIndex {
                 indexStatusView
             }
 
@@ -113,7 +113,7 @@ public struct OpenQuicklySearchPalette: View {
     private var resultsContent: some View {
         Group {
             if coordinator.searchStore.results.isEmpty {
-                if coordinator.searchStore.isSearching || coordinator.searchStore.isRebuildingIndex {
+                if coordinator.searchStore.isSearching || coordinator.isPreparingSearchIndex {
                     ProgressView("Searching")
                         .frame(maxWidth: .infinity, maxHeight: resultsHeight)
                 } else {
@@ -177,7 +177,7 @@ public struct OpenQuicklySearchPalette: View {
     }
 
     private var showsIndexStatus: Bool {
-        coordinator.searchStore.isRebuildingIndex
+        coordinator.isPreparingSearchIndex
     }
 
     private var paletteHeight: CGFloat {
@@ -208,12 +208,17 @@ public struct OpenQuicklySearchPalette: View {
 
     private var indexStatusView: some View {
         HStack(spacing: 8) {
-            Text(coordinator.searchStore.indexBuildTitle)
+            Text(coordinator.searchIndexStatusTitle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            ProgressView(value: coordinator.searchStore.indexBuildProgress ?? 0)
-                .controlSize(.small)
+            if let progress = coordinator.searchIndexProgress {
+                ProgressView(value: progress)
+                    .controlSize(.small)
+            } else {
+                ProgressView()
+                    .controlSize(.small)
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: Self.indexStatusHeight)

@@ -79,7 +79,7 @@ public struct SearchPaletteWindow: View {
         VStack(spacing: 0) {
             searchHeader(query: Bindable(coordinator).query)
 
-            if coordinator.searchStore.isRebuildingIndex {
+            if coordinator.isPreparingSearchIndex {
                 indexStatusView
             }
 
@@ -112,7 +112,7 @@ public struct SearchPaletteWindow: View {
     private var resultsContent: some View {
         Group {
             if coordinator.searchStore.results.isEmpty {
-                if coordinator.searchStore.isSearching || coordinator.searchStore.isRebuildingIndex {
+                if coordinator.searchStore.isSearching || coordinator.isPreparingSearchIndex {
                     ProgressView("Searching")
                         .controlSize(.large)
                         .frame(maxWidth: .infinity, maxHeight: resultsHeight)
@@ -178,7 +178,7 @@ public struct SearchPaletteWindow: View {
     }
 
     private var showsIndexStatus: Bool {
-        coordinator.searchStore.isRebuildingIndex
+        coordinator.isPreparingSearchIndex
     }
 
     private var paletteHeight: CGFloat {
@@ -210,12 +210,17 @@ public struct SearchPaletteWindow: View {
 
     private var indexStatusView: some View {
         HStack(spacing: 10) {
-            Text(coordinator.searchStore.indexBuildTitle)
+            Text(coordinator.searchIndexStatusTitle)
                 .font(.footnote)
                 .foregroundStyle(.white.opacity(0.62))
 
-            ProgressView(value: coordinator.searchStore.indexBuildProgress ?? 0)
-                .controlSize(.small)
+            if let progress = coordinator.searchIndexProgress {
+                ProgressView(value: progress)
+                    .controlSize(.small)
+            } else {
+                ProgressView()
+                    .controlSize(.small)
+            }
         }
         .padding(.horizontal, 24)
         .frame(height: Self.indexStatusHeight)

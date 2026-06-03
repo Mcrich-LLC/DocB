@@ -276,11 +276,10 @@ public struct SidebarSearchIndex: Sendable, Codable {
     /// - Returns: Binary data containing only the fields required to restore search rows.
     public func cacheData() -> Data {
         let cachedEntries = flattenedEntriesForCache()
-        let cachedSearchBuckets = streamingAppleIndexes.isEmpty ? entryIndexesByASCIIByte : Self.makeSearchBuckets(cachedEntries)
 
         var writer = CacheWriter()
         writer.writeString("DocBSearchIndex")
-        writer.writeUInt32(4)
+        writer.writeUInt32(5)
         writer.writeString(id.uuidString)
         writer.writeUInt32(UInt32(cachedEntries.count))
 
@@ -295,7 +294,6 @@ public struct SidebarSearchIndex: Sendable, Codable {
             writer.writeRow(entry.row)
         }
 
-        writer.writeSearchBuckets(cachedSearchBuckets)
         return writer.data
     }
 
@@ -309,7 +307,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         let version = try reader.readUInt32()
-        guard version == 3 || version == 4,
+        guard version == 3 || version == 4 || version == 5,
               let id = UUID(uuidString: try reader.readString()) else {
             throw CacheError.invalidHeader
         }
@@ -338,7 +336,7 @@ public struct SidebarSearchIndex: Sendable, Codable {
         }
 
         let searchBuckets: [[Int]]
-        if version >= 4 {
+        if version == 4 {
             searchBuckets = try reader.readSearchBuckets(entryCount: entries.count)
         } else {
             searchBuckets = Self.makeSearchBuckets(entries)
@@ -1010,16 +1008,6 @@ public struct SidebarSearchIndex: Sendable, Codable {
         mutating func writeData(_ value: Data) {
             writeUInt32(UInt32(value.count))
             data.append(value)
-        }
-
-        mutating func writeSearchBuckets(_ buckets: [[Int]]) {
-            writeUInt32(UInt32(buckets.count))
-            for bucket in buckets {
-                writeUInt32(UInt32(bucket.count))
-                for entryIndex in bucket {
-                    writeUInt32(UInt32(entryIndex))
-                }
-            }
         }
 
         mutating func writeRow(_ row: SidebarSearchResultRow) {

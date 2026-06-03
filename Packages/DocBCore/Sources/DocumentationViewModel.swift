@@ -498,6 +498,7 @@ public final class DocumentationViewModel {
                         self.homepage = loadedHomepage
                     }
                     self.publishAppleTechnologies(loadedTechnologies)
+                    self.refreshAppleIndexIfNeeded(using: loadedTechnologies)
                 }
             } catch {
                 print(error)

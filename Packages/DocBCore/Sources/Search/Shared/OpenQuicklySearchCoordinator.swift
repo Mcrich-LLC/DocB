@@ -86,6 +86,7 @@ public final class OpenQuicklySearchCoordinator {
     private var presentationIndexRebuildFingerprint: String?
     private var indexWarmTask: Task<Void, Never>?
     private var indexWarmRequestID = UUID()
+    private var hasLocalIndexCacheFiles = false
     private var hasInstalledSearchIndex: Bool {
         indexedSourceFingerprint != nil && searchStore.hasInstalledIndex
     }
@@ -145,10 +146,7 @@ public final class OpenQuicklySearchCoordinator {
 
         guard loadingSnapshotFingerprint != sourceFingerprint || !shouldInstallWarmedIndex || indexWarmTask == nil else {
             isLoadingSearchIndexSnapshot = true
-            searchIndexPreparationPhase = searchIndexPreparationPhase ?? preparationPhase(
-                for: sourceFingerprint,
-                fallback: .loadingLocalIndex
-            )
+            searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
             return
         }
 
@@ -232,10 +230,7 @@ public final class OpenQuicklySearchCoordinator {
             if shouldInstallWarmedIndex {
                 isLoadingSearchIndexSnapshot = true
                 loadingSnapshotFingerprint = sourceFingerprint
-                searchIndexPreparationPhase = searchIndexPreparationPhase ?? preparationPhase(
-                    for: sourceFingerprint,
-                    fallback: .loadingLocalIndex
-                )
+                searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
                 warmedIndexBuildProgress = max(
                     warmedIndexBuildProgress ?? 0,
                     SearchIndexInstallProgress.cacheLookup
@@ -262,7 +257,7 @@ public final class OpenQuicklySearchCoordinator {
         if shouldInstallWarmedIndex {
             isLoadingSearchIndexSnapshot = true
             loadingSnapshotFingerprint = sourceFingerprint
-            searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
+            searchIndexPreparationPhase = cacheLookupPhase(for: sourceFingerprint)
             warmedIndexBuildProgress = SearchIndexInstallProgress.cacheLookup
         }
 
@@ -274,6 +269,21 @@ public final class OpenQuicklySearchCoordinator {
                 try? await Task.sleep(for: .milliseconds(1_250))
                 guard !Task.isCancelled else { return }
             }
+
+            let hasCacheFiles = await searchIndexCache.containsAnyIndexFiles()
+            await MainActor.run {
+                guard self.warmedSourceFingerprint == sourceFingerprint,
+                      self.indexWarmRequestID == requestID
+                else {
+                    return
+                }
+
+                self.hasLocalIndexCacheFiles = hasCacheFiles
+                guard installWhenReady || self.shouldInstallWarmedIndex else { return }
+
+                self.searchIndexPreparationPhase = self.cacheLookupPhase(for: sourceFingerprint)
+            }
+            guard !Task.isCancelled else { return }
 
             if let cachedIndex = await searchIndexCache.index(for: sourceFingerprint) {
                 await MainActor.run {
@@ -495,10 +505,7 @@ public final class OpenQuicklySearchCoordinator {
         pendingIndexInstallFingerprint = nil
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
-        searchIndexPreparationPhase = searchIndexPreparationPhase ?? preparationPhase(
-            for: sourceFingerprint,
-            fallback: .loadingLocalIndex
-        )
+        searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
         warmedIndexBuildProgress = max(
             warmedIndexBuildProgress ?? 0,
             SearchIndexInstallProgress.cacheLookup
@@ -580,7 +587,9 @@ public final class OpenQuicklySearchCoordinator {
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
         if !wasAlreadyPreparingThisFingerprint || searchIndexPreparationPhase == nil {
-            searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
+            searchIndexPreparationPhase = warmedIndexFingerprint == sourceFingerprint
+                ? preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
+                : cacheLookupPhase(for: sourceFingerprint)
         }
         warmedIndexBuildProgress = max(
             warmedIndexBuildProgress ?? SearchIndexInstallProgress.presentation,
@@ -595,6 +604,13 @@ public final class OpenQuicklySearchCoordinator {
         hasInstalledSearchIndex && indexedSourceFingerprint != sourceFingerprint
             ? .updatingIndex
             : fallback
+    }
+
+    private func cacheLookupPhase(for sourceFingerprint: String) -> SearchIndexPreparationPhase {
+        preparationPhase(
+            for: sourceFingerprint,
+            fallback: hasLocalIndexCacheFiles ? .loadingLocalIndex : .indexingDocumentation
+        )
     }
 
     /// Updates the query while preserving the currently selected row when possible.

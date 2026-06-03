@@ -1344,6 +1344,20 @@ public actor SidebarSearchIndexCache {
         }
     }
 
+    /// Returns whether the search-index cache directory contains any local index payloads.
+    public func containsAnyIndexFiles() -> Bool {
+        do {
+            return try fileManager.contentsOfDirectory(
+                at: cacheDirectory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+            .contains { $0.pathExtension == "bin" }
+        } catch {
+            return false
+        }
+    }
+
     /// Stores a flattened search index for a source fingerprint.
     ///
     /// - Parameters:

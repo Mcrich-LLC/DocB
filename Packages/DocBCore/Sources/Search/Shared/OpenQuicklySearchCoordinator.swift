@@ -83,6 +83,7 @@ public final class OpenQuicklySearchCoordinator {
     private var searchIndexPreparationPhase: SearchIndexPreparationPhase?
     private var hasDeferredIndexRebuild = false
     private var presentationIndexRebuildTask: Task<Void, Never>?
+    private var presentationIndexRebuildFingerprint: String?
     private var indexWarmTask: Task<Void, Never>?
     private var indexWarmRequestID = UUID()
     private var hasInstalledSearchIndex: Bool {
@@ -170,12 +171,20 @@ public final class OpenQuicklySearchCoordinator {
         warmCachedIndexIfNeeded()
     }
 
-    /// Schedules prepared-index installation after the palette has had a chance to present.
+    /// Connects the search palette to the coordinator-owned index preparation state.
     ///
     /// The cache lookup and indexing work are started by the app-level background warm job, not palette presentation.
-    public func rebuildIndexAfterPresentation() {
+    public func prepareSearchIndexForPalette() {
+        let sourceFingerprint = documentationViewModel.searchContentFingerprint
         markSearchIndexPreparationIfNeeded()
+
+        if presentationIndexRebuildFingerprint == sourceFingerprint,
+           presentationIndexRebuildTask?.isCancelled == false {
+            return
+        }
+
         presentationIndexRebuildTask?.cancel()
+        presentationIndexRebuildFingerprint = sourceFingerprint
         presentationIndexRebuildTask = Task { @MainActor in
             await Task.yield()
             try? await Task.sleep(for: .milliseconds(120))
@@ -183,6 +192,7 @@ public final class OpenQuicklySearchCoordinator {
 
             rebuildIndex()
             presentationIndexRebuildTask = nil
+            presentationIndexRebuildFingerprint = nil
         }
     }
 
@@ -426,6 +436,7 @@ public final class OpenQuicklySearchCoordinator {
     public func releaseSearchIndexForMemoryPressure() {
         presentationIndexRebuildTask?.cancel()
         presentationIndexRebuildTask = nil
+        presentationIndexRebuildFingerprint = nil
         indexWarmTask?.cancel()
         indexWarmTask = nil
         indexWarmRequestID = UUID()
@@ -565,10 +576,16 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
+        let wasAlreadyPreparingThisFingerprint = loadingSnapshotFingerprint == sourceFingerprint
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
-        searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
-        warmedIndexBuildProgress = SearchIndexInstallProgress.presentation
+        if !wasAlreadyPreparingThisFingerprint || searchIndexPreparationPhase == nil {
+            searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
+        }
+        warmedIndexBuildProgress = max(
+            warmedIndexBuildProgress ?? SearchIndexInstallProgress.presentation,
+            SearchIndexInstallProgress.presentation
+        )
     }
 
     private func preparationPhase(
@@ -586,6 +603,10 @@ public final class OpenQuicklySearchCoordinator {
     ///   - query: The raw query entered by the user.
     ///   - debounce: Delay before non-empty queries are evaluated.
     public func updateQuery(_ query: String, debounce: Duration = .milliseconds(80)) {
+        guard self.query != query || searchStore.rawSearchText != query else {
+            return
+        }
+
         self.query = query
         preloadedRowIDs.removeAll()
         selectedRowID = nil

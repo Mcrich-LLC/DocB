@@ -571,6 +571,60 @@ struct SidebarSearchIndexTests {
 
     @Test
     @MainActor
+    func replacementIndexInstallPreservesVisibleResultsWhileSearching() async {
+        let firstSite = makeDocCSource(
+            title: "FirstKit",
+            children: [.init(title: "Shared Result Old", path: "/documentation/preserve/old", type: "symbol")]
+        )
+        let secondSite = makeDocCSource(
+            title: "SecondKit",
+            children: [.init(title: "Shared Result New", path: "/documentation/preserve/new", type: "symbol")]
+        )
+        let store = SidebarSearchStore()
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(firstSite)]))
+        store.updateSearchText("shared result", debounce: .zero)
+        await waitForSearch(store)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Shared Result Old"])
+
+        store.installIndex(
+            SidebarSearchIndex(technologies: [.docC(secondSite)]),
+            searchDebounce: .milliseconds(200),
+            preserveExistingResults: true
+        )
+
+        #expect(store.isSearching)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Shared Result Old"])
+
+        await waitForSearch(store)
+        #expect(store.results.sections.first?.rows.map(\.title) == ["Shared Result New"])
+    }
+
+    @Test
+    @MainActor
+    func rebuildIndexReportsUpdatingWhenExistingIndexIsInstalled() async {
+        let initialSite = makeDocCSource(
+            title: "InitialKit",
+            children: [.init(title: "Initial Result", path: "/documentation/update/initial", type: "symbol")]
+        )
+        let updatedSite = makeDocCSource(
+            title: "UpdatedKit",
+            children: [.init(title: "Updated Result", path: "/documentation/update/updated", type: "symbol")]
+        )
+        let store = SidebarSearchStore()
+        store.installIndex(SidebarSearchIndex(technologies: [.docC(initialSite)]))
+
+        store.rebuildIndex(
+            technologies: [.docC(updatedSite)],
+            searchText: "updated",
+            sourceFingerprint: "updated-fingerprint"
+        )
+
+        #expect(store.indexBuildTitle == "Updating Index")
+        await waitForSearch(store)
+    }
+
+    @Test
+    @MainActor
     func rebuildIndexKeepsCurrentQuery() async {
         let site = makeDocCSource(
             urlSuffix: "switchkit",

@@ -1709,14 +1709,18 @@ public final class SidebarSearchStore {
     public private(set) var indexBuildProgress: Double?
     /// Number of installed index snapshots, used by tests to guard against query-time rebuilds.
     public private(set) var indexBuildCount = 0
+    /// Whether a non-empty search index is currently installed.
+    public var hasInstalledIndex: Bool {
+        indexBuildCount > 0 && index.entryCount > 0
+    }
 
     /// User-facing title for the current index-build phase.
     public var indexBuildTitle: String {
         if isRebuildingIndex && indexBuildProgress == nil {
-            return "Loading Index"
+            return hasInstalledIndex ? "Updating Index" : "Loading Index"
         }
 
-        return indexBuildCount == 0 && index.entryCount == 0 ? "Indexing" : "Updating Index"
+        return hasInstalledIndex ? "Updating Index" : "Indexing"
     }
 
     /// Current flattened index.
@@ -1751,6 +1755,7 @@ public final class SidebarSearchStore {
         isRebuildingIndex = sourceFingerprint != nil
         indexBuildProgress = nil
         let searchIndexCache = searchIndexCache
+        let preservesExistingResults = hasInstalledIndex
 
         indexBuildTask = Task(priority: .utility) {
             if let sourceFingerprint,
@@ -1758,7 +1763,7 @@ public final class SidebarSearchStore {
                 await MainActor.run {
                     guard self.indexBuildRequestID == requestID else { return }
 
-                    self.installIndex(cachedIndex)
+                    self.installIndex(cachedIndex, preserveExistingResults: preservesExistingResults)
                 }
                 return
             }
@@ -1791,7 +1796,7 @@ public final class SidebarSearchStore {
                     }
                 }
                 self.indexBuildTask = nil
-                self.installIndex(index)
+                self.installIndex(index, preserveExistingResults: preservesExistingResults)
             }
         }
     }
@@ -1801,7 +1806,12 @@ public final class SidebarSearchStore {
     /// - Parameters:
     ///   - index: Search index snapshot to publish.
     ///   - searchDebounce: Delay before re-running the current query against the installed index.
-    public func installIndex(_ index: SidebarSearchIndex, searchDebounce: Duration = .milliseconds(120)) {
+    ///   - preserveExistingResults: Whether visible rows should remain while the current query reruns.
+    public func installIndex(
+        _ index: SidebarSearchIndex,
+        searchDebounce: Duration = .milliseconds(120),
+        preserveExistingResults: Bool = false
+    ) {
         searchTask?.cancel()
         indexBuildTask?.cancel()
         searchRequestID = UUID()
@@ -1810,7 +1820,7 @@ public final class SidebarSearchStore {
         isRebuildingIndex = false
         indexBuildProgress = nil
         indexBuildCount += 1
-        updateSearchText(rawSearchText, debounce: searchDebounce)
+        updateSearchText(rawSearchText, debounce: searchDebounce, preserveExistingResults: preserveExistingResults)
     }
 
     /// Releases the installed flattened index and any visible results.
@@ -1831,7 +1841,12 @@ public final class SidebarSearchStore {
     /// - Parameters:
     ///   - searchText: Raw sidebar search text.
     ///   - debounce: Delay before non-empty queries are evaluated.
-    public func updateSearchText(_ searchText: String, debounce: Duration = .milliseconds(120)) {
+    ///   - preserveExistingResults: Whether visible rows should remain while the search is running.
+    public func updateSearchText(
+        _ searchText: String,
+        debounce: Duration = .milliseconds(120),
+        preserveExistingResults: Bool = false
+    ) {
         rawSearchText = searchText
         searchTask?.cancel()
         searchRequestID = UUID()
@@ -1846,7 +1861,9 @@ public final class SidebarSearchStore {
         let requestID = searchRequestID
         let index = index
         isSearching = true
-        results = .empty
+        if !preserveExistingResults {
+            results = .empty
+        }
 
         searchTask = Task(priority: .userInitiated) {
             do {

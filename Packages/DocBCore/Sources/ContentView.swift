@@ -452,7 +452,7 @@ private struct TechView: View {
                     isVisibleForSearch: isVisibleForSearch
                 )
                 
-                if preparedData.isEmpty {
+                if preparedData.isEmpty && !isLoading {
                     ContentUnavailableView {
                         Label("No Docs Have Been Added", systemSymbol: .questionmarkFolderFill)
                     }

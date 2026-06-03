@@ -91,9 +91,9 @@ public final class OpenQuicklySearchCoordinator {
         indexedSourceFingerprint != nil && searchStore.hasInstalledIndex
     }
 
-    /// Whether this device has enough memory for retaining a warmed search index in memory.
-    public var canRetainWarmedSearchIndexInBackground: Bool {
-        SearchPrewarmPolicy.canRetainWarmedSearchIndexInBackground()
+    /// Whether this device has enough memory for extra in-memory search prewarming.
+    public var canPrewarmSearchIndexInBackground: Bool {
+        SearchPrewarmPolicy.canPrewarmSearchIndexInBackground()
     }
     
     /// Creates an empty Open Quickly coordinator.
@@ -369,7 +369,7 @@ public final class OpenQuicklySearchCoordinator {
             }.value
             guard !Task.isCancelled else { return }
 
-            if !installWhenReady {
+            if !installWhenReady, self.canPrewarmSearchIndexInBackground {
                 await Task.detached(priority: priority) {
                     index.prepareStreamingAppleSymbolSearch()
                 }.value
@@ -526,11 +526,6 @@ public final class OpenQuicklySearchCoordinator {
         warmedIndexFingerprint = sourceFingerprint
         indexWarmTask = nil
         warmedIndexBuildProgress = nil
-        guard shouldInstallWarmedIndex || canRetainWarmedSearchIndexInBackground else {
-            clearWarmedIndexState()
-            return
-        }
-
         guard shouldInstallWarmedIndex else {
             return
         }

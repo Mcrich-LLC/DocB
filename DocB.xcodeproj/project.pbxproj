@@ -259,7 +259,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = "DocB/DocB Staging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = NO;
@@ -314,7 +314,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = "DocB/DocB Staging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = NO;
@@ -497,7 +497,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation.Debug";
 				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;
@@ -564,7 +564,7 @@
 				CLOUDKIT_ID = "iCloud.com.Mcrich.Apple-Documentation";
 				CODE_SIGN_ENTITLEMENTS = DocB/DocB.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				DEVELOPMENT_ASSET_PATHS = "\"DocB/Preview Content\"";
 				DOCC_EXTRACT_EXTENSION_SYMBOLS = NO;
 				ENABLE_APP_SANDBOX = YES;

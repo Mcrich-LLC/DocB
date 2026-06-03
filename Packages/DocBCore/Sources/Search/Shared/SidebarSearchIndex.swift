@@ -1382,6 +1382,19 @@ public final class SidebarSearchStore {
         updateSearchText(rawSearchText)
     }
 
+    /// Releases the installed flattened index and any visible results.
+    public func releaseIndex() {
+        searchTask?.cancel()
+        indexBuildTask?.cancel()
+        searchRequestID = UUID()
+        indexBuildRequestID = UUID()
+        index = .empty
+        results = .empty
+        isSearching = false
+        isRebuildingIndex = false
+        indexBuildProgress = nil
+    }
+
     /// Updates the active query and schedules a cancellable search.
     ///
     /// - Parameters:

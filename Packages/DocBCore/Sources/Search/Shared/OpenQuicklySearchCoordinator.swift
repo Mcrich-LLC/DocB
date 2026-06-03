@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import DocCKit
 import Observation
@@ -52,6 +53,11 @@ public final class OpenQuicklySearchCoordinator {
     private var loadingSnapshotFingerprint: String?
     private var hasDeferredIndexRebuild = false
     private var presentationIndexRebuildTask: Task<Void, Never>?
+
+    /// Whether this device has enough memory for retained background search prewarming.
+    public var canPrewarmSearchIndexInBackground: Bool {
+        Self.canPrewarmSearchIndexInBackground
+    }
     
     /// Creates an empty Open Quickly coordinator.
     public init() {}
@@ -142,6 +148,10 @@ public final class OpenQuicklySearchCoordinator {
     ///
     /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
     public func warmSearchIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
+        guard canPrewarmSearchIndexInBackground else {
+            return
+        }
+
         rebuildIndex(documentationViewModel: documentationViewModel)
     }
 
@@ -206,6 +216,17 @@ public final class OpenQuicklySearchCoordinator {
         }
     }
 
+    /// Releases retained search index memory while preserving disk caches.
+    public func releaseSearchIndexForMemoryPressure() {
+        presentationIndexRebuildTask?.cancel()
+        presentationIndexRebuildTask = nil
+        indexedSourceFingerprint = nil
+        loadingSnapshotFingerprint = nil
+        isWaitingForSearchSources = false
+        isLoadingSearchIndexSnapshot = false
+        searchStore.releaseIndex()
+    }
+
     /// Clears snapshot-loading state for the matching source fingerprint.
     ///
     /// - Parameter sourceFingerprint: Fingerprint for the rebuild request that is no longer loading snapshots.
@@ -216,6 +237,19 @@ public final class OpenQuicklySearchCoordinator {
 
         loadingSnapshotFingerprint = nil
         isLoadingSearchIndexSnapshot = false
+    }
+
+    private static var canPrewarmSearchIndexInBackground: Bool {
+        let physicalMemory = ProcessInfo.processInfo.physicalMemory
+        #if os(macOS)
+        return physicalMemory >= 12 * 1_024 * 1_024 * 1_024
+        #elseif os(iOS)
+        return physicalMemory >= 6 * 1_024 * 1_024 * 1_024
+        #elseif os(visionOS)
+        return physicalMemory >= 8 * 1_024 * 1_024 * 1_024
+        #else
+        return false
+        #endif
     }
     
     /// Updates the query while preserving the currently selected row when possible.

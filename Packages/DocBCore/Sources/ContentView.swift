@@ -90,9 +90,11 @@ public struct ContentView: View {
             openQuicklySearchCoordinator.unregisterActiveNavigationViewModel(navigationViewModel)
         }
         .onChange(of: scenePhase) { _, newValue in
-            guard newValue == .active else { return }
-            
-            openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            if newValue == .active {
+                openQuicklySearchCoordinator.registerActiveNavigationViewModel(navigationViewModel)
+            } else if newValue == .background {
+                openQuicklySearchCoordinator.releaseSearchIndexForMemoryPressure()
+            }
         }
         .onChange(of: horizontalSizeClass, {
             navigationViewModel.horizontalSizeClass = horizontalSizeClass

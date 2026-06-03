@@ -105,12 +105,22 @@ public final class OpenQuicklySearchCoordinator {
         indexedSourceFingerprint = sourceFingerprint
         isLoadingSearchIndexSnapshot = true
         loadingSnapshotFingerprint = sourceFingerprint
-        let currentQuery = query
         Task(priority: .utility) {
-            let hasCachedIndex = await SidebarSearchIndexCache.shared.containsIndex(for: sourceFingerprint)
-            let technologies = hasCachedIndex
-                ? documentationViewModel.technologySnapshot()
-                : await documentationViewModel.searchTechnologySnapshot()
+            if let cachedIndex = await SidebarSearchIndexCache.shared.index(for: sourceFingerprint) {
+                await MainActor.run {
+                    guard self.indexedSourceFingerprint == sourceFingerprint else {
+                        self.clearSnapshotLoadingState(for: sourceFingerprint)
+                        return
+                    }
+
+                    self.clearSnapshotLoadingState(for: sourceFingerprint)
+                    self.searchStore.updateSearchText(self.query)
+                    self.searchStore.installIndex(cachedIndex)
+                }
+                return
+            }
+
+            let technologies = await documentationViewModel.searchTechnologySnapshot()
 
             await MainActor.run {
                 guard self.indexedSourceFingerprint == sourceFingerprint else {
@@ -121,11 +131,18 @@ public final class OpenQuicklySearchCoordinator {
                 self.clearSnapshotLoadingState(for: sourceFingerprint)
                 self.searchStore.rebuildIndex(
                     technologies: technologies,
-                    searchText: currentQuery,
+                    searchText: self.query,
                     sourceFingerprint: sourceFingerprint
                 )
             }
         }
+    }
+
+    /// Starts warming the search index in the background when the current source snapshot is not indexed yet.
+    ///
+    /// - Parameter documentationViewModel: Documentation source model to snapshot for indexing.
+    public func warmSearchIndexIfNeeded(documentationViewModel: DocumentationViewModel) {
+        rebuildIndex(documentationViewModel: documentationViewModel)
     }
 
     /// Schedules an index rebuild after the palette has had a chance to present.

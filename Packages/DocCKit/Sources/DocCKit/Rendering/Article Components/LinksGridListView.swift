@@ -171,6 +171,7 @@ struct DocCReferenceListRow: View {
     let showsSymbolKindBadge: Bool
     
     @Environment(\.docCSite) private var docCSite
+    @Environment(\.docCTintColor) private var docCTintColor
     
     /// Horizontal frame alignment derived from current text alignment.
     private var textFrameAlignment: HorizontalAlignment {
@@ -257,7 +258,7 @@ struct DocCReferenceListRow: View {
                     let fragmentAttributes: [NSAttributedString.Key: Any] = switch fragment.kind {
                     case "identifier":
                         [
-                            .foregroundColor: PlatformColor.accent,
+                            .foregroundColor: docCTintColor,
                             .font: PlatformFont.monospacedSystemFont(ofSize: PlatformFont.labelFontSize, weight: .medium)
                         ]
                     default:

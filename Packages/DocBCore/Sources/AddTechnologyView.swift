@@ -54,6 +54,13 @@ public struct AddTechnologyView: View {
     /// Source URLs currently being removed.
     @State private var sourceRemovalsInProgress: Set<URL> = []
     
+    /// Controls if the source folder importer is being displayed to the user
+    @State private var isShowingLocalSourceImporter: Bool = false
+    /// The local folder url for a custom source
+    @State private var localFolderURL: URL?
+    /// Shows the user that a local source is being
+    @State private var isAddingLocalDocCSite = false
+    
     /// Non-featured technologies currently configured by the user.
     private var customSites: [TechnologyTypes] {
         documentationViewModel.technologies.filter { tech in
@@ -179,11 +186,31 @@ public struct AddTechnologyView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(isAddingCustomDocCSite)
+                    Button {
+                        isShowingLocalSourceImporter = true
+                    } label: {
+                        if isShowingLocalSourceImporter {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("Choose Local")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isShowingLocalSourceImporter)
                 }
             }
         }
         .navigationTitle("Add Sources")
         .alert(for: $errorAlert)
+        .fileImporter(isPresented: $isShowingLocalSourceImporter, allowedContentTypes: [.folder]) { result in
+            switch result {
+            case .success(let url):
+                addLocalSiteAdd(url: url)
+            case .failure(let error):
+                self.errorAlert = error
+            }
+        }
     }
     
     @ViewBuilder
@@ -248,6 +275,20 @@ public struct AddTechnologyView: View {
         }
     }
     
+    /// Starts a custom source add after immediately updating loading state.
+    private func addLocalSiteAdd(url: URL) {
+        guard !isAddingLocalDocCSite else { return }
+        
+        isAddingLocalDocCSite = true
+        url.startAccessingSecurityScopedResource()
+        
+        Task {
+            await Task.yield()
+            await addDocCSite(url: url)
+            isAddingLocalDocCSite = false
+        }
+    }
+    
     /// Normalizes and validates the entered custom URL, then adds it as a DocC source.
     private func addCustomDocCSite() async {
         var addDocumentationUrl = self.addDocumentationUrl.replacingOccurrences(of: "http://", with: "https://")
@@ -273,11 +314,8 @@ public struct AddTechnologyView: View {
     
     /// Adds a DocC source by extracting a normalized base URL and loading its index.
     private func addDocCSite(url: URL, overrideName: String? = nil) async {
-        guard let scheme = url.scheme,
-              let host = url.host
-        else {
-            return
-        }
+        guard let scheme = url.scheme else { return }
+        let host = url.host() ?? ""
         
         let limitedPath: String
         

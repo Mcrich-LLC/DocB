@@ -243,7 +243,6 @@ public final class DocumentationViewModel {
         for siteSnapshot in siteSnapshots {
             var siteSnapshot = siteSnapshot
             if let localURL = siteSnapshot.url, localURL.isFileURL, let urlBookmark = siteSnapshot.urlBookmark {
-                // TODO: Fix stale bookmark handling
                 var isStale = false
                 siteSnapshot.url = try? URL(resolvingBookmarkData: urlBookmark, bookmarkDataIsStale: &isStale)
                 siteSnapshot.url?.startAccessingSecurityScopedResource()
@@ -304,6 +303,7 @@ public final class DocumentationViewModel {
             try await swiftDataStore.deleteDocCSite(url: appleDocCSiteRef?.url ?? site.url)
             appleDocCSiteRef = nil
         case .docC(let source):
+            source.url.stopAccessingSecurityScopedResource()
             try await swiftDataStore.deleteDocCSite(url: source.url)
         }
 
@@ -1115,6 +1115,7 @@ actor DocumentationSwiftDataStore {
     ///   - index: Index value to persist with the source.
     /// - Returns: Sendable metadata for the inserted source.
     func insertDocCSite(url: URL, overrideName: String?, index: DocCIndex) throws -> InsertedDocCSource {
+        url.startAccessingSecurityScopedResource()
         let urlBookmark: Data? = if url.isFileURL { try? url.bookmarkData(options: .withSecurityScope) } else { nil }
         
         let site = DocCSite(url: url, urlBookmark: urlBookmark, overrideName: overrideName, index: index)

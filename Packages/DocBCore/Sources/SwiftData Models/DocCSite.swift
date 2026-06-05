@@ -35,16 +35,19 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
     public let overrideName: String?
     /// Root URL for the DocC site.
     public let url: URL
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    public let urlBookmark: Data?
     /// Parsed index describing available interface-language groups and entries.
     public private(set) var index: DocCIndex
     /// Persistent SwiftData identifier used for direct delete operations.
     public fileprivate(set) var persistentModelID: PersistentIdentifier?
     
     /// Creates an in-memory persisted DocC source snapshot.
-    public init(id: UUID = UUID(), timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex, persistentModelID: PersistentIdentifier? = nil) {
+    public init(id: UUID = UUID(), timestamp: Date = .init(), url: URL, urlBookmark: Data?, overrideName: String? = nil, index: DocCIndex, persistentModelID: PersistentIdentifier? = nil) {
         self.id = id
         self.timestamp = timestamp
         self.url = url
+        self.urlBookmark = urlBookmark
         self.overrideName = overrideName
         self.index = index
         self.persistentModelID = persistentModelID
@@ -62,6 +65,7 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
         self.id = model.id
         self.timestamp = timestamp
         self.url = url
+        self.urlBookmark = model.urlBookmark
         self.overrideName = model.overrideName
         self.index = index
         self.persistentModelID = model.persistentModelID
@@ -72,6 +76,7 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
         self.id = UUID()
         self.timestamp = try container.decode(Date.self, forKey: .timestamp)
         self.url = try container.decode(URL.self, forKey: .url)
+        self.urlBookmark = try container.decodeIfPresent(Data.self, forKey: .urlBookmark)
         self.overrideName = try container.decodeIfPresent(String.self, forKey: .overrideName)
         self.index = try container.decode(DocCIndex.self, forKey: .index)
     }
@@ -87,6 +92,7 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
     public enum CodingKeys: String, CodingKey {
         case timestamp
         case url
+        case urlBookmark
         case overrideName
         case index
     }
@@ -153,7 +159,9 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
     /// Creation timestamp for this saved site source.
     public let timestamp: Date?
     /// Base URL used to load DocC resources.
-    public let url: URL?
+    public var url: URL?
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    public let urlBookmark: Data?
     /// Optional user-facing override name for the source.
     public let overrideName: String?
     
@@ -164,6 +172,7 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
         self.id = site.id
         self.timestamp = site.timestamp
         self.url = site.url
+        self.urlBookmark = site.urlBookmark
         self.overrideName = site.overrideName
     }
 
@@ -174,6 +183,7 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
         self.id = source.id
         self.timestamp = source.timestamp
         self.url = source.url
+        self.urlBookmark = source.urlBookmark
         self.overrideName = source.overrideName
     }
     
@@ -186,6 +196,7 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
             id: id,
             timestamp: timestamp,
             url: url,
+            urlBookmark: urlBookmark,
             overrideName: overrideName,
             index: DocCIndex(interfaceLanguages: [:])
         )
@@ -221,6 +232,8 @@ public final class DocCSite: Identifiable {
     public var timestamp: Date?
     /// Base URL used to load DocC resources.
     public var url: URL?
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    public var urlBookmark: Data?
     /// Optional user-facing override name for the source.
     public var overrideName: String?
     /// Compact encoded DocC index used for offline restore without walking the SwiftData relationship tree.
@@ -229,18 +242,20 @@ public final class DocCSite: Identifiable {
     public var indexV2: DocCIndexModel?
     
     /// Creates a persisted site model from runtime DocC index content.
-    public init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndex) {
+    public init(timestamp: Date = .init(), url: URL, urlBookmark: Data?, overrideName: String? = nil, index: DocCIndex) {
         self.timestamp = timestamp
         self.url = url
+        self.urlBookmark = urlBookmark
         self.overrideName = overrideName
         self.indexData = Self.encodeIndex(index)
         self.indexV2 = nil
     }
     
     /// Internal initializer used when index content is already in model form.
-    public init(timestamp: Date = .init(), url: URL, overrideName: String? = nil, index: DocCIndexModel) {
+    public init(timestamp: Date = .init(), url: URL, urlBookmark: Data?, overrideName: String? = nil, index: DocCIndexModel) {
         self.timestamp = timestamp
         self.url = url
+        self.urlBookmark = urlBookmark
         self.overrideName = overrideName
         self.indexData = nil
         self.indexV2 = index
@@ -250,6 +265,7 @@ public final class DocCSite: Identifiable {
     @MainActor public init(_ source: PersistedDocCSource) {
         self.timestamp = source.timestamp
         self.url = source.url
+        self.urlBookmark = source.urlBookmark
         self.overrideName = source.overrideName
         self.indexData = Self.encodeIndex(source.index)
         self.indexV2 = nil
@@ -268,6 +284,7 @@ public final class DocCSite: Identifiable {
                 id: id,
                 timestamp: timestamp,
                 url: url,
+                urlBookmark: urlBookmark,
                 overrideName: overrideName,
                 index: index,
                 persistentModelID: persistentModelID

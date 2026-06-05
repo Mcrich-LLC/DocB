@@ -241,6 +241,14 @@ public final class DocumentationViewModel {
         var shouldLoadAppleDocumentation = false
         
         for siteSnapshot in siteSnapshots {
+            var siteSnapshot = siteSnapshot
+            if let localURL = siteSnapshot.url, localURL.isFileURL, let urlBookmark = siteSnapshot.urlBookmark {
+                // TODO: Fix stale bookmark handling
+                var isStale = false
+                siteSnapshot.url = try? URL(resolvingBookmarkData: urlBookmark, bookmarkDataIsStale: &isStale)
+                siteSnapshot.url?.startAccessingSecurityScopedResource()
+            }
+            
             guard let snapshot = PersistedDocCSourceSnapshot(siteSnapshot) else {
                 continue
             }
@@ -759,6 +767,8 @@ private struct PersistedDocCSourceSnapshot: Sendable {
     var timestamp: Date
     /// Root URL for the DocC source.
     var url: URL
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    var urlBookmark: Data?
     /// Optional display-name override for the source.
     var overrideName: String?
     /// Last persisted index used to detect whether a fresh remote index should be saved.
@@ -772,6 +782,7 @@ private struct PersistedDocCSourceSnapshot: Sendable {
         self.id = source.id
         self.timestamp = source.timestamp
         self.url = source.url
+        self.urlBookmark = source.urlBookmark
         self.overrideName = source.overrideName
         self.index = source.index
     }
@@ -787,6 +798,7 @@ private struct PersistedDocCSourceSnapshot: Sendable {
         self.id = snapshot.id
         self.timestamp = timestamp
         self.url = url
+        self.urlBookmark = snapshot.urlBookmark
         self.overrideName = snapshot.overrideName
         self.index = DocCIndex(interfaceLanguages: [:])
     }
@@ -806,6 +818,7 @@ private struct PersistedDocCSourceSnapshot: Sendable {
             id: id,
             timestamp: timestamp,
             url: url,
+            urlBookmark: urlBookmark,
             overrideName: overrideName,
             index: index
         )
@@ -820,6 +833,8 @@ struct InsertedDocCSource: Sendable {
     var timestamp: Date
     /// Root URL for the DocC source.
     var url: URL
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    var urlBookmark: Data?
     /// Optional display-name override for the source.
     var overrideName: String?
     
@@ -833,6 +848,7 @@ struct InsertedDocCSource: Sendable {
             id: id,
             timestamp: timestamp,
             url: url,
+            urlBookmark: urlBookmark,
             overrideName: overrideName,
             index: index
         )
@@ -847,6 +863,8 @@ private struct LoadedPersistedDocCIndex: Sendable {
     var timestamp: Date
     /// Root URL for the DocC source.
     var url: URL
+    /// Used for restoring access to sandbox-scoped resources on the file system
+    var urlBookmark: Data?
     /// Optional display-name override.
     var overrideName: String?
     /// Reconstructed DocC index.
@@ -867,6 +885,7 @@ private struct LoadedPersistedDocCIndex: Sendable {
             id: id,
             timestamp: timestamp,
             url: url,
+            urlBookmark: urlBookmark,
             overrideName: overrideName,
             index: index
         )
@@ -1096,7 +1115,9 @@ actor DocumentationSwiftDataStore {
     ///   - index: Index value to persist with the source.
     /// - Returns: Sendable metadata for the inserted source.
     func insertDocCSite(url: URL, overrideName: String?, index: DocCIndex) throws -> InsertedDocCSource {
-        let site = DocCSite(url: url, overrideName: overrideName, index: index)
+        let urlBookmark: Data? = if url.isFileURL { try? url.bookmarkData(options: .withSecurityScope) } else { nil }
+        
+        let site = DocCSite(url: url, urlBookmark: urlBookmark, overrideName: overrideName, index: index)
         modelContext.insert(site)
         try modelContext.save()
         

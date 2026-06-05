@@ -354,7 +354,7 @@ extension DocBCloudSyncEngine {
             }
         )
         let existingSite = try context.fetch(descriptor).first
-        let site = existingSite ?? DocCSite(timestamp: timestamp, url: url, overrideName: overrideName, index: DocCIndex(interfaceLanguages: [:]))
+        let site = existingSite ?? DocCSite(timestamp: timestamp, url: url, urlBookmark: nil, overrideName: overrideName, index: DocCIndex(interfaceLanguages: [:]))
         
         site.id = id
         site.timestamp = timestamp

@@ -917,13 +917,60 @@ private struct DocCTechView: View {
         ForEach(technology.groups) { group in
             let filtered = group.children?.filter { isVisibleForSearch($0, technology, group) } ?? []
             if !filtered.isEmpty, let frameworkSection = group.frameworkSection(for: group, site: technology) {
-                TechnologyNavigationLinkButton(technology: frameworkSection) {
-                    ListItemLabel(framework: frameworkSection, references: [:])
+                Group {
+                    if frameworkSection.docCSite?.url.isFileURL == true, (try? FileManager.default.contentsOfDirectory(atPath: frameworkSection.docCSite?.url.path(percentEncoded: false) ?? "").isEmpty) != true {
+                        StaleDocCSourceView(technology: technology, frameworkSection: frameworkSection)
+                    } else {
+                        TechnologyNavigationLinkButton(technology: frameworkSection) {
+                            ListItemLabel(framework: frameworkSection, references: [:])
+                        }
+                    }
                 }
                 .foregroundStyle(Color.primary)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
+        }
+    }
+    
+    /// Communicates to the user that the DocC Source is stale and no longer available.
+    private struct StaleDocCSourceView: View {
+        /// Custom DocC site descriptor being rendered.
+        let technology: DocCSource
+        
+        let frameworkSection: AppleTechnologies.FrameworkSection
+        @State private var isShowingAlert: Bool = false
+        
+        @Environment(DocumentationViewModel.self) var documentationViewModel
+        
+        var body: some View {
+            #if os(macOS)
+            MacOSAgnosticButton {
+                isShowingAlert = true
+            } label: {
+                Label(frameworkSection.title, systemSymbol: .folderBadgeQuestionmark)
+                    .labelStyle(.iconTrailing)
+            }
+            .foregroundStyle(.secondary)
+            .alert("\(frameworkSection.title) is no longer available.", isPresented: $isShowingAlert) {
+                Button("Delete", role: .destructive) {
+                    Task {
+                        try? await documentationViewModel.deleteTechnology(.docC(technology))
+                    }
+                }
+            }
+            #else
+            Menu {
+                Text("\(frameworkSection.title) is no longer available.")
+                Button("Delete", role: .destructive) {
+                    
+                }
+            } label: {
+                Label(frameworkSection.title, systemSymbol: .folderBadgeQuestionmark)
+                    .labelStyle(.iconTrailing)
+            }
+            .menuStyle(.borderlessButton)
+            #endif
         }
     }
 }

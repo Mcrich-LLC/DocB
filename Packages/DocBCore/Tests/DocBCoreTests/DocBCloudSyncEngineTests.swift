@@ -41,6 +41,28 @@ final class DocBCloudSyncEngineTests: XCTestCase {
         
         XCTAssertEqual(Set(site.myProperties.keys), ["timestamp", "url", "overrideName"])
     }
+    
+    func testDocCSiteWithRemoteURLParticipatesInCloudSync() {
+        let site = DocCSite(
+            url: URL(string: "https://example.com")!,
+            index: .init(interfaceLanguages: [:])
+        )
+        let snapshot = DocCSiteSnapshot(site: site)
+        
+        XCTAssertTrue(site.participatesInCloudSync)
+        XCTAssertTrue(snapshot.participatesInCloudSync)
+    }
+    
+    func testDocCSiteWithFileURLDoesNotParticipateInCloudSync() {
+        let site = DocCSite(
+            url: URL(fileURLWithPath: "/Users/example/DocCSites/Example.doccarchive"),
+            index: .init(interfaceLanguages: [:])
+        )
+        let snapshot = DocCSiteSnapshot(site: site)
+        
+        XCTAssertFalse(site.participatesInCloudSync)
+        XCTAssertFalse(snapshot.participatesInCloudSync)
+    }
 
     private func makeContainer() throws -> ModelContainer {
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)

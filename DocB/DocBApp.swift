@@ -341,7 +341,7 @@ private struct MainView: View {
         }
         #endif
         .task {
-            cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
+            cloudSyncEngine.syncAll(docCSites: docCSites.filter(\.participatesInCloudSync), collections: bookmarkCollections, bookmarks: bookmarks)
             await cloudSyncEngine.start()
             await documentationViewModel.loadTechnologies(docCSiteSnapshots)
         }
@@ -380,7 +380,10 @@ private struct MainView: View {
     
     /// Synchronizes in-memory technologies with SwiftData changes.
     private func onSwiftDataChange(oldValue: [DocCSiteSnapshot], newValue: [DocCSiteSnapshot]) {
-        cloudSyncEngine.syncDocCSiteChanges(oldValue: oldValue, newValue: newValue)
+        cloudSyncEngine.syncDocCSiteChanges(
+            oldValue: oldValue.filter(\.participatesInCloudSync),
+            newValue: newValue.filter(\.participatesInCloudSync)
+        )
         
         let oldIDs = Set(oldValue.map(\.id))
         let newIDs = Set(newValue.map(\.id))

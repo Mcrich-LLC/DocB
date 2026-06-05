@@ -202,6 +202,13 @@ public struct DocCSiteSnapshot: Identifiable, Equatable, MYRecordConvertible {
         )
     }
     
+    /// Whether this DocC site should be included in explicit CloudKit sync.
+    public var participatesInCloudSync: Bool {
+        guard let url else { return true }
+        
+        return !url.isFileURL
+    }
+    
     /// Unique CloudKit record identifier for this DocC site.
     public var myRecordID: String { id.uuidString }
     
@@ -353,6 +360,13 @@ extension DocCSite: MYRecordConvertible {
             "url": .string(url?.absoluteString),
             "overrideName": .string(overrideName)
         ]
+    }
+    
+    /// Whether this DocC site should be included in explicit CloudKit sync.
+    public var participatesInCloudSync: Bool {
+        guard let url else { return true }
+        
+        return !url.isFileURL
     }
 }
 

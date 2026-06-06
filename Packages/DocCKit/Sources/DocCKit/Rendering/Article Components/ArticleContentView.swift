@@ -244,6 +244,7 @@ private class ArticleContentManager {
             text = specialStyleString("", type: .text)
         }
         
+        // swiftlint:disable:next cyclomatic_complexity
         func appendContent(_ content: [ContentStruct]) {
             let firstNonEmptyTextID = content.first { !($0.text ?? "").isEmpty }?.id
             

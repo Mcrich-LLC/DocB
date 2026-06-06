@@ -267,7 +267,7 @@ public final class OpenQuicklySearchCoordinator {
     }
 }
 
-private extension OpenQuicklySearchCoordinator {
+extension OpenQuicklySearchCoordinator {
     private func usePreparedIndexIfAvailable(
         for sourceFingerprint: String,
         preparationMode: SearchIndexPreparationMode,

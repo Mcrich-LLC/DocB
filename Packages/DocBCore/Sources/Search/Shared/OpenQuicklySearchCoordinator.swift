@@ -224,43 +224,19 @@ public final class OpenQuicklySearchCoordinator {
             return
         }
 
-        if let preparedIndex, preparedIndexFingerprint == sourceFingerprint {
-            if preparationMode == .persistentCacheWithAppleSymbolPrewarm,
-               preparedIndexPreparationMode != .persistentCacheWithAppleSymbolPrewarm {
-                prepareAppleSymbolSearchAcceleration(for: preparedIndex)
-            }
-
-            guard installWhenReady else { return }
-
-            searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
-            preparedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
-            installPreparedIndexSnapshot(preparedIndex, sourceFingerprint: sourceFingerprint)
+        if usePreparedIndexIfAvailable(
+            for: sourceFingerprint,
+            preparationMode: preparationMode,
+            installWhenReady: installWhenReady
+        ) {
             return
         }
 
-        if sourceFingerprint == preparedSourceFingerprint,
-           let indexPreparationTask,
-           !indexPreparationTask.isCancelled {
-            shouldInstallPreparedIndex = shouldInstallPreparedIndex
-                || installWhenReady
-                || pendingIndexInstallFingerprint == sourceFingerprint
-            if shouldInstallPreparedIndex {
-                isLoadingSearchIndexSnapshot = true
-                loadingSnapshotFingerprint = sourceFingerprint
-                searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
-                preparedIndexBuildProgress = max(
-                    preparedIndexBuildProgress ?? 0,
-                    SearchIndexInstallProgress.cacheLookup
-                )
-            }
-
-            guard installWhenReady, priority == .userInitiated else { return }
-
-            indexPreparationTask.cancel()
-            self.indexPreparationTask = nil
-        } else if sourceFingerprint != preparedSourceFingerprint || installWhenReady {
-            indexPreparationTask?.cancel()
-        } else {
+        guard updateExistingPreparationIfNeeded(
+            for: sourceFingerprint,
+            installWhenReady: installWhenReady,
+            priority: priority
+        ) else {
             return
         }
 
@@ -281,6 +257,86 @@ public final class OpenQuicklySearchCoordinator {
 
         let requestID = UUID()
         indexPreparationRequestID = requestID
+        startIndexPreparationTask(
+            preparationMode: preparationMode,
+            installWhenReady: installWhenReady,
+            priority: priority,
+            requestID: requestID,
+            sourceFingerprint: sourceFingerprint
+        )
+    }
+}
+
+extension OpenQuicklySearchCoordinator {
+    private func usePreparedIndexIfAvailable(
+        for sourceFingerprint: String,
+        preparationMode: SearchIndexPreparationMode,
+        installWhenReady: Bool
+    ) -> Bool {
+        guard let preparedIndex, preparedIndexFingerprint == sourceFingerprint else {
+            return false
+        }
+
+        if preparationMode == .persistentCacheWithAppleSymbolPrewarm,
+           preparedIndexPreparationMode != .persistentCacheWithAppleSymbolPrewarm {
+            prepareAppleSymbolSearchAcceleration(for: preparedIndex)
+        }
+
+        guard installWhenReady else { return true }
+
+        searchIndexPreparationPhase = preparationPhase(for: sourceFingerprint, fallback: .loadingLocalIndex)
+        preparedIndexBuildProgress = SearchIndexInstallProgress.installingCachedIndex
+        installPreparedIndexSnapshot(preparedIndex, sourceFingerprint: sourceFingerprint)
+        return true
+    }
+
+    private func updateExistingPreparationIfNeeded(
+        for sourceFingerprint: String,
+        installWhenReady: Bool,
+        priority: TaskPriority
+    ) -> Bool {
+        if sourceFingerprint == preparedSourceFingerprint,
+           let indexPreparationTask,
+           !indexPreparationTask.isCancelled {
+            shouldInstallPreparedIndex = shouldInstallPreparedIndex
+                || installWhenReady
+                || pendingIndexInstallFingerprint == sourceFingerprint
+            markSnapshotLoadingIfNeeded(for: sourceFingerprint)
+
+            guard installWhenReady, priority == .userInitiated else { return false }
+
+            indexPreparationTask.cancel()
+            self.indexPreparationTask = nil
+            return true
+        }
+
+        guard sourceFingerprint != preparedSourceFingerprint || installWhenReady else {
+            return false
+        }
+
+        indexPreparationTask?.cancel()
+        return true
+    }
+
+    private func markSnapshotLoadingIfNeeded(for sourceFingerprint: String) {
+        guard shouldInstallPreparedIndex else { return }
+
+        isLoadingSearchIndexSnapshot = true
+        loadingSnapshotFingerprint = sourceFingerprint
+        searchIndexPreparationPhase = searchIndexPreparationPhase ?? cacheLookupPhase(for: sourceFingerprint)
+        preparedIndexBuildProgress = max(
+            preparedIndexBuildProgress ?? 0,
+            SearchIndexInstallProgress.cacheLookup
+        )
+    }
+
+    private func startIndexPreparationTask(
+        preparationMode: SearchIndexPreparationMode,
+        installWhenReady: Bool,
+        priority: TaskPriority,
+        requestID: UUID,
+        sourceFingerprint: String
+    ) {
         let searchIndexCache = searchIndexCache
         let preparesAppleSymbolPrewarm = preparationMode.preparesAppleSymbolPrewarm
         indexPreparationTask = Task(priority: priority) {
@@ -655,7 +711,9 @@ public final class OpenQuicklySearchCoordinator {
             fallback: hasLocalIndexCacheFiles ? .loadingLocalIndex : .indexingDocumentation
         )
     }
+}
 
+extension OpenQuicklySearchCoordinator {
     /// Updates the query while preserving the currently selected row when possible.
     ///
     /// - Parameters:

@@ -26,13 +26,13 @@ public struct HomepageNavigationLinkButton<Content: View>: View {
     
     /// Renders the homepage navigation control.
     public var body: some View {
-        MacOSAgnosticButton(action: {
+        MacOSAgnosticButton {
             navigationViewModel.setReference(nil)
             navigationViewModel.setTechnology(nil)
             navigationViewModel.removeLastPath(navigationViewModel.path.count)
             
             navigationViewModel.appendPath(.homepage)
-        }) {
+        } label: {
             label
         }
         .selectedLineBackground(isSelected: navigationViewModel.reference == nil && shouldShowBackground)
@@ -254,7 +254,7 @@ public struct TechnologyNavigationLinkButton<Content: View>: View {
     /// Renders the technology navigation control.
     public var body: some View {
         Group {
-            MacOSAgnosticButton(action: {
+            MacOSAgnosticButton {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 
                 withAnimation(.snappy) {
@@ -265,7 +265,7 @@ public struct TechnologyNavigationLinkButton<Content: View>: View {
                     let reference = technology.frameworkReference
                     navigationViewModel.setReference(reference)
                 }
-            }) {
+            } label: {
                 label
             }
             .selectedLineBackground(isSelected: isSelected)
@@ -294,12 +294,12 @@ public struct BookmarkCollectionNavigationLink<Content: View>: View {
     
     /// Renders the bookmark collection navigation control.
     public var body: some View {
-        MacOSAgnosticButton(action: {
+        MacOSAgnosticButton {
             overrideAction {
                 navigationViewModel.isNavigatingFromBookmarks = true
                 navigationViewModel.setBookmarkCollection(collection)
             }
-        }) {
+        } label: {
             label
         }
     }

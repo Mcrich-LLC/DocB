@@ -367,6 +367,10 @@ struct SidebarSearchIndexTests {
         #expect(reference.symbolKind == .article)
     }
 
+}
+
+@Suite("Documentation search symbol kinds")
+struct SidebarSearchSymbolKindTests {
     @Test
     func articleRoleHeadingOverridesFallbackSymbolKind() {
         #expect(SidebarSearchSymbolKind(roleHeading: "Enumeration") == .enumeration)
@@ -462,6 +466,10 @@ struct SidebarSearchIndexTests {
         #expect(symbolKind == .function)
     }
 
+}
+
+@Suite("Documentation search store")
+struct SidebarSearchStoreTests {
     @Test
     @MainActor
     func emptyQueryClearsResults() async {

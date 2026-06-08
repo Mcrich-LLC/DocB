@@ -311,3 +311,30 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         }
     }
 }
+
+extension [AppleTechnologies.FrameworkSection] {
+    /// Returns a boolean if the ``AppleTechnologies.FrameworkSection`` contains the passed in identifier
+    public func contains(identifier: String) -> Bool {
+        self.contains { framework in
+            guard let frameworkURL = URL(string: framework.destination.identifier.lowercased()),
+                  let identifierURL = URL(string: identifier.lowercased())
+            else {
+                return framework.destination.identifier == identifier
+            }
+            
+            return frameworkURL.host == identifierURL.host && frameworkURL.path == identifierURL.path && frameworkURL.host() != nil && !frameworkURL.path().isEmpty
+        }
+    }
+    
+    public func first(for identifier: String) -> Element? {
+        self.filter({ framework in
+            guard let frameworkURL = URL(string: framework.destination.identifier.lowercased()),
+                  let identifierURL = URL(string: identifier.lowercased())
+            else {
+                return framework.destination.identifier == identifier
+            }
+            
+            return frameworkURL.host == identifierURL.host && frameworkURL.path == identifierURL.path && frameworkURL.host() != nil && !frameworkURL.path().isEmpty
+        }).first
+    }
+}

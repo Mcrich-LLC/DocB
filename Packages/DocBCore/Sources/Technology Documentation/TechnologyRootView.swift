@@ -23,6 +23,8 @@ private final class TechnologyRootManager {
     var activeFilters: Set<TagFilters> = []
     /// Cached deep-filter visibility keyed by reference identifier.
     var shownReferences: [String : Bool] = [:]
+    /// Current Apple index load, shared by filter refreshes that need the index.
+    private var appleIndexTask: Task<DocCIndex?, Never>?
     
     /// Returns a copy of a reference associated with the currently displayed DocC site.
     ///
@@ -41,10 +43,60 @@ private final class TechnologyRootManager {
     /// - Returns: `true` when visible according to cached and top-level filter checks.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return DocBCore.isTopReferencePartOfFilter(reference, with: activeFilters)
+            return referenceMatchesFilters(reference, filters: activeFilters)
         }
         
         return shownReference
+    }
+    
+    /// Starts loading the Apple framework index if needed.
+    @MainActor
+    func loadAppleIndexIfNeeded() -> Task<DocCIndex?, Never>? {
+        guard frameworkSection.docCSite == nil || frameworkSection.legalNotices != nil else {
+            return nil
+        }
+        
+        if let index = frameworkSection.index {
+            return Task { index }
+        }
+        
+        if let appleIndexTask {
+            return appleIndexTask
+        }
+        
+        let percentEncodedTitle = frameworkSection.title.lowercased().addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? frameworkSection.title
+        
+        let url = AppleDocsClient.basePath.appending(path: "index/\(percentEncodedTitle).json")
+        let task = Task<DocCIndex?, Never> { [weak self] in
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+                await MainActor.run {
+                    self?.frameworkSection.setIndex(index)
+                }
+                return index
+            } catch {
+                print(error)
+                return nil
+            }
+        }
+        
+        appleIndexTask = task
+        return task
+    }
+    
+    /// Returns an index for filtering, waiting for the Apple index load when necessary.
+    @MainActor
+    func indexForFiltering(fallback: DocCIndex?) async -> DocCIndex? {
+        if let index = frameworkSection.index {
+            return index
+        }
+        
+        if let fallback {
+            return fallback
+        }
+        
+        return await loadAppleIndexIfNeeded()?.value
     }
 }
 
@@ -72,6 +124,12 @@ struct TechnologyRootView: View {
     /// Cached framework payload for the selected framework section.
     var framework: Framework? {
         documentationViewModel.framework(for: manager.frameworkSection.destination.identifier)
+    }
+    
+    /// Published fallback index used for local descendant filtering when the selected section does not carry one yet.
+    private var publishedFilterIndex: DocCIndex? {
+        documentationViewModel.technologies.appleTechnologies.compactMap(\.index).first ??
+        documentationViewModel.appleDocCSiteRef?.index
     }
     
     /// Topic sections filtered to only rows that should be visible.
@@ -143,6 +201,12 @@ struct TechnologyRootView: View {
         .navigationBarTitleDisplayMode(.large)
 #endif
         .onAppear {
+            Task {
+                _ = await manager.loadAppleIndexIfNeeded()?.value
+                guard !Task.isCancelled, !manager.activeFilters.isEmpty else { return }
+                scheduleShownReferencesRefresh(loadFrameworkFirst: false)
+            }
+            
             scheduleShownReferencesRefresh(loadFrameworkFirst: true)
         }
         .onChange(of: navigationViewModel.technology) { _, newValue in
@@ -226,13 +290,13 @@ struct TechnologyRootView: View {
             }
         }
         let filters = manager.activeFilters
-        let frameworkResolver = documentationViewModel.frameworkResolver()
+        let index = await manager.indexForFiltering(fallback: publishedFilterIndex)
         
         isLoading = true
-        let result = await visibilityByReferenceIdentifier(
+        let visibilityByIdentifier = visibilityByReferenceIdentifier(
             for: references,
             filters: filters,
-            frameworkResolver: frameworkResolver
+            index: index
         )
         
         guard !Task.isCancelled,
@@ -243,8 +307,7 @@ struct TechnologyRootView: View {
             return
         }
         
-        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
-        manager.shownReferences = result.visibilityByIdentifier
+        manager.shownReferences = visibilityByIdentifier
         isLoading = false
     }
 }
@@ -287,7 +350,7 @@ private struct TechnologyFilterMenu: View {
                     }
                 } label: {
                     if manager.activeFilters.contains(filter) {
-                        Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
+                        Label(filter.rawValue.capitalized, systemSymbol: .checkmark)
                     } else {
                         Text(filter.rawValue.capitalized)
                     }
@@ -576,6 +639,7 @@ private struct FrameworkDisclosureGroup: View {
     
     @Environment(NavigationViewModel.self) var navigationViewModel
     @Environment(DocumentationViewModel.self) var documentationViewModel
+    @Environment(TechnologyRootManager.self) private var manager
     
     let identifier: String
     let title: String
@@ -593,6 +657,12 @@ private struct FrameworkDisclosureGroup: View {
     /// Cached framework payload for this nested reference identifier.
     var framework: Framework? {
         documentationViewModel.framework(for: identifier)
+    }
+    
+    /// Published fallback index used for local descendant filtering when the selected section does not carry one yet.
+    private var publishedFilterIndex: DocCIndex? {
+        documentationViewModel.technologies.appleTechnologies.compactMap(\.index).first ??
+        documentationViewModel.appleDocCSiteRef?.index
     }
     
     /// Topic sections filtered to references visible under the active tags.
@@ -674,7 +744,7 @@ private struct FrameworkDisclosureGroup: View {
     /// Determines whether a nested reference should be shown.
     func isReferenceShown(_ reference: Reference) -> Bool {
         guard let shownReference = shownReferences[reference.identifier] else {
-            return DocBCore.isTopReferencePartOfFilter(reference, with: tagFilters)
+            return referenceMatchesFilters(reference, filters: tagFilters)
         }
         
         return shownReference
@@ -727,13 +797,13 @@ private struct FrameworkDisclosureGroup: View {
             }
         }
         let filters = tagFilters
-        let frameworkResolver = documentationViewModel.frameworkResolver()
+        let index = await manager.indexForFiltering(fallback: publishedFilterIndex)
         
         isLoading = true
-        let result = await visibilityByReferenceIdentifier(
+        let visibilityByIdentifier = visibilityByReferenceIdentifier(
             for: references,
             filters: filters,
-            frameworkResolver: frameworkResolver
+            index: index
         )
         
         guard !Task.isCancelled,
@@ -744,8 +814,7 @@ private struct FrameworkDisclosureGroup: View {
             return
         }
         
-        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
-        shownReferences = result.visibilityByIdentifier
+        shownReferences = visibilityByIdentifier
         isLoading = false
     }
     
@@ -763,13 +832,13 @@ private struct FrameworkDisclosureGroup: View {
 
 // MARK: File-Level Filter Functions
 
-/// Checks top-level reference metadata against active filters.
+/// Checks whether a reference matches active filters using only local metadata.
 ///
 /// - Parameters:
 ///   - reference: The reference to evaluate.
 ///   - filters: Active tag filters.
-/// - Returns: `true` when the reference matches top-level filter criteria.
-private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Set<TagFilters>) -> Bool {
+/// - Returns: `true` when the reference directly matches one of the filters.
+private func referenceMatchesFilters(_ reference: Reference, filters: Set<TagFilters>) -> Bool {
     guard !filters.isEmpty else { return true }
     
     if filters.contains(.beta) && reference.beta == true {
@@ -783,153 +852,124 @@ private func isTopReferencePartOfFilter(_ reference: Reference, with filters: Se
     return false
 }
 
-/// Checks whether a reference or any nested members satisfy active filters.
+/// Checks whether an index node or any indexed descendants match active filters.
 ///
-/// This may fetch nested frameworks while evaluating descendants.
-/// Running it across many references can be network-intensive and may briefly show loading states.
+/// - Parameters:
+///   - node: Index node to evaluate.
+///   - filters: Active tag filters.
+/// - Returns: `true` when the node or a descendant is beta/deprecated as requested.
+private func indexNodeMatchesFilters(_ node: DocCIndex.InterfaceLanguage, filters: Set<TagFilters>) -> Bool {
+    if filters.contains(.beta) && node.isBeta {
+        return true
+    }
+    
+    if filters.contains(.deprecated) && node.isDeprecated {
+        return true
+    }
+    
+    return node.children?.contains { child in
+        indexNodeMatchesFilters(child, filters: filters)
+    } == true
+}
+
+/// Finds the index node matching a reference.
+///
+/// - Parameters:
+///   - reference: Reference whose path should be located in the index.
+///   - index: Index to search.
+/// - Returns: Matching index node, if one exists.
+private func indexNode(for reference: Reference, in index: DocCIndex) -> DocCIndex.InterfaceLanguage? {
+    let paths = [
+        reference.url,
+        reference.identifier
+    ].compactMap(normalizedDocumentationPath)
+    
+    guard !paths.isEmpty else {
+        return nil
+    }
+    
+    for node in index.interfaceLanguages.values.flatMap({ $0 }) {
+        if let match = indexNode(in: node, matchingAny: paths) {
+            return match
+        }
+    }
+    
+    return nil
+}
+
+/// Recursively finds an index node whose path matches any normalized reference path.
+///
+/// - Parameters:
+///   - node: Index node to search.
+///   - paths: Normalized paths to match.
+/// - Returns: Matching index node, if one exists.
+private func indexNode(in node: DocCIndex.InterfaceLanguage, matchingAny paths: [String]) -> DocCIndex.InterfaceLanguage? {
+    if let path = normalizedDocumentationPath(node.path), paths.contains(path) {
+        return node
+    }
+    
+    for child in node.children ?? [] {
+        if let match = indexNode(in: child, matchingAny: paths) {
+            return match
+        }
+    }
+    
+    return nil
+}
+
+/// Normalizes a DocC URL, identifier, or path for index matching.
+///
+/// - Parameter value: Raw path-like value to normalize.
+/// - Returns: Lowercase documentation path.
+private func normalizedDocumentationPath(_ value: String?) -> String? {
+    guard let value, !value.isEmpty else {
+        return nil
+    }
+    
+    if let url = URL(string: value) {
+        let path = url.path()
+        guard !path.isEmpty else {
+            return nil
+        }
+        
+        return path.lowercased()
+    }
+    
+    return value.hasPrefix("/") ? value.lowercased() : "/\(value.lowercased())"
+}
+
+/// Checks whether a reference or any indexed descendants satisfy active filters.
 ///
 /// - Parameters:
 ///   - reference: The reference to evaluate.
 ///   - filters: Active tag filters.
-///   - frameworkResolver: Sendable resolver used to fetch nested frameworks.
-/// - Returns: Visibility plus any framework loaded while checking descendants.
-private func fullReferenceFilterResult(_ reference: Reference, with filters: Set<TagFilters>, frameworkResolver: DocumentationFrameworkResolver) async -> ReferenceVisibilityResult {
-    // Return if the top level is included
-    if isTopReferencePartOfFilter(reference, with: filters) {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: true)
+///   - index: Framework index used to inspect descendants.
+/// - Returns: `true` when the reference or an indexed descendant matches.
+private func referenceMatchesFilters(_ reference: Reference, filters: Set<TagFilters>, index: DocCIndex?) -> Bool {
+    if referenceMatchesFilters(reference, filters: filters) {
+        return true
     }
     
-    // Search deeper down if it contains something included
-    guard referenceHasSubParts(reference) else {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
+    if let index, let node = indexNode(for: reference, in: index) {
+        return indexNodeMatchesFilters(node, filters: filters)
     }
     
-    // Fetch framework if needed
-    guard let framework = try? await frameworkResolver.fetchFramework(for: reference.identifier, site: reference.docCSite) else {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
-    }
-    
-    for section in (framework.topicSections ?? []) {
-        for subidentifier in section.identifiers {
-            guard let subreference = framework.references[subidentifier] else { continue }
-            if DocBCore.isTopReferencePartOfFilter(subreference, with: filters) {
-                return ReferenceVisibilityResult(identifier: reference.identifier, isShown: true, loadedFramework: framework)
-            }
-        }
-    }
-    
-    return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false, loadedFramework: framework)
+    return false
 }
 
-/// Computes deep-filter visibility away from the main actor with bounded framework fetch concurrency.
+/// Computes filter visibility for each reference using local metadata and the framework index.
 ///
 /// - Parameters:
 ///   - references: References to evaluate.
 ///   - filters: Active tag filters.
-///   - frameworkResolver: Sendable framework resolver used to fetch nested frameworks.
-/// - Returns: Visibility and loaded frameworks that should be published into the shared cache.
+///   - index: Framework index used to inspect descendants.
+/// - Returns: Visibility keyed by reference identifier.
 private func visibilityByReferenceIdentifier(
     for references: [Reference],
     filters: Set<TagFilters>,
-    frameworkResolver: DocumentationFrameworkResolver,
-    maxConcurrentChecks: Int = 4
-) async -> VisibilityComputationResult {
-    let workerCount = min(max(maxConcurrentChecks, 1), references.count)
-    guard workerCount > 0 else { return .empty }
-    
-    let iterator = ReferenceVisibilityIterator(references: references)
-    return await withTaskGroup(of: VisibilityComputationResult.self, returning: VisibilityComputationResult.self) { group in
-        for _ in 0..<workerCount {
-            group.addTask {
-                var partialResult = VisibilityComputationResult.empty
-                
-                while let reference = await iterator.next() {
-                    if Task.isCancelled { break }
-                    let result = await fullReferenceFilterResult(reference, with: filters, frameworkResolver: frameworkResolver)
-                    partialResult.visibilityByIdentifier[result.identifier] = result.isShown
-                    if let loadedFramework = result.loadedFramework {
-                        partialResult.frameworksLoadedForCache[result.identifier] = loadedFramework
-                    }
-                }
-                
-                return partialResult
-            }
-        }
-        
-        var result = VisibilityComputationResult.empty
-        for await partialResult in group {
-            result.merge(partialResult)
-        }
-        
-        return result
+    index: DocCIndex?
+) -> [String : Bool] {
+    references.reduce(into: [:]) { result, reference in
+        result[reference.identifier] = referenceMatchesFilters(reference, filters: filters, index: index)
     }
-}
-
-/// Thread-safe iterator used to bound concurrent reference visibility checks.
-private actor ReferenceVisibilityIterator {
-    /// References waiting to be checked.
-    private let references: [Reference]
-    /// Index of the next reference to hand to a worker.
-    private var nextIndex = 0
-    
-    /// Creates an iterator for a batch of references.
-    ///
-    /// - Parameter references: References that should be evaluated.
-    init(references: [Reference]) {
-        self.references = references
-    }
-    
-    /// Returns the next reference to evaluate.
-    ///
-    /// - Returns: The next reference, or `nil` when all references have been claimed.
-    func next() -> Reference? {
-        guard nextIndex < references.count else { return nil }
-        defer { nextIndex += 1 }
-        return references[nextIndex]
-    }
-}
-
-/// Combined result for a bounded deep-filter visibility computation.
-private struct VisibilityComputationResult: Sendable {
-    /// Visibility keyed by reference identifier.
-    var visibilityByIdentifier: [String : Bool]
-    /// Frameworks loaded while filtering, keyed by the same identifier used for cache lookup.
-    var frameworksLoadedForCache: [String : Framework]
-    
-    /// Empty visibility computation result.
-    static let empty = VisibilityComputationResult(visibilityByIdentifier: [:], frameworksLoadedForCache: [:])
-    
-    /// Merges a partial worker result into this result.
-    ///
-    /// - Parameter other: Partial result produced by one worker.
-    mutating func merge(_ other: VisibilityComputationResult) {
-        visibilityByIdentifier.merge(other.visibilityByIdentifier) { _, newValue in newValue }
-        frameworksLoadedForCache.merge(other.frameworksLoadedForCache) { _, newValue in newValue }
-    }
-}
-
-/// Visibility result for one reference.
-private struct ReferenceVisibilityResult: Sendable {
-    /// Identifier of the checked reference.
-    var identifier: String
-    /// Whether the reference should be visible for the active filters.
-    var isShown: Bool
-    /// Framework loaded while checking descendants, if any.
-    var loadedFramework: Framework?
-}
-
-/// Determines whether a reference kind is expected to contain nested members.
-private func referenceHasSubParts(_ reference: Reference) -> Bool {
-    if let fragments = reference.fragments,
-       fragments.contains(where: {
-           $0.text.lowercased() == "struct" ||
-           $0.text.lowercased() == "class" ||
-           $0.text.lowercased() == "protocol" ||
-           $0.text.lowercased() == "actor" ||
-           $0.text.lowercased() == "enum"
-       }) {
-        return true
-    }
-    
-    return reference.role == .collectionGroup
 }

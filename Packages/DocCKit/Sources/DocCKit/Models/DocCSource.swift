@@ -82,7 +82,8 @@ public struct DocCSource: Identifiable, Codable, Equatable, Hashable, Sendable {
             tags: [],
             destination: .init(type: "", isActive: true, identifier: path),
             legalNotices: nil,
-            docCSite: self
+            docCSite: self,
+            index: nil
         )
     }
 }

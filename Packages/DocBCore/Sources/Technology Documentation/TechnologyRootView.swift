@@ -46,6 +46,16 @@ private final class TechnologyRootManager {
         
         return shownReference
     }
+    
+    /// Fetches the Apple Framework's Index
+    @MainActor
+    func fetchAppleIndex() async throws {
+        let url = AppleDocsClient.basePath.appending(path: "index/\(frameworkSection.title.lowercased().addingPercentEncoding(withAllowedCharacters: .alphanumerics)).json")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let index = try JSONDecoder().decode(DocCIndex.self, from: data)
+        
+        frameworkSection.setIndex(index)
+    }
 }
 
 /// Root technology browser for a selected framework section.
@@ -143,6 +153,11 @@ struct TechnologyRootView: View {
         .navigationBarTitleDisplayMode(.large)
 #endif
         .onAppear {
+            Task(priority: .background) {
+                guard manager.frameworkSection.docCSite == nil || manager.frameworkSection.legalNotices != nil else { return }
+                try await manager.fetchAppleIndex()
+            }
+            
             scheduleShownReferencesRefresh(loadFrameworkFirst: true)
         }
         .onChange(of: navigationViewModel.technology) { _, newValue in

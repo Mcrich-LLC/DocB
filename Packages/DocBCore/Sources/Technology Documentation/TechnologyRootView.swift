@@ -350,7 +350,7 @@ private struct TechnologyFilterMenu: View {
                     }
                 } label: {
                     if manager.activeFilters.contains(filter) {
-                        Text("\(filter.rawValue.capitalized) \(Image(systemSymbol: .checkmark))")
+                        Label(filter.rawValue.capitalized, systemSymbol: .checkmark)
                     } else {
                         Text(filter.rawValue.capitalized)
                     }

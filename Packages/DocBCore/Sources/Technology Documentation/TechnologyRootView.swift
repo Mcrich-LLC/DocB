@@ -291,14 +291,12 @@ struct TechnologyRootView: View {
         }
         let filters = manager.activeFilters
         let index = await manager.indexForFiltering(fallback: publishedFilterIndex)
-        let frameworkResolver = documentationViewModel.frameworkResolver()
         
         isLoading = true
-        let result = await visibilityByReferenceIdentifier(
+        let visibilityByIdentifier = visibilityByReferenceIdentifier(
             for: references,
             filters: filters,
-            index: index,
-            frameworkResolver: frameworkResolver
+            index: index
         )
         
         guard !Task.isCancelled,
@@ -309,8 +307,7 @@ struct TechnologyRootView: View {
             return
         }
         
-        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
-        manager.shownReferences = result.visibilityByIdentifier
+        manager.shownReferences = visibilityByIdentifier
         isLoading = false
     }
 }
@@ -801,14 +798,12 @@ private struct FrameworkDisclosureGroup: View {
         }
         let filters = tagFilters
         let index = await manager.indexForFiltering(fallback: publishedFilterIndex)
-        let frameworkResolver = documentationViewModel.frameworkResolver()
         
         isLoading = true
-        let result = await visibilityByReferenceIdentifier(
+        let visibilityByIdentifier = visibilityByReferenceIdentifier(
             for: references,
             filters: filters,
-            index: index,
-            frameworkResolver: frameworkResolver
+            index: index
         )
         
         guard !Task.isCancelled,
@@ -819,8 +814,7 @@ private struct FrameworkDisclosureGroup: View {
             return
         }
         
-        documentationViewModel.cacheFrameworks(result.frameworksLoadedForCache)
-        shownReferences = result.visibilityByIdentifier
+        shownReferences = visibilityByIdentifier
         isLoading = false
     }
     
@@ -944,183 +938,38 @@ private func normalizedDocumentationPath(_ value: String?) -> String? {
     return value.hasPrefix("/") ? value.lowercased() : "/\(value.lowercased())"
 }
 
-/// Checks whether a reference or any nested members satisfy active filters.
-///
-/// This prefers the framework index for descendant checks and only falls back to loading nested frameworks when no index node
-/// can be matched for the reference.
+/// Checks whether a reference or any indexed descendants satisfy active filters.
 ///
 /// - Parameters:
 ///   - reference: The reference to evaluate.
 ///   - filters: Active tag filters.
-///   - index: Optional framework index used to inspect descendants without loading nested frameworks.
-///   - frameworkResolver: Sendable resolver used to fetch nested frameworks.
-/// - Returns: Visibility plus any framework loaded while checking descendants.
-private func referenceFilterResult(
-    _ reference: Reference,
-    filters: Set<TagFilters>,
-    index: DocCIndex?,
-    frameworkResolver: DocumentationFrameworkResolver
-) async -> ReferenceVisibilityResult {
+///   - index: Framework index used to inspect descendants.
+/// - Returns: `true` when the reference or an indexed descendant matches.
+private func referenceMatchesFilters(_ reference: Reference, filters: Set<TagFilters>, index: DocCIndex?) -> Bool {
     if referenceMatchesFilters(reference, filters: filters) {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: true)
+        return true
     }
     
     if let index, let node = indexNode(for: reference, in: index) {
-        return ReferenceVisibilityResult(
-            identifier: reference.identifier,
-            isShown: indexNodeMatchesFilters(node, filters: filters)
-        )
+        return indexNodeMatchesFilters(node, filters: filters)
     }
     
-    guard referenceHasSubParts(reference) else {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
-    }
-    
-    guard let framework = try? await frameworkResolver.fetchFramework(for: reference.identifier, site: reference.docCSite) else {
-        return ReferenceVisibilityResult(identifier: reference.identifier, isShown: false)
-    }
-    
-    return ReferenceVisibilityResult(
-        identifier: reference.identifier,
-        isShown: frameworkContainsReferenceMatchingFilters(framework, filters: filters),
-        loadedFramework: framework
-    )
+    return false
 }
 
-/// Checks whether a fetched framework payload contains a matching reference.
-///
-/// - Parameters:
-///   - framework: Framework payload to inspect.
-///   - filters: Active tag filters.
-/// - Returns: `true` when any reference in the payload directly matches the filters.
-private func frameworkContainsReferenceMatchingFilters(_ framework: Framework, filters: Set<TagFilters>) -> Bool {
-    (framework.topicSections ?? []).contains { section in
-        section.identifiers.contains { identifier in
-            guard let reference = framework.references[identifier] else {
-                return false
-            }
-            
-            return referenceMatchesFilters(reference, filters: filters)
-        }
-    }
-}
-
-/// Computes deep-filter visibility away from the main actor with bounded framework fetch concurrency.
+/// Computes filter visibility for each reference using local metadata and the framework index.
 ///
 /// - Parameters:
 ///   - references: References to evaluate.
 ///   - filters: Active tag filters.
-///   - index: Optional framework index used to inspect descendants before falling back to framework loads.
-///   - frameworkResolver: Sendable framework resolver used to fetch nested frameworks.
-/// - Returns: Visibility and loaded frameworks that should be published into the shared cache.
+///   - index: Framework index used to inspect descendants.
+/// - Returns: Visibility keyed by reference identifier.
 private func visibilityByReferenceIdentifier(
     for references: [Reference],
     filters: Set<TagFilters>,
-    index: DocCIndex?,
-    frameworkResolver: DocumentationFrameworkResolver,
-    maxConcurrentChecks: Int = 4
-) async -> VisibilityComputationResult {
-    let workerCount = min(max(maxConcurrentChecks, 1), references.count)
-    guard workerCount > 0 else { return .empty }
-    
-    let iterator = ReferenceVisibilityIterator(references: references)
-    return await withTaskGroup(of: VisibilityComputationResult.self, returning: VisibilityComputationResult.self) { group in
-        for _ in 0..<workerCount {
-            group.addTask {
-                var partialResult = VisibilityComputationResult.empty
-                
-                while let reference = await iterator.next() {
-                    if Task.isCancelled { break }
-                    let result = await referenceFilterResult(
-                        reference,
-                        filters: filters,
-                        index: index,
-                        frameworkResolver: frameworkResolver
-                    )
-                    partialResult.visibilityByIdentifier[result.identifier] = result.isShown
-                    if let loadedFramework = result.loadedFramework {
-                        partialResult.frameworksLoadedForCache[result.identifier] = loadedFramework
-                    }
-                }
-                
-                return partialResult
-            }
-        }
-        
-        var result = VisibilityComputationResult.empty
-        for await partialResult in group {
-            result.merge(partialResult)
-        }
-        
-        return result
+    index: DocCIndex?
+) -> [String : Bool] {
+    references.reduce(into: [:]) { result, reference in
+        result[reference.identifier] = referenceMatchesFilters(reference, filters: filters, index: index)
     }
-}
-
-/// Thread-safe iterator used to bound concurrent reference visibility checks.
-private actor ReferenceVisibilityIterator {
-    /// References waiting to be checked.
-    private let references: [Reference]
-    /// Index of the next reference to hand to a worker.
-    private var nextIndex = 0
-    
-    /// Creates an iterator for a batch of references.
-    ///
-    /// - Parameter references: References that should be evaluated.
-    init(references: [Reference]) {
-        self.references = references
-    }
-    
-    /// Returns the next reference to evaluate.
-    ///
-    /// - Returns: The next reference, or `nil` when all references have been claimed.
-    func next() -> Reference? {
-        guard nextIndex < references.count else { return nil }
-        defer { nextIndex += 1 }
-        return references[nextIndex]
-    }
-}
-
-/// Combined result for a bounded deep-filter visibility computation.
-private struct VisibilityComputationResult: Sendable {
-    /// Visibility keyed by reference identifier.
-    var visibilityByIdentifier: [String : Bool]
-    /// Frameworks loaded while filtering, keyed by the same identifier used for cache lookup.
-    var frameworksLoadedForCache: [String : Framework]
-    
-    /// Empty visibility computation result.
-    static let empty = VisibilityComputationResult(visibilityByIdentifier: [:], frameworksLoadedForCache: [:])
-    
-    /// Merges a partial worker result into this result.
-    ///
-    /// - Parameter other: Partial result produced by one worker.
-    mutating func merge(_ other: VisibilityComputationResult) {
-        visibilityByIdentifier.merge(other.visibilityByIdentifier) { _, newValue in newValue }
-        frameworksLoadedForCache.merge(other.frameworksLoadedForCache) { _, newValue in newValue }
-    }
-}
-
-/// Visibility result for one reference.
-private struct ReferenceVisibilityResult: Sendable {
-    /// Identifier of the checked reference.
-    var identifier: String
-    /// Whether the reference should be visible for the active filters.
-    var isShown: Bool
-    /// Framework loaded while checking descendants, if any.
-    var loadedFramework: Framework?
-}
-
-/// Determines whether a reference kind is expected to contain nested members.
-private func referenceHasSubParts(_ reference: Reference) -> Bool {
-    if let fragments = reference.fragments,
-       fragments.contains(where: {
-           $0.text.lowercased() == "struct" ||
-           $0.text.lowercased() == "class" ||
-           $0.text.lowercased() == "protocol" ||
-           $0.text.lowercased() == "actor" ||
-           $0.text.lowercased() == "enum"
-       }) {
-        return true
-    }
-    
-    return reference.role == .collectionGroup
 }

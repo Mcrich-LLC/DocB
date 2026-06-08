@@ -232,6 +232,13 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         public let legalNotices: LegalNotices?
         /// Optional custom DocC site context.
         public let docCSite: DocCSource?
+        /// Optional custom index to override a `docCSite` or can be used when that is `nil`
+        private var _index: DocCIndex?
+        
+        /// The prefered index for the ``AppleTechnologies/FrameworkSection``
+        public var index: DocCIndex? {
+            _index ?? docCSite?.index
+        }
         
         /// Creates a framework navigation entry.
         ///
@@ -242,13 +249,15 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
         ///   - destination: Navigation destination metadata.
         ///   - legalNotices: Optional legal notices payload.
         ///   - docCSite: Optional custom DocC site context.
+        ///   - index: Optional custom index to override a `docCSite` or can be used when that is `nil`
         public init(
             languages: [String],
             title: String,
             tags: [String],
             destination: Destination,
             legalNotices: LegalNotices?,
-            docCSite: DocCSource?
+            docCSite: DocCSource?,
+            index: DocCIndex?
         ) {
             self.languages = languages
             self.title = title
@@ -256,6 +265,12 @@ public struct AppleTechnologies: Decodable, AppleDocumentation, Identifiable, Se
             self.destination = destination
             self.legalNotices = legalNotices
             self.docCSite = docCSite
+            self._index = index
+        }
+        
+        /// Sets the index
+        public mutating func setIndex(_ index: DocCIndex) {
+            self._index = index
         }
         
         /// Path-based equality for framework sections to avoid identifier host differences.

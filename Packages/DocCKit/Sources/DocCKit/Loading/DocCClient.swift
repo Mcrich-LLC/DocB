@@ -141,7 +141,8 @@ public struct DocCClient: Sendable {
             tags: [],
             destination: .init(type: "topic", isActive: true, identifier: identifier),
             legalNotices: framework.legalNotices,
-            docCSite: source
+            docCSite: source,
+            index: nil
         )
         
         return DocCFrameworkPage(framework: framework, frameworkSection: frameworkSection, source: source)

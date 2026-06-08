@@ -120,7 +120,8 @@ public final class PersistedDocCSource: Identifiable, @preconcurrency Codable, E
             isActive: true,
             identifier: path),
             legalNotices: nil,
-            docCSite: docCSource
+            docCSite: docCSource,
+            index: nil
         )
     }
     

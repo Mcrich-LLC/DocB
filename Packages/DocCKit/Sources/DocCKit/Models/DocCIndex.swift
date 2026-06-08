@@ -84,6 +84,14 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
         public let type: String
         /// Optional custom icon identifier for this index node.
         public let icon: String?
+        /// Optional boolean describing if the element is marked as beta
+        public let beta: Bool?
+        /// A boolean that describes if the element is marked as beta
+        public var isBeta: Bool { beta ?? false }
+        /// Optional boolean describing if an element is marked as deprecated
+        public let deprecated: Bool?
+        /// A boolean that describes if the element is marked as deprecated
+        public var isDeprecated: Bool { deprecated ?? false }
         
         /// Child index nodes nested under this node.
         public fileprivate(set) var children: [InterfaceLanguage]?
@@ -96,11 +104,13 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
         ///   - type: Node type discriminator.
         ///   - icon: Optional custom icon identifier for this index node.
         ///   - children: Child index nodes nested under this node.
-        public init(title: String, path: String?, type: String, icon: String? = nil, children: [InterfaceLanguage]? = nil) {
+        public init(title: String, path: String?, type: String, icon: String? = nil, beta: Bool? = nil, deprecated: Bool? = nil, children: [InterfaceLanguage]? = nil) {
             self.title = title
             self.path = path
             self.type = type
             self.icon = icon
+            self.beta = beta
+            self.deprecated = deprecated
             self.children = children
         }
         
@@ -114,6 +124,8 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
             lhs.path == rhs.path &&
             lhs.type == rhs.type &&
             lhs.icon == rhs.icon &&
+            lhs.beta == rhs.beta &&
+            lhs.deprecated == rhs.deprecated &&
             lhs.children == rhs.children
         }
         
@@ -122,6 +134,8 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
             hasher.combine(path)
             hasher.combine(type)
             hasher.combine(icon)
+            hasher.combine(beta)
+            hasher.combine(deprecated)
             hasher.combine(children)
         }
         
@@ -154,7 +168,8 @@ public struct DocCIndex: Codable, Identifiable, Equatable, Hashable, Sendable {
                 isActive: true,
                 identifier: path),
                 legalNotices: nil,
-                docCSite: site
+                docCSite: site,
+                index: nil
             )
         }
     }

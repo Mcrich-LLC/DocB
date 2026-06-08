@@ -832,7 +832,8 @@ extension SidebarSearchIndex {
                 tags: tags,
                 destination: destination,
                 legalNotices: nil,
-                docCSite: nil
+                docCSite: nil,
+                index: nil
             )
         }
     }

@@ -2,7 +2,6 @@ import Foundation
 
 /// Constants used for resolving Apple-hosted and custom DocC resources.
 public enum DocCConstants {
-    /// Base URL for Apple Developer Documentation.
     // Encode as base64 to avoid App Review getting mad. It decodes to https://developer.apple.com
     public static let appleDeveloperBaseURLString = base64Decoded("aHR0cHM6Ly9kZXZlbG9wZXIuYXBwbGUuY29t")!
     /// Base URL for Apple Developer Documentation.

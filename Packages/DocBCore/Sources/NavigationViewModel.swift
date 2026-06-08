@@ -277,9 +277,6 @@ public class NavigationViewModel: @MainActor Equatable, DocCNavigator {
     /// Handles Documentation History Additions
     public func _addTechnologyToHistory() {
         guard let technology else {
-            if let technology {
-                appendPath(.technology(technology))
-            }
             if self.technology == nil && self.reference == nil && self.bookmarkCollection == nil && history.last?.isHomepage == false {
                 history.append(.init(technology: nil, reference: nil, bookmarkCollection: nil, isBookmarkCollection: false, isAllBookmarkCollections: false, isHomepage: true))
                 goForward()

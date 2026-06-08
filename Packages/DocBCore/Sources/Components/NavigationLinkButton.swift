@@ -26,13 +26,13 @@ public struct HomepageNavigationLinkButton<Content: View>: View {
     
     /// Renders the homepage navigation control.
     public var body: some View {
-        MacOSAgnosticButton(action: {
+        MacOSAgnosticButton {
             navigationViewModel.setReference(nil)
             navigationViewModel.setTechnology(nil)
             navigationViewModel.removeLastPath(navigationViewModel.path.count)
             
             navigationViewModel.appendPath(.homepage)
-        }) {
+        } label: {
             label
         }
         .selectedLineBackground(isSelected: navigationViewModel.reference == nil && shouldShowBackground)
@@ -81,24 +81,29 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
     }
     
     /// Resolves and selects an Apple technology group for the current reference when possible.
-    private func _actionHandleTechnologies(_ technologies: AppleTechnologies) {
+    ///
+    /// - Returns: A boolean of if the site handled the group or not
+    private func _actionHandleTechnologies(_ technologies: AppleTechnologies) -> Bool {
         if let url = URL(string: reference.identifier),
            let moduleString = Array(url.pathComponents.dropFirst(2)).first,
            let groups = technologies.groups {
             let identifier = "\(url.scheme ?? "doc")://\(url.host() ?? "com.apple.Documentation")/documentation/\(moduleString)"
             
-            if let technologyGroup = groups.first(where: { $0.technologies.contains(where: { $0.destination.identifier == identifier }) }),
-               let technology = technologyGroup.technologies.first(where: { $0.destination.identifier == identifier }) {
+            if let technologyGroup = groups.first(where: { $0.technologies.contains(identifier: identifier) }),
+               let technology = technologyGroup.technologies.first(for: identifier) {
                 withAnimation(.snappy) {
                     navigationViewModel.setTechnology(technology)
                 }
-                return
+                return true
             }
         }
+        return false
     }
     
     /// Resolves and selects a custom DocC technology group for the current reference when possible.
-    private func _actionHandleSite(_ site: DocCSource) {
+    ///
+    /// - Returns: A boolean of if the site handled the group or not
+    private func _actionHandleSite(_ site: DocCSource) -> Bool {
         let groups: [DocCIndex.InterfaceLanguage] = site.index.interfaceLanguages.flatMap({ $0.value })
         if let url = URL(string: reference.identifier) {
             let identifier = url.path()
@@ -109,21 +114,22 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
                         navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
                         navigationViewModel.setTechnology(site.frameworkSection(for: group), noHistory: isBookmarkNavigator)
                     }
-                    return
+                    return true
                 }
                 
                 switch alwaysShowClosestTechnologyGroup {
                 case true :
-                    __handleAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
+                    return __handleAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
                 case false:
-                    __handleDontAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
+                    return __handleDontAlwaysShowClosestTechnologyGroup(for: group, identifier: identifier, site: site)
                 }
             }
         }
+        return false
     }
     
     /// Handles direct child group matching for custom DocC technologies.
-    private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) {
+    private func __handleDontAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) -> Bool {
         let technologyGroup = group.children?.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
@@ -135,12 +141,16 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
             withAnimation(.snappy) {
                 navigationViewModel.setTechnology(site.frameworkSection(for: technology))
             }
-            return
+            return true
         }
+        
+        return false
     }
     
     /// Handles closest descendant group matching for custom DocC technologies.
-    private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) {
+    ///
+    /// - Returns: A boolean of if the site handled the group or not
+    private func __handleAlwaysShowClosestTechnologyGroup(for group: DocCIndex.InterfaceLanguage, identifier: String, site: DocCSource) -> Bool {
         let technologyGroup = group.allChildren.first(where: {
             ($0.children ?? []).contains(where: { tech in
                 tech.path?.lowercased() == identifier.lowercased()
@@ -151,8 +161,9 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
             withAnimation(.snappy) {
                 navigationViewModel.setTechnology(site.frameworkSection(for: technologyGroup))
             }
-            return
+            return true
         }
+        return false
     }
     
     /// Executes navigation behavior for this reference, including external-link fallback.
@@ -175,14 +186,19 @@ public struct ReferenceNavigationLinkButton<Content: View>: View {
         for technology in documentationViewModel.technologies {
             switch technology {
             case .apple(let technologies):
-                _actionHandleTechnologies(technologies)
+                if _actionHandleTechnologies(technologies) {
+                    break
+                }
             case .docC(let site):
-                _actionHandleSite(site)
+                if _actionHandleSite(site) {
+                    break
+                }
             }
         }
         
         navigationViewModel.isNavigatingFromBookmarks = isBookmarkNavigator
         navigationViewModel.setReference(reference, forceHistory: isBookmarkNavigator)
+        print("")
     }
     
     /// Renders the reference navigation control.
@@ -254,7 +270,7 @@ public struct TechnologyNavigationLinkButton<Content: View>: View {
     /// Renders the technology navigation control.
     public var body: some View {
         Group {
-            MacOSAgnosticButton(action: {
+            MacOSAgnosticButton {
                 navigationViewModel.technologyHistoryUpdatingIsEnabled = true
                 
                 withAnimation(.snappy) {
@@ -265,7 +281,7 @@ public struct TechnologyNavigationLinkButton<Content: View>: View {
                     let reference = technology.frameworkReference
                     navigationViewModel.setReference(reference)
                 }
-            }) {
+            } label: {
                 label
             }
             .selectedLineBackground(isSelected: isSelected)
@@ -294,12 +310,12 @@ public struct BookmarkCollectionNavigationLink<Content: View>: View {
     
     /// Renders the bookmark collection navigation control.
     public var body: some View {
-        MacOSAgnosticButton(action: {
+        MacOSAgnosticButton {
             overrideAction {
                 navigationViewModel.isNavigatingFromBookmarks = true
                 navigationViewModel.setBookmarkCollection(collection)
             }
-        }) {
+        } label: {
             label
         }
     }

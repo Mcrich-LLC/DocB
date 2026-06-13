@@ -186,7 +186,6 @@ struct TechnologyRootView: View {
                 }
             } else {
                 ProgressView("Loading")
-                    .controlSize(.small)
             }
         }
         .opacity(isLoading ? 0 : 1)
@@ -473,30 +472,32 @@ private struct FrameworkListItem: View {
     }
     
     var body: some View {
-        if hasSubParts && !willHideDisclosureGroups {
-            FrameworkDisclosureGroup(identifier: reference.identifier, title: title, reference: reference)
-        } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = reference.externalURL {
-            MacOSAgnosticLink(destination: url) {
-                HStack {
-                    Label {
-                        HStack {
-                            Text(reference.title ?? "")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            Image(systemSymbol: .arrowUpRight)
-                                .imageScale(.small)
-                                .foregroundStyle(.accent)
+        Group {
+            if hasSubParts && !willHideDisclosureGroups {
+                FrameworkDisclosureGroup(identifier: reference.identifier, title: title, reference: reference)
+            } else if let urlString = reference.url, !urlString.hasPrefix("/documentation"), let url = reference.externalURL {
+                MacOSAgnosticLink(destination: url) {
+                    HStack {
+                        Label {
+                            HStack {
+                                Text(reference.title ?? "")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Image(systemSymbol: .arrowUpRight)
+                                    .imageScale(.small)
+                                    .foregroundStyle(.accent)
+                            }
+                        } icon: {
+                            Image(systemSymbol: .link)
+                                .foregroundStyle(.secondary)
                         }
-                    } icon: {
-                        Image(systemSymbol: .link)
-                            .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                DefaultListItem(reference: reference, title: title, referenceContext: referenceContext)
+                    .showChevron(isShowingChevron)
             }
-        } else {
-            DefaultListItem(reference: reference, title: title, referenceContext: referenceContext)
-                .showChevron(isShowingChevron)
         }
     }
     

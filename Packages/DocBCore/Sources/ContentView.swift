@@ -575,46 +575,50 @@ private struct TechView: View {
     /// Search-result list for both DocC and Apple technologies.
     @ViewBuilder
     private func searchList(_ results: SidebarSearchResults) -> some View {
-        if sidebarSearchStore.isRebuildingIndex {
-            Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(sidebarSearchStore.indexBuildTitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    ProgressView(value: sidebarSearchStore.indexBuildProgress ?? 0)
+        Group {
+            if sidebarSearchStore.isRebuildingIndex {
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(sidebarSearchStore.indexBuildTitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        ProgressView(value: sidebarSearchStore.indexBuildProgress ?? 0)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
             }
         }
 
-        if results.isEmpty {
-            if sidebarSearchStore.isSearching {
-                Section {
-                    ProgressView("Searching")
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+        Group {
+            if results.isEmpty {
+                if sidebarSearchStore.isSearching {
+                    Section {
+                        ProgressView("Searching")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+                } else {
+                    ContentUnavailableView.search(text: searchText)
                 }
             } else {
-                ContentUnavailableView.search(text: searchText)
-            }
-        } else {
-            ForEach(results.sections) { section in
-                Section(section.title) {
-                    ForEach(section.rows) { row in
-                        SidebarSearchResultRowView(row: row)
+                ForEach(results.sections) { section in
+                    Section(section.title) {
+                        ForEach(section.rows) { row in
+                            SidebarSearchResultRowView(row: row)
+                        }
                     }
                 }
-            }
-            
-            if results.isTruncated {
-                Section {} footer: {
-                    Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) matches. Refine your search to narrow the results.")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.bottom)
+                
+                if results.isTruncated {
+                    Section {} footer: {
+                        Text("Showing the first \(SidebarSearchIndex.defaultResultLimit) matches. Refine your search to narrow the results.")
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.bottom)
+                    }
                 }
             }
         }
@@ -623,39 +627,41 @@ private struct TechView: View {
     /// Default technology listing grouped by custom and Apple sources.
     @ViewBuilder
     private func technologiesList(_ preparedData: PreparedTechnologyData) -> some View {
-        if !preparedData.docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !preparedData.visibleDocCSites.isEmpty {
-            Section {
-                ForEach(preparedData.simpleDocCSites) { technology in
-                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                        .contextMenu {
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                Task {
-                                    do {
-                                        try await documentationViewModel.deleteTechnology(.docC(technology))
-                                    } catch {
-                                        self.errorAlert = error
-                                    }
-                                }
-                            }
-                        }
-                }
-            }
-            ForEach(preparedData.groupedDocCSites) { technology in
+        Group {
+            if !preparedData.docCSites.isEmpty && !documentationViewModel.technologies.isEmpty, !preparedData.visibleDocCSites.isEmpty {
                 Section {
-                    DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
-                } header: {
-                    Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
-                        .contextMenu {
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                Task {
-                                    do {
-                                        try await documentationViewModel.deleteTechnology(.docC(technology))
-                                    } catch {
-                                        self.errorAlert = error
+                    ForEach(preparedData.simpleDocCSites) { technology in
+                        DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                            .contextMenu {
+                                Button("Delete", systemImage: "trash", role: .destructive) {
+                                    Task {
+                                        do {
+                                            try await documentationViewModel.deleteTechnology(.docC(technology))
+                                        } catch {
+                                            self.errorAlert = error
+                                        }
                                     }
                                 }
                             }
-                        }
+                    }
+                }
+                ForEach(preparedData.groupedDocCSites) { technology in
+                    Section {
+                        DocCTechView(technology: technology, isVisibleForSearch: isVisibleForSearch)
+                    } header: {
+                        Text(technology.overrideName ?? technology.groups.first?.title ?? "Unknown")
+                            .contextMenu {
+                                Button("Delete", systemImage: "trash", role: .destructive) {
+                                    Task {
+                                        do {
+                                            try await documentationViewModel.deleteTechnology(.docC(technology))
+                                        } catch {
+                                            self.errorAlert = error
+                                        }
+                                    }
+                                }
+                            }
+                    }
                 }
             }
         }
@@ -951,22 +957,23 @@ private struct AppleTechView: View {
     var internalBody: some View {
         let visibleGroups = visibleTechnologyGroups
         
-        if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
-            Section("Apple Documentation") {
-                HomepageNavigationLinkButton {
-                    HStack {
-                        Text("Discover")
-                        
-                        if !navigationViewModel.isUsingSplitView {
-                            Spacer()
-                            ChevronView()
+        Group {
+            if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
+                Section("Apple Documentation") {
+                    HomepageNavigationLinkButton {
+                        HStack {
+                            Text("Discover")
+                            
+                            if !navigationViewModel.isUsingSplitView {
+                                Spacer()
+                                ChevronView()
+                            }
                         }
                     }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-                .foregroundStyle(Color.primary)
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
                 .contextMenu {
                     Button("Delete", systemImage: "trash", role: .destructive) {
                         Task {
@@ -979,34 +986,37 @@ private struct AppleTechView: View {
                     }
                 }
             }
+        }
         
-        if !visibleGroups.isEmpty {
-            ForEach(visibleGroups) { group in
-                Section(group.name) {
-                    ForEach(group.frameworks) { framework in
-                        if framework.destination.isActive {
-                            Group {
-                                if framework.destination.identifier.lowercased().contains("/documentation") {
-                                    TechnologyNavigationLinkButton(technology: framework) {
-                                        ListItemLabel(framework: framework, references: technology.references)
-                                    }
-                                } else if let url = URL(string: framework.destination.identifier) {
-                                    MacOSAgnosticLink(destination: url) {
-                                        ListItemLabel(framework: framework, references: technology.references)
+        Group {
+            if !visibleGroups.isEmpty {
+                ForEach(visibleGroups) { group in
+                    Section(group.name) {
+                        ForEach(group.frameworks) { framework in
+                            if framework.destination.isActive {
+                                Group {
+                                    if framework.destination.identifier.lowercased().contains("/documentation") {
+                                        TechnologyNavigationLinkButton(technology: framework) {
+                                            ListItemLabel(framework: framework, references: technology.references)
+                                        }
+                                    } else if let url = URL(string: framework.destination.identifier) {
+                                        MacOSAgnosticLink(destination: url) {
+                                            ListItemLabel(framework: framework, references: technology.references)
+                                        }
                                     }
                                 }
+                                .foregroundStyle(Color.primary)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
-                            .foregroundStyle(Color.primary)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
                         }
                     }
                 }
-            }
-            Section {} footer: {
-                if let legalNotices = technology.legalNotices {
-                    DocCLegalNoticesView(legalNotices: legalNotices)
-                        .padding(.bottom)
+                Section {} footer: {
+                    if let legalNotices = technology.legalNotices {
+                        DocCLegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
                 }
             }
         }

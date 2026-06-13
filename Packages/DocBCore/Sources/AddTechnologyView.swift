@@ -74,6 +74,12 @@ public struct AddTechnologyView: View {
             baseURL: URL(string: "https://swiftpackageindex.com/RevenueCat/purchases-ios/main")!
         ),
         SuggestedTechnology(
+            title: "Firebase",
+            subtitle: "The Official Firebase SDK",
+            image: nil,
+            baseURL: URL(string: "https://swiftpackageindex.com/firebase/firebase-ios-sdk/main")!
+        ),
+        SuggestedTechnology(
             title: "Swift.org",
             subtitle: "All of the documentation from swift.org",
             image: nil,

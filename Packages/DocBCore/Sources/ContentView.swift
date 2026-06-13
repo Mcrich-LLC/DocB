@@ -957,22 +957,23 @@ private struct AppleTechView: View {
     var internalBody: some View {
         let visibleGroups = visibleTechnologyGroups
         
-        if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
-            Section("Apple Documentation") {
-                HomepageNavigationLinkButton {
-                    HStack {
-                        Text("Discover")
-                        
-                        if !navigationViewModel.isUsingSplitView {
-                            Spacer()
-                            ChevronView()
+        Group {
+            if searchText.isEmpty || "discover".contains(searchText.lowercased()) {
+                Section("Apple Documentation") {
+                    HomepageNavigationLinkButton {
+                        HStack {
+                            Text("Discover")
+                            
+                            if !navigationViewModel.isUsingSplitView {
+                                Spacer()
+                                ChevronView()
+                            }
                         }
                     }
+                    .foregroundStyle(Color.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-                .foregroundStyle(Color.primary)
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
                 .contextMenu {
                     Button("Delete", systemImage: "trash", role: .destructive) {
                         Task {
@@ -985,34 +986,37 @@ private struct AppleTechView: View {
                     }
                 }
             }
+        }
         
-        if !visibleGroups.isEmpty {
-            ForEach(visibleGroups) { group in
-                Section(group.name) {
-                    ForEach(group.frameworks) { framework in
-                        if framework.destination.isActive {
-                            Group {
-                                if framework.destination.identifier.lowercased().contains("/documentation") {
-                                    TechnologyNavigationLinkButton(technology: framework) {
-                                        ListItemLabel(framework: framework, references: technology.references)
-                                    }
-                                } else if let url = URL(string: framework.destination.identifier) {
-                                    MacOSAgnosticLink(destination: url) {
-                                        ListItemLabel(framework: framework, references: technology.references)
+        Group {
+            if !visibleGroups.isEmpty {
+                ForEach(visibleGroups) { group in
+                    Section(group.name) {
+                        ForEach(group.frameworks) { framework in
+                            if framework.destination.isActive {
+                                Group {
+                                    if framework.destination.identifier.lowercased().contains("/documentation") {
+                                        TechnologyNavigationLinkButton(technology: framework) {
+                                            ListItemLabel(framework: framework, references: technology.references)
+                                        }
+                                    } else if let url = URL(string: framework.destination.identifier) {
+                                        MacOSAgnosticLink(destination: url) {
+                                            ListItemLabel(framework: framework, references: technology.references)
+                                        }
                                     }
                                 }
+                                .foregroundStyle(Color.primary)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
-                            .foregroundStyle(Color.primary)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
                         }
                     }
                 }
-            }
-            Section {} footer: {
-                if let legalNotices = technology.legalNotices {
-                    DocCLegalNoticesView(legalNotices: legalNotices)
-                        .padding(.bottom)
+                Section {} footer: {
+                    if let legalNotices = technology.legalNotices {
+                        DocCLegalNoticesView(legalNotices: legalNotices)
+                            .padding(.bottom)
+                    }
                 }
             }
         }

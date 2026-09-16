@@ -73,17 +73,17 @@ public struct AddTechnologyView: View {
             image: nil,
             baseURL: URL(string: "https://swiftpackageindex.com/RevenueCat/purchases-ios/main")!
         ),
+//        SuggestedTechnology(
+//            title: "Firebase",
+//            subtitle: "The Official Firebase SDK",
+//            image: nil,
+//            baseURL: URL(string: "https://swiftpackageindex.com/firebase/firebase-ios-sdk/main")!
+//        ),
         SuggestedTechnology(
-            title: "Firebase",
-            subtitle: "The Official Firebase SDK",
+            title: "Swift Documentation",
+            subtitle: "The Official Swift documentation",
             image: nil,
-            baseURL: URL(string: "https://swiftpackageindex.com/firebase/firebase-ios-sdk/main")!
-        ),
-        SuggestedTechnology(
-            title: "Swift.org",
-            subtitle: "All of the documentation from swift.org",
-            image: nil,
-            baseURL: URL(string: "https://www.swift.org/")!
+            baseURL: URL(string: "https://docs.swift.org/")!
         ),
         SuggestedTechnology(
             title: "Swift-Testing",
@@ -101,7 +101,7 @@ public struct AddTechnologyView: View {
             title: "WWDC Notes",
             subtitle: "Session notes shared by the community for the community.",
             image: nil,
-            baseURL: URL(string: "https://wwdcnotes.com")!
+            baseURL: URL(string: "https://wwdcnotes.docb.app")!
         )
     ]
     

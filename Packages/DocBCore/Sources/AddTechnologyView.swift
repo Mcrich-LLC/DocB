@@ -83,7 +83,7 @@ public struct AddTechnologyView: View {
             title: "Swift Documentation",
             subtitle: "The Official Swift documentation",
             image: nil,
-            baseURL: URL(string: "https://docs.swift.org/")!
+            baseURL: URL(string: "https://docs.swift.org/latest")!
         ),
         SuggestedTechnology(
             title: "Swift-Testing",

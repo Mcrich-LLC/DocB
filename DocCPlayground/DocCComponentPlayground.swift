@@ -12,6 +12,11 @@ import UniformTypeIdentifiers
 /// All sample payloads live in this file.
 @MainActor
 struct DocCComponentPlayground: View {
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    /// Whether the controls are presented over the compact catalog layout.
+    @State private var showsControls = false
+    #endif
     /// The page or gallery currently being explored.
     @State private var page = PlaygroundPage.catalog
     /// The component family displayed in the catalog.
@@ -58,42 +63,86 @@ struct DocCComponentPlayground: View {
     }
 
     var body: some View {
+        navigation
+            .preferredColorScheme(appearance.colorScheme)
+            .environment(\.docCIsUsingSplitView, navigator.isUsingSplitView)
+            .environment(\.docCDeepLinkScheme, navigator.deepLinkScheme)
+            .environment(\.docCNavigateToReference, DocCReferenceNavigationAction { reference in
+                navigator.setReference(reference, forceHistory: false)
+            })
+            .environment(\.openURL, OpenURLAction { url in
+                navigator.lastAction = "Selected link: \(url.absoluteString)"
+                return .handled
+            })
+    }
+
+    @ViewBuilder
+    private var navigation: some View {
+        #if os(iOS)
+        if horizontalSizeClass == .compact {
+            NavigationStack {
+                detail
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Controls", systemImage: "slider.horizontal.3") {
+                                showsControls = true
+                            }
+                        }
+                    }
+            }
+            .sheet(isPresented: $showsControls) {
+                NavigationStack {
+                    controls
+                        .navigationTitle("Playground controls")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Done") { showsControls = false }
+                            }
+                        }
+                }
+            }
+        } else {
+            splitNavigation
+        }
+        #else
+        splitNavigation
+        #endif
+    }
+
+    private var splitNavigation: some View {
         NavigationSplitView {
             controls
                 .navigationTitle("DocC Playground")
                 .navigationSplitViewColumnWidth(min: 260, ideal: 290, max: 340)
         } detail: {
-            VStack(spacing: 0) {
-                switch samples {
-                case .success(let samples):
-                    GeometryReader { geometry in
-                        samplePage(samples)
-                            .frame(width: min(contentWidth, geometry.size.width), height: geometry.size.height)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                case .failure(let error):
-                    ContentUnavailableView("Couldn’t create samples", systemImage: "exclamationmark.triangle", description: Text(error.localizedDescription))
-                }
-                Divider()
-                Text(navigator.lastAction)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(10)
-            }
-            .navigationTitle(page.rawValue)
+            detail
         }
-        .preferredColorScheme(appearance.colorScheme)
-        .environment(\.docCIsUsingSplitView, navigator.isUsingSplitView)
-        .environment(\.docCDeepLinkScheme, navigator.deepLinkScheme)
-        .environment(\.docCNavigateToReference, DocCReferenceNavigationAction { reference in
-            navigator.setReference(reference, forceHistory: false)
-        })
-        .environment(\.openURL, OpenURLAction { url in
-            navigator.lastAction = "Selected link: \(url.absoluteString)"
-            return .handled
-        })
+    }
+
+    private var detail: some View {
+        VStack(spacing: 0) {
+            switch samples {
+            case .success(let samples):
+                GeometryReader { geometry in
+                    samplePage(samples)
+                        .frame(width: min(contentWidth, geometry.size.width), height: geometry.size.height)
+                        .clipped()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            case .failure(let error):
+                ContentUnavailableView("Couldn’t create samples", systemImage: "exclamationmark.triangle", description: Text(error.localizedDescription))
+            }
+            Divider()
+            Text(navigator.lastAction)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+        }
+        .navigationTitle(page.rawValue)
     }
 
     private var controls: some View {

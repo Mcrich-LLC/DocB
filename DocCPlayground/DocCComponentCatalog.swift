@@ -72,7 +72,9 @@ struct DocCComponentCatalog: View {
                     ContentUnavailableView("Couldn’t create catalog", systemImage: "exclamationmark.triangle", description: Text(error.localizedDescription))
                 }
             }
-            .padding(24)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 24)
+            .padding(.horizontal)
         }
         .id(family)
     }

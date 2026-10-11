@@ -1,14 +1,16 @@
 import SwiftUI
 import DocCKit
 
-/// Hosts the local DocCKit component playground in a standalone macOS window.
+/// Hosts the local DocCKit component playground on Mac, iPhone, and iPad.
 @main
 struct DocCPlaygroundApp: App {
     var body: some Scene {
         WindowGroup("DocC Playground") {
             #if DEBUG
             DocCComponentPlayground()
+                #if os(macOS)
                 .frame(minWidth: 820, minHeight: 600)
+                #endif
             #else
             ContentUnavailableView(
                 "Use the Debug configuration",
@@ -17,6 +19,8 @@ struct DocCPlaygroundApp: App {
             )
             #endif
         }
+        #if os(macOS)
         .defaultSize(width: 1150, height: 800)
+        #endif
     }
 }

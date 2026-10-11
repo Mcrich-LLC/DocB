@@ -1,0 +1,124 @@
+// Helpers for encoding `VariantCollection` values, accumulating trait-specific overrides
+// into the encoder's variant overrides collector as they're encountered.
+//
+// Copied from swift-docc `Sources/SwiftDocC/Model/Rendering/Variants/VariantCollection+Coding.swift`
+// at commit 871966648f3790c4496ae302abd4181828f9527a.
+// Trimmed: split into `KeyedEncodingContainer+VariantCollection.swift` (this file) and
+// `KeyedDecodingContainer+VariantCollection.swift`.
+//
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+
+extension KeyedEncodingContainer {
+    /// Encodes the given variant collection.
+    internal mutating func encodeVariantCollection<Value>(
+        _ variantCollection: VariantCollection<Value>,
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        try encode(variantCollection, forKey: key)
+    }
+
+    /// Encodes the given boolean variant collection if its value is true.
+    internal mutating func encodeVariantCollectionIfTrue(
+        _ variantCollection: VariantCollection<Bool>,
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        if variantCollection.defaultValue {
+            try encode(variantCollection.defaultValue, forKey: key)
+        }
+
+        variantCollection.addVariantsToEncoder(
+            encoder,
+
+            // Add the key to the encoder's coding path, since the coding path refers to the value's parent.
+            pointer: JSONPointer(from: encoder.codingPath + [key]),
+            isDefaultValueEncoded: variantCollection.defaultValue
+        )
+    }
+
+    /// Encodes the given variant collection for its non-empty values.
+    internal mutating func encodeVariantCollectionIfNotEmpty(
+        _ variantCollection: VariantCollection<some Collection>,
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        try encodeIfNotEmpty(variantCollection.defaultValue, forKey: key)
+
+        variantCollection.mapValues { value in
+            // Encode `nil` if the value is empty, so that when the patch is applied, it effectively
+            // removes the default value.
+            value.isEmpty ? nil : value
+        }.addVariantsToEncoder(
+            encoder,
+
+            // Add the key to the encoder's coding path, since the coding path refers to the value's parent.
+            pointer: JSONPointer(from: encoder.codingPath + [key]),
+            isDefaultValueEncoded: !variantCollection.defaultValue.isEmpty
+        )
+    }
+
+    /// Encodes the given variant collection.
+    internal mutating func encodeVariantCollectionIfNotEmpty(
+        _ variantCollection: VariantCollection<(some Collection)?>,
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        if let defaultValue = variantCollection.defaultValue {
+            try encodeIfNotEmpty(defaultValue, forKey: key)
+        }
+        variantCollection.addVariantsToEncoder(
+            encoder,
+
+            // Add the key to the encoder's coding path, since the coding path refers to the value's parent.
+            pointer: JSONPointer(from: encoder.codingPath + [key]),
+            isDefaultValueEncoded: variantCollection.defaultValue.map { !$0.isEmpty } ?? false
+        )
+    }
+
+    /// Encodes the given variant collection, writing the default value if it's non-nil.
+    ///
+    /// Use this API to encode a variant collection and accumulate variants into the given encoder.
+    ///
+    /// > Note: The default value is encoded only if it's non-nil.
+    internal mutating func encodeVariantCollection<Value>(
+        _ variantCollection: VariantCollection<Value?>,
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        try encodeIfPresent(variantCollection.defaultValue, forKey: key)
+
+        variantCollection.addVariantsToEncoder(
+            encoder,
+
+            // Add the key to the encoder's coding path, since the coding path refers to the value's parent.
+            pointer: JSONPointer(from: encoder.codingPath + [key]),
+            isDefaultValueEncoded: variantCollection.defaultValue != nil
+        )
+    }
+
+    /// Encodes the given variant collection array if it's non-empty.
+    internal mutating func encodeVariantCollectionArrayIfNotEmpty<Value>(
+        _ variantCollectionValues: [VariantCollection<Value?>],
+        forKey key: Key,
+        encoder: any Encoder
+    ) throws {
+        try encodeIfNotEmpty(variantCollectionValues.compactMap(\.defaultValue), forKey: key)
+
+        for (index, variantCollection) in variantCollectionValues.enumerated() {
+            variantCollection.addVariantsToEncoder(
+                encoder,
+
+                // Add the index to the encoder's coding path, since the coding path refers to the array.
+                pointer: JSONPointer(from: encoder.codingPath + [key, JSON.IntegerKey(index)]),
+                // Since `nil` default values are filtered out above, we need to know when to `add` instead of `replace` an item.
+                isDefaultValueEncoded: variantCollection.defaultValue != nil
+            )
+        }
+    }
+}

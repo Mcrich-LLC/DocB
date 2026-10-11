@@ -1,0 +1,88 @@
+// A Codable container that type-erases a RenderSection value, dispatching decode to the correct
+// concrete reference-documentation content section based on its `kind`.
+//
+// Copied from swift-docc `Sources/SwiftDocC/Model/Rendering/RenderNode/CodableContentSection.swift`
+// at commit 871966648f3790c4496ae302abd4181828f9527a.
+// Tolerant: unknown values are preserved instead of failing to decode.
+//
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+
+import Foundation
+
+/// A Codable container for reference pages sections.
+///
+/// This allows decoding a ``RenderSection`` into its appropriate concrete type, based on the section's
+/// ``RenderSection/kind``.
+public struct CodableContentSection: Codable, Equatable {
+    public var section: any RenderSection {
+        @storageRestrictions(initializes: typeErasedSection)
+        init(initialValue)  {
+            typeErasedSection = AnyRenderSection(initialValue)
+        }
+        get {
+            typeErasedSection.value
+        }
+        set {
+            typeErasedSection = AnyRenderSection(newValue)
+        }
+    }
+    private var typeErasedSection: AnyRenderSection
+
+    /// Creates a codable content section from the given section.
+    public init(_ section: any RenderSection) {
+        self.section = section
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(RenderSectionKind.self, forKey: .kind)
+
+        switch kind {
+            case .discussion:
+                section = try ContentRenderSection(from: decoder)
+            case .content:
+                section = try ContentRenderSection(from: decoder)
+            case .taskGroup:
+                section = try TaskGroupRenderSection(from: decoder)
+            case .relationships:
+                section = try RelationshipsRenderSection(from: decoder)
+            case .declarations:
+                section = try DeclarationsRenderSection(from: decoder)
+            case .parameters:
+                section = try ParametersRenderSection(from: decoder)
+            case .attributes:
+                section = try AttributesRenderSection(from: decoder)
+            case .properties:
+                section = try PropertiesRenderSection(from: decoder)
+            case .restParameters:
+                section = try RESTParametersRenderSection(from: decoder)
+            case .restEndpoint:
+                section = try RESTEndpointRenderSection(from: decoder)
+            case .restBody:
+                section = try RESTBodyRenderSection(from: decoder)
+            case .restResponses:
+                section = try RESTResponseRenderSection(from: decoder)
+            case .plistDetails:
+                section = try PropertyListDetailsRenderSection(from: decoder)
+            case .possibleValues:
+                section = try PossibleValuesRenderSection(from: decoder)
+            case .mentions:
+                section = try MentionsRenderSection(from: decoder)
+            default:
+                section = try UnknownRenderSection(from: decoder)
+        }
+    }
+
+    private enum CodingKeys: CodingKey {
+        case kind
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        try section.encode(to: encoder)
+    }
+}

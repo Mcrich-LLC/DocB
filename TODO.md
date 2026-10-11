@@ -1,0 +1,6 @@
+- AI skill for searching Apple documentation
+  - Polish up the CLI first
+- App Intents integration so Siri can pull up docs? idk
+- remove the library view
+- rendering parity
+- left arrow key should go to parent

@@ -1,0 +1,33 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@apple/highlightjs-pkl':
+        specifier: 1.0.1
+        version: 1.0.1
+      highlight.js:
+        specifier: 11.11.1
+        version: 11.11.1
+
+packages:
+
+  '@apple/highlightjs-pkl@1.0.1':
+    resolution: {integrity: sha512-AYoR/X1W5HlT9elhCjB6cQ6Zs0rvT14o4SJRw2M8lCBP6ceK9LgbHaMRxydikU2Xjmzt0XEYCPzS63+kar35xg==}
+
+  highlight.js@11.11.1:
+    resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
+    engines: {node: '>=12.0.0'}
+
+snapshots:
+
+  '@apple/highlightjs-pkl@1.0.1':
+    dependencies:
+      highlight.js: 11.11.1
+
+  highlight.js@11.11.1: {}

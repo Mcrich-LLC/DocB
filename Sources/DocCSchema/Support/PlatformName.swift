@@ -1,0 +1,156 @@
+// A supported platform's name, as it appears in availability and deprecation information in
+// render JSON.
+//
+// Copied from swift-docc `Sources/SwiftDocC/Semantics/Symbol/PlatformName.swift`
+// at commit 871966648f3790c4496ae302abd4181828f9527a.
+// Trimmed: the `init?(metadataPlatform:)` initializer (needs `Metadata.Availability.Platform`)
+// and `addingFallbacks(_:)` (needs `DefaultAvailability`) are removed, along with the
+// now-unused `import Foundation`.
+//
+// Copyright (c) 2021-2026 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+
+/// A supported platform's name representation.
+public struct PlatformName: Codable, Hashable, Comparable, Sendable {
+    public var rawValue: String
+
+    /// Compares platform names independently of any known aliases differences or possible incomplete display names.
+    public static func == (lhs: PlatformName, rhs: PlatformName) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
+
+    /// Hashes the entity using the raw value, consistent with the implementation of ``==``.
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
+    }
+
+    /// Compares two platform names using the order defined in ``sortedPlatforms``.
+    /// Unknown platforms are lexicographically sorted after known platforms.
+    public static func < (lhs: PlatformName, rhs: PlatformName) -> Bool {
+        areInIncreasingOrder(lhs.rawValue, rhs.rawValue)
+    }
+    
+    /// Creates a new platform name value.
+    /// - Parameters:
+    ///   - rawValue: The raw source string.
+    ///   - aliases: Any aliases for the platform.
+    ///   - displayName: An optional name for presentation purposes.
+    public init(rawValue: String, aliases: [String] = [], displayName: String? = nil) {
+        self.rawValue = rawValue
+        self.aliases = aliases
+        self.displayName = displayName ?? rawValue
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(displayName)
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let name = try container.decode(String.self)
+        self.init(operatingSystemName: name)
+    }
+    
+    /// Other known identifiers for the same platform (aka "macosx" for "macOS").
+    public var aliases: [String] = []
+    
+    /// The name to use in render JSON. If `nil` returns `rawValue`.
+    public var displayName: String
+    
+    /// Apple's macOS operating system.
+    public static let macOS = PlatformName(rawValue: "macOS", aliases: ["macosx"])
+    public static let macOSAppExtension = PlatformName(rawValue: "macOSAppExtension", displayName: "macOS App Extension")
+    /// Apple's iOS operating system.
+    public static let iOS = PlatformName(rawValue: "iOS")
+    public static let iOSAppExtension = PlatformName(rawValue: "iOSAppExtension", displayName: "iOS App Extension")
+    /// Apple's watchOS operating system.
+    public static let watchOS = PlatformName(rawValue: "watchOS")
+    public static let watchOSAppExtension = PlatformName(rawValue: "watchOSAppExtension", displayName: "watchOS App Extension")
+    /// Apple's tvOS operating system.
+    public static let tvOS = PlatformName(rawValue: "tvOS")
+    public static let tvOSAppExtension = PlatformName(rawValue: "tvOSAppExtension", displayName: "tvOS App Extension")
+    /// A Linux-based operating system, but not a specific distribution.
+    public static let linux = PlatformName(rawValue: "linux")
+    /// The Catalyst platform.
+    public static let catalyst = PlatformName(rawValue: "macCatalyst", displayName: "Mac Catalyst")
+    public static let catalystOSAppExtension = PlatformName(rawValue: "macCatalystAppExtension", displayName: "Mac Catalyst App Extension")
+    /// The Swift toolchain platform.
+    public static let swift = PlatformName(rawValue: "swift", displayName: "Swift")
+    /// The iPad platform.
+    public static let iPadOS = PlatformName(rawValue: "iPadOS")
+    /// Apple's visionOS operating system.
+    public static let visionOS = PlatformName(rawValue: "visionOS")
+    
+    /// All supported platforms sorted for presentation.
+    public static let sortedPlatforms: [PlatformName] = [
+        .iOS, .iOSAppExtension,
+        .iPadOS,
+        .catalyst, .catalystOSAppExtension,
+        .macOS, .macOSAppExtension,
+        .tvOS, .tvOSAppExtension,
+        .visionOS,
+        .watchOS, .watchOSAppExtension,
+        .swift
+    ]
+    
+    /// A common platform names fast lookup index.
+    ///
+    /// A static, lazily created platform name index for fast lookups by name.
+    private static let platformNamesIndex: [String: PlatformName] = {
+        var result = [String: PlatformName]()
+        for name in sortedPlatforms {
+            result[name.rawValue.lowercased()] = name
+            result[name.displayName.lowercased()] = name
+            for alias in name.aliases {
+                result[alias.lowercased()] = name
+            }
+        }
+        return result
+    }()
+
+    /// A static, lazily created index to lookup the priority of a platform name in the ordering heirarchy.
+    private static let platformOrderIndex: [String: Int] = {
+        var result = [String: Int]()
+        for (offset, name) in sortedPlatforms.enumerated() {
+            result[name.rawValue.lowercased()] = offset
+            result[name.displayName.lowercased()] = offset
+            for alias in name.aliases {
+                result[alias.lowercased()] = offset
+            }
+        }
+        return result
+    }()
+
+    /// Creates a new platform name with the given OS name.
+    /// - Parameter operatingSystemName: An OS name like 'linux'.
+    internal init(operatingSystemName: String) {
+        guard let knowDomain = Self.platformNamesIndex[operatingSystemName.lowercased()] else {
+            self.init(rawValue: operatingSystemName, aliases: [])
+            return
+        }
+        self = knowDomain
+    }
+
+    /// Compares two platform name strings using the order defined in ``sortedPlatforms``.
+    /// Unknown platforms are lexicographically sorted after known platforms.
+    internal static func areInIncreasingOrder(_ lhs: String, _ rhs: String) -> Bool {
+        let lhsIndex = platformOrderIndex[lhs.lowercased()] ?? Int.max
+        let rhsIndex = platformOrderIndex[rhs.lowercased()] ?? Int.max
+        if lhsIndex != rhsIndex { return lhsIndex < rhsIndex }
+        return lhs < rhs
+    }
+
+    /// An overload of ``areInIncreasingOrder(_:_:)-(String,String)`` that accepts optional values. Nil values are sorted first.
+    internal static func areInIncreasingOrder(_ lhs: String?, _ rhs: String?) -> Bool {
+        switch (lhs, rhs) {
+        case (_, nil): false
+        case (nil, _): true
+        case (let lhs?, let rhs?):  areInIncreasingOrder(lhs, rhs)
+        }
+    }
+}

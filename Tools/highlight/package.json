@@ -1,0 +1,1 @@
+{ "name": "docb-highlight", "private": true, "dependencies": { "highlight.js": "11.11.1", "@apple/highlightjs-pkl": "1.0.1" } }

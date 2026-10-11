@@ -44,6 +44,7 @@ struct DownloadButtonView: View {
             Link(title, destination: url)
                 .buttonStyle(.borderedProminent)
                 .buttonBorderShape(.capsule)
+                .disabled(!sampleCodeDownload.action.isActive)
         }
     }
 }

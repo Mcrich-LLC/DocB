@@ -1,0 +1,20 @@
+//
+//  General Config.xcconfig
+//  DocB
+//
+//  Created by Morris Richman on 4/1/26.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=xros*] = AccentColor_visionOS
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=xrsimulator*] = AccentColor_visionOS
+
+DEVELOPMENT_TEAM = L7JQRVXU2V
+BASE_BUNDLE_ID = com.Mcrich.Apple-Documentation
+CODE_SIGN_STYLE = Automatic
+
+// Create an `Local.xcconfig` if you need a different bundle id and/or development ID or to override any of the above settings.
+#include? "Local.xcconfig"

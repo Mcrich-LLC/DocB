@@ -1,4 +1,4 @@
 // Copy to Local.xcconfig (not committed) and fill in your identity.
 DEVELOPMENT_TEAM = ABCDE12345
-BUNDLE_ID = com.example.DocB
+BASE_BUNDLE_ID = com.example.DocB
 CODE_SIGN_STYLE = Automatic

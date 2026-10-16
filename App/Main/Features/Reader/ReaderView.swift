@@ -1,9 +1,3 @@
-// The reader window: sidebar and page in a split view, with back and forward in the toolbar.
-// Back and forward are menus with a primary action: a click steps once, press and hold lists
-// the history on that side to jump to. Their shortcuts live in the Go menu, so the jump
-// lists do not show them against every entry.
-// At home the page pane lists the sources too, so an empty library says what to do.
-
 import ComposableArchitecture
 import DocBRender
 import DocCSchema
@@ -40,15 +34,8 @@ struct ReaderView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 280)
             #endif
         } detail: {
-            Group {
-                switch store.page {
-                case .home:
-                    HomePage(sources: store.sources) { store.send(.sourcePicked($0)) }
-                default:
-                    PagePane(page: store.page, missingModule: store.missingModule) { reference in
-                        store.send(.linkTapped(reference))
-                    }
-                }
+            PagePane(page: store.page, missingModule: store.missingModule) { reference in
+                store.send(.linkTapped(reference))
             }
             #if !os(iOS)
             // The page never goes under 580; with the sidebar showing, the window will not go under
@@ -181,33 +168,6 @@ struct ReaderView: View {
             store.send(step)
         }
         .menuIndicator(.hidden)
-    }
-}
-
-private struct HomePage: View {
-    let sources: [SourceRecord]
-    let open: (Source) -> Void
-
-    var body: some View {
-        // An empty library says so in the sidebar; here it is just an empty grid.
-        ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 16)], spacing: 16) {
-                ForEach(sources, id: \.source) { record in
-                    Button { open(record.source) } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(record.source.title).font(.headline).lineLimit(1)
-                            Text(record.offline ? "\(record.fetchedPages) pages offline" : "\(record.fetchedPages) pages cached")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(24)
-        }
     }
 }
 

@@ -1,5 +1,5 @@
 {
-  "originHash" : "f070f8fc714ea8ea36fb4d80850d0a12a1c1f31e2e4cf2280e5b5ee2e5cd07c7",
+  "originHash" : "77a6a88404d1b6769a7ff74cf2e11a5fe8abd22c954638bee58793a80d8d5af8",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -101,6 +101,15 @@
       }
     },
     {
+      "identity" : "swift-issue-reporting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
+      "state" : {
+        "revision" : "b23bb4493c439d3e05152bc167014235ba3d47fc",
+        "version" : "2.1.2"
+      }
+    },
+    {
       "identity" : "swift-navigation",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-navigation",
@@ -132,17 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
-        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
-        "version" : "603.0.2"
-      }
-    },
-    {
-      "identity" : "xctest-dynamic-overlay",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
-      "state" : {
-        "revision" : "d9308ad679143c26a30dec52daefe82f54af2b82",
-        "version" : "1.13.1"
+        "revision" : "050f1a346fbbac0ca2cfb15a95274f7bd1cf0ccf",
+        "version" : "604.0.0"
       }
     }
   ],

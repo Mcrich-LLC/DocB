@@ -11,7 +11,7 @@ extension Library {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
         let candidateLimit = max(limit * 10, 200)
-        let rows: [Row] = try await writer.read { db in
+        return try await writer.read { db in
             var sql: String
             var arguments: StatementArguments
             if trimmed.count >= 3 {
@@ -38,35 +38,35 @@ extension Library {
             }
             sql += " LIMIT ?"
             arguments += [candidateLimit]
-            return try Row.fetchAll(db, sql: sql, arguments: arguments)
-        }
+            let rows = try Row.fetchAll(db, sql: sql, arguments: arguments)
 
-        let needle = trimmed.lowercased()
-        var seen: Set<String> = []
-        var scored: [(score: Int, hit: SearchHit)] = []
-        for row in rows {
-            let title: String = row["title"]
-            let path: String = row["path"]
-            let language: String = row["language"]
-            let type: String = row["type"]
-            let key = "\(row["sourceBase"] as String)|\(path)|\(language)"
-            guard seen.insert(key).inserted else { continue }
-            let lower = title.lowercased()
-            var score = 0
-            if lower == needle { score += 1000 }
-            else if lower.hasPrefix(needle) { score += 500 }
-            else if lower.split(separator: " ").contains(where: { $0.hasPrefix(needle) }) { score += 250 }
-            score -= min(title.count, 100)
-            guard let base = URL(string: row["sourceBase"]) else { continue }
-            let source = Source(
-                base: base,
-                kind: try JSONDecoder().decode(Source.Kind.self, from: Data((row["sourceKind"] as String).utf8)),
-                title: row["sourceTitle"],
-                languages: try JSONDecoder().decode([String].self, from: Data((row["sourceLanguages"] as String).utf8)),
-                tags: try JSONDecoder().decode([String].self, from: Data((row["sourceTags"] as String).utf8))
-            )
-            scored.append((score, SearchHit(source: source, location: PageLocation(base: base, path: path), title: title, type: type, language: language)))
+            let needle = trimmed.lowercased()
+            var seen: Set<String> = []
+            var scored: [(score: Int, hit: SearchHit)] = []
+            for row in rows {
+                let title: String = row["title"]
+                let path: String = row["path"]
+                let language: String = row["language"]
+                let type: String = row["type"]
+                let key = "\(row["sourceBase"] as String)|\(path)|\(language)"
+                guard seen.insert(key).inserted else { continue }
+                let lower = title.lowercased()
+                var score = 0
+                if lower == needle { score += 1000 }
+                else if lower.hasPrefix(needle) { score += 500 }
+                else if lower.split(separator: " ").contains(where: { $0.hasPrefix(needle) }) { score += 250 }
+                score -= min(title.count, 100)
+                guard let base = URL(string: row["sourceBase"]) else { continue }
+                let source = Source(
+                    base: base,
+                    kind: try JSONDecoder().decode(Source.Kind.self, from: Data((row["sourceKind"] as String).utf8)),
+                    title: row["sourceTitle"],
+                    languages: try JSONDecoder().decode([String].self, from: Data((row["sourceLanguages"] as String).utf8)),
+                    tags: try JSONDecoder().decode([String].self, from: Data((row["sourceTags"] as String).utf8))
+                )
+                scored.append((score, SearchHit(source: source, location: PageLocation(base: base, path: path), title: title, type: type, language: language)))
+            }
+            return scored.sorted { $0.score > $1.score }.prefix(limit).map(\.hit)
         }
-        return scored.sorted { $0.score > $1.score }.prefix(limit).map(\.hit)
     }
 }

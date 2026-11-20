@@ -342,8 +342,8 @@ private struct MainView: View {
         #endif
         .task {
             cloudSyncEngine.syncAll(docCSites: docCSites, collections: bookmarkCollections, bookmarks: bookmarks)
-            await cloudSyncEngine.start()
             await documentationViewModel.loadTechnologies(docCSiteSnapshots)
+            await cloudSyncEngine.start()
         }
         .onChange(of: docCSiteSnapshots, onSwiftDataChange)
         .onChange(of: documentationViewModel.isPreparingSearchSources, initial: true) { _, isPreparingSearchSources in

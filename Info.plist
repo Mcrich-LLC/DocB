@@ -38,6 +38,12 @@
 				<string>com.Mcrich.Apple-Documentation</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>docb</string>
+		</dict>
 	</array>
 	<key>CLOUDKIT_ID</key>
 	<string>$(CLOUDKIT_ID)</string>

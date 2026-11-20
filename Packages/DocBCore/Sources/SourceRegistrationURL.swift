@@ -25,6 +25,9 @@ enum SourceRegistrationURL {
         if !payload.contains("://") {
             payload = payload.removingPercentEncoding ?? payload
         }
+        if !payload.contains("://") {
+            payload = "https://\(payload)"
+        }
         guard let url = URL(string: payload) else { throw URLError(.badURL) }
         return url
     }

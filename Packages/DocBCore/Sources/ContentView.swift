@@ -122,6 +122,10 @@ public struct ContentView: View {
         .onOpenURL { url in
             navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
         }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            guard let url = activity.webpageURL else { return }
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+        }
     }
     
     #if os(iOS)
@@ -152,6 +156,11 @@ public struct ContentView: View {
     ///
     /// Links containing `videos`, `tutorials`, or `design` are intentionally opened in the system browser.
     var urlActionHandler: OpenURLAction { OpenURLAction { url in
+        if SourceRegistrationURL.matches(url) {
+            navigationViewModel.handleURL(url, documentationViewModel: documentationViewModel)
+            return .handled
+        }
+
         guard !url.absoluteString.contains("videos"),
               !url.absoluteString.contains("tutorials"),
               !url.absoluteString.contains("design")

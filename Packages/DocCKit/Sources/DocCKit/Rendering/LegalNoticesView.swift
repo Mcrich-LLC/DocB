@@ -3,14 +3,14 @@ import SwiftUI
 /// Displays legal notice text and links to privacy policy and terms of use.
 public struct DocCLegalNoticesView: View {
     private let legalNotices: LegalNotices
-    private let text: AttributedString?
+    /// The copyright text parsed after SwiftUI has constructed the view.
+    @State private var text: AttributedString?
     
     /// Creates a legal notices panel from parsed documentation metadata.
     ///
     /// - Parameter legalNotices: Legal notice URLs and copyright HTML to render.
     public init(legalNotices: LegalNotices) {
         self.legalNotices = legalNotices
-        self.text = Self.attributedString(for: legalNotices.copyright)
     }
     
     public var body: some View {
@@ -38,6 +38,10 @@ public struct DocCLegalNoticesView: View {
             .frame(maxWidth: .infinity)
         }
         .listRowBackground(Color.clear)
+        .task(id: legalNotices.copyright) {
+            // The HTML importer can run the main run loop on iOS. Keep it outside view construction.
+            text = Self.attributedString(for: legalNotices.copyright)
+        }
     }
     
     private static func attributedString(for html: String) -> AttributedString? {

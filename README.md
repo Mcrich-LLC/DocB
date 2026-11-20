@@ -46,6 +46,16 @@ You can add sources from the Add Sources UI. Some sources are already listed as 
 
 You can also paste in a custom DocC URL, as long as the site exposes a normal DocC index.
 
+To add a source from another app or website, open a registration deep link:
+
+```text
+docb://register/https://kean-docs.github.io/nuke
+```
+
+The `doc://`scheme also support this route. The source URL can be percent-encoded. Supply the DocC site's base URL, as you would in Add Sources.
+
+Universal Links use the same route, for example `https://docb.app/register/https://kean-docs.github.io/nuke`, when the domain association is configured.
+
 ## Search
 
 DocB has a shared search system that indexes the currently loaded documentation sources.

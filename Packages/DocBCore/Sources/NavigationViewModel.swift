@@ -595,10 +595,20 @@ extension NavigationViewModel {
         }
     }
     
-    /// Handles an inbound URL by resolving redirects and routing to framework/article destinations.
+    /// Handles source registration links, or resolves redirects and routes to framework/article destinations.
     ///
     /// - Important: `welcome` URLs are normalized through a redirect lookup before routing.
     public func handleURL(_ url: URL, documentationViewModel: DocumentationViewModel) async {        
+        if SourceRegistrationURL.matches(url) {
+            do {
+                let baseURL = try SourceRegistrationURL.sourceURL(from: url)
+                try await documentationViewModel.addTechnology(baseUrl: baseURL)
+            } catch {
+                print(error)
+            }
+            return
+        }
+
         let updatedUrl: URL
         if url.pathComponents.contains(where: { $0.lowercased() == "welcome" }) {
             do {

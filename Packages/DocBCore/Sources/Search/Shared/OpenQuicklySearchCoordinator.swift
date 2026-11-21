@@ -830,6 +830,7 @@ extension OpenQuicklySearchCoordinator {
         
         #if canImport(AppKit)
         NSApplication.shared.activate()
+        NSApplication.shared.arrangeInFront(nil)
         #endif
         
         switch row {
